@@ -201,62 +201,129 @@ function GeomanController() {
   return null;
 }
 
+const escapeHtml = (unsafe: string) => {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 export default function MapComponent() {
-  const [layersConfig, setLayersConfig] = useState<any[]>([]);
-  const [geoDataCache, setGeoDataCache] = useState<Record<string, any>>({});
+  const [capasConfig, setCapasConfig] = useState<any[]>([]);
+  const [cacheDatosGeo, setCacheDatosGeo] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [activeTab, setActiveTab] = useState<'layers' | 'info' | null>('layers');
 
   useEffect(() => {
-    const fetchLayers = async () => {
-      const res = await fetch('/api/layers');
-      const data = await res.json();
-      
-      if (!Array.isArray(data)) {
-        console.error('API did not return an array. Server error:', data);
+    const fetchCapas = async () => {
+      try {
+        const [resCapas, resRutas, _] = await Promise.all([
+          fetch('/api/capas'),
+          fetch('/api/rutas-transporte'),
+          new Promise(resolve => setTimeout(resolve, 2500)) // Espera artificial de 2.5s
+        ]);
+        
+        const dataCapas = await resCapas.json();
+        const dataRutas = await resRutas.json();
+        
+        const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
+        const validRutas = Array.isArray(dataRutas) ? dataRutas : [];
+
+        const formatedRutas = validRutas.map((r: any, index: number) => {
+          // Generar un color único usando el ángulo dorado para máxima distinción visual
+          const hue = (index * 137.5) % 360;
+          const colorUnico = `hsl(${hue}, 85%, 55%)`;
+
+          return {
+            id: r.id,
+            nombre: `Solicitudes - #${r.numeroSolicitud} (${r.nombreSolicitante}) - ${r.estado.toUpperCase()}`,
+            datosGeo: typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo,
+            color: colorUnico
+          };
+        });
+
+        const allData = [...validCapas, ...formatedRutas];
+
+        const config = allData.map((l: any) => ({
+          id: l.id,
+          nombre: l.nombre,
+          active: true,
+          color: l.color,
+        }));
+        setCapasConfig(config);
+
+        const cache: Record<string, any> = {};
+        allData.forEach((l: any) => {
+          let parsed = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+          
+          // Inject dbLayerId into all features so Geoman can trace them back
+          if (parsed?.features) {
+            parsed.features = parsed.features.map((f: any) => ({
+              ...f,
+              properties: { ...f.properties, dbLayerId: l.id }
+            }));
+          } else if (parsed?.type === 'Feature') {
+            parsed.properties = { ...parsed.properties, dbLayerId: l.id };
+          }
+          
+          cache[l.id] = parsed;
+        });
+        setCacheDatosGeo(cache);
+      } catch (error) {
+        console.error('Error cargando capas:', error);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const config = data.map((l: any) => ({
-        id: l.id,
-        name: l.name,
-        active: true,
-        color: l.color,
-      }));
-      setLayersConfig(config);
-
-      const cache: Record<string, any> = {};
-      data.forEach((l: any) => {
-        let parsed = typeof l.geoData === 'string' ? JSON.parse(l.geoData) : l.geoData;
-        
-        // Inject dbLayerId into all features so Geoman can trace them back
-        if (parsed?.features) {
-          parsed.features = parsed.features.map((f: any) => ({
-            ...f,
-            properties: { ...f.properties, dbLayerId: l.id }
-          }));
-        } else if (parsed?.type === 'Feature') {
-          parsed.properties = { ...parsed.properties, dbLayerId: l.id };
-        }
-        
-        cache[l.id] = parsed;
-      });
-      setGeoDataCache(cache);
-      setLoading(false);
     };
     
-    fetchLayers();
+    fetchCapas();
   }, []);
 
-  const toggleLayer = (id: string) => {
-    setLayersConfig(layersConfig.map(l => l.id === id ? { ...l, active: !l.active } : l));
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh', 
+        background: '#111', 
+        color: '#fff',
+        fontFamily: 'sans-serif',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999
+      }}>
+        <img 
+          src="/logo-lanus.png" 
+          alt="Logo Lanús" 
+          style={{ 
+            height: '100px', 
+            objectFit: 'contain',
+            animation: 'pulse-logo 2s infinite ease-in-out',
+            marginBottom: '20px'
+          }} 
+        />
+        <h2 style={{ letterSpacing: '1px', fontWeight: '500', color: '#ccc' }}>Cargando GIS Lanús...</h2>
+      </div>
+    );
+  }
+
+  const center: [number, number] = [-34.7042, -58.3961];
+
+  const alternarCapa = (id: string) => {
+    setCapasConfig(capasConfig.map(l => l.id === id ? { ...l, active: !l.active } : l));
   };
 
-  const isLayerActive = (id: string) => layersConfig.find(l => l.id === id)?.active;
+  const capaActiva = (id: string) => capasConfig.find(l => l.id === id)?.active;
 
-  if (loading) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
@@ -297,7 +364,7 @@ export default function MapComponent() {
 
       {/* Main Content Area */}
       <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
-        <Sidebar layers={layersConfig} toggleLayer={toggleLayer} activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar capas={capasConfig} alternarCapa={alternarCapa} activeTab={activeTab} setActiveTab={setActiveTab} />
         
         <div style={{ flex: 1, position: 'relative' }}>
           <MapContainer 
@@ -313,18 +380,18 @@ export default function MapComponent() {
         />
         <GeomanController />
 
-        {layersConfig.map(layer => {
-          if (!isLayerActive(layer.id) || !geoDataCache[layer.id]) return null;
+        {capasConfig.map(capa => {
+          if (!capaActiva(capa.id) || !cacheDatosGeo[capa.id]) return null;
           
           return (
             <GeoJSON 
-              key={layer.id}
-              data={geoDataCache[layer.id]} 
-              style={{ color: layer.color, weight: 5, opacity: 0.9 }}
+              key={capa.id}
+              data={cacheDatosGeo[capa.id]} 
+              style={{ color: capa.color, weight: 5, opacity: 0.9 }}
               pointToLayer={(feature, latlng) => {
                 return L.circleMarker(latlng, {
                   radius: 8,
-                  fillColor: layer.color,
+                  fillColor: capa.color,
                   color: '#fff',
                   weight: 2,
                   opacity: 1,
@@ -332,9 +399,13 @@ export default function MapComponent() {
                 });
               }}
               onEachFeature={(feature, l) => {
-                const name = feature.properties?.name || layer.name;
-                const desc = feature.properties?.description || feature.properties?.status || '';
-                l.bindPopup(`<b>${name}</b><br/>${desc}`);
+                const rawName = feature.properties?.nombre || feature.properties?.name || capa.nombre;
+                const rawDesc = feature.properties?.descripcion || feature.properties?.description || feature.properties?.estado || feature.properties?.status || '';
+                
+                const safeName = escapeHtml(String(rawName));
+                const safeDesc = escapeHtml(String(rawDesc));
+                
+                l.bindPopup(`<b>${safeName}</b><br/>${safeDesc}`);
               }}
             />
           );

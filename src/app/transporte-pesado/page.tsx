@@ -16,37 +16,37 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
 
 export default function TransportePesadoWizard() {
   const [step, setStep] = useState(1);
-  const [requestNumber, setRequestNumber] = useState('');
-  const [applicantName, setApplicantName] = useState('');
-  const [geoData, setGeoData] = useState<any>(null);
-  const [streets, setStreets] = useState<string[]>([]);
+  const [numeroSolicitud, setNumeroSolicitud] = useState('');
+  const [nombreSolicitante, setNombreSolicitante] = useState('');
+  const [datosGeo, setDatosGeo] = useState<any>(null);
+  const [calles, setCalles] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleNextStep1 = (e: React.FormEvent) => {
     e.preventDefault();
-    if (requestNumber.trim() && applicantName.trim()) {
+    if (numeroSolicitud.trim() && nombreSolicitante.trim()) {
       setStep(2);
     }
   };
 
   const handleMapComplete = (data: any, detectedStreets: string[]) => {
-    setGeoData(data);
-    setStreets(detectedStreets);
+    setDatosGeo(data);
+    setCalles(detectedStreets);
     setStep(3);
   };
 
   const handleSubmitFinal = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/transport-routes', {
+      const response = await fetch('/api/rutas-transporte', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          requestNumber,
-          applicantName,
-          geoData: JSON.stringify(geoData),
-          streets: streets.join(', ')
+          numeroSolicitud,
+          nombreSolicitante,
+          datosGeo: JSON.stringify(datosGeo),
+          calles: calles.join(', ')
         })
       });
 
@@ -66,7 +66,7 @@ export default function TransportePesadoWizard() {
           <CheckCircle size={64} color="#10B981" style={{ marginBottom: '20px' }} />
           <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Solicitud Registrada!</h2>
           <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            La traza de transporte pesado para la solicitud <strong>#{requestNumber}</strong> ha sido guardada correctamente. Nuestro equipo la verificará.
+            La traza de transporte pesado para la solicitud <strong>#{numeroSolicitud}</strong> ha sido guardada correctamente. Nuestro equipo la verificará.
           </p>
           <button onClick={() => window.location.reload()} style={btnStyle}>Registrar Otra Solicitud</button>
         </div>
@@ -110,8 +110,8 @@ export default function TransportePesadoWizard() {
               <input 
                 type="text" 
                 required 
-                value={requestNumber} 
-                onChange={e => setRequestNumber(e.target.value)} 
+                value={numeroSolicitud} 
+                onChange={e => setNumeroSolicitud(e.target.value)} 
                 placeholder="Ej: EXP-2026-12345"
                 style={inputStyle}
               />
@@ -122,8 +122,8 @@ export default function TransportePesadoWizard() {
               <input 
                 type="text" 
                 required 
-                value={applicantName} 
-                onChange={e => setApplicantName(e.target.value)} 
+                value={nombreSolicitante} 
+                onChange={e => setNombreSolicitante(e.target.value)} 
                 placeholder="Ingrese el nombre legal..."
                 style={inputStyle}
               />
@@ -155,15 +155,15 @@ export default function TransportePesadoWizard() {
             </div>
 
             <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left', width: '100%' }}>
-              <StaticMapPreview geoData={geoData} />
+              <StaticMapPreview geoData={datosGeo} />
               
-              <p style={detailStyle}><strong>Solicitud:</strong> {requestNumber}</p>
-              <p style={detailStyle}><strong>Solicitante:</strong> {applicantName}</p>
+              <p style={detailStyle}><strong>Solicitud:</strong> {numeroSolicitud}</p>
+              <p style={detailStyle}><strong>Solicitante:</strong> {nombreSolicitante}</p>
               
               <div style={{ marginTop: '15px' }}>
                 <strong style={{ color: '#333', display: 'block', marginBottom: '8px' }}>Calles detectadas en la ruta:</strong>
                 <ul style={{ margin: 0, paddingLeft: '20px', color: '#555', fontSize: '14px', lineHeight: '1.5' }}>
-                  {streets.length > 0 ? streets.map((s, i) => (
+                  {calles.length > 0 ? calles.map((s, i) => (
                     <li key={i}>{s}</li>
                   )) : <li>Ruta sin calles identificadas</li>}
                 </ul>

@@ -3,50 +3,50 @@ import React, { useState, useMemo } from 'react';
 import { Menu, Layers, Info } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
-interface Layer {
+interface Capa {
   id: string;
-  name: string;
+  nombre: string;
   active: boolean;
   color: string;
 }
 
 interface SidebarProps {
-  layers: Layer[];
-  toggleLayer: (id: string) => void;
+  capas: Capa[];
+  alternarCapa: (id: string) => void;
   activeTab: 'layers' | 'info' | null;
   setActiveTab: (tab: 'layers' | 'info' | null) => void;
 }
 
-export default function Sidebar({ layers, toggleLayer, activeTab, setActiveTab }: SidebarProps) {
+export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-  // Group layers by base name
-  const groupedLayers = useMemo(() => {
-    const groups: Record<string, Layer[]> = {};
-    const general: Layer[] = [];
+  // Group capas by base name
+  const groupedCapas = useMemo(() => {
+    const groups: Record<string, Capa[]> = {};
+    const general: Capa[] = [];
 
-    layers.forEach(layer => {
-      if (layer.name.includes(' - ')) {
-        const parts = layer.name.split(' - ');
+    capas.forEach(capa => {
+      if (capa.nombre.includes(' - ')) {
+        const parts = capa.nombre.split(' - ');
         const baseName = parts[0];
         if (!groups[baseName]) groups[baseName] = [];
-        groups[baseName].push(layer);
+        groups[baseName].push(capa);
       } else {
-        general.push(layer);
+        general.push(capa);
       }
     });
 
     return { groups, general };
-  }, [layers]);
+  }, [capas]);
 
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
   };
 
   const handleGroupCheckbox = (groupName: string, active: boolean) => {
-    const group = groupedLayers.groups[groupName];
-    group.forEach(layer => {
-      if (layer.active !== active) toggleLayer(layer.id);
+    const group = groupedCapas.groups[groupName];
+    group.forEach(capa => {
+      if (capa.active !== active) alternarCapa(capa.id);
     });
   };
 
@@ -86,10 +86,10 @@ export default function Sidebar({ layers, toggleLayer, activeTab, setActiveTab }
             
             <div className={styles.layersList}>
               {/* Render Groups */}
-              {Object.entries(groupedLayers.groups).map(([groupName, groupLayers]) => {
+              {Object.entries(groupedCapas.groups).map(([groupName, groupCapas]) => {
                 const isExpanded = expandedGroups[groupName];
-                const allActive = groupLayers.every(l => l.active);
-                const someActive = groupLayers.some(l => l.active) && !allActive;
+                const allActive = groupCapas.every(l => l.active);
+                const someActive = groupCapas.some(l => l.active) && !allActive;
 
                 return (
                   <div key={groupName} className={styles.layerGroup}>
@@ -114,20 +114,20 @@ export default function Sidebar({ layers, toggleLayer, activeTab, setActiveTab }
 
                     {isExpanded && (
                       <div className={styles.groupItems}>
-                        {groupLayers.map(layer => {
-                          const parts = layer.name.split(' - ');
+                        {groupCapas.map(capa => {
+                          const parts = capa.nombre.split(' - ');
                           const subName = parts.slice(1).join(' - ');
                           return (
-                            <label key={layer.id} className={styles.layerToggle}>
+                            <label key={capa.id} className={styles.layerToggle}>
                               <input
                                 type="checkbox"
-                                checked={layer.active}
-                                onChange={() => toggleLayer(layer.id)}
+                                checked={capa.active}
+                                onChange={() => alternarCapa(capa.id)}
                               />
                               <span className={styles.layerName}>{subName}</span>
                               <span 
                                 className={styles.layerIcon} 
-                                style={{ backgroundColor: layer.color }}
+                                style={{ backgroundColor: capa.color }}
                               ></span>
                             </label>
                           );
@@ -139,27 +139,27 @@ export default function Sidebar({ layers, toggleLayer, activeTab, setActiveTab }
               })}
 
               {/* Render General Layers */}
-              {groupedLayers.general.length > 0 && (
+              {groupedCapas.general.length > 0 && (
                 <div className={styles.layerGroup} style={{ marginTop: '20px' }}>
                   <h4 style={{ margin: '0 0 10px 10px', color: '#888' }}>Otras Capas</h4>
-                  {groupedLayers.general.map(layer => (
-                    <label key={layer.id} className={styles.layerToggle}>
+                  {groupedCapas.general.map(capa => (
+                    <label key={capa.id} className={styles.layerToggle}>
                       <input
                         type="checkbox"
-                        checked={layer.active}
-                        onChange={() => toggleLayer(layer.id)}
+                        checked={capa.active}
+                        onChange={() => alternarCapa(capa.id)}
                       />
-                      <span className={styles.layerName}>{layer.name}</span>
+                      <span className={styles.layerName}>{capa.nombre}</span>
                       <span 
                         className={styles.layerIcon} 
-                        style={{ backgroundColor: layer.color }}
+                        style={{ backgroundColor: capa.color }}
                       ></span>
                     </label>
                   ))}
                 </div>
               )}
               
-              {layers.length === 0 && (
+              {capas.length === 0 && (
                 <p style={{ color: '#888', textAlign: 'center', marginTop: '20px' }}>No hay capas cargadas.</p>
               )}
             </div>
