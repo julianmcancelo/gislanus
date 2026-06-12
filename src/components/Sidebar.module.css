@@ -1,0 +1,149 @@
+.sidebarContainer {
+  display: flex;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none; /* Let clicks pass through where empty */
+}
+
+.navStrip {
+  width: 50px;
+  background-color: #4A4A4A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+  pointer-events: auto;
+  z-index: 2;
+}
+
+.navIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.navIcon:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.navIconActive {
+  background-color: rgba(255,255,255,0.2);
+  border-left: 3px solid #29B6F6;
+}
+
+.panel {
+  width: 0;
+  background-color: white;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.panelOpen {
+  width: 350px;
+}
+
+.panelContent {
+  width: 350px; /* Fixed width so content doesn't squash during animation */
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  color: #333;
+}
+
+.panelTitle {
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  color: #29B6F6;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.layersList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layerGroup {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  color: #666;
+  width: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.groupCheckbox {
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.groupName {
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.groupItems {
+  padding: 8px 0;
+  background: white;
+}
+
+.layerToggle {
+  display: flex;
+  align-items: center;
+  padding: 8px 15px 8px 45px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.layerToggle:hover {
+  background: #f0f0f0;
+}
+
+.layerName {
+  margin-left: 10px;
+  font-size: 0.9rem;
+  flex: 1;
+  color: #444;
+}
+
+.layerIcon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
