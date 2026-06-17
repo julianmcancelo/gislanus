@@ -7,14 +7,35 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+model Grupo {
+  id        String     @id @default(cuid())
+  nombre    String     @unique
+  color     String     @default("#10B981")
+  capas     Capa[]
+  subGrupos SubGrupo[]
+}
+
+model SubGrupo {
+  id        String   @id @default(cuid())
+  nombre    String
+  color     String   @default("#10B981")
+  grupoId   String
+  grupo     Grupo    @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  capas     Capa[]
+}
+
 model Capa {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   nombre        String
-  tipo          String   // "geojson", "kml", "maphub"
-  color         String   @default("#10B981")
-  datosGeo      String   // Guardando JSON string de los datos GeoJSON
-  creadoEn      DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+  tipo          String    // "geojson", "kml", "maphub"
+  color         String    @default("#10B981")
+  datosGeo      String    // Guardando JSON string de los datos GeoJSON
+  grupoId       String?
+  grupo         Grupo?    @relation(fields: [grupoId], references: [id])
+  subGrupoId    String?
+  subGrupo      SubGrupo? @relation(fields: [subGrupoId], references: [id], onDelete: SetNull)
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
 }
 
 model RutaTransporte {

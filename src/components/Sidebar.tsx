@@ -8,6 +8,8 @@ interface Capa {
   nombre: string;
   active: boolean;
   color: string;
+  grupo?: { nombre: string };
+  subGrupo?: { nombre: string };
 }
 
 interface SidebarProps {
@@ -17,37 +19,66 @@ interface SidebarProps {
   setActiveTab: (tab: 'layers' | 'info' | null) => void;
 }
 
-export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+type GroupedData = {
+  capasDirectas: Capa[];
+  subgrupos: Record<string, Capa[]>;
+};
 
-  // Group capas by base name
-  const groupedCapas = useMemo(() => {
-    const groups: Record<string, Capa[]> = {};
-    const general: Capa[] = [];
+export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
+  // Store expanded state using keys like 'GrupoName' or 'GrupoName|SubGrupoName'
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+
+  // Group capas logically
+  const { grupos, general } = useMemo(() => {
+    const groups: Record<string, GroupedData> = {};
+    const generalCapas: Capa[] = [];
 
     capas.forEach(capa => {
-      if (capa.nombre.includes(' - ')) {
-        const parts = capa.nombre.split(' - ');
-        const baseName = parts[0];
-        if (!groups[baseName]) groups[baseName] = [];
-        groups[baseName].push(capa);
+      if (capa.grupo && capa.grupo.nombre) {
+        const gName = capa.grupo.nombre;
+        if (!groups[gName]) {
+          groups[gName] = { capasDirectas: [], subgrupos: {} };
+        }
+        
+        if (capa.subGrupo && capa.subGrupo.nombre) {
+          const sgName = capa.subGrupo.nombre;
+          if (!groups[gName].subgrupos[sgName]) {
+            groups[gName].subgrupos[sgName] = [];
+          }
+          groups[gName].subgrupos[sgName].push(capa);
+        } else {
+          groups[gName].capasDirectas.push(capa);
+        }
       } else {
-        general.push(capa);
+        generalCapas.push(capa);
       }
     });
 
-    return { groups, general };
+    return { grupos: groups, general: generalCapas };
   }, [capas]);
 
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  const toggleNode = (nodeKey: string) => {
+    setExpandedNodes(prev => ({ ...prev, [nodeKey]: !prev[nodeKey] }));
   };
 
-  const handleGroupCheckbox = (groupName: string, active: boolean) => {
-    const group = groupedCapas.groups[groupName];
-    group.forEach(capa => {
+  const setLayerActive = (capasToToggle: Capa[], active: boolean) => {
+    capasToToggle.forEach(capa => {
       if (capa.active !== active) alternarCapa(capa.id);
     });
+  };
+
+  const handleGroupCheckbox = (gName: string, active: boolean) => {
+    const data = grupos[gName];
+    const allCapas = [
+      ...data.capasDirectas,
+      ...Object.values(data.subgrupos).flat()
+    ];
+    setLayerActive(allCapas, active);
+  };
+
+  const handleSubGroupCheckbox = (gName: string, sgName: string, active: boolean) => {
+    const data = grupos[gName].subgrupos[sgName];
+    setLayerActive(data, active);
   };
 
   return (
@@ -86,52 +117,113 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
             
             <div className={styles.layersList}>
               {/* Render Groups */}
-              {Object.entries(groupedCapas.groups).map(([groupName, groupCapas]) => {
-                const isExpanded = expandedGroups[groupName];
-                const allActive = groupCapas.every(l => l.active);
-                const someActive = groupCapas.some(l => l.active) && !allActive;
+              {Object.entries(grupos).map(([gName, gData]) => {
+                const isGroupExpanded = expandedNodes[gName];
+                
+                const allCapas = [...gData.capasDirectas, ...Object.values(gData.subgrupos).flat()];
+                const allActive = allCapas.every(l => l.active);
+                const someActive = allCapas.some(l => l.active) && !allActive;
 
                 return (
-                  <div key={groupName} className={styles.layerGroup}>
+                  <div key={gName} className={styles.layerGroup}>
                     <div className={styles.groupHeader}>
                       <button 
                         className={styles.expandBtn}
-                        onClick={() => toggleGroup(groupName)}
+                        onClick={() => toggleNode(gName)}
                       >
-                        {isExpanded ? '▼' : '▶'}
+                        {isGroupExpanded ? '▼' : '▶'}
                       </button>
                       <input 
                         type="checkbox" 
-                        checked={allActive}
+                        checked={allCapas.length > 0 && allActive}
                         ref={input => { if (input) input.indeterminate = someActive; }}
-                        onChange={(e) => handleGroupCheckbox(groupName, e.target.checked)}
+                        onChange={(e) => handleGroupCheckbox(gName, e.target.checked)}
                         className={styles.groupCheckbox}
                       />
-                      <span className={styles.groupName} onClick={() => toggleGroup(groupName)}>
-                        {groupName}
+                      <span className={styles.groupName} onClick={() => toggleNode(gName)}>
+                        {gName}
                       </span>
                     </div>
 
-                    {isExpanded && (
+                    {isGroupExpanded && (
                       <div className={styles.groupItems}>
-                        {groupCapas.map(capa => {
-                          const parts = capa.nombre.split(' - ');
-                          const subName = parts.slice(1).join(' - ');
+                        {/* Sub-groups */}
+                        {Object.entries(gData.subgrupos).map(([sgName, sgCapas]) => {
+                          const sgKey = `${gName}|${sgName}`;
+                          const isSgExpanded = expandedNodes[sgKey];
+                          const sgAllActive = sgCapas.every(l => l.active);
+                          const sgSomeActive = sgCapas.some(l => l.active) && !sgAllActive;
+
                           return (
-                            <label key={capa.id} className={styles.layerToggle}>
-                              <input
-                                type="checkbox"
-                                checked={capa.active}
-                                onChange={() => alternarCapa(capa.id)}
-                              />
-                              <span className={styles.layerName}>{subName}</span>
-                              <span 
-                                className={styles.layerIcon} 
-                                style={{ backgroundColor: capa.color }}
-                              ></span>
-                            </label>
+                            <div key={sgKey} className={styles.subLayerGroup} style={{ marginLeft: '10px', marginTop: '5px' }}>
+                              <div className={styles.groupHeader}>
+                                <button 
+                                  className={styles.expandBtn}
+                                  onClick={() => toggleNode(sgKey)}
+                                >
+                                  {isSgExpanded ? '▼' : '▶'}
+                                </button>
+                                <input 
+                                  type="checkbox" 
+                                  checked={sgCapas.length > 0 && sgAllActive}
+                                  ref={input => { if (input) input.indeterminate = sgSomeActive; }}
+                                  onChange={(e) => handleSubGroupCheckbox(gName, sgName, e.target.checked)}
+                                  className={styles.groupCheckbox}
+                                />
+                                <span className={styles.subGroupName} onClick={() => toggleNode(sgKey)} style={{ color: '#ccc', fontSize: '0.9rem', cursor: 'pointer' }}>
+                                  {sgName}
+                                </span>
+                              </div>
+
+                              {isSgExpanded && (
+                                <div className={styles.groupItems} style={{ paddingLeft: '20px' }}>
+                                  {sgCapas.map(capa => {
+                                    const parts = capa.nombre.split(' - ');
+                                    const subName = parts.slice(1).join(' - ') || capa.nombre;
+                                    return (
+                                      <label key={capa.id} className={styles.layerToggle}>
+                                        <input
+                                          type="checkbox"
+                                          checked={capa.active}
+                                          onChange={() => alternarCapa(capa.id)}
+                                        />
+                                        <span className={styles.layerName}>{subName}</span>
+                                        <span 
+                                          className={styles.layerIcon} 
+                                          style={{ backgroundColor: capa.color }}
+                                        ></span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
                           );
                         })}
+
+                        {/* Direct Capas in Group */}
+                        {gData.capasDirectas.length > 0 && (
+                          <div style={{ marginTop: '5px' }}>
+                            {gData.capasDirectas.map(capa => {
+                              const parts = capa.nombre.split(' - ');
+                              const subName = parts.slice(1).join(' - ') || capa.nombre;
+                              return (
+                                <label key={capa.id} className={styles.layerToggle}>
+                                  <input
+                                    type="checkbox"
+                                    checked={capa.active}
+                                    onChange={() => alternarCapa(capa.id)}
+                                  />
+                                  <span className={styles.layerName}>{subName}</span>
+                                  <span 
+                                    className={styles.layerIcon} 
+                                    style={{ backgroundColor: capa.color }}
+                                  ></span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -139,10 +231,10 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               })}
 
               {/* Render General Layers */}
-              {groupedCapas.general.length > 0 && (
+              {general.length > 0 && (
                 <div className={styles.layerGroup} style={{ marginTop: '20px' }}>
                   <h4 style={{ margin: '0 0 10px 10px', color: '#888' }}>Otras Capas</h4>
-                  {groupedCapas.general.map(capa => (
+                  {general.map(capa => (
                     <label key={capa.id} className={styles.layerToggle}>
                       <input
                         type="checkbox"

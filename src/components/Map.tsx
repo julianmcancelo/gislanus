@@ -217,10 +217,22 @@ export default function MapComponent() {
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [activeTab, setActiveTab] = useState<'layers' | 'info' | null>('layers');
+  const [baseLayer, setBaseLayer] = useState<any>(null);
 
   useEffect(() => {
     const fetchCapas = async () => {
       try {
+        // Fetch base layer
+        try {
+          const resBase = await fetch('/lanus-base.geojson');
+          if (resBase.ok) {
+            const baseGeo = await resBase.json();
+            setBaseLayer(baseGeo);
+          }
+        } catch (e) {
+          console.error("Error loading base layer:", e);
+        }
+
         const [resCapas, resRutas, _] = await Promise.all([
           fetch('/api/capas'),
           fetch('/api/rutas-transporte'),
@@ -253,6 +265,8 @@ export default function MapComponent() {
           nombre: l.nombre,
           active: true,
           color: l.color,
+          grupo: l.grupo,
+          subGrupo: l.subGrupo,
         }));
         setCapasConfig(config);
 
@@ -378,6 +392,7 @@ export default function MapComponent() {
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
+
         <GeomanController />
 
         {capasConfig.map(capa => {
@@ -410,6 +425,20 @@ export default function MapComponent() {
             />
           );
         })}
+
+        {/* Base Layer Limits (on top) */}
+        {baseLayer && (
+          <GeoJSON
+            data={baseLayer}
+            style={{
+              color: '#000000',
+              weight: 2.5,
+              dashArray: '5, 5',
+              fillOpacity: 0,
+            }}
+            interactive={false}
+          />
+        )}
       </MapContainer>
       {mapInstance && <CustomMapControls map={mapInstance} activeTab={activeTab} />}
         </div>

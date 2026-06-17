@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import L from 'leaflet';
@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-function WizardMapController({ onComplete, setProcessing }: any) {
+function WizardMapController({ onComplete, setProcessing, onLiveUpdate }: any) {
   const map = useMap();
 
   useEffect(() => {
@@ -53,6 +53,26 @@ function WizardMapController({ onComplete, setProcessing }: any) {
         return null;
       }
     };
+
+    let liveDetected: string[] = [];
+
+    const handleVertexAdded = async (e: any) => {
+      if (!onLiveUpdate) return;
+      const latlng = e.latlng;
+      const name = await getStreetName(latlng.lat, latlng.lng);
+      if (name) {
+        if (liveDetected.length === 0 || liveDetected[liveDetected.length - 1] !== name) {
+          liveDetected = [...liveDetected, name];
+          onLiveUpdate(liveDetected);
+        }
+      }
+    };
+
+    map.on('pm:drawstart', (e: any) => {
+      liveDetected = [];
+      if (onLiveUpdate) onLiveUpdate([]);
+      e.workingLayer.on('pm:vertexadded', handleVertexAdded);
+    });
 
     const getOsrmRoute = async (latlngs: any[]) => {
       try {
@@ -143,15 +163,24 @@ function WizardMapController({ onComplete, setProcessing }: any) {
 
     return () => {
       map.off('pm:create', onCreate);
+      map.off('pm:drawstart');
       map.pm.disableDraw();
     };
-  }, [map, onComplete, setProcessing]);
+  }, [map, onComplete, setProcessing, onLiveUpdate]);
 
   return null;
 }
 
-export default function WizardMap({ onComplete }: { onComplete: (data: any, streets: string[]) => void }) {
+export default function WizardMap({ onComplete, onLiveUpdate }: { onComplete: (data: any, streets: string[]) => void, onLiveUpdate?: (streets: string[]) => void }) {
   const [processing, setProcessing] = useState(false);
+  const [baseLayer, setBaseLayer] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/lanus-base.geojson')
+      .then(res => res.json())
+      .then(data => setBaseLayer(data))
+      .catch(e => console.error("Error loading base layer in wizard:", e));
+  }, []);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -169,10 +198,22 @@ export default function WizardMap({ onComplete }: { onComplete: (data: any, stre
         zoomControl={true}
       >
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
-        <WizardMapController onComplete={onComplete} setProcessing={setProcessing} />
+        <WizardMapController onComplete={onComplete} setProcessing={setProcessing} onLiveUpdate={onLiveUpdate} />
+        {baseLayer && (
+          <GeoJSON
+            data={baseLayer}
+            style={{
+              color: '#000000',
+              weight: 2.5,
+              dashArray: '5, 5',
+              fillOpacity: 0,
+            }}
+            interactive={false}
+          />
+        )}
       </MapContainer>
     </div>
   );

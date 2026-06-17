@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await prisma.capa.delete({
+    await prisma.grupo.delete({
       where: { id },
     });
     return NextResponse.json({ success: true });
@@ -20,15 +20,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const body = await req.json();
     
-    // Solo actualizamos los campos que nos manden
     const updateData: any = {};
     if (body.nombre) updateData.nombre = body.nombre;
     if (body.color) updateData.color = body.color;
-    if (body.grupoId !== undefined) updateData.grupoId = body.grupoId; // Can be null
-    if (body.subGrupoId !== undefined) updateData.subGrupoId = body.subGrupoId; // Can be null
-    if (body.geoData) updateData.datosGeo = typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData);
 
-    const updated = await prisma.capa.update({
+    const updated = await prisma.grupo.update({
       where: { id },
       data: updateData
     });

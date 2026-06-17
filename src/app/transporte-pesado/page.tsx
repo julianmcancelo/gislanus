@@ -20,8 +20,14 @@ export default function TransportePesadoWizard() {
   const [nombreSolicitante, setNombreSolicitante] = useState('');
   const [datosGeo, setDatosGeo] = useState<any>(null);
   const [calles, setCalles] = useState<string[]>([]);
+  const [liveStreets, setLiveStreets] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showRepetitions, setShowRepetitions] = useState(false);
+
+  const callesToDisplay = showRepetitions 
+    ? calles.map((s, i) => calles.indexOf(s) < i ? `${s} (Vuelve a pasar)` : s)
+    : Array.from(new Set(calles));
 
   const handleNextStep1 = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +149,18 @@ export default function TransportePesadoWizard() {
               <span style={{ color: '#666', fontSize: '13px' }}>(Haga clic en el mapa para trazar, doble clic para terminar)</span>
             </div>
             
-            <WizardMap onComplete={handleMapComplete} />
+            {liveStreets.length > 0 && (
+              <div style={{ position: 'absolute', top: 80, right: 20, zIndex: 1000, backgroundColor: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', maxWidth: '250px', maxHeight: '400px', overflowY: 'auto' }}>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>Calles Detectadas en Vivo:</h3>
+                <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#555' }}>
+                  {liveStreets.map((street, i) => (
+                    <li key={i} style={{ marginBottom: '4px' }}>{street}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <WizardMap onComplete={handleMapComplete} onLiveUpdate={setLiveStreets} />
           </div>
         )}
 
@@ -161,9 +178,21 @@ export default function TransportePesadoWizard() {
               <p style={detailStyle}><strong>Solicitante:</strong> {nombreSolicitante}</p>
               
               <div style={{ marginTop: '15px' }}>
-                <strong style={{ color: '#333', display: 'block', marginBottom: '8px' }}>Calles detectadas en la ruta:</strong>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <strong style={{ color: '#333' }}>Calles detectadas en la ruta:</strong>
+                  {calles.length !== new Set(calles).size && (
+                    <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#666' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={showRepetitions} 
+                        onChange={(e) => setShowRepetitions(e.target.checked)} 
+                      />
+                      Mostrar repetidas
+                    </label>
+                  )}
+                </div>
                 <ul style={{ margin: 0, paddingLeft: '20px', color: '#555', fontSize: '14px', lineHeight: '1.5' }}>
-                  {calles.length > 0 ? calles.map((s, i) => (
+                  {callesToDisplay.length > 0 ? callesToDisplay.map((s, i) => (
                     <li key={i}>{s}</li>
                   )) : <li>Ruta sin calles identificadas</li>}
                 </ul>
