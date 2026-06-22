@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY,
-});
+// OpenAI client will be instantiated lazily inside the route handler
 
 async function geocodeUSIG(address: string): Promise<[number, number] | null> {
   const query = encodeURIComponent(address);
@@ -73,6 +71,11 @@ export async function POST(req: Request) {
     }
 
     // Usar OpenAI para extraer la informacion
+    const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'Falta configurar la API Key de OpenAI en las variables de entorno' }, { status: 500 });
+    }
+    const openai = new OpenAI({ apiKey });
     const prompt = `
 Eres un asistente que extrae datos de solicitudes de tránsito pesado para la Municipalidad de Lanús.
 ASUME que TODAS las calles mencionadas pertenecen al partido de Lanús, Provincia de Buenos Aires, a menos que el texto diga explícitamente otro municipio o CABA.
