@@ -21,8 +21,8 @@ L.Icon.Default.mergeOptions({
 const center: [number, number] = [-34.7042, -58.3961];
 
 const controlBtnStyle = {
-  width: '32px',
-  height: '32px',
+  width: '28px',
+  height: '28px',
   border: 'none',
   background: 'transparent',
   cursor: 'pointer',
@@ -137,24 +137,24 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
       alignItems: 'flex-start'
     }} className="hide-on-print">
       {/* Zoom Group */}
-      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '10px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px', display: 'flex', flexDirection: 'column' }}>
         <button onClick={handleZoomIn} style={controlBtnStyle} title="Acercar">
-          <Plus size={18} color="white" />
+          <Plus size={16} color="white" />
         </button>
         <div style={dividerStyle} />
         <button onClick={handleHome} style={controlBtnStyle} title="Vista General">
-          <Home size={18} color="#29B6F6" />
+          <Home size={16} color="#29B6F6" />
         </button>
         <div style={dividerStyle} />
         <button onClick={handleZoomOut} style={controlBtnStyle} title="Alejar">
-          <Minus size={18} color="white" />
+          <Minus size={16} color="white" />
         </button>
       </div>
 
       {/* Fullscreen Group */}
-      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '10px' }}>
+      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px' }}>
         <button onClick={handleFullscreen} style={controlBtnStyle} title="Pantalla Completa">
-          <Maximize size={18} color="white" />
+          <Maximize size={16} color="white" />
         </button>
       </div>
 
@@ -180,9 +180,9 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
       </div>
 
       {/* Save Edits Group */}
-      <div style={{ backgroundColor: '#29B6F6', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '10px' }}>
-        <button onClick={handleSave} style={{...controlBtnStyle, width: '38px', height: '38px'}} title="Guardar Ediciones del Mapa">
-          <Save size={20} color="white" />
+      <div style={{ backgroundColor: '#29B6F6', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px' }}>
+        <button onClick={handleSave} style={{...controlBtnStyle, width: '34px', height: '34px'}} title="Guardar Ediciones del Mapa">
+          <Save size={18} color="white" />
         </button>
       </div>
     </div>
@@ -446,6 +446,19 @@ export default function MapComponent() {
         />
 
         <GeomanController />
+
+        {baseLayer && (
+          <GeoJSON 
+            data={baseLayer}
+            style={{
+              color: '#4A4A4A',
+              weight: 2,
+              fillOpacity: 0.05,
+              dashArray: '5, 5'
+            }}
+            interactive={false}
+          />
+        )}
 
         {capasConfig.map(capa => {
           if (!capaActiva(capa.id) || !cacheDatosGeo[capa.id]) return null;
