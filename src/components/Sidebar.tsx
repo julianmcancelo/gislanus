@@ -90,14 +90,14 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           onClick={() => setActiveTab(activeTab === null ? 'layers' : null)}
           title="Menú"
         >
-          <Menu size={22} />
+          <Menu size={20} />
         </div>
         <div 
           className={`${styles.navIcon} ${activeTab === 'layers' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab('layers')}
           title="Capas"
         >
-          <Layers size={22} />
+          <Layers size={20} />
         </div>
         <div style={{ flex: 1 }}></div>
         <div 
@@ -105,7 +105,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           onClick={() => setActiveTab('info')}
           title="Información"
         >
-          <Info size={22} />
+          <Info size={20} />
         </div>
       </div>
 
