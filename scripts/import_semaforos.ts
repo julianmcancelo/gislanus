@@ -38,7 +38,7 @@ async function geocode(address: string): Promise<[number, number] | null> {
         }
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error USIG geocodificando ${address}:`, error.message || error);
   }
 
@@ -53,7 +53,7 @@ async function geocode(address: string): Promise<[number, number] | null> {
     if (data && data.length > 0) {
       return [parseFloat(data[0].lon), parseFloat(data[0].lat)]; // Retornamos [lon, lat] para GeoJSON
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error Nominatim geocodificando ${address}:`, error.message || error);
   }
 

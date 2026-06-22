@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-function WizardMapController({ onComplete, setProcessing, onLiveUpdate }: any) {
+function WizardMapController({ onComplete, setProcessing, onLiveUpdate, suggestedRoute }: any) {
   const map = useMap();
 
   useEffect(() => {
@@ -171,7 +171,7 @@ function WizardMapController({ onComplete, setProcessing, onLiveUpdate }: any) {
   return null;
 }
 
-export default function WizardMap({ onComplete, onLiveUpdate }: { onComplete: (data: any, streets: string[]) => void, onLiveUpdate?: (streets: string[]) => void }) {
+export default function WizardMap({ onComplete, onLiveUpdate, suggestedRoute }: { onComplete: (data: any, streets: string[]) => void, onLiveUpdate?: (streets: string[]) => void, suggestedRoute?: any }) {
   const [processing, setProcessing] = useState(false);
   const [baseLayer, setBaseLayer] = useState<any>(null);
 
@@ -210,6 +210,18 @@ export default function WizardMap({ onComplete, onLiveUpdate }: { onComplete: (d
               weight: 2.5,
               dashArray: '5, 5',
               fillOpacity: 0,
+            }}
+            interactive={false}
+          />
+        )}
+        {suggestedRoute && (
+          <GeoJSON
+            data={suggestedRoute}
+            style={{
+              color: '#8B5CF6',
+              weight: 6,
+              dashArray: '10, 10',
+              opacity: 0.6,
             }}
             interactive={false}
           />

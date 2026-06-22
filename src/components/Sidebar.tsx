@@ -155,8 +155,8 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                           const sgSomeActive = sgCapas.some(l => l.active) && !sgAllActive;
 
                           return (
-                            <div key={sgKey} className={styles.subLayerGroup} style={{ marginLeft: '10px', marginTop: '5px' }}>
-                              <div className={styles.groupHeader}>
+                            <div key={sgKey} className={styles.subLayerGroup} style={{ borderLeft: '2px solid #29B6F6', marginLeft: '12px', marginTop: '5px', marginBottom: '5px' }}>
+                              <div className={styles.groupHeader} style={{ background: 'transparent', padding: '8px 12px', borderBottom: 'none' }}>
                                 <button 
                                   className={styles.expandBtn}
                                   onClick={() => toggleNode(sgKey)}
@@ -170,13 +170,13 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                                   onChange={(e) => handleSubGroupCheckbox(gName, sgName, e.target.checked)}
                                   className={styles.groupCheckbox}
                                 />
-                                <span className={styles.subGroupName} onClick={() => toggleNode(sgKey)} style={{ color: '#ccc', fontSize: '0.9rem', cursor: 'pointer' }}>
+                                <span className={styles.subGroupName} onClick={() => toggleNode(sgKey)} style={{ color: '#475569', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 600 }}>
                                   {sgName}
                                 </span>
                               </div>
 
                               {isSgExpanded && (
-                                <div className={styles.groupItems} style={{ paddingLeft: '20px' }}>
+                                <div className={styles.groupItems} style={{ paddingLeft: '15px', paddingTop: 0 }}>
                                   {sgCapas.map(capa => {
                                     const parts = capa.nombre.split(' - ');
                                     const subName = parts.slice(1).join(' - ') || capa.nombre;

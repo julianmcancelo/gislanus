@@ -3,6 +3,24 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const capa = await prisma.capa.findUnique({
+      where: { id },
+      select: { datosGeo: true }
+    });
+
+    if (!capa) {
+      return NextResponse.json({ error: 'Capa no encontrada' }, { status: 404 });
+    }
+
+    return NextResponse.json({ datosGeo: capa.datosGeo });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -19,20 +37,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const { id } = await params;
     const body = await req.json();
-    
-    // Solo actualizamos los campos que nos manden
-    const updateData: any = {};
-    if (body.nombre) updateData.nombre = body.nombre;
-    if (body.color) updateData.color = body.color;
-    if (body.grupoId !== undefined) updateData.grupoId = body.grupoId; // Can be null
-    if (body.subGrupoId !== undefined) updateData.subGrupoId = body.subGrupoId; // Can be null
-    if (body.geoData) updateData.datosGeo = typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData);
 
-    const updated = await prisma.capa.update({
+    const dataToUpdate: any = {};
+    if (body.nombre !== undefined) dataToUpdate.nombre = body.nombre;
+    if (body.color !== undefined) dataToUpdate.color = body.color;
+    if (body.icono !== undefined) dataToUpdate.icono = body.icono;
+    if (body.grupoId !== undefined) dataToUpdate.grupoId = body.grupoId;
+    if (body.subGrupoId !== undefined) dataToUpdate.subGrupoId = body.subGrupoId;
+    if (body.geoData) dataToUpdate.datosGeo = typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData);
+
+    const capaUpdate = await prisma.capa.update({
       where: { id },
-      data: updateData
+      data: dataToUpdate
     });
-    return NextResponse.json(updated);
+    return NextResponse.json(capaUpdate);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

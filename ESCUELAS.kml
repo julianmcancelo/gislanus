@@ -1,0 +1,1746 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>ESCUELAS</name>
+    <description/>
+    <Style id="icon-1726-0097A7-labelson">
+      <IconStyle>
+        <color>ffa79700</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-01579B-labelson">
+      <IconStyle>
+        <color>ff9b5701</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-0F9D58-labelson">
+      <IconStyle>
+        <color>ff589d0f</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-558B2F-labelson">
+      <IconStyle>
+        <color>ff2f8b55</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-673AB7-labelson">
+      <IconStyle>
+        <color>ffb73a67</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-795548-labelson">
+      <IconStyle>
+        <color>ff485579</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-A52714-labelson">
+      <IconStyle>
+        <color>ff1427a5</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-F57C00-labelson">
+      <IconStyle>
+        <color>ff007cf5</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="icon-1726-FF5252-labelson">
+      <IconStyle>
+        <color>ff5252ff</color>
+        <scale>1</scale>
+        <Icon>
+          <href>https://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Style id="poly-A52714-2000-23-normal">
+      <LineStyle>
+        <color>ff1427a5</color>
+        <width>2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>171427a5</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <Style id="poly-A52714-2000-23-highlight">
+      <LineStyle>
+        <color>ff1427a5</color>
+        <width>3</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>171427a5</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <StyleMap id="poly-A52714-2000-23">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-A52714-2000-23-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-A52714-2000-23-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Folder>
+      <name>JARDINES</name>
+      <Placemark>
+        <name>J 901</name>
+        <address>Paraguay 2119, Valentín Alsina</address>
+        <description>Paraguay 2119, Valentín Alsina</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 902</name>
+        <address>Sitio de Montevideo 1737, Lanús</address>
+        <description>Sitio de Montevideo 1737, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 903</name>
+        <address>Coronel Mendez 3446, Lanús</address>
+        <description>Coronel Mendez 3446, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 904</name>
+        <address>Ucrania 815, Lanús</address>
+        <description>Ucrania 815, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 905</name>
+        <address>José M. Moreno 32, Lanús</address>
+        <description>José M. Moreno 32, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 906</name>
+        <address>Alfredo Palacios 4094, Valentín Alsina</address>
+        <description>Alfredo Palacios 4094, Valentín Alsina</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 907</name>
+        <address>Enrique Fernandez 749, Lanús</address>
+        <description>Enrique Fernandez 749, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 908</name>
+        <address>Roma 2757, Lanús</address>
+        <description>Roma 2757, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 909</name>
+        <address>Rucci 958, Lanús</address>
+        <description>Rucci 958, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 910</name>
+        <address>Doctor Alfredo Palacios 711, Valentín Alsina</address>
+        <description>Doctor Alfredo Palacios 711, Valentín Alsina</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 911</name>
+        <address>Carlos Tejedor 1061, Lanús</address>
+        <description>Carlos Tejedor 1061, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 912</name>
+        <address>Terranova 345, Lanús</address>
+        <description>Terranova 345, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 913</name>
+        <address>Ferre 2180, Lanús</address>
+        <description>Ferre 2180, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 914</name>
+        <address>Mamberti 1271, Lanús</address>
+        <description>Mamberti 1271, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 915</name>
+        <address>Ministro Brin 2475, Lanús</address>
+        <description>Ministro Brin 2475, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 916</name>
+        <address>Tucuman 1196, Lanús Este</address>
+        <description>Tucuman 1196, Lanús Este</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 917</name>
+        <address>Centenario Uruguayo 2800, Lanús</address>
+        <description>Centenario Uruguayo 2800, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 918</name>
+        <address>Liniers 1548, Lanús Oeste</address>
+        <description>Liniers 1548, Lanús Oeste</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 919</name>
+        <address>Dr. Melo 5002, Lanús</address>
+        <description>Dr. Melo 5002, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 920</name>
+        <address>Donato Alvarez 3353, Lanús</address>
+        <description>Donato Alvarez 3353, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 921</name>
+        <address>San Vladimiro 5462, Lanús</address>
+        <description>San Vladimiro 5462, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 922</name>
+        <address>Bolaños 850, Lanús Este</address>
+        <description>Bolaños 850, Lanús Este</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 923</name>
+        <address>H.Yrigoyen 5005, Lanús</address>
+        <description>H.Yrigoyen 5005, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 924</name>
+        <address>1° de Mayo 4171, Lanús</address>
+        <description>1° de Mayo 4171, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 925</name>
+        <address>Maximo Paz 702, Lanús</address>
+        <description>Maximo Paz 702, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 926</name>
+        <address>Madero 1654, Valentín Alsina</address>
+        <description>Madero 1654, Valentín Alsina</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 927</name>
+        <address>Pedernera 1583, Lanús Este</address>
+        <description>Pedernera 1583, Lanús Este</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 928 </name>
+        <address>Coronel Maure 4562, Lanús</address>
+        <description>Coronel Maure 4562, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 929</name>
+        <address>Centenario Uruguayo 2469, Lanús</address>
+        <description>Centenario Uruguayo 2469, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 930</name>
+        <address>Eva Perón 3800, Lanús</address>
+        <description>Eva Perón 3800, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 931</name>
+        <address>Sayos 1270, Lanús</address>
+        <description>Sayos 1270, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 932</name>
+        <address>Gobernador Oliden 2849, Lanús</address>
+        <description>Gobernador Oliden 2849, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 933</name>
+        <address>Rivadavia 1874, Lanús</address>
+        <description>Rivadavia 1874, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 934</name>
+        <address>Fray Esquiu 2754, L. Este</address>
+        <description>Fray Esquiu 2754, L. Este</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 935</name>
+        <address>A. del Valle 1503, Lanús</address>
+        <description>A. del Valle 1503, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 936</name>
+        <address>Andrade 760, Lanús</address>
+        <description>Andrade 760, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 937</name>
+        <address>Rodriguez 1758, Monte Chingolo, Lanús</address>
+        <description>Rodriguez 1758, Monte Chingolo, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 938</name>
+        <address>Molinedo 1910, Lanús</address>
+        <description>Molinedo 1910, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 939</name>
+        <address>Potosi 2651, Lanús</address>
+        <description>Potosi 2651, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 940</name>
+        <address>José León Suarez 3970, Lanús</address>
+        <description>José León Suarez 3970, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 941</name>
+        <address>Perez Galdos 4201, Lanús</address>
+        <description>Perez Galdos 4201, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 942</name>
+        <address>De la Peña 2290, Monte Chingolo</address>
+        <description>De la Peña 2290, Monte Chingolo</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 943</name>
+        <address>Coronel Albariños 3800, Lanús</address>
+        <description>Coronel Albariños 3800, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 944</name>
+        <address>M. Hladnik 3949, Lanús</address>
+        <description>M. Hladnik 3949, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 945</name>
+        <address>Marco Avellaneda 1253, Lanús</address>
+        <description>Marco Avellaneda 1253, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>J 947</name>
+        <address>Pergamino y Bouchard, Lanús</address>
+        <description>Pergamino y Bouchard, Lanús</description>
+        <styleUrl>#icon-1726-FF5252-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>EPB</name>
+      <Placemark>
+        <name>EPB 1</name>
+        <address>Eva Perón 2412, Lanús</address>
+        <description>Eva Perón 2412, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 2</name>
+        <address>Rivadavia 151, Lanús</address>
+        <description>Rivadavia 151, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 3</name>
+        <address>Presidente Peron 3018, Lanús</address>
+        <description>Presidente Peron 3018, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 4</name>
+        <address>Ucrania 815, Lanús</address>
+        <description>Ucrania 815, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 5</name>
+        <address>Rivadavia 1847, Lanús</address>
+        <description>Rivadavia 1847, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 6</name>
+        <address>Ituzaingo 1762, Lanús</address>
+        <description>Ituzaingo 1762, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 7</name>
+        <address>Comandante Mamberti 1227, Lanús</address>
+        <description>Comandante Mamberti 1227, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 8</name>
+        <address>Bouchard 370, Lanús</address>
+        <description>Bouchard 370, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 9</name>
+        <address>H. Yrigoyen 5005, Lanús</address>
+        <description>H. Yrigoyen 5005, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 10</name>
+        <address>A. France 1660, Lanús</address>
+        <description>A. France 1660, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 11</name>
+        <address>A. del Valle 1503, Lanús</address>
+        <description>A. del Valle 1503, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 12</name>
+        <address>R. de Escalada 1408, Lanús</address>
+        <description>R. de Escalada 1408, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 13</name>
+        <address>Remedios de Escalada 4230, Lanús</address>
+        <description>Remedios de Escalada 4230, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 14</name>
+        <address>F. J. Lagos 2113, Lanús</address>
+        <description>F. J. Lagos 2113, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 15</name>
+        <address>Maximo Paz 702, Lanús</address>
+        <description>Maximo Paz 702, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 16</name>
+        <address>Dr. Melo 4453, Lanús</address>
+        <description>Dr. Melo 4453, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 17</name>
+        <address>M. Brin 3024, Lanús</address>
+        <description>M. Brin 3024, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 18</name>
+        <address>Gral. Madariaga 1960, Lanús</address>
+        <description>Gral. Madariaga 1960, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 19</name>
+        <address>C. Tejedor 1091, Lanús</address>
+        <description>C. Tejedor 1091, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 20</name>
+        <address>Rucci 958, Lanús</address>
+        <description>Rucci 958, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 21</name>
+        <address>Colombia 1153, Lanús</address>
+        <description>Colombia 1153, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 22 </name>
+        <address>General Rodriguez 1758, Monte Chingolo</address>
+        <description>General Rodriguez 1758, Monte Chingolo</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 23</name>
+        <address>Bolaños 820, Lanús</address>
+        <description>Bolaños 820, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 24</name>
+        <address>Suipacha 3098, Remedios Escalada</address>
+        <description>Suipacha 3098, Remedios Escalada</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 25</name>
+        <address>Gral Pico 2002, Lanús</address>
+        <description>Gral Pico 2002, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 26</name>
+        <address>Dean Funes 4436, Lanús</address>
+        <description>Dean Funes 4436, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 27</name>
+        <address>Ferre 2180, Lanús</address>
+        <description>Ferre 2180, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 28 </name>
+        <address>C. Gardel 1011, Lanús</address>
+        <description>C. Gardel 1011, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 29</name>
+        <address>Cnel. Ramos 64, Lanús</address>
+        <description>Cnel. Ramos 64, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 30</name>
+        <address>Aguapey 3864, Lanús</address>
+        <description>Aguapey 3864, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 31</name>
+        <address>Andrade 740, Lanús</address>
+        <description>Andrade 740, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 32</name>
+        <address><![CDATA[Pilcomayo & Warnes, Lanús]]></address>
+        <description><![CDATA[Pilcomayo & Warnes, Lanús]]></description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 33</name>
+        <address>De la Peña 2290, Monte Chingolo</address>
+        <description>De la Peña 2290, Monte Chingolo</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 34</name>
+        <address>Eva Perón 3800, Lanús</address>
+        <description>Eva Perón 3800, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 35</name>
+        <address>1° de Mayo 4171, Lanús</address>
+        <description>1° de Mayo 4171, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 36</name>
+        <address>Luján 2339, Lanús</address>
+        <description>Luján 2339, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 37</name>
+        <address>Kloosterman 1759, Lanús</address>
+        <description>Kloosterman 1759, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 38</name>
+        <address>Jean Jaures 1502, Lanús</address>
+        <description>Jean Jaures 1502, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 39  </name>
+        <address>Cazon 510, Lanús</address>
+        <description>Cazon 510, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 40 </name>
+        <address>Villegas 361, Lanús</address>
+        <description>Villegas 361, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 41</name>
+        <address>M.J Hladnik 3949, Lanús</address>
+        <description>M.J Hladnik 3949, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 42</name>
+        <address>Roma 2757, Lanús</address>
+        <description>Roma 2757, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 43</name>
+        <address>Don Orione 1251, Lanús</address>
+        <description>Don Orione 1251, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 44</name>
+        <address>M. Castro 644, Lanús</address>
+        <description>M. Castro 644, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 45</name>
+        <address>M. Avellaneda 1253, Lanús</address>
+        <description>M. Avellaneda 1253, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 46</name>
+        <address>Bouchard 4491, Lanús</address>
+        <description>Bouchard 4491, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 48</name>
+        <address>J. L. Suarez 3942, Lanús</address>
+        <description>J. L. Suarez 3942, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 49</name>
+        <address>Moreno 2608, Lanús</address>
+        <description>Moreno 2608, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 50</name>
+        <address>Posadas 319, Lanús</address>
+        <description>Posadas 319, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 52</name>
+        <address>Cnel. Pringles 4200, Lanús</address>
+        <description>Cnel. Pringles 4200, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 53</name>
+        <address><![CDATA[Centenario Uruguayo & Maure, Lanús]]></address>
+        <description><![CDATA[Centenario Uruguayo & Maure, Lanús]]></description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 54</name>
+        <address>S. Plaul 1832, Lanús</address>
+        <description>S. Plaul 1832, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 55</name>
+        <address>Presidente Derqui 1765, Lanús</address>
+        <description>Presidente Derqui 1765, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 56</name>
+        <address>1° de Mayo 3649, Lanús Oeste</address>
+        <description>1° de Mayo 3649, Lanús Oeste</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 57</name>
+        <address>Molinedo 1900, Lanús</address>
+        <description>Molinedo 1900, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 58</name>
+        <address>Pergamino y Bouchard, Lanús</address>
+        <description>Pergamino y Bouchard, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 59</name>
+        <address>Yatay 2850, Lanús</address>
+        <description>Yatay 2850, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 60</name>
+        <address>Molinedo 3200, Lanús</address>
+        <description>Molinedo 3200, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 62</name>
+        <address>B. de los Italianos 1100, Lanús</address>
+        <description>B. de los Italianos 1100, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 63</name>
+        <address>Yapeyu 1155, Lanús</address>
+        <description>Yapeyu 1155, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 64</name>
+        <address>Farrel 3334, Lanús</address>
+        <description>Farrel 3334, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 66 </name>
+        <address>Condarco 2332, Lanús</address>
+        <description>Condarco 2332, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 67</name>
+        <address>Madero 1650, Lanús</address>
+        <description>Madero 1650, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 69</name>
+        <address>M. Brin 2475, Lanús</address>
+        <description>M. Brin 2475, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 70</name>
+        <address>Coronel Murguiondo 2221, Lanús</address>
+        <description>Coronel Murguiondo 2221, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 72 </name>
+        <address>Potosi 2651, Lanús</address>
+        <description>Potosi 2651, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 74</name>
+        <address>Los Patos 4140, Lanús</address>
+        <description>Los Patos 4140, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EPB 77</name>
+        <address>Gral. Villegas 4551, Lanús</address>
+        <description>Gral. Villegas 4551, Lanús</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>Cnel. Murguiondo 3237</name>
+        <address>Instituto Mariano Moreno</address>
+        <description>Instituto Mariano Moreno</description>
+        <styleUrl>#icon-1726-0097A7-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>ESB</name>
+      <Placemark>
+        <name>ESB 2</name>
+        <address>Gral. Pico 2002, Lanús</address>
+        <description>Gral. Pico 2002, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 5</name>
+        <address>Molinedo 3200, Lanús</address>
+        <description>Molinedo 3200, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 7</name>
+        <address>M. Castro 730, Lanús</address>
+        <description>M. Castro 730, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 12</name>
+        <address>F. J. Lagos 2113, Lanús</address>
+        <description>F. J. Lagos 2113, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 14</name>
+        <address>C. Tejedor 1091, Lanús</address>
+        <description>C. Tejedor 1091, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 21</name>
+        <address>Molinedo 1900, Lanús</address>
+        <description>Molinedo 1900, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 24</name>
+        <address>Mtro. Brin 2475, Lanús</address>
+        <description>Mtro. Brin 2475, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 25</name>
+        <address>Gral. Villegas 4551, Lanús</address>
+        <description>Gral. Villegas 4551, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 26</name>
+        <address>Rivadavia 151, Lanús</address>
+        <description>Rivadavia 151, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 29</name>
+        <address>Bouchard 370, Lanús</address>
+        <description>Bouchard 370, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 30</name>
+        <address>A. France 1660, Lanús</address>
+        <description>A. France 1660, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 31</name>
+        <address>A. del Valle 1503, Lanús</address>
+        <description>A. del Valle 1503, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 52</name>
+        <address>R. de Escalada 1408, Lanús</address>
+        <description>R. de Escalada 1408, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 34</name>
+        <address>Dr. Melo 4453, Lanús</address>
+        <description>Dr. Melo 4453, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 37</name>
+        <address>Bolaños 820, Lanús</address>
+        <description>Bolaños 820, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 38</name>
+        <address>Roma 2757, Lanús</address>
+        <description>Roma 2757, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 41</name>
+        <address>C. Gardel 1011, Lanús</address>
+        <description>C. Gardel 1011, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 43</name>
+        <address>Andrade 740, Lanús</address>
+        <description>Andrade 740, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 44</name>
+        <address><![CDATA[Pilcomayo & Warnes, Lanús]]></address>
+        <description><![CDATA[Pilcomayo & Warnes, Lanús]]></description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 45</name>
+        <address>Eva Perón 3800, Lanús</address>
+        <description>Eva Perón 3800, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 47</name>
+        <address>Jean Jaures 1502, Lanús</address>
+        <description>Jean Jaures 1502, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 48</name>
+        <address>Villegas 361, Lanús</address>
+        <description>Villegas 361, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 51</name>
+        <address>Bouchard 4491, Lanús</address>
+        <description>Bouchard 4491, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 54</name>
+        <address>Cnel. Pringles 4200, Lanús</address>
+        <description>Cnel. Pringles 4200, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 56</name>
+        <address>Pte. Derqui 1665, Lanús</address>
+        <description>Pte. Derqui 1665, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 58</name>
+        <address>Yatay 2850, Lanús</address>
+        <description>Yatay 2850, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 60</name>
+        <address>Yapeyú 1155, Lanús</address>
+        <description>Yapeyú 1155, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 61</name>
+        <address>Farrel 3334, Lanús</address>
+        <description>Farrel 3334, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ESB 62</name>
+        <address>Potosi 2651, Lanús</address>
+        <description>Potosi 2651, Lanús</description>
+        <styleUrl>#icon-1726-673AB7-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>OTROS</name>
+      <Placemark>
+        <name>CFL 1</name>
+        <address>Resistencia 1525, Lanús</address>
+        <description>Resistencia 1525, Lanús</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CEF 160</name>
+        <address>Liniers 3225, Lanús</address>
+        <description>Liniers 3225, Lanús</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEEL 1</name>
+        <address>Resistencia 1525, Lanús</address>
+        <description>Resistencia 1525, Lanús</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ISFT 175</name>
+        <address>M. Brin 3024, Lanús</address>
+        <description>M. Brin 3024, Lanús</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>ISFD 11</name>
+        <address>Ituzaingó 1770, Lanús</address>
+        <description>Ituzaingó 1770, Lanús</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CEC 801</name>
+        <address>De la Peña 3257, Monte Chingolo</address>
+        <description>De la Peña 3257, Monte Chingolo</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CEC 802</name>
+        <address>J. L. Suarez 3988, Villa Caraza, Lanús Oeste</address>
+        <description>J. L. Suarez 3988, Villa Caraza, Lanús Oeste</description>
+        <styleUrl>#icon-1726-795548-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>CE</name>
+      <Placemark>
+        <name>CE 1</name>
+        <address>Warnes 3680, Lanús</address>
+        <description>Warnes 3680, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 2</name>
+        <address>Burelas 2065, Lanús</address>
+        <description>Burelas 2065, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 3</name>
+        <address>Otamendi 283, Lanús</address>
+        <description>Otamendi 283, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 4</name>
+        <address>Amancio Alcorta 97, Lanús</address>
+        <description>Amancio Alcorta 97, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 5</name>
+        <address>Bustamante 2615, Lanus Este</address>
+        <description>Bustamante 2615, Lanus Este</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 6</name>
+        <address>Pje. Burgos 697, Lanús</address>
+        <description>Pje. Burgos 697, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 7</name>
+        <address>Cnel. D´Elia 1369, Lanús</address>
+        <description>Cnel. D´Elia 1369, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 8</name>
+        <address>A. del Valle 3570, Lanús</address>
+        <description>A. del Valle 3570, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 9</name>
+        <address>Bueras 4860, Lanús</address>
+        <description>Bueras 4860, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 10</name>
+        <address>Murature 4136, Lanús</address>
+        <description>Murature 4136, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 11</name>
+        <address>Oncativo 713, Lanús</address>
+        <description>Oncativo 713, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 12</name>
+        <address>Resistencia 1524, Lanús</address>
+        <description>Resistencia 1524, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 13</name>
+        <address>Martinto 1073, Lanús</address>
+        <description>Martinto 1073, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 14</name>
+        <address>Ucrania 4020, Lanús</address>
+        <description>Ucrania 4020, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 15</name>
+        <address>Pje. Burgos y Guatemala, Lanús</address>
+        <description>Pje. Burgos y Guatemala, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 16</name>
+        <address>Domingo Purita 2278, Lanús</address>
+        <description>Domingo Purita 2278, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 17</name>
+        <address>V. Hugo y M. Weild, Lanús</address>
+        <description>V. Hugo y M. Weild, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>CE 18</name>
+        <address>Ugarte 3487, Lanús</address>
+        <description>Ugarte 3487, Lanús</description>
+        <styleUrl>#icon-1726-F57C00-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>EEE</name>
+      <Placemark>
+        <name>EEE 501</name>
+        <address>Juncal 1259, Lanús</address>
+        <description>Juncal 1259, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 502</name>
+        <address>Mamberti 1241, Lanús</address>
+        <description>Mamberti 1241, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 503</name>
+        <address>Tuyutí 3487, Lanús</address>
+        <description>Tuyutí 3487, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 504</name>
+        <address>Molinedo 1900, Lanús</address>
+        <description>Molinedo 1900, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 506</name>
+        <address>Av. Eva Perón 2438, Lanús Este</address>
+        <description>Av. Eva Perón 2438, Lanús Este</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 507</name>
+        <address>Tucuman 3750, Lanús</address>
+        <description>Tucuman 3750, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 508</name>
+        <address>Eva Perón 4761, Lanús</address>
+        <description>Eva Perón 4761, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEE 509</name>
+        <address>Arias 1951, Lanús</address>
+        <description>Arias 1951, Lanús</description>
+        <styleUrl>#icon-1726-A52714-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>EEM</name>
+      <Placemark>
+        <name>EEM 4</name>
+        <address>C. Casares 2020, Lanús</address>
+        <description>C. Casares 2020, Lanús</description>
+        <styleUrl>#icon-1726-0F9D58-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EEM 15</name>
+        <address>J. V. Gonzalez 2875, Lanús</address>
+        <description>J. V. Gonzalez 2875, Lanús</description>
+        <styleUrl>#icon-1726-0F9D58-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>EES</name>
+      <Placemark>
+        <name>EES 1</name>
+        <address>General Rucci 958, Lanús</address>
+        <description>General Rucci 958, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 2</name>
+        <address>Av. 9 de Julio 1788, Lanús</address>
+        <description>Av. 9 de Julio 1788, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 3</name>
+        <address>Ituzaingó 1769, Lanús</address>
+        <description>Ituzaingó 1769, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 5</name>
+        <address>Aguapey 3870, Lanús</address>
+        <description>Aguapey 3870, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 6 SEDE</name>
+        <address>Warnes 3493, Lanús</address>
+        <description>Warnes 3493, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 6 ANEXO</name>
+        <address>Coronel Murguiondo 2221, Lanús</address>
+        <description>Coronel Murguiondo 2221, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 7</name>
+        <address>Juncal 2436, Lanús</address>
+        <description>Juncal 2436, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 8</name>
+        <address>Gral.Arias 1855, Lanús</address>
+        <description>Gral.Arias 1855, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 9</name>
+        <address>Coronel Erezcano 3240, Lanús</address>
+        <description>Coronel Erezcano 3240, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 10</name>
+        <address>Av. Rosales 1132, Lanús</address>
+        <description>Av. Rosales 1132, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 11</name>
+        <address>Ituzaingó 4835, Lanús</address>
+        <description>Ituzaingó 4835, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 16 sede</name>
+        <address>Maximo Paz 702, Lanús</address>
+        <description>Maximo Paz 702, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES16 Anex.</name>
+        <address>Cnel. Ramos 64, Lanús</address>
+        <description>Cnel. Ramos 64, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 17</name>
+        <address>Barragan 4601, Lanús</address>
+        <description>Barragan 4601, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 18</name>
+        <address>Tagle 3868, Lanús</address>
+        <description>Tagle 3868, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 19</name>
+        <address>1° de Mayo 3649, Lanús</address>
+        <description>1° de Mayo 3649, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 20</name>
+        <address><![CDATA[Centenario Uruguayo & Maure, Lanús]]></address>
+        <description><![CDATA[Centenario Uruguayo & Maure, Lanús]]></description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 21</name>
+        <address>M.J Hladnik 3850, Lanús</address>
+        <description>M.J Hladnik 3850, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 22</name>
+        <address>Eva Perón 2421, Lanús</address>
+        <description>Eva Perón 2421, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 23</name>
+        <address>Rivadavia 1847, Lanús</address>
+        <description>Rivadavia 1847, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 24</name>
+        <address>Gral.Madariaga 1961, Lanús</address>
+        <description>Gral.Madariaga 1961, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 25</name>
+        <address>Gral. Hornos 3972, Lanús</address>
+        <description>Gral. Hornos 3972, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 26</name>
+        <address>Condarco 2332, Lanús</address>
+        <description>Condarco 2332, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 27</name>
+        <address>Don Orione 1251, Lanús</address>
+        <description>Don Orione 1251, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 28</name>
+        <address>Ituzaingo 1762, Lanús</address>
+        <description>Ituzaingo 1762, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 29</name>
+        <address>S. Plaul 1832, Lanús</address>
+        <description>S. Plaul 1832, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 30</name>
+        <address>Ucrania 841, Lanús</address>
+        <description>Ucrania 841, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 31</name>
+        <address>Pte. Raúl Alfonsín 1758, Lanús</address>
+        <description>Pte. Raúl Alfonsín 1758, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 32</name>
+        <address>Posadas 319, Lanús</address>
+        <description>Posadas 319, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 33</name>
+        <address>Remedios de Escalada 4230, Lanús</address>
+        <description>Remedios de Escalada 4230, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 33 Anex.</name>
+        <address>Eduardo Madero 1650, Lanús</address>
+        <description>Eduardo Madero 1650, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 34</name>
+        <address>J. L. Suarez 3942, Lanús</address>
+        <description>J. L. Suarez 3942, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 35</name>
+        <address>M. Brin 3024, Lanús</address>
+        <description>M. Brin 3024, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 36</name>
+        <address>B. de los Italianos 1100, Lanús</address>
+        <description>B. de los Italianos 1100, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 37</name>
+        <address>Cazon 510, Lanús</address>
+        <description>Cazon 510, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 38</name>
+        <address><![CDATA[Pilcomayo & Warnes, Lanús]]></address>
+        <description><![CDATA[Pilcomayo & Warnes, Lanús]]></description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 40</name>
+        <address>Bouchard 4491, Lanús</address>
+        <description>Bouchard 4491, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 41</name>
+        <address>C. Gardel 1011, Lanús</address>
+        <description>C. Gardel 1011, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 42 </name>
+        <address>Yapeyu 1155, Lanús</address>
+        <description>Yapeyu 1155, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 43</name>
+        <address>Andrade 740, Lanús</address>
+        <description>Andrade 740, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 49
+EX ESB 30</name>
+        <address>A. France 1660, Lanús</address>
+        <description>A. France 1660, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EES 39</name>
+        <address>Villegas 361, Lanús</address>
+        <description>Villegas 361, Lanús</description>
+        <styleUrl>#icon-1726-01579B-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>EET</name>
+      <Placemark>
+        <name>EET 1</name>
+        <address>Burelas 2230, Lanús</address>
+        <description>Burelas 2230, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 2</name>
+        <address>Pte.Peron 3018, Lanús</address>
+        <description>Pte.Peron 3018, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 3</name>
+        <address>Acevedo 2778, Lanús</address>
+        <description>Acevedo 2778, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 4</name>
+        <address>Moreno 2660, Lanús</address>
+        <description>Moreno 2660, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 5</name>
+        <address>Arias 1751, Lanús</address>
+        <description>Arias 1751, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 6</name>
+        <address>H.Yrigoyen 5982, Lanús</address>
+        <description>H.Yrigoyen 5982, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 7</name>
+        <address>Av. Rivadavia 145, Lanús</address>
+        <description>Av. Rivadavia 145, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 8</name>
+        <address>Jean Jaures 749, Lanús</address>
+        <description>Jean Jaures 749, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+      <Placemark>
+        <name>EET 9</name>
+        <address>29 de Septiembre 1760, Lanús</address>
+        <description>29 de Septiembre 1760, Lanús</description>
+        <styleUrl>#icon-1726-558B2F-labelson</styleUrl>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Lanús.kmz</name>
+      <Placemark>
+        <name>Lanús</name>
+        <description><![CDATA[descripción: descripción: <br>NAME_0: Argentina<br>NAME_1: Buenos Aires<br>NAME_2: Lanús<br>NAME_0: Argentina<br>NAME_1: Buenos Aires<br>NAME_2: Lanús]]></description>
+        <styleUrl>#poly-A52714-2000-23</styleUrl>
+        <ExtendedData>
+          <Data name="descripción">
+            <value>descripción: 
+NAME_0: Argentina
+NAME_1: Buenos Aires
+NAME_2: Lanús</value>
+          </Data>
+          <Data name="NAME_0">
+            <value>Argentina</value>
+          </Data>
+          <Data name="NAME_1">
+            <value>Buenos Aires</value>
+          </Data>
+          <Data name="NAME_2">
+            <value>Lanús</value>
+          </Data>
+        </ExtendedData>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <tessellate>1</tessellate>
+              <coordinates>
+                -58.3376154,-34.7244355,0
+                -58.3390574,-34.7231995,0
+                -58.3413045,-34.7212655,0
+                -58.3435914,-34.7193245,0
+                -58.3465025,-34.7168335,0
+                -58.3476244,-34.7158795,0
+                -58.3484744,-34.7151395,0
+                -58.3492454,-34.7144875,0
+                -58.3515265,-34.7125375,0
+                -58.3517365,-34.7123625,0
+                -58.3532274,-34.7110655,0
+                -58.3563525,-34.7083685,0
+                -58.3590104,-34.7060915,0
+                -58.3608525,-34.7045005,0
+                -58.3646825,-34.7012005,0
+                -58.3667765,-34.6994035,0
+                -58.3703355,-34.6963365,0
+                -58.3724415,-34.6944945,0
+                -58.3730785,-34.6939415,0
+                -58.3740975,-34.6930715,0
+                -58.3765305,-34.6909585,0
+                -58.3789506,-34.6885225,0
+                -58.3805525,-34.6897465,0
+                -58.3830046,-34.6881125,0
+                -58.3838806,-34.6874605,0
+                -58.3867795,-34.6852665,0
+                -58.3871915,-34.6849425,0
+                -58.3894506,-34.6831075,0
+                -58.3910595,-34.6818065,0
+                -58.3917165,-34.6811655,0
+                -58.3928716,-34.6800595,0
+                -58.3936616,-34.6792855,0
+                -58.3955155,-34.6774575,0
+                -58.3963435,-34.6766495,0
+                -58.3977506,-34.6752725,0
+                -58.3953625,-34.6732085,0
+                -58.3957255,-34.6729265,0
+                -58.3964385,-34.6723885,0
+                -58.3984496,-34.6708695,0
+                -58.3991896,-34.6703015,0
+                -58.4016415,-34.6684625,0
+                -58.4024016,-34.6678715,0
+                -58.4047966,-34.6660635,0
+                -58.4060465,-34.6651255,0
+                -58.4071346,-34.6643045,0
+                -58.4052766,-34.6626345,0
+                -58.4035876,-34.6609825,0
+                -58.4037596,-34.6609285,0
+                -58.4038766,-34.6609365,0
+                -58.4039846,-34.6609445,0
+                -58.4041026,-34.6609595,0
+                -58.4043166,-34.6609895,0
+                -58.4065545,-34.6613565,0
+                -58.4074666,-34.6614135,0
+                -58.4079966,-34.6614285,0
+                -58.4081296,-34.6614095,0
+                -58.4083476,-34.6613795,0
+                -58.4084616,-34.6613485,0
+                -58.4085796,-34.6613295,0
+                -58.4086946,-34.6612915,0
+                -58.4088046,-34.6612725,0
+                -58.4089046,-34.6612415,0
+                -58.4090186,-34.6612035,0
+                -58.4091296,-34.6611695,0
+                -58.4092396,-34.6611315,0
+                -58.4093426,-34.6610925,0
+                -58.4094456,-34.6610505,0
+                -58.4095456,-34.6610055,0
+                -58.4096596,-34.6609595,0
+                -58.4098086,-34.6608865,0
+                -58.4101976,-34.6606775,0
+                -58.4105366,-34.6604215,0
+                -58.4111126,-34.6601585,0
+                -58.4115745,-34.6599905,0
+                -58.4116966,-34.6599635,0
+                -58.4118076,-34.6599525,0
+                -58.4119296,-34.6599335,0
+                -58.4120286,-34.6599105,0
+                -58.4121586,-34.6599105,0
+                -58.4122806,-34.6598915,0
+                -58.4124976,-34.6598765,0
+                -58.4126196,-34.6598685,0
+                -58.4127306,-34.6598645,0
+                -58.4128486,-34.6598645,0
+                -58.4129666,-34.6598605,0
+                -58.4130886,-34.6598685,0
+                -58.4131956,-34.6598685,0
+                -58.4133256,-34.6598685,0
+                -58.4134366,-34.6598725,0
+                -58.4135656,-34.6598795,0
+                -58.4136726,-34.6598875,0
+                -58.4137906,-34.6598955,0
+                -58.4138976,-34.6599215,0
+                -58.4140156,-34.6599295,0
+                -58.4142406,-34.6599595,0
+                -58.4151526,-34.6601235,0
+                -58.4161136,-34.6604295,0
+                -58.4168316,-34.6604295,0
+                -58.4168656,-34.6606355,0
+                -58.4172396,-34.6607155,0
+                -58.4175176,-34.6607765,0
+                -58.4182696,-34.6608865,0
+                -58.4189596,-34.6610815,0
+                -58.4194026,-34.6612345,0
+                -58.4199786,-34.6613525,0
+                -58.4203446,-34.6615015,0
+                -58.4208706,-34.6616875,0
+                -58.4215887,-34.6619205,0
+                -58.4221716,-34.6622255,0
+                -58.4227896,-34.6625955,0
+                -58.4233546,-34.6630535,0
+                -58.4240826,-34.6635305,0
+                -58.4249296,-34.6640265,0
+                -58.4256166,-34.6646255,0
+                -58.4262227,-34.6651215,0
+                -58.4267307,-34.6655215,0
+                -58.4270927,-34.6659415,0
+                -58.4273526,-34.6663225,0
+                -58.4278086,-34.6668115,0
+                -58.4293806,-34.6686615,0
+                -58.4311547,-34.6707595,0
+                -58.4319707,-34.6717245,0
+                -58.4330506,-34.6730065,0
+                -58.4346296,-34.6748835,0
+                -58.4361897,-34.6767175,0
+                -58.4396536,-34.6808335,0
+                -58.4470267,-34.6895505,0
+                -58.4407907,-34.6978165,0
+                -58.4393746,-34.6996865,0
+                -58.4368877,-34.7029825,0
+                -58.4355756,-34.7047335,0
+                -58.4345956,-34.7060225,0
+                -58.4330346,-34.7080975,0
+                -58.4321467,-34.7092645,0
+                -58.4318607,-34.7096505,0
+                -58.4308457,-34.7109815,0
+                -58.4299066,-34.7122065,0
+                -58.4286706,-34.7138195,0
+                -58.4270727,-34.7159025,0
+                -58.4251856,-34.7183745,0
+                -58.4231786,-34.7209875,0
+                -58.4208446,-34.7240395,0
+                -58.4191506,-34.7262515,0
+                -58.4184446,-34.7271525,0
+                -58.4178386,-34.7279415,0
+                -58.4162816,-34.7299825,0
+                -58.4141156,-34.7328135,0
+                -58.4095836,-34.7336985,0
+                -58.4080806,-34.7339265,0
+                -58.4066005,-34.7341745,0
+                -58.4038506,-34.7346055,0
+                -58.4008565,-34.7350825,0
+                -58.3980296,-34.7355255,0
+                -58.3953555,-34.7359485,0
+                -58.3909795,-34.7366735,0
+                -58.3869325,-34.7373445,0
+                -58.3840266,-34.7381575,0
+                -58.3817645,-34.7383745,0
+                -58.3811005,-34.7389695,0
+                -58.3809555,-34.7390155,0
+                -58.3790406,-34.7405415,0
+                -58.3755465,-34.7430055,0
+                -58.3736586,-34.7419795,0
+                -58.3728075,-34.7415215,0
+                -58.3727165,-34.7414805,0
+                -58.3707245,-34.7430895,0
+                -58.3682335,-34.7450965,0
+                -58.3675285,-34.7456575,0
+                -58.3642395,-34.7439935,0
+                -58.3628705,-34.7432955,0
+                -58.3610045,-34.7423615,0
+                -58.3576605,-34.7406675,0
+                -58.3568785,-34.7402745,0
+                -58.3533764,-34.7402245,0
+                -58.3492914,-34.7401635,0
+                -58.3484744,-34.7401485,0
+                -58.3481734,-34.7398855,0
+                -58.3475214,-34.7394315,0
+                -58.3475824,-34.7393475,0
+                -58.3449535,-34.7369325,0
+                -58.3409365,-34.7332825,0
+                -58.3378174,-34.7304515,0
+                -58.3342854,-34.7272286,0
+                -58.3376154,-34.7244355,0
+              </coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

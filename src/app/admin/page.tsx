@@ -7,6 +7,16 @@ import styles from './Admin.module.css';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 
+const translatePropKey = (key: string) => {
+  const k = key.toLowerCase();
+  if (k === 'marker-color') return 'Color del Marcador (HEX)';
+  if (k === 'marker-symbol') return 'Icono / Símbolo';
+  if (k === 'title' || k === 'name' || k === 'nombre') return 'Título / Nombre';
+  if (k === 'description') return 'Descripción';
+  if (k === 'group') return 'ID de Grupo';
+  return key;
+};
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes'
   
@@ -24,6 +34,7 @@ export default function AdminPage() {
   const [editGrupoId, setEditGrupoId] = useState<string>('');
   const [editSubGrupoId, setEditSubGrupoId] = useState<string>('');
   const [editColor, setEditColor] = useState('');
+  const [editIcono, setEditIcono] = useState('');
 
   // Grupo Form State
   const [grupoNombre, setGrupoNombre] = useState('');
@@ -39,6 +50,7 @@ export default function AdminPage() {
   // Capa Form state
   const [nombre, setNombre] = useState('');
   const [color, setColor] = useState('#B71C1C');
+  const [icono, setIcono] = useState('');
   const [grupoId, setGrupoId] = useState('');
   const [subGrupoId, setSubGrupoId] = useState('');
   const [uploadType, setUploadType] = useState('file'); // 'file' or 'url'
@@ -47,9 +59,29 @@ export default function AdminPage() {
   const [fileType, setFileType] = useState('geojson');
   const [fileName, setFileName] = useState('');
 
+  const commonIcons = [
+    { value: '', label: 'Sin Icono (Punto)' },
+    { value: 'MapPin', label: 'Marcador Clásico' },
+    { value: 'School', label: 'Colegio / Escuela' },
+    { value: 'Hospital', label: 'Hospital / Salud' },
+    { value: 'Bus', label: 'Colectivo / Bus' },
+    { value: 'Car', label: 'Automóvil / Tránsito' },
+    { value: 'AlertTriangle', label: 'Alerta / Peligro' },
+    { value: 'Info', label: 'Información' },
+    { value: 'TreePine', label: 'Árbol / Plaza' },
+    { value: 'Building', label: 'Edificio Público' }
+  ];
+
   // Preview state
   const [previewCapas, setPreviewCapas] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Records View State
+  const [selectedCapaForRecords, setSelectedCapaForRecords] = useState<any | null>(null);
+  const [capaRecords, setCapaRecords] = useState<any[]>([]);
+  const [editingRecordIndex, setEditingRecordIndex] = useState<number | null>(null);
+  const [editRecordProps, setEditRecordProps] = useState<any>({});
+  const [loadingRecords, setLoadingRecords] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -229,7 +261,7 @@ export default function AdminPage() {
     if (!nombre) return alert('El nombre es obligatorio');
     
     setIsProcessing(true);
-    const body: any = { name: nombre, color, grupoId: grupoId || null, subGrupoId: subGrupoId || null };
+    const body: any = { name: nombre, color, icono: icono || null, grupoId: grupoId || null, subGrupoId: subGrupoId || null };
     
     if (uploadType === 'file') {
       if (!fileContent) {
@@ -296,6 +328,7 @@ export default function AdminPage() {
                 subGrupoId: subGrupoId || null,
                 nombre: displayNombre !== 'Capa Principal' && displayNombre !== 'Point' && displayNombre !== 'LineString' && displayNombre !== 'Polygon' && displayNombre !== 'MultiPolygon' ? displayNombre : `Sub-Capa ${idx + 1} (${features.length} elementos)`,
                 color: subColor,
+                icono: icono || null,
                 tipo: 'geojson',
                 datosGeo: JSON.stringify({ type: 'FeatureCollection', features })
              };
@@ -307,7 +340,7 @@ export default function AdminPage() {
         }
       }
 
-      setPreviewCapas([{ id: 'mock-1', grupoId: grupoId || null, subGrupoId: subGrupoId || null, nombre, color, tipo: body.type, datosGeo: body.geoData }]);
+      setPreviewCapas([{ id: 'mock-1', grupoId: grupoId || null, subGrupoId: subGrupoId || null, nombre, color, icono: icono || null, tipo: body.type, datosGeo: body.geoData }]);
 
     } catch (err) {
       alert('Error al parsear el archivo. Asegurate de que sea válido.');
@@ -343,6 +376,7 @@ export default function AdminPage() {
           body: JSON.stringify({
             name: capa.nombre,
             color: capa.color,
+            icono: capa.icono,
             type: capa.tipo,
             geoData: capa.datosGeo,
             grupoId: capa.grupoId,
@@ -402,6 +436,7 @@ export default function AdminPage() {
     setEditGrupoId(capa.grupoId || '');
     setEditSubGrupoId(capa.subGrupoId || '');
     setEditColor(capa.color);
+    setEditIcono(capa.icono || '');
   };
 
   const saveEditCapa = async (id: string) => {
@@ -412,6 +447,7 @@ export default function AdminPage() {
         body: JSON.stringify({ 
           nombre: editNombre.trim(), 
           color: editColor, 
+          icono: editIcono || null,
           grupoId: editGrupoId || null,
           subGrupoId: editSubGrupoId || null
         })
@@ -421,6 +457,66 @@ export default function AdminPage() {
     } catch (e) {
       alert('Error al guardar cambios');
     }
+  };
+
+  // ----- RECORDS LOGIC -----
+  const handleViewRecords = async (capa: any) => {
+    setSelectedCapaForRecords(capa);
+    setLoadingRecords(true);
+    try {
+      const res = await fetch(`/api/capas/${capa.id}`);
+      const data = await res.json();
+      if (data.datosGeo) {
+        let parsed = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;
+        if (parsed?.features) {
+          setCapaRecords(parsed.features);
+        } else if (parsed?.type === 'Feature') {
+          setCapaRecords([parsed]);
+        } else {
+          setCapaRecords([]);
+        }
+      } else {
+        setCapaRecords([]);
+      }
+    } catch (e) {
+      alert('Error al cargar los registros.');
+    }
+    setLoadingRecords(false);
+  };
+
+  const startEditingRecord = (index: number) => {
+    setEditingRecordIndex(index);
+    setEditRecordProps({ ...(capaRecords[index].properties || {}) });
+  };
+
+  const handleEditRecordPropChange = (key: string, value: string) => {
+    setEditRecordProps({ ...editRecordProps, [key]: value });
+  };
+
+  const saveEditRecord = async (index: number) => {
+    const updatedFeatures = [...capaRecords];
+    updatedFeatures[index].properties = editRecordProps;
+    setCapaRecords(updatedFeatures);
+    setEditingRecordIndex(null);
+
+    // Patch to DB
+    const geoData = { type: 'FeatureCollection', features: updatedFeatures };
+    try {
+      await fetch(`/api/capas/${selectedCapaForRecords.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ geoData })
+      });
+      // Option: show toast
+    } catch (e) {
+      alert('Error al guardar el registro en la base de datos.');
+    }
+  };
+
+  const handleCloseRecords = () => {
+    setSelectedCapaForRecords(null);
+    setCapaRecords([]);
+    setEditingRecordIndex(null);
   };
 
   // ----- RUTAS LOGIC -----
@@ -457,7 +553,7 @@ export default function AdminPage() {
       
       <div className={styles.tabsContainer}>
         <button className={`${styles.tabButton} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
-          Dashboard
+          Panel Principal
         </button>
         <button className={`${styles.tabButton} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
           Grupos & Sub-grupos
@@ -550,7 +646,7 @@ export default function AdminPage() {
               {grupos.map(g => {
                 const sgs = subgrupos.filter(sg => sg.grupoId === g.id);
                 return (
-                  <div key={g.id} style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '8px' }}>
+                  <div key={g.id} style={{ marginBottom: '20px', background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {editingGrupo === g.id ? (
@@ -559,9 +655,9 @@ export default function AdminPage() {
                           <span className={styles.colorDot} style={{ backgroundColor: g.color }}></span>
                         )}
                         {editingGrupo === g.id ? (
-                          <input type="text" value={grupoNombre} onChange={e => setGrupoNombre(e.target.value)} style={{ padding: '5px', borderRadius: '4px', border: '1px solid #555', background: '#333', color: '#fff' }} />
+                          <input type="text" value={grupoNombre} onChange={e => setGrupoNombre(e.target.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontSize: '1rem' }} />
                         ) : (
-                          <strong style={{ fontSize: '1.2rem', color: '#fff' }}>{g.nombre}</strong>
+                          <strong style={{ fontSize: '1.2rem', color: '#334155' }}>{g.nombre}</strong>
                         )}
                       </div>
                       <div>
@@ -585,7 +681,7 @@ export default function AdminPage() {
                         <table className={styles.table} style={{ marginTop: '10px' }}>
                           <tbody>
                             {sgs.map(sg => (
-                              <tr key={sg.id} style={{ background: 'rgba(0,0,0,0.1)' }}>
+                              <tr key={sg.id}>
                                 <td style={{ width: '40px' }}>
                                   {editingSubGrupo === sg.id ? (
                                     <input type="color" value={subGrupoColor} onChange={e => setSubGrupoColor(e.target.value)} style={{ width: '25px', height: '25px', border: 'none', padding: 0 }} />
@@ -595,9 +691,9 @@ export default function AdminPage() {
                                 </td>
                                 <td>
                                   {editingSubGrupo === sg.id ? (
-                                    <input type="text" value={subGrupoNombre} onChange={e => setSubGrupoNombre(e.target.value)} style={{ padding: '5px', borderRadius: '4px', border: '1px solid #555', background: '#333', color: '#fff' }} />
+                                    <input type="text" value={subGrupoNombre} onChange={e => setSubGrupoNombre(e.target.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155' }} />
                                   ) : (
-                                    <span style={{ color: '#ccc' }}>{sg.nombre}</span>
+                                    <span style={{ color: '#475569', fontWeight: 500 }}>{sg.nombre}</span>
                                   )}
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
@@ -623,7 +719,7 @@ export default function AdminPage() {
                 );
               })}
               {grupos.length === 0 && (
-                <p style={{ textAlign: 'center' }}>No hay grupos.</p>
+                <p style={{ textAlign: 'center', color: '#64748b' }}>No hay grupos creados todavía.</p>
               )}
             </section>
           </div>
@@ -631,9 +727,93 @@ export default function AdminPage() {
 
         {/* CAPAS TAB */}
         {activeTab === 'capas' && (
-          <div className={styles.gisGrid}>
-            {previewCapas.length > 0 ? (
-              <section className={styles.previewSection}>
+          <>
+            {selectedCapaForRecords ? (
+              <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ margin: 0 }}>Registros de Capa: {selectedCapaForRecords.nombre}</h2>
+                  <button onClick={handleCloseRecords} className={styles.deleteBtn} style={{ background: '#64748b' }}>Volver a Capas</button>
+                </div>
+                {loadingRecords ? <p>Cargando registros...</p> : (
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.table}>
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Identificador / Nombre</th>
+                          <th>Detalles</th>
+                          <th style={{ width: '200px' }}>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {capaRecords.map((rec, idx) => {
+                          const props = rec.properties || {};
+                          const rawName = props.nombre || props.name || props.Nombre || props.Name || props.title || props.Title || props.ESTABLECIM || props.Establecim || props.escuela || props.Escuela || '- Sin Nombre -';
+                          return (
+                            <tr key={idx}>
+                              <td>{idx + 1}</td>
+                              {editingRecordIndex === idx ? (
+                                <td colSpan={2}>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    {Object.keys(editRecordProps).map(k => {
+                                      const isDesc = k.toLowerCase().includes('desc');
+                                      return (
+                                        <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isDesc ? '1 / -1' : 'auto' }}>
+                                          <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold', textTransform: 'capitalize' }}>{translatePropKey(k)}</label>
+                                          {isDesc ? (
+                                            <textarea 
+                                              value={editRecordProps[k] || ''} 
+                                              onChange={e => handleEditRecordPropChange(k, e.target.value)}
+                                              style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }}
+                                            />
+                                          ) : (
+                                            <input 
+                                              type="text" 
+                                              value={editRecordProps[k] || ''} 
+                                              onChange={e => handleEditRecordPropChange(k, e.target.value)}
+                                              style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                                            />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              ) : (
+                                <>
+                                  <td style={{ fontWeight: 'bold' }}>{rawName}</td>
+                                  <td>
+                                    <div style={{ fontSize: '0.8rem', color: '#475569', maxHeight: '60px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                      {Object.keys(props).map(k => `${k}: ${props[k]}`).join(' | ')}
+                                    </div>
+                                  </td>
+                                </>
+                              )}
+                              <td>
+                                {editingRecordIndex === idx ? (
+                                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    <button className={styles.submitBtn} onClick={() => saveEditRecord(idx)} style={{ padding: '6px 12px' }}>Guardar</button>
+                                    <button className={styles.deleteBtn} onClick={() => setEditingRecordIndex(null)} style={{ padding: '6px 12px', background: '#64748b' }}>Cancelar</button>
+                                  </div>
+                                ) : (
+                                  <button className={styles.submitBtn} onClick={() => startEditingRecord(idx)} style={{ padding: '6px 12px', background: 'white', color: '#29B6F6', border: '1px solid #29B6F6', boxShadow: 'none' }}>Editar Datos</button>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                        {capaRecords.length === 0 && (
+                          <tr><td colSpan={4} style={{ textAlign: 'center' }}>No hay registros o formato inválido.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            ) : (
+              <div className={styles.gisGrid}>
+                {previewCapas.length > 0 ? (
+                  <section className={styles.previewSection}>
                 <h2>Previsualización de Grupos Extraídos</h2>
                 <p>Se detectaron múltiples capas internas. Verificá los detalles antes de guardarlas.</p>
                 
@@ -724,6 +904,13 @@ export default function AdminPage() {
                   </div>
 
                   <div className={styles.formGroup}>
+                    <label>Icono del Marcador</label>
+                    <select value={icono} onChange={e => setIcono(e.target.value)}>
+                      {commonIcons.map(ic => <option key={ic.value} value={ic.value}>{ic.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div className={styles.formGroup}>
                     <label>Fuente de Datos</label>
                     <select value={uploadType} onChange={e => setUploadType(e.target.value)}>
                       <option value="file">Subir Archivo (.geojson, .kml)</option>
@@ -769,6 +956,7 @@ export default function AdminPage() {
                         <input type="checkbox" onChange={handleSelectAll} checked={capas.length > 0 && selectedCapas.length === capas.length} />
                       </th>
                       <th>Color</th>
+                      <th>Icono</th>
                       <th>Ubicación</th>
                       <th>Nombre</th>
                       <th>Acciones</th>
@@ -789,16 +977,25 @@ export default function AdminPage() {
                         </td>
                         <td>
                           {editingCapa === capa.id ? (
+                            <select value={editIcono} onChange={e => setEditIcono(e.target.value)} style={{ width: '100px', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                              {commonIcons.map(ic => <option key={ic.value} value={ic.value}>{ic.label}</option>)}
+                            </select>
+                          ) : (
+                            <span style={{ fontSize: '0.9rem', color: '#64748b' }}>{capa.icono || 'Punto'}</span>
+                          )}
+                        </td>
+                        <td>
+                          {editingCapa === capa.id ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                               <select value={editGrupoId} onChange={e => {
                                 setEditGrupoId(e.target.value);
                                 setEditSubGrupoId('');
-                              }} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #555', background: '#333', color: '#fff' }}>
+                              }} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }}>
                                 <option value="">- Grupo -</option>
                                 {grupos.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
                               </select>
                               {editGrupoId && subgrupos.filter(sg => sg.grupoId === editGrupoId).length > 0 && (
-                                <select value={editSubGrupoId} onChange={e => setEditSubGrupoId(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #555', background: '#333', color: '#fff' }}>
+                                <select value={editSubGrupoId} onChange={e => setEditSubGrupoId(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }}>
                                   <option value="">- Sub-grupo -</option>
                                   {subgrupos.filter(sg => sg.grupoId === editGrupoId).map(sg => <option key={sg.id} value={sg.id}>{sg.nombre}</option>)}
                                 </select>
@@ -813,7 +1010,7 @@ export default function AdminPage() {
                         </td>
                         <td>
                           {editingCapa === capa.id ? (
-                            <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #555', background: '#333', color: '#fff' }} />
+                            <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }} />
                           ) : (
                             capa.nombre
                           )}
@@ -825,9 +1022,10 @@ export default function AdminPage() {
                               <button className={styles.rejectBtn} onClick={() => setEditingCapa(null)} style={{ padding: '6px 12px' }}>Cancelar</button>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button className={styles.submitBtn} onClick={() => startEditingCapa(capa)} style={{ padding: '6px 12px' }}>Editar</button>
-                              <button className={styles.deleteBtn} onClick={() => handleDeleteCapa(capa.id)} style={{ padding: '6px 12px' }}>Eliminar</button>
+                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                              <button className={styles.submitBtn} onClick={() => handleViewRecords(capa)} style={{ padding: '6px 12px', background: '#10B981', flex: '1 1 100%' }}>Ver Registros</button>
+                              <button className={styles.submitBtn} onClick={() => startEditingCapa(capa)} style={{ padding: '6px 12px', flex: '1 1 auto' }}>Editar Capa</button>
+                              <button className={styles.deleteBtn} onClick={() => handleDeleteCapa(capa.id)} style={{ padding: '6px 12px', flex: '1 1 auto' }}>Eliminar</button>
                             </div>
                           )}
                         </td>
@@ -840,8 +1038,10 @@ export default function AdminPage() {
                 </table>
                 </div>
               )}
-            </section>
-          </div>
+              </section>
+              </div>
+            )}
+          </>
         )}
 
         {/* RUTAS TAB */}

@@ -7,7 +7,19 @@ export async function GET() {
   try {
     const capas = await prisma.capa.findMany({
       orderBy: { creadoEn: 'desc' },
-      include: { grupo: true, subGrupo: true }
+      select: {
+        id: true,
+        nombre: true,
+        tipo: true,
+        color: true,
+        icono: true,
+        grupoId: true,
+        subGrupoId: true,
+        creadoEn: true,
+        actualizadoEn: true,
+        grupo: true,
+        subGrupo: true
+      }
     });
     return NextResponse.json(capas);
   } catch (error: any) {
@@ -73,6 +85,7 @@ export async function POST(req: Request) {
             nombre: item.name,
             tipo: item.type || 'geojson',
             color: item.color || '#3388ff',
+            icono: item.icono || null,
             datosGeo: typeof item.geoData === 'string' ? item.geoData : JSON.stringify(item.geoData),
             grupoId: item.grupoId || null,
             subGrupoId: item.subGrupoId || null,
@@ -88,6 +101,7 @@ export async function POST(req: Request) {
           nombre: body.name,
           tipo: body.type || 'geojson',
           color: body.color || '#3388ff',
+          icono: body.icono || null,
           datosGeo: typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData),
           grupoId: body.grupoId || null,
           subGrupoId: body.subGrupoId || null,
@@ -96,6 +110,7 @@ export async function POST(req: Request) {
       return NextResponse.json(capa, { status: 201 });
     }
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error procesando POST /api/capas:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

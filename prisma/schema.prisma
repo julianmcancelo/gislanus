@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Grupo {
@@ -29,6 +29,7 @@ model Capa {
   nombre        String
   tipo          String    // "geojson", "kml", "maphub"
   color         String    @default("#10B981")
+  icono         String?   // Para guardar el nombre del icono de Lucide (ej: "MapPin")
   datosGeo      String    // Guardando JSON string de los datos GeoJSON
   grupoId       String?
   grupo         Grupo?    @relation(fields: [grupoId], references: [id])

@@ -5,7 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { MapPin, Plus, Minus, Home, Maximize, Printer, Save } from 'lucide-react';
+import { renderToString } from 'react-dom/server';
+import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
+
+const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -233,10 +236,9 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas, _] = await Promise.all([
+        const [resCapas, resRutas] = await Promise.all([
           fetch('/api/capas'),
-          fetch('/api/rutas-transporte'),
-          new Promise(resolve => setTimeout(resolve, 2500)) // Espera artificial de 2.5s
+          fetch('/api/rutas-transporte')
         ]);
         
         const dataCapas = await resCapas.json();
@@ -263,15 +265,18 @@ export default function MapComponent() {
         const config = allData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
-          active: true,
+          active: l.numeroSolicitud ? true : false,
           color: l.color,
+          icono: l.icono || null,
           grupo: l.grupo,
           subGrupo: l.subGrupo,
+          numeroSolicitud: l.numeroSolicitud
         }));
         setCapasConfig(config);
 
         const cache: Record<string, any> = {};
         allData.forEach((l: any) => {
+          if (!l.datosGeo) return; // Ignore missing geo data (lazy load)
           let parsed = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           
           // Inject dbLayerId into all features so Geoman can trace them back
@@ -296,6 +301,34 @@ export default function MapComponent() {
     
     fetchCapas();
   }, []);
+
+  const fetchingRef = useRef<Record<string, boolean>>({});
+
+  useEffect(() => {
+    capasConfig.forEach(async (capa) => {
+      if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
+        fetchingRef.current[capa.id] = true;
+        try {
+          const res = await fetch(`/api/capas/${capa.id}`);
+          const data = await res.json();
+          if (data.datosGeo) {
+            let parsed = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;
+            if (parsed?.features) {
+              parsed.features = parsed.features.map((f: any) => ({
+                ...f,
+                properties: { ...f.properties, dbLayerId: capa.id }
+              }));
+            } else if (parsed?.type === 'Feature') {
+              parsed.properties = { ...parsed.properties, dbLayerId: capa.id };
+            }
+            setCacheDatosGeo(prev => ({ ...prev, [capa.id]: parsed }));
+          }
+        } catch (e) {
+          console.error("Error fetching lazy layer:", e);
+        }
+      }
+    });
+  }, [capasConfig, cacheDatosGeo]);
 
   if (loading) {
     return (
@@ -333,7 +366,7 @@ export default function MapComponent() {
   const center: [number, number] = [-34.7042, -58.3961];
 
   const alternarCapa = (id: string) => {
-    setCapasConfig(capasConfig.map(l => l.id === id ? { ...l, active: !l.active } : l));
+    setCapasConfig(prev => prev.map(l => l.id === id ? { ...l, active: !l.active } : l));
   };
 
   const capaActiva = (id: string) => capasConfig.find(l => l.id === id)?.active;
@@ -381,16 +414,35 @@ export default function MapComponent() {
         <Sidebar capas={capasConfig} alternarCapa={alternarCapa} activeTab={activeTab} setActiveTab={setActiveTab} />
         
         <div style={{ flex: 1, position: 'relative' }}>
+          {capasConfig.some(c => c.active && !cacheDatosGeo[c.id] && fetchingRef.current[c.id]) && (
+            <div style={{
+              position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', zIndex: 1000,
+              backgroundColor: '#ffffff', color: '#4A4A4A', padding: '10px 24px',
+              borderRadius: '30px', fontSize: '15px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '12px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.15)', border: '2px solid #29B6F6'
+            }}>
+              <div style={{ 
+                width: '18px', height: '18px', borderRadius: '50%',
+                border: '3px solid #e0e0e0', borderTopColor: '#29B6F6',
+                animation: 'spin 1s linear infinite'
+              }}></div>
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              Descargando capa de datos...
+            </div>
+          )}
+
           <MapContainer 
             center={center} 
             zoom={14} 
             style={{ width: '100%', height: '100%', zIndex: 1 }}
             zoomControl={false}
+            preferCanvas={true}
             ref={setMapInstance}
           >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          detectRetina={true}
         />
 
         <GeomanController />
@@ -404,23 +456,68 @@ export default function MapComponent() {
               data={cacheDatosGeo[capa.id]} 
               style={{ color: capa.color, weight: 5, opacity: 0.9 }}
               pointToLayer={(feature, latlng) => {
+                if (capa.icono && lucideIconsList[capa.icono]) {
+                  const IconComp = lucideIconsList[capa.icono];
+                  const svgString = renderToString(<IconComp size={18} color="white" />);
+                  const innerHtml = `<div style="background-color: ${capa.color}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; transform: translateY(-5px);">${svgString}</div>`;
+                  
+                  const customIcon = L.divIcon({
+                    html: innerHtml,
+                    className: 'custom-lucide-marker',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                    popupAnchor: [0, -32]
+                  });
+                  return L.marker(latlng, { icon: customIcon });
+                }
+
                 return L.circleMarker(latlng, {
-                  radius: 8,
+                  radius: 5,
                   fillColor: capa.color,
                   color: '#fff',
-                  weight: 2,
+                  weight: 1.5,
                   opacity: 1,
-                  fillOpacity: 0.9
+                  fillOpacity: 0.85
                 });
               }}
               onEachFeature={(feature, l) => {
-                const rawName = feature.properties?.nombre || feature.properties?.name || capa.nombre;
-                const rawDesc = feature.properties?.descripcion || feature.properties?.description || feature.properties?.estado || feature.properties?.status || '';
+                const props = feature.properties || {};
+                const rawName = props.nombre || props.name || props.Nombre || props.Name || props.title || props.Title || props.ESTABLECIM || props.Establecim || props.escuela || props.ESCUELA || capa.nombre;
+                
+                let extraPropsHtml = '';
+                const keysToHide = ['dblayerid', 'nombre', 'name', 'title', 'establecim', 'escuela', 'color', 'stroke', 'fill', 'marker-color', 'marker-symbol', 'marker-size', 'group', 'id', 'fid', '_id', 'stroke-width', 'stroke-opacity', 'fill-opacity'];
+                
+                const translateMapKey = (k: string) => {
+                  const lower = k.toLowerCase();
+                  if (lower === 'description') return 'Descripción';
+                  if (lower === 'address') return 'Dirección';
+                  if (lower === 'type') return 'Tipo';
+                  if (lower === 'category') return 'Categoría';
+                  if (lower === 'phone') return 'Teléfono';
+                  if (lower === 'email') return 'Correo';
+                  // return capitalized version of the original key if no translation
+                  return k.charAt(0).toUpperCase() + k.slice(1);
+                };
+
+                for (const [key, val] of Object.entries(props)) {
+                   const lowerKey = key.toLowerCase();
+                   // Skip internal or display fields we already use for styling or name
+                   if (keysToHide.includes(lowerKey)) continue;
+                   
+                   if (val !== null && val !== undefined && String(val).trim() !== '') {
+                      extraPropsHtml += `<li style="margin-bottom: 4px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px;"><b>${escapeHtml(translateMapKey(key))}:</b> ${escapeHtml(String(val))}</li>`;
+                   }
+                }
                 
                 const safeName = escapeHtml(String(rawName));
-                const safeDesc = escapeHtml(String(rawDesc));
+                const popupContent = `
+                  <div style="font-family: sans-serif; min-width: 220px; max-height: 250px; overflow-y: auto;">
+                    <h3 style="margin: 0 0 10px 0; color: #29B6F6; font-size: 15px; border-bottom: 2px solid #29B6F6; padding-bottom: 5px;">${safeName}</h3>
+                    ${extraPropsHtml ? `<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #4A4A4A;">${extraPropsHtml}</ul>` : '<p style="margin:0; font-size:12px; color:#888;">Sin detalles adicionales</p>'}
+                  </div>
+                `;
                 
-                l.bindPopup(`<b>${safeName}</b><br/>${safeDesc}`);
+                l.bindPopup(popupContent);
               }}
             />
           );

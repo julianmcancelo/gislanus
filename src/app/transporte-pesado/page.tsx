@@ -24,15 +24,76 @@ export default function TransportePesadoWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showRepetitions, setShowRepetitions] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [parsedInfo, setParsedInfo] = useState<any>(null);
 
   const callesToDisplay = showRepetitions 
     ? calles.map((s, i) => calles.indexOf(s) < i ? `${s} (Vuelve a pasar)` : s)
     : Array.from(new Set(calles));
 
+  const [magicUrls, setMagicUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hashContent = decodeURIComponent(window.location.hash.substring(1));
+      let textToParse = hashContent;
+      let urls: string[] = [];
+
+      try {
+        const payload = JSON.parse(hashContent);
+        if (payload.text) {
+          textToParse = payload.text;
+          if (payload.urls) urls = payload.urls;
+        }
+      } catch (e) {
+        // Fallback: no era JSON, era solo texto (marcador viejo)
+      }
+
+      if (textToParse && textToParse.trim().length > 10) {
+        setImportText(textToParse);
+        setMagicUrls(urls);
+        setShowImport(true);
+        // Clear hash silently
+        window.history.replaceState(null, '', window.location.pathname);
+        handleImport(textToParse);
+      }
+    }
+  }, []);
+
   const handleNextStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     if (numeroSolicitud.trim() && nombreSolicitante.trim()) {
       setStep(2);
+    }
+  };
+
+  const handleImport = async (textToImport?: string) => {
+    // Si viene por argumento (del useEffect) lo usamos, sino usamos el state
+    const text = typeof textToImport === 'string' ? textToImport : importText;
+    if (!text.trim()) return;
+    setIsImporting(true);
+    try {
+      const res = await fetch('/api/parse-solicitud', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error processing text');
+
+      if (data.numeroSolicitud) setNumeroSolicitud(data.numeroSolicitud);
+      if (data.nombreSolicitante) setNombreSolicitante(data.nombreSolicitante);
+      
+      setParsedInfo(data);
+      setStep(1.5); // Vamos al paso de revisión
+    } catch (err) {
+      alert('Hubo un error importando el texto. Por favor verifique el formato e intente nuevamente.');
+      console.error(err);
+    } finally {
+      setIsImporting(false);
+      setShowImport(false);
     }
   };
 
@@ -109,7 +170,34 @@ export default function TransportePesadoWizard() {
               <span style={stepBadgeStyle}>Paso 1 de 3</span>
               <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Datos de la Solicitud</h2>
               <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Vincule esta traza con su trámite actual.</p>
+              
+              <button 
+                type="button" 
+                onClick={() => setShowImport(!showImport)}
+                style={{ ...btnStyle, backgroundColor: '#8B5CF6', marginTop: '15px', width: 'auto', padding: '8px 16px', fontSize: '14px' }}>
+                ✨ Importar desde Sistema de Trámites
+              </button>
             </div>
+
+            {showImport && (
+              <div style={{ backgroundColor: '#F3E8FF', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #D8B4FE' }}>
+                <label style={{ ...labelStyle, color: '#6B21A8' }}>Pegue el detalle de la solicitud aquí:</label>
+                <textarea 
+                  rows={6}
+                  value={importText}
+                  onChange={e => setImportText(e.target.value)}
+                  placeholder="Pegue todo el texto de la solicitud (ID, Solicitante, Recorrido, etc)..."
+                  style={{ ...inputStyle, resize: 'vertical', borderColor: '#D8B4FE', marginBottom: '10px' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => handleImport()}
+                  disabled={isImporting || !importText.trim()}
+                  style={{ ...btnStyle, backgroundColor: isImporting ? '#C4B5FD' : '#7C3AED', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                  {isImporting ? <><Loader2 size={18} className="animate-spin" style={{ marginRight: '8px' }} /> Analizando con IA...</> : 'Procesar Texto'}
+                </button>
+              </div>
+            )}
 
             <div style={inputGroupStyle}>
               <label style={labelStyle}>N° de Solicitud</label>
@@ -141,26 +229,153 @@ export default function TransportePesadoWizard() {
           </form>
         )}
 
-        {step === 2 && (
-          <div style={{ flex: 1, position: 'relative' }}>
-            <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'white', padding: '15px 25px', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <span style={{ ...stepBadgeStyle, marginBottom: 0 }}>Paso 2</span>
-              <span style={{ fontWeight: 'bold', color: '#333' }}>Dibuje la ruta del transporte.</span>
-              <span style={{ color: '#666', fontSize: '13px' }}>(Haga clic en el mapa para trazar, doble clic para terminar)</span>
+        {step === 1.5 && parsedInfo && (
+          <div style={{ ...cardStyle, maxWidth: '600px' }}>
+            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+              <span style={{ ...stepBadgeStyle, backgroundColor: '#F3E8FF', color: '#6B21A8' }}>Revisión de IA</span>
+              <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Datos Extraídos</h2>
+              <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Por favor, verifique que la información detectada sea correcta.</p>
             </div>
-            
-            {liveStreets.length > 0 && (
-              <div style={{ position: 'absolute', top: 80, right: 20, zIndex: 1000, backgroundColor: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', maxWidth: '250px', maxHeight: '400px', overflowY: 'auto' }}>
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>Calles Detectadas en Vivo:</h3>
-                <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', color: '#555' }}>
-                  {liveStreets.map((street, i) => (
-                    <li key={i} style={{ marginBottom: '4px' }}>{street}</li>
-                  ))}
-                </ul>
+
+            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e2e8f0', color: '#334155' }}>
+              <div style={{ marginBottom: '10px' }}>
+                <strong style={{ color: '#0f172a' }}>N° Solicitud:</strong> {numeroSolicitud}
+              </div>
+              <div style={{ marginBottom: '10px' }}>
+                <strong style={{ color: '#0f172a' }}>Solicitante:</strong> {nombreSolicitante}
+              </div>
+              
+              {parsedInfo.calles && parsedInfo.calles.length > 0 && (
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ color: '#0f172a' }}>Ruta a trazar (Punto a Punto):</strong>
+                  <div style={{ margin: '8px 0', padding: '10px', backgroundColor: '#e2e8f0', borderRadius: '6px', color: '#334155', fontSize: '14px', lineHeight: '1.6' }}>
+                    {parsedInfo.calles.map((calle: string, i: number) => (
+                      <span key={i}>
+                        {calle}
+                        {i < parsedInfo.calles.length - 1 && <strong style={{ margin: '0 8px', color: '#8b5cf6' }}>→</strong>}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {parsedInfo.archivosAdjuntos && parsedInfo.archivosAdjuntos.length > 0 && (
+                <div style={{ marginBottom: '10px' }}>
+                  <strong style={{ color: '#0f172a' }}>Archivos/Croquis Adjuntos detectados:</strong>
+                  <ul style={{ margin: '5px 0', paddingLeft: '20px', color: '#0284c7', fontSize: '14px' }}>
+                    {parsedInfo.archivosAdjuntos.map((arch: string, i: number) => (
+                      <li key={i} style={{ marginBottom: '4px' }}>{arch}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {magicUrls && magicUrls.length > 0 && (
+                <div style={{ marginBottom: '15px' }}>
+                  <strong style={{ color: '#0f172a' }}>Previsualización de Croquis (capturados del sistema):</strong>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {magicUrls.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', border: '1px solid #cbd5e1', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                        <img src={url} alt="Croquis" style={{ width: '150px', height: '150px', objectFit: 'cover' }} />
+                      </a>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '5px' }}>Haga clic en la imagen para verla en tamaño completo.</p>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (parsedInfo.datosGeo) {
+                    setDatosGeo(parsedInfo.datosGeo);
+                    setCalles(parsedInfo.calles || []);
+                    setStep(3);
+                  } else {
+                    alert('No se pudo generar la ruta automática. Por favor dibujela en el mapa.');
+                    setStep(2);
+                  }
+                }}
+                style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
+                Continuar y Dibujar Ruta Automática <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={() => setStep(2)}
+                style={{ ...btnStyle, backgroundColor: '#fff', color: '#4A4A4A', border: '1px solid #ccc', display: 'flex', justifyContent: 'center' }}>
+                Omitir y Dibujar Ruta Manualmente
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div style={{ flex: 1, display: 'flex', width: '100%', height: '100%' }}>
+            {/* Contenedor del Mapa (Ocupa el resto del espacio) */}
+            <div style={{ flex: 1, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'white', padding: '15px 25px', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ backgroundColor: '#E1F5FE', color: '#0288D1', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>2</div>
+                <span style={{ fontWeight: 500, color: '#333' }}>Dibuje la ruta en el mapa</span>
+              </div>
+
+              {liveStreets.length > 0 && (
+                <div style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '15px 25px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', maxWidth: '80%', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <MapPin color="#0288D1" size={24} />
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Calle actual</h4>
+                    <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{liveStreets[liveStreets.length - 1]}</p>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden', border: '2px solid #E1F5FE' }}>
+                <WizardMap 
+                  onComplete={handleMapComplete} 
+                  onLiveUpdate={setLiveStreets} 
+                  suggestedRoute={parsedInfo?.datosGeo}
+                />
+              </div>
+            </div>
+
+            {/* Panel de Asistencia IA (Ocupa 350px a la derecha si hay parsedInfo) */}
+            {parsedInfo && (
+              <div style={{ width: '350px', marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', paddingRight: '10px' }}>
+                <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #D8B4FE', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                    <span style={{ backgroundColor: '#8B5CF6', color: 'white', padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>ASISTENCIA IA</span>
+                  </div>
+                  
+                  <h4 style={{ color: '#334155', marginTop: 0, marginBottom: '10px', fontSize: '15px' }}>Recorrido Solicitado:</h4>
+                  <div style={{ backgroundColor: '#FFF', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '13px', lineHeight: '1.6', marginBottom: '20px' }}>
+                    {parsedInfo.calles && parsedInfo.calles.map((calle: string, i: number) => (
+                      <span key={i}>
+                        {calle}
+                        {i < parsedInfo.calles.length - 1 && <strong style={{ margin: '0 5px', color: '#8b5cf6' }}>→</strong>}
+                      </span>
+                    ))}
+                    {(!parsedInfo.calles || parsedInfo.calles.length === 0) && (
+                      <i>No se detectaron calles específicas.</i>
+                    )}
+                  </div>
+
+                  {magicUrls && magicUrls.length > 0 && (
+                    <>
+                      <h4 style={{ color: '#334155', marginTop: 0, marginBottom: '10px', fontSize: '15px' }}>Croquis Adjuntos:</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {magicUrls.map((url: string, i: number) => (
+                          <a key={i} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', borderRadius: '6px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
+                            <img src={url} alt="Croquis" style={{ width: '100%', objectFit: 'contain', backgroundColor: '#f1f5f9' }} />
+                          </a>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )}
-
-            <WizardMap onComplete={handleMapComplete} onLiveUpdate={setLiveStreets} />
           </div>
         )}
 
