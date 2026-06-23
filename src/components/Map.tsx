@@ -35,11 +35,11 @@ const controlBtnStyle = {
 const printBtnStyle = {
   border: 'none',
   background: 'transparent',
-  color: 'white',
+  color: '#475569',
   padding: '0 12px',
   cursor: 'pointer',
   fontSize: '13px',
-  fontWeight: '500' as const
+  fontWeight: '600' as const
 };
 
 const dividerStyle = {
@@ -136,53 +136,62 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
       flexDirection: 'column',
       alignItems: 'flex-start'
     }} className="hide-on-print">
-      {/* Zoom Group */}
-      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px', display: 'flex', flexDirection: 'column' }}>
-        <button onClick={handleZoomIn} style={controlBtnStyle} title="Acercar">
-          <Plus size={16} color="white" />
+      <div className="map-toolbar">
+        <button onClick={handleZoomIn} className="map-tool-btn" title="Acercar">
+          <Plus size={18} />
         </button>
-        <div style={dividerStyle} />
-        <button onClick={handleHome} style={controlBtnStyle} title="Vista General">
-          <Home size={16} color="#29B6F6" />
+        <div className="map-divider" />
+        <button onClick={handleHome} className="map-tool-btn primary" title="Vista General">
+          <Home size={18} />
         </button>
-        <div style={dividerStyle} />
-        <button onClick={handleZoomOut} style={controlBtnStyle} title="Alejar">
-          <Minus size={16} color="white" />
+        <div className="map-divider" />
+        <button onClick={handleZoomOut} className="map-tool-btn" title="Alejar">
+          <Minus size={18} />
         </button>
-      </div>
 
-      {/* Fullscreen Group */}
-      <div style={{ backgroundColor: 'rgba(74, 74, 74, 0.9)', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px' }}>
-        <button onClick={handleFullscreen} style={controlBtnStyle} title="Pantalla Completa">
-          <Maximize size={16} color="white" />
+        <div className="map-divider" />
+        <button onClick={handleFullscreen} className="map-tool-btn" title="Pantalla Completa">
+          <Maximize size={18} />
         </button>
-      </div>
 
-      {/* Print Group */}
-      <div 
-        style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}
-        onMouseEnter={() => setShowPrintMenu(true)}
-        onMouseLeave={() => setShowPrintMenu(false)}
-      >
-        <div style={{ backgroundColor: 'rgba(20, 20, 20, 0.95)', borderRadius: '2px 0 0 2px', overflow: 'hidden' }}>
-          <button style={{...controlBtnStyle, width: '38px', height: '38px'}} title="Imprimir">
-            <Printer size={20} color="white" />
-          </button>
-        </div>
+        <div className="map-divider" />
         
-        {showPrintMenu && (
-          <div style={{ display: 'flex', backgroundColor: 'rgba(74, 74, 74, 0.95)', borderRadius: '0 2px 2px 0', border: '1px solid rgba(255,255,255,0.3)', borderLeft: 'none', overflow: 'hidden', height: '38px' }}>
-            <button onClick={handlePrintFull} style={printBtnStyle}>Completo</button>
-            <div style={{ width: '1px', backgroundColor: 'rgba(255,255,255,0.4)', margin: '6px 0' }} />
-            <button onClick={handlePrintZone} style={printBtnStyle}>Seleccion de zona</button>
-          </div>
-        )}
-      </div>
+        {/* Print Button with Popout */}
+        <div 
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setShowPrintMenu(true)}
+          onMouseLeave={() => setShowPrintMenu(false)}
+        >
+          <button className="map-tool-btn" title="Imprimir">
+            <Printer size={18} />
+          </button>
+          
+          {showPrintMenu && (
+            <div style={{ 
+              position: 'absolute', 
+              left: '100%', 
+              top: 0, 
+              marginLeft: '8px',
+              display: 'flex', 
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '8px', 
+              border: '1px solid rgba(0,0,0,0.1)',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              overflow: 'hidden', 
+              height: '36px',
+              whiteSpace: 'nowrap'
+            }}>
+              <button onClick={handlePrintFull} style={printBtnStyle}>Completo</button>
+              <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.1)', margin: '6px 0' }} />
+              <button onClick={handlePrintZone} style={printBtnStyle}>Selección de zona</button>
+            </div>
+          )}
+        </div>
 
-      {/* Save Edits Group */}
-      <div style={{ backgroundColor: '#29B6F6', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '8px' }}>
-        <button onClick={handleSave} style={{...controlBtnStyle, width: '34px', height: '34px'}} title="Guardar Ediciones del Mapa">
-          <Save size={18} color="white" />
+        {/* Save Edits button wrapped at the bottom */}
+        <button onClick={handleSave} className="map-tool-btn success" title="Guardar Ediciones del Mapa">
+          <Save size={18} />
         </button>
       </div>
     </div>

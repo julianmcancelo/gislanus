@@ -95,6 +95,64 @@ body {
   border-bottom: none !important;
 }
 
+/* Custom Premium Map Toolbar */
+.map-toolbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* For popouts */
+  position: relative;
+}
+
+.map-tool-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.map-tool-btn:hover {
+  background-color: rgba(0,0,0,0.04);
+  color: #0284c7;
+}
+
+.map-tool-btn.primary {
+  color: #0284c7;
+}
+
+.map-tool-btn.primary:hover {
+  background-color: rgba(2, 132, 199, 0.1);
+}
+
+.map-tool-btn.success {
+  background-color: #0284c7;
+  color: white;
+  border-radius: 0 0 10px 10px;
+}
+
+.map-tool-btn.success:hover {
+  background-color: #0369a1;
+  color: white;
+}
+
+.map-divider {
+  height: 1px;
+  background-color: rgba(0,0,0,0.06);
+  width: 100%;
+}
+
 @media print {
   header,
   .hide-on-print,
