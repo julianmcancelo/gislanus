@@ -7,6 +7,7 @@ import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { renderToString } from 'react-dom/server';
 import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
@@ -224,6 +225,7 @@ const escapeHtml = (unsafe: string) => {
 };
 
 export default function MapComponent() {
+  const { user } = useAuth();
   const [capasConfig, setCapasConfig] = useState<any[]>([]);
   const [cacheDatosGeo, setCacheDatosGeo] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -271,7 +273,14 @@ export default function MapComponent() {
 
         const allData = [...validCapas, ...formatedRutas];
 
-        const config = allData.map((l: any) => ({
+        // Filter based on visibility and login status
+        const visibleData = allData.filter((l: any) => {
+          if (l.visibilidad === 'PRIVATE' && !user) return false;
+          // You could expand this to check `rolesPermitidos` against `user.role` here
+          return true;
+        });
+
+        const config = visibleData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
           active: l.numeroSolicitud ? true : false,
@@ -300,16 +309,15 @@ export default function MapComponent() {
           
           cache[l.id] = parsed;
         });
-        setCacheDatosGeo(cache);
+        setLoading(false);
       } catch (error) {
-        console.error('Error cargando capas:', error);
-      } finally {
+        console.error('Error fetching data:', error);
         setLoading(false);
       }
     };
-    
+
     fetchCapas();
-  }, []);
+  }, [user]);
 
   const fetchingRef = useRef<Record<string, boolean>>({});
 

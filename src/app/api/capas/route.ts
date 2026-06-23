@@ -17,6 +17,8 @@ export async function GET() {
         subGrupoId: true,
         creadoEn: true,
         actualizadoEn: true,
+        visibilidad: true,
+        rolesPermitidos: true,
         grupo: true,
         subGrupo: true
       }

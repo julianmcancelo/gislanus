@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
 import { kml } from '@tmcw/togeojson';
@@ -18,6 +20,16 @@ const translatePropKey = (key: string) => {
 };
 
 export default function AdminPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  // Protect route
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes'
   
   // Dashboard & GIS State

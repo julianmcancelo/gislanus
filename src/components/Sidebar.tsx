@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Menu, Layers, Info } from 'lucide-react';
+import { Menu, Layers, Info, LogIn, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import styles from './Sidebar.module.css';
 
 interface Capa {
@@ -25,6 +27,8 @@ type GroupedData = {
 };
 
 export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
   // Store expanded state using keys like 'GrupoName' or 'GrupoName|SubGrupoName'
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
 
@@ -106,6 +110,13 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           title="Información"
         >
           <Info size={20} />
+        </div>
+        <div 
+          className={styles.navIcon}
+          onClick={() => user ? logout() : router.push('/login')}
+          title={user ? "Cerrar Sesión" : "Iniciar Sesión"}
+        >
+          {user ? <LogOut size={20} color="#ef4444" /> : <LogIn size={20} />}
         </div>
       </div>
 

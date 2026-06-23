@@ -9,11 +9,13 @@ datasource db {
 }
 
 model Grupo {
-  id        String     @id @default(cuid())
-  nombre    String     @unique
-  color     String     @default("#10B981")
-  capas     Capa[]
-  subGrupos SubGrupo[]
+  id              String     @id @default(cuid())
+  nombre          String     @unique
+  color           String     @default("#10B981")
+  visibilidad     String     @default("PUBLIC") // "PUBLIC" or "PRIVATE"
+  rolesPermitidos String[]   // e.g. ["ADMIN", "OBRAS"]
+  capas           Capa[]
+  subGrupos       SubGrupo[]
 }
 
 model SubGrupo {
@@ -26,18 +28,29 @@ model SubGrupo {
 }
 
 model Capa {
-  id            String    @id @default(cuid())
-  nombre        String
-  tipo          String    // "geojson", "kml", "maphub"
-  color         String    @default("#10B981")
-  icono         String?   // Para guardar el nombre del icono de Lucide (ej: "MapPin")
-  datosGeo      String    // Guardando JSON string de los datos GeoJSON
-  grupoId       String?
-  grupo         Grupo?    @relation(fields: [grupoId], references: [id])
-  subGrupoId    String?
-  subGrupo      SubGrupo? @relation(fields: [subGrupoId], references: [id], onDelete: SetNull)
-  creadoEn      DateTime  @default(now())
-  actualizadoEn DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  nombre          String
+  tipo            String    // "geojson", "kml", "maphub"
+  color           String    @default("#10B981")
+  icono           String?   // Para guardar el nombre del icono de Lucide (ej: "MapPin")
+  datosGeo        String    // Guardando JSON string de los datos GeoJSON
+  visibilidad     String    @default("PUBLIC") // "PUBLIC" or "PRIVATE"
+  rolesPermitidos String[]  // e.g. ["ADMIN", "VECINO"]
+  grupoId         String?
+  grupo           Grupo?    @relation(fields: [grupoId], references: [id])
+  subGrupoId      String?
+  subGrupo        SubGrupo? @relation(fields: [subGrupoId], references: [id], onDelete: SetNull)
+  creadoEn        DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+}
+
+model Usuario {
+  id          String   @id @default(cuid())
+  firebaseUid String   @unique
+  email       String   @unique
+  nombre      String?
+  rol         String   @default("VECINO") // "ADMIN", "OBRAS_PUBLICAS", "VECINO"
+  creadoEn    DateTime @default(now())
 }
 
 model RutaTransporte {
