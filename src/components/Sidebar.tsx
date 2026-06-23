@@ -155,8 +155,8 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                           const sgSomeActive = sgCapas.some(l => l.active) && !sgAllActive;
 
                           return (
-                            <div key={sgKey} className={styles.subLayerGroup} style={{ borderLeft: '2px solid #29B6F6', marginLeft: '12px', marginTop: '5px', marginBottom: '5px' }}>
-                              <div className={styles.groupHeader} style={{ background: 'transparent', padding: '8px 12px', borderBottom: 'none' }}>
+                            <div key={sgKey} className={styles.subLayerGroup} style={{ borderLeft: '2px solid #e2e8f0', marginLeft: '16px' }}>
+                              <div className={styles.groupHeader} style={{ background: 'transparent', padding: '4px 8px', borderBottom: 'none' }}>
                                 <button 
                                   className={styles.expandBtn}
                                   onClick={() => toggleNode(sgKey)}
@@ -176,7 +176,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                               </div>
 
                               {isSgExpanded && (
-                                <div className={styles.groupItems} style={{ paddingLeft: '15px', paddingTop: 0 }}>
+                                <div className={styles.groupItems} style={{ paddingLeft: '4px', paddingTop: 0, paddingBottom: 0 }}>
                                   {sgCapas.map(capa => {
                                     const parts = capa.nombre.split(' - ');
                                     const subName = parts.slice(1).join(' - ') || capa.nombre;
@@ -261,13 +261,14 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                 href="/admin" 
                 style={{
                   display: 'inline-block',
-                  padding: '10px 20px',
-                  backgroundColor: '#29B6F6',
+                  padding: '8px 16px',
+                  backgroundColor: '#0284c7',
                   color: 'white',
                   textDecoration: 'none',
                   borderRadius: '6px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                 }}
               >
                 Administrar Capas
