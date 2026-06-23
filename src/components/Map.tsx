@@ -193,7 +193,7 @@ function GeomanController() {
   const map = useMap();
   useEffect(() => {
     map.pm.addControls({
-      position: 'topleft',
+      position: 'topright',
       drawCircle: false,
       drawCircleMarker: false,
       drawText: false,
