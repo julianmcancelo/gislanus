@@ -193,10 +193,11 @@ export default function WizardMap({ onComplete, onLiveUpdate, suggestedRoute }: 
           <GeoJSON
             data={baseLayer}
             style={{
-              color: '#000000',
-              weight: 2.5,
-              dashArray: '5, 5',
-              fillOpacity: 0,
+              color: '#3B82F6', // Prominent blue
+              weight: 4,
+              fillColor: '#3B82F6',
+              fillOpacity: 0.08,
+              dashArray: '10, 8'
             }}
             interactive={false}
           />

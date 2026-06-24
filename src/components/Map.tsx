@@ -509,10 +509,11 @@ export default function MapComponent() {
           <GeoJSON 
             data={baseLayer}
             style={{
-              color: '#4A4A4A',
-              weight: 2,
-              fillOpacity: 0.05,
-              dashArray: '5, 5'
+              color: '#3B82F6', // Blue to stand out on the map
+              weight: 4,
+              fillColor: '#3B82F6',
+              fillOpacity: 0.08,
+              dashArray: '10, 8'
             }}
             interactive={false}
           />
