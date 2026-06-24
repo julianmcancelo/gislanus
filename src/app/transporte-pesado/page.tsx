@@ -269,27 +269,66 @@ export default function TransportePesadoWizard() {
               <button 
                 type="button" 
                 onClick={() => setShowImport(!showImport)}
-                style={{ ...btnStyle, backgroundColor: '#8B5CF6', marginTop: '15px', width: 'auto', padding: '8px 16px', fontSize: '14px' }}>
-                ✨ Importar desde Sistema de Trámites
+                style={{ 
+                  ...btnStyle, 
+                  background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', 
+                  marginTop: '15px', 
+                  width: 'auto', 
+                  padding: '10px 20px', 
+                  fontSize: '14px',
+                  boxShadow: '0 4px 14px rgba(168, 85, 247, 0.4)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 21-6-6m6-6v6h-6"/><path d="M17 10c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/><path d="m3 21 6-6"/><path d="M7 10C4.24 10 2 12.24 2 15s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/></svg>
+                Asistente Mágico de Importación
               </button>
             </div>
 
             {showImport && (
-              <div style={{ backgroundColor: '#F3E8FF', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #D8B4FE' }}>
-                <label style={{ ...labelStyle, color: '#6B21A8' }}>Pegue el detalle de la solicitud aquí:</label>
+              <div style={{ 
+                background: 'linear-gradient(to bottom right, #faf5ff, #f3e8ff)', 
+                padding: '20px', 
+                borderRadius: '12px', 
+                marginBottom: '25px', 
+                border: '1px solid #e9d5ff',
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 6px rgba(0,0,0,0.02)'
+              }}>
+                <label style={{ ...labelStyle, color: '#6b21a8', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <span>✨</span> Pegá el texto completo de la solicitud de GDEBA o TramitesWeb:
+                </label>
                 <textarea 
                   rows={6}
                   value={importText}
                   onChange={e => setImportText(e.target.value)}
-                  placeholder="Pegue todo el texto de la solicitud (ID, Solicitante, Recorrido, etc)..."
-                  style={{ ...inputStyle, resize: 'vertical', borderColor: '#D8B4FE', marginBottom: '10px' }}
+                  placeholder="Ejemplo: ID: #61433... Nombre: MONTI OMAR... Patente: AH313BV..."
+                  style={{ 
+                    ...inputStyle, 
+                    resize: 'vertical', 
+                    borderColor: '#d8b4fe', 
+                    marginBottom: '15px',
+                    backgroundColor: 'rgba(255,255,255,0.8)',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                  }}
                 />
                 <button 
                   type="button" 
                   onClick={() => handleImport()}
                   disabled={isImporting || !importText.trim()}
-                  style={{ ...btnStyle, backgroundColor: isImporting ? '#C4B5FD' : '#7C3AED', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                  {isImporting ? <><Loader2 size={18} className="animate-spin" style={{ marginRight: '8px' }} /> Analizando con IA...</> : 'Procesar Texto'}
+                  style={{ 
+                    ...btnStyle, 
+                    background: isImporting ? '#c084fc' : 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)', 
+                    width: '100%', 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    boxShadow: isImporting ? 'none' : '0 4px 12px rgba(147, 51, 234, 0.3)',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                  }}>
+                  {isImporting ? <><Loader2 size={18} className="animate-spin" style={{ marginRight: '8px' }} /> Analizando con IA...</> : 'Procesar Texto Mágicamente'}
                 </button>
               </div>
             )}
