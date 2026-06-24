@@ -1161,13 +1161,21 @@ export default function AdminPage() {
                     <tbody>
                       {rutas.map(ruta => (
                         <tr key={ruta.id}>
-                          <td><strong>#{ruta.numeroSolicitud}</strong><br/><small style={{color:'#646970'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small></td>
+                          <td>
+                            <strong>#{ruta.numeroSolicitud}</strong>
+                            {ruta.idSolicitudWeb && <div style={{ fontSize: '0.8rem', color: '#888' }}>ID Web: {ruta.idSolicitudWeb}</div>}
+                            <br/><small style={{color:'#646970'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small>
+                            <div style={{ fontSize: '0.8rem', color: '#646970', marginTop: '4px' }}>
+                              {ruta.vigenciaDesde && <span>Vigencia: {ruta.vigenciaDesde} - {ruta.vigenciaHasta || '?'}</span>}
+                            </div>
+                          </td>
                           <td>{ruta.nombreSolicitante}</td>
                           <td>
                             <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
                               <div><strong>Patente:</strong> {ruta.patente || '-'}</div>
                               <div><strong>Vehículo:</strong> {ruta.tipoVehiculo || '-'}</div>
                               <div><strong>Peso:</strong> {ruta.pesoToneladas ? `${ruta.pesoToneladas} Tn` : '-'}</div>
+                              {ruta.aseguradora && <div><strong>Seguro:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(${ruta.nroSeguro})` : ''}</div>}
                               {ruta.cargaPeligrosa && <div style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '4px' }}>Carga Peligrosa</div>}
                             </div>
                           </td>

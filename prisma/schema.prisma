@@ -64,5 +64,10 @@ model RutaTransporte {
   datosGeo          String
   calles            String?
   estado            String   @default("PENDIENTE")
+  idSolicitudWeb    String?
+  vigenciaDesde     String?
+  vigenciaHasta     String?
+  aseguradora       String?
+  nroSeguro         String?
   creadoEn          DateTime @default(now())
 }

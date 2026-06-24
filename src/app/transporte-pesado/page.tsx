@@ -25,21 +25,18 @@ export default function TransportePesadoWizard() {
   const [tipoVehiculo, setTipoVehiculo] = useState('');
   const [pesoToneladas, setPesoToneladas] = useState('');
   const [cargaPeligrosa, setCargaPeligrosa] = useState(false);
+  const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
+  const [vigenciaDesde, setVigenciaDesde] = useState('');
+  const [vigenciaHasta, setVigenciaHasta] = useState('');
+  const [aseguradora, setAseguradora] = useState('');
+  const [nroSeguro, setNroSeguro] = useState('');
   const [datosGeo, setDatosGeo] = useState<any>(null);
-  const [calles, setCalles] = useState<string[]>([]);
-  const [liveStreets, setLiveStreets] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [showRepetitions, setShowRepetitions] = useState(false);
   const [importText, setImportText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [parsedInfo, setParsedInfo] = useState<any>(null);
-
-  const callesToDisplay = showRepetitions 
-    ? calles.map((s, i) => calles.indexOf(s) < i ? `${s} (Vuelve a pasar)` : s)
-    : Array.from(new Set(calles));
-
   const [magicUrls, setMagicUrls] = useState<string[]>([]);
 
   useEffect(() => {
@@ -116,6 +113,11 @@ export default function TransportePesadoWizard() {
       if (data.tipoVehiculo) setTipoVehiculo(data.tipoVehiculo);
       if (data.pesoToneladas) setPesoToneladas(data.pesoToneladas.toString());
       if (data.cargaPeligrosa !== undefined) setCargaPeligrosa(data.cargaPeligrosa);
+      if (data.idSolicitudWeb) setIdSolicitudWeb(data.idSolicitudWeb);
+      if (data.vigenciaDesde) setVigenciaDesde(data.vigenciaDesde);
+      if (data.vigenciaHasta) setVigenciaHasta(data.vigenciaHasta);
+      if (data.aseguradora) setAseguradora(data.aseguradora);
+      if (data.nroSeguro) setNroSeguro(data.nroSeguro);
       
       setParsedInfo(data);
       setStep(1.5); // Vamos al paso de revisión
@@ -130,7 +132,6 @@ export default function TransportePesadoWizard() {
 
   const handleMapComplete = (data: any, detectedStreets: string[]) => {
     setDatosGeo(data);
-    setCalles(detectedStreets);
     setStep(3);
   };
 
@@ -147,8 +148,13 @@ export default function TransportePesadoWizard() {
           tipoVehiculo,
           pesoToneladas,
           cargaPeligrosa,
+          idSolicitudWeb,
+          vigenciaDesde,
+          vigenciaHasta,
+          aseguradora,
+          nroSeguro,
           datosGeo: JSON.stringify(datosGeo),
-          calles: calles.join(', ')
+          calles: ""
         })
       });
 
@@ -166,8 +172,9 @@ export default function TransportePesadoWizard() {
     setTipoVehiculo('');
     setPesoToneladas('');
     setCargaPeligrosa(false);
+    setAseguradora('');
+    setNroSeguro('');
     setDatosGeo(null);
-    setCalles([]);
     setParsedInfo(null);
     setStep(1);
   };
@@ -266,26 +273,48 @@ export default function TransportePesadoWizard() {
               <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Datos de la Solicitud</h2>
               <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Vincule esta traza con su trámite actual.</p>
               
-              <button 
-                type="button" 
-                onClick={() => setShowImport(!showImport)}
-                style={{ 
-                  ...btnStyle, 
-                  background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', 
-                  marginTop: '15px', 
-                  width: 'auto', 
-                  padding: '10px 20px', 
-                  fontSize: '14px',
-                  boxShadow: '0 4px 14px rgba(168, 85, 247, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 21-6-6m6-6v6h-6"/><path d="M17 10c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/><path d="m3 21 6-6"/><path d="M7 10C4.24 10 2 12.24 2 15s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/></svg>
-                Asistente Mágico de Importación
-              </button>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '15px' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowImport(!showImport)}
+                  style={{ 
+                    ...btnStyle, 
+                    background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', 
+                    margin: 0,
+                    width: 'auto', 
+                    padding: '10px 20px', 
+                    fontSize: '14px',
+                    boxShadow: '0 4px 14px rgba(168, 85, 247, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    transition: 'all 0.3s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 21-6-6m6-6v6h-6"/><path d="M17 10c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/><path d="m3 21 6-6"/><path d="M7 10C4.24 10 2 12.24 2 15s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/></svg>
+                  Asistente Mágico
+                </button>
+                <a 
+                  href="/instalar-asistente" 
+                  target="_blank"
+                  style={{ 
+                    ...btnStyle, 
+                    backgroundColor: '#fff', 
+                    color: '#6b21a8', 
+                    border: '1px solid #d8b4fe',
+                    margin: 0,
+                    width: 'auto', 
+                    padding: '10px 20px', 
+                    fontSize: '14px',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  Instalar Botón
+                </a>
+              </div>
             </div>
 
             {showImport && (
@@ -333,16 +362,51 @@ export default function TransportePesadoWizard() {
               </div>
             )}
 
-            <div style={inputGroupStyle}>
-              <label style={labelStyle}>N° de Solicitud</label>
-              <input 
-                type="text" 
-                required 
-                value={numeroSolicitud} 
-                onChange={e => setNumeroSolicitud(e.target.value)} 
-                placeholder="Ej: EXP-2026-12345"
-                style={inputStyle}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>N° de Solicitud Web (ID)</label>
+                <input 
+                  type="text" 
+                  value={idSolicitudWeb} 
+                  onChange={e => setIdSolicitudWeb(e.target.value)} 
+                  placeholder="Ej: 61433"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>N° Expediente</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={numeroSolicitud} 
+                  onChange={e => setNumeroSolicitud(e.target.value)} 
+                  placeholder="Ej: 1000-2026-964794-O"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Vigencia Desde</label>
+                <input 
+                  type="text" 
+                  value={vigenciaDesde} 
+                  onChange={e => setVigenciaDesde(e.target.value)} 
+                  placeholder="Ej: 19/06/2026"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Vigencia Hasta</label>
+                <input 
+                  type="text" 
+                  value={vigenciaHasta} 
+                  onChange={e => setVigenciaHasta(e.target.value)} 
+                  placeholder="Ej: 16/12/2026"
+                  style={inputStyle}
+                />
+              </div>
             </div>
 
             <div style={inputGroupStyle}>
@@ -413,6 +477,29 @@ export default function TransportePesadoWizard() {
               </div>
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Aseguradora</label>
+                <input 
+                  type="text" 
+                  value={aseguradora} 
+                  onChange={e => setAseguradora(e.target.value)} 
+                  placeholder="Ej: Sancor Seguros"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>N° de Seguro / Póliza</label>
+                <input 
+                  type="text" 
+                  value={nroSeguro} 
+                  onChange={e => setNroSeguro(e.target.value)} 
+                  placeholder="Ej: 123456789"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
             <button type="submit" style={{ ...btnStyle, marginTop: '10px' }}>
               Continuar al Mapa <ArrowRight size={18} style={{ marginLeft: '8px' }} />
             </button>
@@ -429,11 +516,16 @@ export default function TransportePesadoWizard() {
 
             <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e2e8f0', color: '#334155' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
-                <div><strong style={{ color: '#0f172a' }}>N° Solicitud:</strong> {numeroSolicitud}</div>
+                <div><strong style={{ color: '#0f172a' }}>ID Web:</strong> {idSolicitudWeb || '-'}</div>
+                <div><strong style={{ color: '#0f172a' }}>N° Expediente:</strong> {numeroSolicitud}</div>
                 <div><strong style={{ color: '#0f172a' }}>Solicitante:</strong> {nombreSolicitante}</div>
                 <div><strong style={{ color: '#0f172a' }}>Patente:</strong> {patente || <span style={{ color: '#94a3b8' }}>No detectada</span>}</div>
                 <div><strong style={{ color: '#0f172a' }}>Vehículo:</strong> {tipoVehiculo || <span style={{ color: '#94a3b8' }}>No detectado</span>}</div>
                 <div><strong style={{ color: '#0f172a' }}>Peso (Tn):</strong> {pesoToneladas || <span style={{ color: '#94a3b8' }}>No detectado</span>}</div>
+                <div><strong style={{ color: '#0f172a' }}>Vigencia Desde:</strong> {vigenciaDesde || '-'}</div>
+                <div><strong style={{ color: '#0f172a' }}>Vigencia Hasta:</strong> {vigenciaHasta || '-'}</div>
+                <div><strong style={{ color: '#0f172a' }}>Aseguradora:</strong> {aseguradora || '-'}</div>
+                <div><strong style={{ color: '#0f172a' }}>N° Seguro:</strong> {nroSeguro || '-'}</div>
                 <div>
                   <strong style={{ color: '#0f172a' }}>Carga Peligrosa:</strong> 
                   <span style={{ color: cargaPeligrosa ? '#ef4444' : '#10b981', fontWeight: 'bold', marginLeft: '5px' }}>
@@ -442,20 +534,6 @@ export default function TransportePesadoWizard() {
                 </div>
               </div>
               
-              {parsedInfo.calles && parsedInfo.calles.length > 0 && (
-                <div style={{ marginBottom: '10px' }}>
-                  <strong style={{ color: '#0f172a' }}>Ruta a trazar (Punto a Punto):</strong>
-                  <div style={{ margin: '8px 0', padding: '10px', backgroundColor: '#e2e8f0', borderRadius: '6px', color: '#334155', fontSize: '14px', lineHeight: '1.6' }}>
-                    {parsedInfo.calles.map((calle: string, i: number) => (
-                      <span key={i}>
-                        {calle}
-                        {i < parsedInfo.calles.length - 1 && <strong style={{ margin: '0 8px', color: '#8b5cf6' }}>→</strong>}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {parsedInfo.archivosAdjuntos && parsedInfo.archivosAdjuntos.length > 0 && (
                 <div style={{ marginBottom: '10px' }}>
                   <strong style={{ color: '#0f172a' }}>Archivos/Croquis Adjuntos detectados:</strong>
@@ -485,25 +563,9 @@ export default function TransportePesadoWizard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button 
                 type="button" 
-                onClick={() => {
-                  if (parsedInfo.datosGeo) {
-                    setDatosGeo(parsedInfo.datosGeo);
-                    setCalles(parsedInfo.calles || []);
-                    setStep(3);
-                  } else {
-                    alert('No se pudo generar la ruta automática. Por favor dibujela en el mapa.');
-                    setStep(2);
-                  }
-                }}
-                style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
-                Continuar y Dibujar Ruta Automática <ArrowRight size={18} style={{ marginLeft: '8px' }} />
-              </button>
-              
-              <button 
-                type="button" 
                 onClick={() => setStep(2)}
-                style={{ ...btnStyle, backgroundColor: '#fff', color: '#4A4A4A', border: '1px solid #ccc', display: 'flex', justifyContent: 'center' }}>
-                Omitir y Dibujar Ruta Manualmente
+                style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
+                Continuar al Mapa para Dibujar la Ruta <ArrowRight size={18} style={{ marginLeft: '8px' }} />
               </button>
             </div>
           </div>
@@ -511,68 +573,18 @@ export default function TransportePesadoWizard() {
 
         {step === 2 && (
           <div style={{ flex: 1, display: 'flex', width: '100%', height: '100%' }}>
-            {/* Contenedor del Mapa (Ocupa el resto del espacio) */}
             <div style={{ flex: 1, position: 'relative' }}>
               <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'white', padding: '15px 25px', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ backgroundColor: '#E1F5FE', color: '#0288D1', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>2</div>
                 <span style={{ fontWeight: 500, color: '#333' }}>Dibuje la ruta en el mapa</span>
               </div>
 
-              {liveStreets.length > 0 && (
-                <div style={{ position: 'absolute', bottom: 30, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.95)', padding: '15px 25px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', maxWidth: '80%', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <MapPin color="#0288D1" size={24} />
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Calle actual</h4>
-                    <p style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{liveStreets[liveStreets.length - 1]}</p>
-                  </div>
-                </div>
-              )}
-
               <div style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden', border: '2px solid #E1F5FE' }}>
                 <WizardMap 
                   onComplete={handleMapComplete} 
-                  onLiveUpdate={setLiveStreets} 
-                  suggestedRoute={parsedInfo?.datosGeo}
                 />
               </div>
             </div>
-
-            {/* Panel de Asistencia IA (Ocupa 350px a la derecha si hay parsedInfo) */}
-            {parsedInfo && (
-              <div style={{ width: '350px', marginLeft: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', paddingRight: '10px' }}>
-                <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #D8B4FE', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                    <span style={{ backgroundColor: '#8B5CF6', color: 'white', padding: '4px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>ASISTENCIA IA</span>
-                  </div>
-                  
-                  <h4 style={{ color: '#334155', marginTop: 0, marginBottom: '10px', fontSize: '15px' }}>Recorrido Solicitado:</h4>
-                  <div style={{ backgroundColor: '#FFF', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', color: '#475569', fontSize: '13px', lineHeight: '1.6', marginBottom: '20px' }}>
-                    {parsedInfo.calles && parsedInfo.calles.map((calle: string, i: number) => (
-                      <span key={i}>
-                        {calle}
-                        {i < parsedInfo.calles.length - 1 && <strong style={{ margin: '0 5px', color: '#8b5cf6' }}>→</strong>}
-                      </span>
-                    ))}
-                    {(!parsedInfo.calles || parsedInfo.calles.length === 0) && (
-                      <i>No se detectaron calles específicas.</i>
-                    )}
-                  </div>
-
-                  {magicUrls && magicUrls.length > 0 && (
-                    <>
-                      <h4 style={{ color: '#334155', marginTop: 0, marginBottom: '10px', fontSize: '15px' }}>Croquis Adjuntos:</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {magicUrls.map((url: string, i: number) => (
-                          <a key={i} href={url} target="_blank" rel="noreferrer" style={{ display: 'block', borderRadius: '6px', overflow: 'hidden', border: '1px solid #CBD5E1' }}>
-                            <img src={url} alt="Croquis" style={{ width: '100%', objectFit: 'contain', backgroundColor: '#f1f5f9' }} />
-                          </a>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
