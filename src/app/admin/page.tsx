@@ -20,23 +20,28 @@ const translatePropKey = (key: string) => {
 };
 
 export default function AdminPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, dbUser, loading: authLoading } = useAuth();
   const router = useRouter();
 
   // Protect route
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
+    if (!authLoading) {
+      if (!user) {
+        router.push('/login');
+      } else if (dbUser && dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR') {
+        router.push('/');
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, dbUser, authLoading, router]);
 
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes' | 'usuarios'
   
   // Dashboard & GIS State
   const [capas, setCapas] = useState<any[]>([]);
   const [grupos, setGrupos] = useState<any[]>([]);
   const [subgrupos, setSubgrupos] = useState<any[]>([]);
   const [rutas, setRutas] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Edit & Bulk Delete State
@@ -70,6 +75,8 @@ export default function AdminPage() {
   const [fileContent, setFileContent] = useState('');
   const [fileType, setFileType] = useState('geojson');
   const [fileName, setFileName] = useState('');
+  const [visibilidad, setVisibilidad] = useState('PUBLIC');
+  const [rolesPermitidos, setRolesPermitidos] = useState<string[]>([]);
 
   const commonIcons = [
     { value: '', label: 'Sin Icono (Punto)' },
@@ -101,21 +108,24 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [resCapas, resGrupos, resSubGrupos, resRutas] = await Promise.all([
+      const [resCapas, resGrupos, resSubGrupos, resRutas, resUsuarios] = await Promise.all([
         fetch('/api/capas'),
         fetch('/api/grupos'),
         fetch('/api/subgrupos'),
-        fetch('/api/rutas-transporte')
+        fetch('/api/rutas-transporte'),
+        fetch('/api/usuarios')
       ]);
       const dataCapas = await resCapas.json();
       const dataGrupos = await resGrupos.json();
       const dataSubGrupos = await resSubGrupos.json();
       const dataRutas = await resRutas.json();
+      const dataUsuarios = await resUsuarios.json();
 
       setCapas(Array.isArray(dataCapas) ? dataCapas : []);
       setGrupos(Array.isArray(dataGrupos) ? dataGrupos : []);
       setSubgrupos(Array.isArray(dataSubGrupos) ? dataSubGrupos : []);
       setRutas(Array.isArray(dataRutas) ? dataRutas : []);
+      setUsuarios(Array.isArray(dataUsuarios) ? dataUsuarios : []);
     } catch (e) {
       console.error(e);
     }
@@ -273,7 +283,15 @@ export default function AdminPage() {
     if (!nombre) return alert('El nombre es obligatorio');
     
     setIsProcessing(true);
-    const body: any = { name: nombre, color, icono: icono || null, grupoId: grupoId || null, subGrupoId: subGrupoId || null };
+    const body: any = { 
+      name: nombre, 
+      color, 
+      icono: icono || null, 
+      grupoId: grupoId || null, 
+      subGrupoId: subGrupoId || null,
+      visibilidad,
+      rolesPermitidos
+    };
     
     if (uploadType === 'file') {
       if (!fileContent) {
@@ -545,6 +563,24 @@ export default function AdminPage() {
     }
   };
 
+  // ----- USUARIOS LOGIC -----
+  const handleRoleChange = async (id: string, nuevoRol: string) => {
+    try {
+      const res = await fetch(`/api/usuarios/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rol: nuevoRol })
+      });
+      if (res.ok) {
+        fetchData(); // Reload users
+      } else {
+        alert('Error al actualizar el rol.');
+      }
+    } catch (e) {
+      alert('Error de conexión al actualizar el rol.');
+    }
+  };
+
   const handleDeleteRuta = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar esta solicitud de forma permanente?')) {
       try {
@@ -557,28 +593,38 @@ export default function AdminPage() {
   };
 
   return (
-    <div className={styles.adminContainer}>
-      <header className={styles.header}>
-        <h1>Administración de Capas GIS - Lanús</h1>
-        <a href="/" className={styles.backButton}>Ir al Mapa</a>
-      </header>
-      
-      <div className={styles.tabsContainer}>
-        <button className={`${styles.tabButton} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
-          Panel Principal
-        </button>
-        <button className={`${styles.tabButton} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
-          Grupos & Sub-grupos
-        </button>
-        <button className={`${styles.tabButton} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
-          Capas
-        </button>
-        <button className={`${styles.tabButton} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
-          Transporte Pesado
-        </button>
-      </div>
-      
-      <div className={styles.mainContent}>
+    <div className={styles.adminLayout}>
+      {/* SIDEBAR */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarHeader}>
+          <h1>Administración GIS</h1>
+        </div>
+        <nav className={styles.sidebarMenu}>
+          <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
+            Dashboard
+          </button>
+          <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
+            Grupos
+          </button>
+          <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
+            Capas
+          </button>
+          <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
+            Transporte Pesado
+          </button>
+          {dbUser?.rol === 'SUPER_ADMIN' && (
+            <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
+              Usuarios
+            </button>
+          )}
+        </nav>
+        <a href="/" className={styles.backButton}>← Volver al Mapa</a>
+      </aside>
+
+      {/* MAIN CONTENT AREA */}
+      <main className={styles.contentArea}>
+        <h1 className={styles.pageTitle}>Panel de Control</h1>
+        <div className={styles.mainContent}>
         
         {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && (
@@ -923,6 +969,40 @@ export default function AdminPage() {
                   </div>
 
                   <div className={styles.formGroup}>
+                    <label>Visibilidad</label>
+                    <select value={visibilidad} onChange={e => setVisibilidad(e.target.value)}>
+                      <option value="PUBLIC">Público (Todos)</option>
+                      <option value="PRIVATE">Privado (Solo roles permitidos)</option>
+                    </select>
+                  </div>
+
+                  {visibilidad === 'PRIVATE' && (
+                    <div className={styles.formGroup}>
+                      <label>Roles Permitidos</label>
+                      <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', padding: '10px 0' }}>
+                        {['ADMINISTRADOR', 'USUARIO'].map(role => (
+                          <label key={role} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#cbd5e1', cursor: 'pointer' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={rolesPermitidos.includes(role)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setRolesPermitidos([...rolesPermitidos, role]);
+                                } else {
+                                  setRolesPermitidos(rolesPermitidos.filter(r => r !== role));
+                                }
+                              }}
+                              style={{ width: '18px', height: '18px', accentColor: '#0ea5e9' }}
+                            />
+                            {role === 'USUARIO' ? 'Usuario (Básico)' : 'Administrador'}
+                          </label>
+                        ))}
+                      </div>
+                      <small style={{color: '#94a3b8', marginTop: '5px'}}>*SUPER_ADMIN siempre tiene acceso.</small>
+                    </div>
+                  )}
+
+                  <div className={styles.formGroup}>
                     <label>Fuente de Datos</label>
                     <select value={uploadType} onChange={e => setUploadType(e.target.value)}>
                       <option value="file">Subir Archivo (.geojson, .kml)</option>
@@ -938,187 +1018,261 @@ export default function AdminPage() {
                     </div>
                   ) : (
                     <div className={styles.formGroup}>
-                      <label>URL del GeoJSON / KML</label>
-                      <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://..." />
+                      <label>URL Externa</label>
+                      <input type="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://maphub.net/..." />
                     </div>
                   )}
-
-                  <button type="submit" className={styles.submitBtn} disabled={isProcessing}>
-                    {isProcessing ? 'Procesando archivo...' : 'Procesar Capa'}
-                  </button>
+                  <div style={{ marginTop: '20px' }}>
+                    <button type="submit" className={styles.submitBtn} disabled={isProcessing}>
+                      {isProcessing ? 'Procesando...' : 'Previsualizar / Agregar a lista'}
+                    </button>
+                  </div>
                 </form>
               </section>
             )}
 
             <section className={styles.listSection}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h2 style={{ margin: 0 }}>Capas Registradas</h2>
-                {selectedCapas.length > 0 && (
-                  <button className={styles.deleteBtn} onClick={handleBulkDelete}>
-                    Eliminar {selectedCapas.length} seleccionadas
-                  </button>
-                )}
-              </div>
-              {loading ? <p>Cargando...</p> : (
-                <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={{ width: '40px', textAlign: 'center' }}>
-                        <input type="checkbox" onChange={handleSelectAll} checked={capas.length > 0 && selectedCapas.length === capas.length} />
-                      </th>
-                      <th>Color</th>
-                      <th>Icono</th>
-                      <th>Ubicación</th>
-                      <th>Nombre</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {capas.map(capa => (
-                      <tr key={capa.id} style={{ backgroundColor: selectedCapas.includes(capa.id) ? 'rgba(41, 182, 246, 0.1)' : 'transparent' }}>
-                        <td style={{ textAlign: 'center' }}>
-                          <input type="checkbox" checked={selectedCapas.includes(capa.id)} onChange={() => handleSelectCapa(capa.id)} />
-                        </td>
-                        <td>
-                          {editingCapa === capa.id ? (
-                            <input type="color" value={editColor} onChange={(e) => setEditColor(e.target.value)} style={{ width: '40px', height: '40px', border: 'none', padding: 0 }} />
-                          ) : (
-                            <span className={styles.colorDot} style={{ backgroundColor: capa.color }}></span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <h2 style={{ margin: 0 }}>Capas Registradas</h2>
+                      {selectedCapas.length > 0 && (
+                        <button className={styles.deleteBtn} onClick={handleBulkDelete}>
+                          Eliminar {selectedCapas.length} seleccionadas
+                        </button>
+                      )}
+                    </div>
+                    {loading ? <p>Cargando...</p> : (
+                      <div className={styles.tableWrapper}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={{ width: '40px', textAlign: 'center' }}>
+                              <input type="checkbox" onChange={handleSelectAll} checked={capas.length > 0 && selectedCapas.length === capas.length} />
+                            </th>
+                            <th>Color</th>
+                            <th>Icono</th>
+                            <th>Ubicación</th>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {capas.map(capa => (
+                            <tr key={capa.id} style={{ backgroundColor: selectedCapas.includes(capa.id) ? '#f0f6fc' : 'transparent' }}>
+                              <td style={{ textAlign: 'center' }}>
+                                <input type="checkbox" checked={selectedCapas.includes(capa.id)} onChange={() => handleSelectCapa(capa.id)} />
+                              </td>
+                              <td>
+                                {editingCapa === capa.id ? (
+                                  <input type="color" value={editColor} onChange={(e) => setEditColor(e.target.value)} style={{ width: '40px', height: '40px', border: 'none', padding: 0 }} />
+                                ) : (
+                                  <span className={styles.colorDot} style={{ backgroundColor: capa.color }}></span>
+                                )}
+                              </td>
+                              <td>
+                                {editingCapa === capa.id ? (
+                                  <select value={editIcono} onChange={e => setEditIcono(e.target.value)} style={{ width: '100px', padding: '5px' }}>
+                                    {commonIcons.map(ic => <option key={ic.value} value={ic.value}>{ic.label}</option>)}
+                                  </select>
+                                ) : (
+                                  <span style={{ fontSize: '0.9rem', color: '#646970' }}>{capa.icono || 'Punto'}</span>
+                                )}
+                              </td>
+                              <td>
+                                {editingCapa === capa.id ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                    <select value={editGrupoId} onChange={e => {
+                                      setEditGrupoId(e.target.value);
+                                      setEditSubGrupoId('');
+                                    }} style={{ width: '100%', padding: '5px' }}>
+                                      <option value="">- Grupo -</option>
+                                      {grupos.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
+                                    </select>
+                                    {editGrupoId && subgrupos.filter(sg => sg.grupoId === editGrupoId).length > 0 && (
+                                      <select value={editSubGrupoId} onChange={e => setEditSubGrupoId(e.target.value)} style={{ width: '100%', padding: '5px' }}>
+                                        <option value="">- Sub-grupo -</option>
+                                        {subgrupos.filter(sg => sg.grupoId === editGrupoId).map(sg => <option key={sg.id} value={sg.id}>{sg.nombre}</option>)}
+                                      </select>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <div style={{ fontWeight: '600' }}>{capa.grupo ? capa.grupo.nombre : '-'}</div>
+                                    {capa.subGrupo && <div style={{ fontSize: '0.8rem', color: '#646970' }}>↳ {capa.subGrupo.nombre}</div>}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                {editingCapa === capa.id ? (
+                                  <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} style={{ width: '100%', padding: '5px' }} />
+                                ) : (
+                                  capa.nombre
+                                )}
+                              </td>
+                              <td>
+                                {editingCapa === capa.id ? (
+                                  <div style={{ display: 'flex', gap: '5px' }}>
+                                    <button className={styles.submitBtn} onClick={() => saveEditCapa(capa.id)} style={{ padding: '4px 8px' }}>Guardar</button>
+                                    <button className={styles.rejectBtn} onClick={() => setEditingCapa(null)} style={{ padding: '4px 8px' }}>Cancelar</button>
+                                  </div>
+                                ) : (
+                                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                    <button className={styles.submitBtn} onClick={() => handleViewRecords(capa)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Registros</button>
+                                    <button className={styles.submitBtn} onClick={() => startEditingCapa(capa)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Editar</button>
+                                    <button className={styles.deleteBtn} onClick={() => handleDeleteCapa(capa.id)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Eliminar</button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                          {capas.length === 0 && (
+                            <tr><td colSpan={6} style={{ textAlign: 'center' }}>No hay capas registradas.</td></tr>
                           )}
-                        </td>
-                        <td>
-                          {editingCapa === capa.id ? (
-                            <select value={editIcono} onChange={e => setEditIcono(e.target.value)} style={{ width: '100px', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
-                              {commonIcons.map(ic => <option key={ic.value} value={ic.value}>{ic.label}</option>)}
-                            </select>
-                          ) : (
-                            <span style={{ fontSize: '0.9rem', color: '#64748b' }}>{capa.icono || 'Punto'}</span>
-                          )}
-                        </td>
-                        <td>
-                          {editingCapa === capa.id ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                              <select value={editGrupoId} onChange={e => {
-                                setEditGrupoId(e.target.value);
-                                setEditSubGrupoId('');
-                              }} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }}>
-                                <option value="">- Grupo -</option>
-                                {grupos.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
-                              </select>
-                              {editGrupoId && subgrupos.filter(sg => sg.grupoId === editGrupoId).length > 0 && (
-                                <select value={editSubGrupoId} onChange={e => setEditSubGrupoId(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }}>
-                                  <option value="">- Sub-grupo -</option>
-                                  {subgrupos.filter(sg => sg.grupoId === editGrupoId).map(sg => <option key={sg.id} value={sg.id}>{sg.nombre}</option>)}
-                                </select>
-                              )}
-                            </div>
-                          ) : (
-                            <div>
-                              <div style={{ fontWeight: 'bold' }}>{capa.grupo ? capa.grupo.nombre : '-'}</div>
-                              {capa.subGrupo && <div style={{ fontSize: '0.8rem', color: '#ccc' }}>↳ {capa.subGrupo.nombre}</div>}
-                            </div>
-                          )}
-                        </td>
-                        <td>
-                          {editingCapa === capa.id ? (
-                            <input type="text" value={editNombre} onChange={(e) => setEditNombre(e.target.value)} style={{ width: '100%', padding: '5px', borderRadius: '4px', border: '1px solid #cbd5e1', background: 'white', color: '#334155' }} />
-                          ) : (
-                            capa.nombre
-                          )}
-                        </td>
-                        <td>
-                          {editingCapa === capa.id ? (
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button className={styles.approveBtn} onClick={() => saveEditCapa(capa.id)} style={{ padding: '6px 12px' }}>Guardar</button>
-                              <button className={styles.rejectBtn} onClick={() => setEditingCapa(null)} style={{ padding: '6px 12px' }}>Cancelar</button>
-                            </div>
-                          ) : (
-                            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                              <button className={styles.submitBtn} onClick={() => handleViewRecords(capa)} style={{ padding: '6px 12px', background: '#10B981', flex: '1 1 100%' }}>Ver Registros</button>
-                              <button className={styles.submitBtn} onClick={() => startEditingCapa(capa)} style={{ padding: '6px 12px', flex: '1 1 auto' }}>Editar Capa</button>
-                              <button className={styles.deleteBtn} onClick={() => handleDeleteCapa(capa.id)} style={{ padding: '6px 12px', flex: '1 1 auto' }}>Eliminar</button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {capas.length === 0 && (
-                      <tr><td colSpan={5} style={{ textAlign: 'center' }}>No hay capas registradas.</td></tr>
+                        </tbody>
+                      </table>
+                      </div>
                     )}
-                  </tbody>
-                </table>
+                  </section>
                 </div>
               )}
-              </section>
-              </div>
-            )}
-          </>
-        )}
+            </>
+          )}
 
-        {/* RUTAS TAB */}
-        {activeTab === 'solicitudes' && (
-          <section className={styles.fullSection}>
-            <h2>Solicitudes de Transporte Pesado</h2>
-            <p style={{ marginBottom: '20px', color: '#ccc' }}>Gestione las rutas propuestas por los choferes y transportistas.</p>
-            {loading ? <p>Cargando solicitudes...</p> : (
-              <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>ID Solicitud</th>
-                      <th>Solicitante</th>
-                      <th>Estado</th>
-                      <th>Mapa</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rutas.map(ruta => (
-                      <tr key={ruta.id}>
-                        <td><strong>#{ruta.numeroSolicitud}</strong><br/><small style={{color:'#888'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small></td>
-                        <td>{ruta.nombreSolicitante}</td>
-                        <td>
-                          <span className={`${styles.badge} ${
-                            ruta.estado === 'PENDIENTE' ? styles.badgePendiente : 
-                            ruta.estado === 'APROBADA' ? styles.badgeAprobada : styles.badgeRechazada
-                          }`}>
-                            {ruta.estado}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.mapPreviewWrapper}>
-                            <StaticMapPreview geoData={
-                              typeof ruta.datosGeo === 'string' ? 
-                                ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })() 
-                                : ruta.datosGeo
-                            } />
-                          </div>
-                        </td>
-                        <td>
-                          {ruta.estado === 'PENDIENTE' && (
-                            <>
-                              <button className={styles.approveBtn} onClick={() => handleEstadoRuta(ruta.id, 'APROBADA')}>Aprobar</button>
-                              <button className={styles.rejectBtn} onClick={() => handleEstadoRuta(ruta.id, 'RECHAZADA')}>Rechazar</button>
-                            </>
-                          )}
-                          {ruta.estado !== 'PENDIENTE' && (
-                            <button className={styles.approveBtn} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
-                          )}
-                          <button className={styles.deleteBtn} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
-                        </td>
+          {activeTab === 'solicitudes' && (
+            <section className={styles.fullSection}>
+              <h2>Solicitudes de Transporte Pesado</h2>
+              <p className={styles.tabDescription}>Gestione las rutas propuestas por los choferes y transportistas.</p>
+              {loading ? <p>Cargando solicitudes...</p> : (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>ID Solicitud</th>
+                        <th>Solicitante</th>
+                        <th>Estado</th>
+                        <th>Mapa</th>
+                        <th>Acciones</th>
                       </tr>
-                    ))}
-                    {rutas.length === 0 && (
-                      <tr><td colSpan={5} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-        )}
-      </div>
+                    </thead>
+                    <tbody>
+                      {rutas.map(ruta => (
+                        <tr key={ruta.id}>
+                          <td><strong>#{ruta.numeroSolicitud}</strong><br/><small style={{color:'#646970'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small></td>
+                          <td>{ruta.nombreSolicitante}</td>
+                          <td>
+                            <span className={`${styles.badge} ${
+                              ruta.estado === 'PENDIENTE' ? styles.badgePendiente : 
+                              ruta.estado === 'APROBADA' ? styles.badgeAprobada : styles.badgeRechazada
+                            }`}>
+                              {ruta.estado}
+                            </span>
+                          </td>
+                          <td>
+                            <div className={styles.mapPreviewWrapper}>
+                              <StaticMapPreview geoData={
+                                typeof ruta.datosGeo === 'string' ? 
+                                  ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })() 
+                                  : ruta.datosGeo
+                              } />
+                            </div>
+                          </td>
+                          <td>
+                            {ruta.estado === 'PENDIENTE' && (
+                              <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                                <button className={styles.approveBtn} onClick={() => handleEstadoRuta(ruta.id, 'APROBADA')}>Aprobar</button>
+                                <button className={styles.rejectBtn} onClick={() => handleEstadoRuta(ruta.id, 'RECHAZADA')}>Rechazar</button>
+                              </div>
+                            )}
+                            {ruta.estado !== 'PENDIENTE' && (
+                              <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
+                                <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
+                              </div>
+                            )}
+                            <button className={styles.deleteBtn} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
+                          </td>
+                        </tr>
+                      ))}
+                      {rutas.length === 0 && (
+                        <tr><td colSpan={5} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 'usuarios' && dbUser?.rol === 'SUPER_ADMIN' && (
+            <section className={styles.fullSection}>
+              <h2>Gestión de Usuarios</h2>
+              <p className={styles.tabDescription}>
+                Control total sobre los accesos a la plataforma. Asigne roles, eleve permisos y audite las cuentas registradas.
+              </p>
+              {loading ? <p>Cargando usuarios...</p> : (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Email / Cuenta</th>
+                        <th>Fecha de Registro</th>
+                        <th>Rol Actual</th>
+                        <th>Modificar Rol</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usuarios.map(u => (
+                        <tr key={u.id} style={{ backgroundColor: u.rol === 'PENDIENTE' ? '#fcf0f1' : 'transparent' }}>
+                          <td>
+                            <strong>{u.email}</strong>
+                            {u.email === user?.email && <span style={{ marginLeft: '10px', fontSize: '0.7rem', color: '#fff', background: '#2271b1', padding: '2px 6px', borderRadius: '2px', fontWeight: 'bold' }}>TÚ</span>}
+                          </td>
+                          <td><small style={{color:'#646970'}}>{new Date(u.creadoEn).toLocaleDateString()}</small></td>
+                          <td>
+                            <span className={`${styles.badge} ${
+                              u.rol === 'PENDIENTE' ? styles.badgePendiente : 
+                              u.rol === 'SUPER_ADMIN' ? styles.badgeAprobada : 
+                              u.rol === 'ADMINISTRADOR' ? styles.badgeAprobada : 
+                              styles.badgeNormal
+                            }`}>
+                              {u.rol}
+                            </span>
+                          </td>
+                          <td>
+                            <select 
+                              value={u.rol} 
+                              onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                              disabled={u.email === user?.email}
+                              style={{ 
+                                padding: '6px', 
+                                borderRadius: '4px', 
+                                border: '1px solid #8c8f94', 
+                                background: '#fff', 
+                                color: '#2c3338',
+                                cursor: u.email === user?.email ? 'not-allowed' : 'pointer',
+                                outline: 'none',
+                                maxWidth: '200px',
+                                opacity: u.email === user?.email ? 0.6 : 1,
+                              }}
+                            >
+                              <option value="PENDIENTE">BLOQUEADO / PENDIENTE</option>
+                              <option value="VECINO">VECINO (Público)</option>
+                              <option value="CHOFER">CHOFER (Rutas)</option>
+                              <option value="ADMINISTRADOR">ADMINISTRADOR (Capas)</option>
+                              <option value="SUPER_ADMIN">SUPER_ADMIN (Total)</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                      {usuarios.length === 0 && (
+                        <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#646970' }}>No hay usuarios registrados en el sistema.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

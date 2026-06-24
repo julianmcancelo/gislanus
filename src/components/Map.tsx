@@ -8,6 +8,7 @@ import '@geoman-io/leaflet-geoman-free';
 import { renderToString } from 'react-dom/server';
 import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import toast from 'react-hot-toast';
 
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
@@ -120,9 +121,9 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
           body: JSON.stringify({ geoData })
         });
       }
-      alert('Geometrías actualizadas exitosamente');
+      toast.success('Geometrías actualizadas exitosamente');
     } catch (err) {
-      alert('Error al guardar');
+      toast.error('Error al guardar las geometrías');
     }
   };
 
@@ -225,7 +226,7 @@ const escapeHtml = (unsafe: string) => {
 };
 
 export default function MapComponent() {
-  const { user } = useAuth();
+  const { user, dbUser } = useAuth();
   const [capasConfig, setCapasConfig] = useState<any[]>([]);
   const [cacheDatosGeo, setCacheDatosGeo] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -263,11 +264,25 @@ export default function MapComponent() {
           const hue = (index * 137.5) % 360;
           const colorUnico = `hsl(${hue}, 85%, 55%)`;
 
+          const parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo;
+          if (parsedGeo.type === 'Feature') {
+            parsedGeo.properties = { ...parsedGeo.properties, Calles: r.calles };
+          } else if (parsedGeo.features) {
+            parsedGeo.features = parsedGeo.features.map((f: any) => ({
+              ...f,
+              properties: { ...f.properties, Calles: r.calles }
+            }));
+          }
+
           return {
             id: r.id,
-            nombre: `Solicitudes - #${r.numeroSolicitud} (${r.nombreSolicitante}) - ${r.estado.toUpperCase()}`,
-            datosGeo: typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo,
-            color: colorUnico
+            nombre: `#${r.numeroSolicitud} (${r.nombreSolicitante}) - ${r.estado.toUpperCase()}`,
+            datosGeo: parsedGeo,
+            color: colorUnico,
+            visibilidad: 'PRIVATE', // Asumimos que las rutas son privadas por defecto
+            rolesPermitidos: ['ADMINISTRADOR'], // Solo administradores ven las rutas
+            grupo: { nombre: 'Solicitudes Transporte Pesado' }, // Grupo virtual para la UI
+            numeroSolicitud: r.numeroSolicitud
           };
         });
 
@@ -275,9 +290,15 @@ export default function MapComponent() {
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {
-          if (l.visibilidad === 'PRIVATE' && !user) return false;
-          // You could expand this to check `rolesPermitidos` against `user.role` here
-          return true;
+          if (l.visibilidad === 'PRIVATE') {
+            if (!user || !dbUser) return false;
+            if (dbUser.rol === 'SUPER_ADMIN') return true; // Super Admin siempre ve todo
+            if (l.rolesPermitidos && l.rolesPermitidos.length > 0) {
+              return l.rolesPermitidos.includes(dbUser.rol);
+            }
+            return false; // Privado sin roles permitidos explícitos = solo Super Admin
+          }
+          return true; // PUBLIC
         });
 
         const config = visibleData.map((l: any) => ({
@@ -309,6 +330,12 @@ export default function MapComponent() {
           
           cache[l.id] = parsed;
         });
+        
+        // Cargar en el estado los datos geográficos que vinieron incrustados (como las Rutas de Transporte)
+        if (Object.keys(cache).length > 0) {
+          setCacheDatosGeo(prev => ({ ...prev, ...cache }));
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -391,37 +418,50 @@ export default function MapComponent() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
-      {/* Header Institucional Lanús */}
+      {/* Header Institucional Lanús - Premium Glassmorphism */}
       <header style={{ 
-        height: '60px', 
-        backgroundColor: '#4A4A4A', // Lanús footer dark gray
-        color: 'white', 
+        height: '65px', 
+        background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)', // Slate dark gradient
+        color: '#f8fafc', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between', 
-        padding: '0 20px', 
+        padding: '0 24px', 
         zIndex: 2000, 
         position: 'relative',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/logo-lanus.png" alt="Logo Lanús" style={{ height: '45px', objectFit: 'contain' }} />
-          <div style={{ lineHeight: '1.2' }}>
-            <strong style={{ fontSize: '18px', display: 'block', letterSpacing: '1px' }}>LANÚS</strong>
-            <span style={{ fontSize: '11px', letterSpacing: '2px', opacity: 0.9 }}>MUNICIPIO</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ 
+            background: 'rgba(255,255,255,0.05)', 
+            padding: '6px', 
+            borderRadius: '12px',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}>
+            <img src="/logo-lanus.png" alt="Logo Lanús" style={{ height: '38px', objectFit: 'contain' }} />
+          </div>
+          <div style={{ lineHeight: '1.1' }}>
+            <strong style={{ fontSize: '19px', display: 'block', letterSpacing: '1.5px', fontWeight: 700, color: '#f8fafc' }}>LANÚS</strong>
+            <span style={{ fontSize: '11px', letterSpacing: '3px', color: '#94a3b8', fontWeight: 600 }}>MUNICIPIO</span>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ textAlign: 'right', lineHeight: '1.2' }}>
-            <strong style={{ fontSize: '18px', display: 'block', fontStyle: 'italic', color: '#29B6F6' }}>GIS LANÚS</strong>
-            <span style={{ fontSize: '11px', opacity: 0.9 }}>Sistema de Información Geográfica</span>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ textAlign: 'right', lineHeight: '1.1' }}>
+            <strong style={{ fontSize: '20px', display: 'block', fontStyle: 'italic', fontWeight: 800, background: 'linear-gradient(to right, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>GIS LANÚS</strong>
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.5px' }}>Sistema de Información Geográfica</span>
           </div>
           <div style={{ 
-            width: '32px', height: '40px', 
-            border: '2px solid #29B6F6', borderRadius: '4px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
+            width: '40px', height: '40px', 
+            background: 'rgba(56, 189, 248, 0.1)',
+            border: '1px solid rgba(56, 189, 248, 0.3)', 
+            borderRadius: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: 'inset 0 0 10px rgba(56,189,248,0.1)'
           }}>
-            <MapPin size={20} color="#29B6F6" />
+            <MapPin size={22} color="#38bdf8" />
           </div>
         </div>
       </header>
@@ -457,9 +497,10 @@ export default function MapComponent() {
             ref={setMapInstance}
           >
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           detectRetina={true}
+          maxZoom={19}
         />
 
         <GeomanController />

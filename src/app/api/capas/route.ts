@@ -91,6 +91,8 @@ export async function POST(req: Request) {
             datosGeo: typeof item.geoData === 'string' ? item.geoData : JSON.stringify(item.geoData),
             grupoId: item.grupoId || null,
             subGrupoId: item.subGrupoId || null,
+            visibilidad: item.visibilidad || 'PUBLIC',
+            rolesPermitidos: item.rolesPermitidos || [],
           },
         });
         createdCapas.push(capa);
@@ -107,6 +109,8 @@ export async function POST(req: Request) {
           datosGeo: typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData),
           grupoId: body.grupoId || null,
           subGrupoId: body.subGrupoId || null,
+          visibilidad: body.visibilidad || 'PUBLIC',
+          rolesPermitidos: body.rolesPermitidos || [],
         },
       });
       return NextResponse.json(capa, { status: 201 });

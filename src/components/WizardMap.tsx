@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
-import '@geoman-io/leaflet-geoman-free';
+import 'leaflet-routing-machine';
 import { Loader2 } from 'lucide-react';
 
 const center: [number, number] = [-34.7042, -58.3961];
@@ -17,158 +17,144 @@ L.Icon.Default.mergeOptions({
 
 function WizardMapController({ onComplete, setProcessing, onLiveUpdate, suggestedRoute }: any) {
   const map = useMap();
+  const [routingControl, setRoutingControl] = useState<any>(null);
+  const [currentRoute, setCurrentRoute] = useState<any>(null);
 
   useEffect(() => {
-    // Hide standard Geoman buttons
-    map.pm.addControls({
-      position: 'topleft',
-      drawCircle: false,
-      drawCircleMarker: false,
-      drawText: false,
-      drawPolygon: false,
-      drawRectangle: false,
-      drawMarker: false,
-      drawPolyline: false,
-      editMode: false,
-      dragMode: false,
-      cutPolygon: false,
-      removalMode: false,
-    });
+    if (typeof window === 'undefined') return;
+    
+    // Ocultar botones de geoman si quedan
+    if (map.pm) {
+      map.pm.addControls({ position: 'topleft', drawCircle: false, drawPolygon: false, drawRectangle: false, drawMarker: false, drawPolyline: false, editMode: false, dragMode: false, cutPolygon: false, removalMode: false });
+    }
 
-    map.pm.setLang('es');
+    // @ts-ignore
+    if (!L.Routing) return;
 
-    // Start drawing a line immediately
-    map.pm.enableDraw('Line', {
-      snappable: true,
-      templineStyle: { color: '#29B6F6', weight: 5 },
-      hintlineStyle: { color: '#29B6F6', dashArray: '5,5' },
-    });
-
-    const getStreetName = async (lat: number, lng: number) => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`);
-        const data = await res.json();
-        return data.address?.road || data.address?.pedestrian || null;
-      } catch (e) {
-        return null;
+    // @ts-ignore
+    const control = L.Routing.control({
+      waypoints: [],
+      routeWhileDragging: true,
+      showAlternatives: false,
+      fitSelectedRoutes: false,
+      lineOptions: {
+        styles: [{ color: '#29B6F6', opacity: 0.8, weight: 6 }],
+        extendToWaypoints: true,
+        missingRouteTolerance: 0
+      },
+      // @ts-ignore
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://router.project-osrm.org/route/v1',
+        profile: 'driving'
+      }),
+      show: false, // Ocultar el panel de instrucciones para mantener limpio el UI
+      addWaypoints: true,
+      createMarker: function(i: number, wp: any, nWps: number) {
+        return L.marker(wp.latLng, { draggable: true });
       }
-    };
+    } as any).addTo(map);
 
-    let liveDetected: string[] = [];
-
-    const handleVertexAdded = async (e: any) => {
-      if (!onLiveUpdate) return;
-      const latlng = e.latlng;
-      const name = await getStreetName(latlng.lat, latlng.lng);
-      if (name) {
-        if (liveDetected.length === 0 || liveDetected[liveDetected.length - 1] !== name) {
-          liveDetected = [...liveDetected, name];
-          onLiveUpdate(liveDetected);
-        }
-      }
-    };
-
-    map.on('pm:drawstart', (e: any) => {
-      liveDetected = [];
-      if (onLiveUpdate) onLiveUpdate([]);
-      e.workingLayer.on('pm:vertexadded', handleVertexAdded);
-    });
-
-    const getOsrmRoute = async (latlngs: any[]) => {
-      try {
-        // Limit to 99 points to avoid OSRM limits
-        const safeLatLngs = latlngs.slice(0, 99);
-        const coords = safeLatLngs.map(pt => `${pt.lng},${pt.lat}`).join(';');
-        const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`);
-        const data = await res.json();
+    control.on('routesfound', function(e: any) {
+      const routes = e.routes;
+      if (routes && routes.length > 0) {
+        setCurrentRoute(routes[0]);
         
-        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
-          return null;
-        }
-
-        const route = data.routes[0];
-        const geojson = { type: 'Feature', properties: {}, geometry: route.geometry };
-        
-        const orderedStreets: string[] = [];
-        if (route.legs) {
-          route.legs.forEach((leg: any) => {
-            if (leg.steps) {
-              leg.steps.forEach((step: any) => {
-                const name = step.name?.trim();
-                if (name) {
-                  // Solo agregar si es distinta a la cuadra inmediatamente anterior
-                  if (orderedStreets.length === 0 || orderedStreets[orderedStreets.length - 1] !== name) {
-                    orderedStreets.push(name);
-                  }
-                }
-              });
+        if (onLiveUpdate) {
+          const orderedStreets: string[] = [];
+          routes[0].instructions.forEach((inst: any) => {
+            const name = inst.road?.trim();
+            if (name && name !== '') {
+              if (orderedStreets.length === 0 || orderedStreets[orderedStreets.length - 1] !== name) {
+                orderedStreets.push(name);
+              }
             }
           });
+          
+          const seen = new Set<string>();
+          const formattedStreets = orderedStreets.map((street: string) => {
+            if (seen.has(street)) return `${street} (Repetida / Vuelve a pasar)`;
+            seen.add(street);
+            return street;
+          });
+          
+          onLiveUpdate(formattedStreets);
         }
-
-        // Formatear para mostrar repeticiones
-        const seen = new Set<string>();
-        const formattedStreets = orderedStreets.map(street => {
-          if (seen.has(street)) {
-            return `${street} (Repetida / Vuelve a pasar)`;
-          }
-          seen.add(street);
-          return street;
-        });
-
-        return { geojson, streets: formattedStreets };
-      } catch (e) {
-        return null;
       }
-    };
+    });
 
-    const onCreate = async (e: any) => {
-      setProcessing(true);
-      const layer = e.layer;
-      let geojson = layer.toGeoJSON();
-      map.pm.disableDraw();
+    setRoutingControl(control);
 
-      const latlngs = layer.getLatLngs();
-      let finalStreets: string[] = [];
-
-      // Try Map Matching / Routing with OSRM
-      const osrmData = await getOsrmRoute(latlngs);
-
-      if (osrmData) {
-        geojson = osrmData.geojson;
-        finalStreets = osrmData.streets;
-        
-        // Remove rough line and add the snapped one
-        map.removeLayer(layer);
-        L.geoJSON(geojson, {
-          style: { color: '#29B6F6', weight: 6, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }
-        }).addTo(map);
+    const onMapClick = (e: any) => {
+      const wps = control.getWaypoints().filter((w: any) => w.latLng);
+      if (wps.length === 0) {
+        control.spliceWaypoints(0, 1, e.latlng);
+      } else if (wps.length === 1) {
+        control.spliceWaypoints(1, 1, e.latlng);
       } else {
-        // Fallback to basic Nominatim if OSRM fails
-        const uniqueStreets = new Set<string>();
-        const pointsToQuery = latlngs.length > 5 
-          ? [latlngs[0], latlngs[Math.floor(latlngs.length/2)], latlngs[latlngs.length-1]]
-          : latlngs;
-        for (const pt of pointsToQuery) {
-          const name = await getStreetName(pt.lat, pt.lng);
-          if (name) uniqueStreets.add(name);
-        }
-        finalStreets = Array.from(uniqueStreets);
+        control.spliceWaypoints(wps.length, 0, e.latlng);
       }
-
-      onComplete(geojson, finalStreets);
     };
 
-    map.on('pm:create', onCreate);
+    map.on('click', onMapClick);
 
     return () => {
-      map.off('pm:create', onCreate);
-      map.off('pm:drawstart');
-      map.pm.disableDraw();
+      map.off('click', onMapClick);
+      try { map.removeControl(control); } catch(err) {}
     };
-  }, [map, onComplete, setProcessing, onLiveUpdate]);
+  }, [map]);
 
-  return null;
+  const confirmRoute = async () => {
+    if (!currentRoute) return;
+    setProcessing(true);
+    
+    const coordinates = currentRoute.coordinates.map((c: any) => [c.lng, c.lat]);
+    const geojson = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates
+      }
+    };
+
+    const orderedStreets: string[] = [];
+    currentRoute.instructions.forEach((inst: any) => {
+      const name = inst.road?.trim();
+      if (name && name !== '') {
+        if (orderedStreets.length === 0 || orderedStreets[orderedStreets.length - 1] !== name) {
+          orderedStreets.push(name);
+        }
+      }
+    });
+
+    const seen = new Set<string>();
+    const formattedStreets = orderedStreets.map((street: string) => {
+      if (seen.has(street)) return `${street} (Repetida / Vuelve a pasar)`;
+      seen.add(street);
+      return street;
+    });
+
+    onComplete(geojson, formattedStreets);
+  };
+
+  return (
+    <>
+      {currentRoute && (
+        <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000 }}>
+          <button 
+            onClick={confirmRoute}
+            style={{ 
+              background: '#10B981', color: 'white', border: 'none', padding: '12px 24px', 
+              borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer',
+              boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)'
+            }}
+          >
+            Confirmar Recorrido
+          </button>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function WizardMap({ onComplete, onLiveUpdate, suggestedRoute }: { onComplete: (data: any, streets: string[]) => void, onLiveUpdate?: (streets: string[]) => void, suggestedRoute?: any }) {
@@ -198,8 +184,9 @@ export default function WizardMap({ onComplete, onLiveUpdate, suggestedRoute }: 
         zoomControl={true}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
         />
         <WizardMapController onComplete={onComplete} setProcessing={setProcessing} onLiveUpdate={onLiveUpdate} />
         {baseLayer && (

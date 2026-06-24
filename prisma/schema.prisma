@@ -49,7 +49,7 @@ model Usuario {
   firebaseUid String   @unique
   email       String   @unique
   nombre      String?
-  rol         String   @default("VECINO") // "ADMIN", "OBRAS_PUBLICAS", "VECINO"
+  rol         String   @default("PENDIENTE") // "SUPER_ADMIN", "ADMINISTRADOR", "USUARIO", "PENDIENTE"
   creadoEn    DateTime @default(now())
 }
 

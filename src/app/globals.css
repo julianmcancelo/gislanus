@@ -57,7 +57,39 @@ body {
   font-family: inherit !important;
   font-size: 0.95rem !important;
 }
+/* Custom Leaflet Geoman Styles to Match Premium Glassmorphism */
+.leaflet-pm-toolbar .button-container {
+  background: rgba(15, 23, 42, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  overflow: hidden;
+  margin-bottom: 10px !important;
+}
 
+.leaflet-pm-toolbar .button-container .leaflet-buttons-control-button {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+  transition: all 0.2s ease;
+}
+
+.leaflet-pm-toolbar .button-container .leaflet-buttons-control-button:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-pm-toolbar .button-container .leaflet-buttons-control-button:hover {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #38bdf8 !important;
+}
+
+.leaflet-pm-toolbar .button-container .active {
+  background: rgba(56, 189, 248, 0.25) !important;
+  color: #38bdf8 !important;
+  border-left: 3px solid #38bdf8 !important;
+}
 .leaflet-popup-close-button {
   color: #64748b !important;
   padding: 4px !important;
@@ -99,12 +131,12 @@ body {
 
 /* Custom Premium Map Toolbar */
 .map-toolbar {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: visible; /* For popouts */
@@ -112,8 +144,8 @@ body {
 }
 
 .map-tool-btn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -121,27 +153,31 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
-  color: #475569;
+  color: #94a3b8;
   transition: all 0.2s ease;
 }
 
+.map-tool-btn:first-child {
+  border-radius: 12px 12px 0 0;
+}
+
 .map-tool-btn:hover {
-  background-color: rgba(0,0,0,0.04);
-  color: #0284c7;
+  background-color: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
 .map-tool-btn.primary {
-  color: #0284c7;
+  color: #38bdf8;
 }
 
 .map-tool-btn.primary:hover {
-  background-color: rgba(2, 132, 199, 0.1);
+  background-color: rgba(56, 189, 248, 0.2);
 }
 
 .map-tool-btn.success {
   background-color: #0284c7;
   color: white;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 12px 12px;
 }
 
 .map-tool-btn.success:hover {
@@ -151,7 +187,7 @@ body {
 
 .map-divider {
   height: 1px;
-  background-color: rgba(0,0,0,0.06);
+  background-color: rgba(255, 255, 255, 0.05);
   width: 100%;
 }
 

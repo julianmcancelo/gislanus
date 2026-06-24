@@ -51,20 +51,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex bg-[#1e293b] overflow-hidden">
+    <div className="min-h-screen relative flex bg-slate-50 overflow-hidden">
       {/* Background with Lanús sketch */}
       <div 
-        className="absolute inset-0 z-0 opacity-20 pointer-events-none mix-blend-screen"
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 ease-in-out"
         style={{
           backgroundImage: 'url(/lanus-bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
         }}
       />
       
-      {/* Subtle stars / dots overlay */}
-      <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none" />
+      {/* Subtle white overlay to ensure text readability over the light map */}
+      <div className="absolute inset-0 z-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
 
       {/* Main split container */}
       <div className="relative z-10 w-full flex flex-col md:flex-row items-center justify-center p-4 md:p-0">
@@ -72,88 +69,90 @@ export default function LoginPage() {
         {/* Left Side: Logo and Title */}
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center text-center p-8 mb-8 md:mb-0">
           <div className="relative mb-8">
-            <div className="absolute inset-0 bg-sky-500/20 blur-[60px] rounded-full w-40 h-40 left-1/2 -translate-x-1/2" />
+            <div className="absolute inset-0 bg-white/60 blur-[40px] rounded-full w-40 h-40 left-1/2 -translate-x-1/2" />
             <img 
               src="/logo-lanus.png" 
               alt="Logo Lanús" 
-              className="relative z-10 w-32 h-32 object-contain drop-shadow-2xl" 
+              className="relative z-10 w-36 h-36 object-contain drop-shadow-xl" 
             />
           </div>
-          <h1 className="text-white text-3xl md:text-4xl font-black tracking-widest uppercase mb-3 drop-shadow-md">
-            GIS <span className="text-[#2bb3ff]">Lanús</span>
+          <h1 className="text-slate-800 text-4xl md:text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-sm">
+            GIS <span className="text-[#0ea5e9]">Lanús</span>
           </h1>
-          <p className="text-[#8ba2c2] text-xs md:text-sm tracking-[0.2em] font-semibold uppercase">
+          <p className="text-slate-600/90 text-sm md:text-base tracking-[0.2em] font-bold uppercase bg-white/50 px-4 py-1 rounded-full backdrop-blur-md border border-white/50">
             Sistema de Información Geográfica
           </p>
-          <div className="w-12 h-1 bg-[#2bb3ff] rounded-full mt-6 mx-auto opacity-80" />
+          <div className="w-16 h-1.5 bg-gradient-to-r from-[#0ea5e9] to-[#38bdf8] rounded-full mt-8 mx-auto shadow-sm" />
         </div>
 
         {/* Right Side: Login Card */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[24px] shadow-2xl p-10 w-full max-w-md relative overflow-hidden">
+          <div className="bg-white/90 backdrop-blur-2xl border border-white rounded-[32px] shadow-[0_20px_60px_-15px_rgba(14,165,233,0.15)] p-10 w-full max-w-md relative overflow-hidden">
             
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">Inicio de sesión</h2>
-              <p className="text-sm text-slate-500 font-medium">Acceso exclusivo para personal autorizado</p>
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-extrabold text-slate-800 mb-2 tracking-tight">Bienvenido</h2>
+              <p className="text-sm text-slate-500 font-medium">Ingresá tus credenciales para continuar</p>
             </div>
 
-            <form onSubmit={handleEmailLogin} className="space-y-4">
+            <form onSubmit={handleEmailLogin} className="space-y-5">
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center border border-red-100">
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm text-center border border-red-100 font-medium shadow-sm">
                   {error}
                 </div>
               )}
               
-              <div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Correo Electrónico</label>
                 <input
                   type="email"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="ejemplo@lanus.gob.ar"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#f1f5f9] border border-transparent focus:border-[#2bb3ff] focus:bg-white focus:ring-4 focus:ring-[#2bb3ff]/10 rounded-xl px-5 py-3.5 text-slate-700 font-medium outline-none transition-all placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#0ea5e9] focus:bg-white focus:ring-4 focus:ring-[#0ea5e9]/10 rounded-2xl px-5 py-4 text-slate-800 font-medium outline-none transition-all placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="relative">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Contraseña</label>
                 <input
                   type="password"
-                  placeholder="Ingresa tu contraseña"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#f1f5f9] border border-transparent focus:border-[#2bb3ff] focus:bg-white focus:ring-4 focus:ring-[#2bb3ff]/10 rounded-xl px-5 py-3.5 text-slate-700 font-medium outline-none transition-all placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-[#0ea5e9] focus:bg-white focus:ring-4 focus:ring-[#0ea5e9]/10 rounded-2xl px-5 py-4 text-slate-800 font-medium outline-none transition-all placeholder:text-slate-400"
                 />
+              </div>
+
+              <div className="flex justify-end mt-2">
+                <a href="#" className="text-[#0ea5e9] text-sm font-semibold hover:text-[#0284c7] transition-colors">
+                  ¿Olvidaste tu contraseña?
+                </a>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#2bb3ff] hover:bg-[#1a9cea] text-white font-bold rounded-xl px-6 py-4 mt-2 transition-all shadow-lg shadow-[#2bb3ff]/30 hover:shadow-[#2bb3ff]/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-[#0ea5e9] to-[#38bdf8] hover:from-[#0284c7] hover:to-[#0ea5e9] text-white font-bold rounded-2xl px-6 py-4 mt-4 transition-all shadow-[0_8px_20px_-6px_rgba(14,165,233,0.5)] hover:shadow-[0_12px_25px_-8px_rgba(14,165,233,0.6)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {loading ? 'Iniciando...' : 'Iniciar sesión'}
+                {loading ? 'Iniciando...' : 'Iniciar Sesión'}
               </button>
             </form>
-
-            <div className="mt-6 text-center">
-              <a href="#" className="text-[#2bb3ff] text-sm font-semibold hover:underline">
-                Olvidé mi contraseña
-              </a>
-            </div>
 
             <div className="mt-8 relative flex items-center justify-center">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200"></div>
               </div>
-              <div className="relative bg-white px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                O acceder con
+              <div className="relative bg-white/0 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider backdrop-blur-sm rounded-full">
+                O continuar con
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-8">
               <button
                 onClick={handleGoogleLogin}
                 type="button"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-white border-2 border-slate-100 hover:bg-slate-50 text-slate-700 font-bold rounded-xl px-6 py-3.5 transition-all focus:ring-4 focus:ring-slate-100 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-700 font-bold rounded-2xl px-6 py-4 transition-all shadow-sm hover:shadow-md focus:ring-4 focus:ring-slate-100 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
