@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { numeroSolicitud, nombreSolicitante, datosGeo, calles } = await req.json();
+    const { numeroSolicitud, nombreSolicitante, patente, tipoVehiculo, pesoToneladas, cargaPeligrosa, datosGeo, calles } = await req.json();
 
     if (!numeroSolicitud || !nombreSolicitante || !datosGeo) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -34,6 +34,10 @@ export async function POST(req: Request) {
       data: {
         numeroSolicitud,
         nombreSolicitante,
+        patente: patente || null,
+        tipoVehiculo: tipoVehiculo || null,
+        pesoToneladas: pesoToneladas ? parseFloat(pesoToneladas) : null,
+        cargaPeligrosa: cargaPeligrosa || false,
         datosGeo,
         calles,
       },

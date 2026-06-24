@@ -82,6 +82,10 @@ ASUME que TODAS las calles mencionadas pertenecen al partido de Lanús, Provinci
 Extrae la siguiente información en formato JSON:
 - numeroSolicitud (string, sin el símbolo #)
 - nombreSolicitante (string, Nombre y Apellido combinados)
+- patente (string, si no se menciona dejar null)
+- tipoVehiculo (string, ej: 'Chasis', 'Acoplado', 'Semi-remolque', si no se menciona dejar null)
+- pesoToneladas (number, el peso en toneladas, si no se menciona dejar null)
+- cargaPeligrosa (boolean, true si menciona materiales peligrosos/inflamables, false si no o no especifica)
 - recorridosEscritos (array de strings): Los textos exactos que el usuario escribió bajo "recorrido escrito 1", "recorrido escrito 2", etc.
 - archivosAdjuntos (array de strings): Nombres de los archivos adjuntos (ej: .jpg, .pdf) detectados en el texto, especialmente los croquis.
 - puntosRuta (array de strings): Una lista ORDENADA de direcciones que forman la ruta total que debe hacer el camión. 

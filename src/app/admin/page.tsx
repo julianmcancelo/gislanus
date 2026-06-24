@@ -1148,6 +1148,7 @@ export default function AdminPage() {
                       <tr>
                         <th>ID Solicitud</th>
                         <th>Solicitante</th>
+                        <th>Datos Técnicos</th>
                         <th>Estado</th>
                         <th>Mapa</th>
                         <th>Acciones</th>
@@ -1158,6 +1159,14 @@ export default function AdminPage() {
                         <tr key={ruta.id}>
                           <td><strong>#{ruta.numeroSolicitud}</strong><br/><small style={{color:'#646970'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small></td>
                           <td>{ruta.nombreSolicitante}</td>
+                          <td>
+                            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
+                              <div><strong>Patente:</strong> {ruta.patente || '-'}</div>
+                              <div><strong>Vehículo:</strong> {ruta.tipoVehiculo || '-'}</div>
+                              <div><strong>Peso:</strong> {ruta.pesoToneladas ? `${ruta.pesoToneladas} Tn` : '-'}</div>
+                              {ruta.cargaPeligrosa && <div style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '4px' }}>Carga Peligrosa</div>}
+                            </div>
+                          </td>
                           <td>
                             <span className={`${styles.badge} ${
                               ruta.estado === 'PENDIENTE' ? styles.badgePendiente : 

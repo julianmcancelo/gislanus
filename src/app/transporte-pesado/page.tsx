@@ -18,6 +18,10 @@ export default function TransportePesadoWizard() {
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [nombreSolicitante, setNombreSolicitante] = useState('');
+  const [patente, setPatente] = useState('');
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
+  const [pesoToneladas, setPesoToneladas] = useState('');
+  const [cargaPeligrosa, setCargaPeligrosa] = useState(false);
   const [datosGeo, setDatosGeo] = useState<any>(null);
   const [calles, setCalles] = useState<string[]>([]);
   const [liveStreets, setLiveStreets] = useState<string[]>([]);
@@ -85,6 +89,10 @@ export default function TransportePesadoWizard() {
 
       if (data.numeroSolicitud) setNumeroSolicitud(data.numeroSolicitud);
       if (data.nombreSolicitante) setNombreSolicitante(data.nombreSolicitante);
+      if (data.patente) setPatente(data.patente);
+      if (data.tipoVehiculo) setTipoVehiculo(data.tipoVehiculo);
+      if (data.pesoToneladas) setPesoToneladas(data.pesoToneladas.toString());
+      if (data.cargaPeligrosa !== undefined) setCargaPeligrosa(data.cargaPeligrosa);
       
       setParsedInfo(data);
       setStep(1.5); // Vamos al paso de revisión
@@ -112,6 +120,10 @@ export default function TransportePesadoWizard() {
         body: JSON.stringify({
           numeroSolicitud,
           nombreSolicitante,
+          patente,
+          tipoVehiculo,
+          pesoToneladas,
+          cargaPeligrosa,
           datosGeo: JSON.stringify(datosGeo),
           calles: calles.join(', ')
         })
@@ -223,6 +235,62 @@ export default function TransportePesadoWizard() {
               />
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Patente (Tractor/Acoplado)</label>
+                <input 
+                  type="text" 
+                  value={patente} 
+                  onChange={e => setPatente(e.target.value)} 
+                  placeholder="Ej: AB123CD"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Tipo de Vehículo</label>
+                <select 
+                  value={tipoVehiculo} 
+                  onChange={e => setTipoVehiculo(e.target.value)}
+                  style={{...inputStyle, backgroundColor: '#fff'}}
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Chasis">Chasis</option>
+                  <option value="Chasis con Acoplado">Chasis con Acoplado</option>
+                  <option value="Semi-remolque">Semi-remolque</option>
+                  <option value="Bitrén">Bitrén</option>
+                  <option value="Maquinaria Especial">Maquinaria Especial</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div style={inputGroupStyle}>
+                <label style={labelStyle}>Peso Total (Toneladas)</label>
+                <input 
+                  type="number" 
+                  step="0.1"
+                  value={pesoToneladas} 
+                  onChange={e => setPesoToneladas(e.target.value)} 
+                  placeholder="Ej: 45.5"
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ ...inputGroupStyle, justifyContent: 'center', display: 'flex', flexDirection: 'column' }}>
+                <label style={{...labelStyle, marginBottom: '8px'}}>¿Carga Peligrosa?</label>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={cargaPeligrosa} 
+                    onChange={e => setCargaPeligrosa(e.target.checked)}
+                    style={{ width: '18px', height: '18px', marginRight: '8px', accentColor: '#EF4444' }}
+                  />
+                  <span style={{ fontSize: '14px', color: cargaPeligrosa ? '#EF4444' : '#666', fontWeight: cargaPeligrosa ? 'bold' : 'normal' }}>
+                    {cargaPeligrosa ? 'Sí, incluye materiales peligrosos' : 'No, carga general'}
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <button type="submit" style={{ ...btnStyle, marginTop: '10px' }}>
               Continuar al Mapa <ArrowRight size={18} style={{ marginLeft: '8px' }} />
             </button>
@@ -238,11 +306,18 @@ export default function TransportePesadoWizard() {
             </div>
 
             <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e2e8f0', color: '#334155' }}>
-              <div style={{ marginBottom: '10px' }}>
-                <strong style={{ color: '#0f172a' }}>N° Solicitud:</strong> {numeroSolicitud}
-              </div>
-              <div style={{ marginBottom: '10px' }}>
-                <strong style={{ color: '#0f172a' }}>Solicitante:</strong> {nombreSolicitante}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+                <div><strong style={{ color: '#0f172a' }}>N° Solicitud:</strong> {numeroSolicitud}</div>
+                <div><strong style={{ color: '#0f172a' }}>Solicitante:</strong> {nombreSolicitante}</div>
+                <div><strong style={{ color: '#0f172a' }}>Patente:</strong> {patente || <span style={{ color: '#94a3b8' }}>No detectada</span>}</div>
+                <div><strong style={{ color: '#0f172a' }}>Vehículo:</strong> {tipoVehiculo || <span style={{ color: '#94a3b8' }}>No detectado</span>}</div>
+                <div><strong style={{ color: '#0f172a' }}>Peso (Tn):</strong> {pesoToneladas || <span style={{ color: '#94a3b8' }}>No detectado</span>}</div>
+                <div>
+                  <strong style={{ color: '#0f172a' }}>Carga Peligrosa:</strong> 
+                  <span style={{ color: cargaPeligrosa ? '#ef4444' : '#10b981', fontWeight: 'bold', marginLeft: '5px' }}>
+                    {cargaPeligrosa ? 'SÍ' : 'NO'}
+                  </span>
+                </div>
               </div>
               
               {parsedInfo.calles && parsedInfo.calles.length > 0 && (

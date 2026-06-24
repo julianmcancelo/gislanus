@@ -57,6 +57,10 @@ model RutaTransporte {
   id                String   @id @default(cuid())
   numeroSolicitud   String
   nombreSolicitante String
+  patente           String?
+  tipoVehiculo      String?
+  pesoToneladas     Float?
+  cargaPeligrosa    Boolean  @default(false)
   datosGeo          String
   calles            String?
   estado            String   @default("PENDIENTE")
