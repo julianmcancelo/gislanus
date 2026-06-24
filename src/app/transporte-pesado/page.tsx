@@ -153,9 +153,37 @@ export default function TransportePesadoWizard() {
       });
 
       if (!response.ok) throw new Error('Error saving route');
-      setIsSuccess(true);
+      setStep(2.5);
     } catch (err) {
       alert('Error al guardar la solicitud. Por favor, intente nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddAnotherRoute = () => {
+    setPatente('');
+    setTipoVehiculo('');
+    setPesoToneladas('');
+    setCargaPeligrosa(false);
+    setDatosGeo(null);
+    setCalles([]);
+    setParsedInfo(null);
+    setStep(1);
+  };
+
+  const handleFinishRequest = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/rutas-transporte/finalizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numeroSolicitud })
+      });
+      if (!response.ok) throw new Error('Error finalizando la solicitud');
+      setIsSuccess(true);
+    } catch (err) {
+      alert('Error al finalizar la solicitud. Por favor, intente nuevamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -168,9 +196,41 @@ export default function TransportePesadoWizard() {
           <CheckCircle size={64} color="#10B981" style={{ marginBottom: '20px' }} />
           <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Solicitud Registrada!</h2>
           <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            La traza de transporte pesado para la solicitud <strong>#{numeroSolicitud}</strong> ha sido guardada correctamente. Nuestro equipo la verificará.
+            La solicitud <strong>#{numeroSolicitud}</strong> y todos sus vehículos han sido guardados correctamente. Nuestro equipo los verificará.
           </p>
           <button onClick={() => window.location.reload()} style={btnStyle}>Registrar Otra Solicitud</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 2.5) {
+    return (
+      <div style={containerStyle}>
+        <div style={cardStyle}>
+          <CheckCircle size={48} color="#29B6F6" style={{ marginBottom: '20px' }} />
+          <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Recorrido Guardado!</h2>
+          <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
+            El recorrido para el vehículo <strong>{patente || 'Sin patente'}</strong> se ha guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
+            <br/><br/>
+            ¿Desea registrar otro vehículo para esta misma solicitud o finalizar el proceso?
+          </p>
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <button 
+              onClick={handleAddAnotherRoute} 
+              style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db' }}
+              disabled={isSubmitting}
+            >
+              Agregar Otro Vehículo
+            </button>
+            <button 
+              onClick={handleFinishRequest} 
+              style={btnStyle}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Finalizando...' : 'Finalizar Solicitud Completa'}
+            </button>
+          </div>
         </div>
       </div>
     );

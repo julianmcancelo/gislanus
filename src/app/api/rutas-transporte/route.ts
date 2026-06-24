@@ -40,6 +40,7 @@ export async function POST(req: Request) {
         cargaPeligrosa: cargaPeligrosa || false,
         datosGeo,
         calles,
+        estado: 'BORRADOR'
       },
     });
 
@@ -53,6 +54,9 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     const rutas = await prisma.rutaTransporte.findMany({
+      where: {
+        estado: { not: 'BORRADOR' }
+      },
       orderBy: {
         creadoEn: 'desc'
       }
