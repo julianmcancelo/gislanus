@@ -71,7 +71,7 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
   const handlePrintFull = () => window.print();
   
   const handlePrintZone = () => {
-    toast.info('Seleccione un área en el mapa y presione Enter (Funcionalidad en desarrollo)');
+    toast('Seleccione un área en el mapa y presione Enter (Funcionalidad en desarrollo)', { icon: 'ℹ️' });
   };
 
   const handleSave = async () => {
