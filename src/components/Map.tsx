@@ -50,52 +50,28 @@ const dividerStyle = {
   margin: '0 4px'
 };
 
-function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers' | 'info' | null }) {
+function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin: boolean }) {
+  const map = useMap();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
 
   const handleZoomIn = () => map.zoomIn();
   const handleZoomOut = () => map.zoomOut();
   const handleHome = () => map.setView(center, 14);
+  
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
-        console.error(`Error fullscreen: ${err.message}`);
+        console.error(`Error al intentar entrar en pantalla completa: ${err.message}`);
       });
     } else {
       document.exitFullscreen();
     }
   };
 
-  const handlePrintFull = () => {
-    window.print();
-  };
-
+  const handlePrintFull = () => window.print();
+  
   const handlePrintZone = () => {
-    map.pm.enableDraw('Rectangle', {
-      snappable: false,
-      cursorMarker: false,
-    });
-
-    const onCreate = (e: any) => {
-      const layer = e.layer;
-      const bounds = layer.getBounds();
-      map.pm.disableDraw();
-      layer.remove(); // Remove the drawn rectangle visually
-
-      const currentBounds = map.getBounds();
-      
-      map.fitBounds(bounds);
-      
-      // Wait for tiles to load
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => map.fitBounds(currentBounds), 500);
-      }, 800);
-      
-      map.off('pm:create', onCreate);
-    };
-
-    map.on('pm:create', onCreate);
+    toast.info('Seleccione un área en el mapa y presione Enter (Funcionalidad en desarrollo)');
   };
 
   const handleSave = async () => {
@@ -158,7 +134,6 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
 
         <div className="map-divider" />
         
-        {/* Print Button with Popout */}
         <div 
           style={{ position: 'relative' }}
           onMouseEnter={() => setShowPrintMenu(true)}
@@ -191,26 +166,34 @@ function CustomMapControls({ map, activeTab }: { map: L.Map, activeTab: 'layers'
           )}
         </div>
 
-        {/* Save Edits button wrapped at the bottom */}
-        <button onClick={handleSave} className="map-tool-btn success" title="Guardar Ediciones del Mapa">
-          <Save size={18} />
-        </button>
+        {isAdmin && (
+          <>
+            <div className="map-divider" />
+            <button onClick={handleSave} className="map-tool-btn success" title="Guardar Ediciones del Mapa">
+              <Save size={18} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-function GeomanController() {
+function GeomanController({ isAdmin }: { isAdmin: boolean }) {
   const map = useMap();
   useEffect(() => {
-    map.pm.addControls({
-      position: 'topright',
-      drawCircle: false,
-      drawCircleMarker: false,
-      drawText: false,
-    });
-    map.pm.setLang('es');
-  }, [map]);
+    if (isAdmin) {
+      map.pm.addControls({
+        position: 'topright',
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawText: false,
+      });
+      map.pm.setLang('es');
+    } else {
+      map.pm.removeControls();
+    }
+  }, [map, isAdmin]);
 
   return null;
 }
@@ -503,7 +486,7 @@ export default function MapComponent() {
           maxZoom={19}
         />
 
-        <GeomanController />
+        <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
 
         {baseLayer && (
           <GeoJSON 
@@ -608,8 +591,8 @@ export default function MapComponent() {
             interactive={false}
           />
         )}
+        <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
       </MapContainer>
-      {mapInstance && <CustomMapControls map={mapInstance} activeTab={activeTab} />}
         </div>
       </div>
     </div>

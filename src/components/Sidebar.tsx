@@ -27,7 +27,7 @@ type GroupedData = {
 };
 
 export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, dbUser, logout } = useAuth();
   const router = useRouter();
   // Store expanded state using keys like 'GrupoName' or 'GrupoName|SubGrupoName'
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
@@ -267,23 +267,48 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               )}
             </div>
             
-            <div style={{ marginTop: '30px', textAlign: 'center' }}>
-              <a 
-                href="/admin" 
-                style={{
-                  display: 'inline-block',
-                  padding: '8px 16px',
-                  backgroundColor: '#0284c7',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '600',
-                  fontSize: '0.9rem',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-              >
-                Administrar Capas
-              </a>
+            <div style={{ marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+              {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'USUARIO') && (
+                <a 
+                  href="/transporte-pesado" 
+                  style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    backgroundColor: '#8B5CF6',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    width: '80%',
+                    textAlign: 'center'
+                  }}
+                >
+                  Transporte Pesado (Asistente)
+                </a>
+              )}
+              
+              {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR') && (
+                <a 
+                  href="/admin" 
+                  style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    backgroundColor: '#0284c7',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    width: '80%',
+                    textAlign: 'center'
+                  }}
+                >
+                  Panel de Control
+                </a>
+              )}
             </div>
           </div>
         )}

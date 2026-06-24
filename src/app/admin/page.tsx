@@ -603,12 +603,16 @@ export default function AdminPage() {
           <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
             Dashboard
           </button>
-          <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
-            Grupos
-          </button>
-          <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
-            Capas
-          </button>
+          {dbUser?.rol === 'SUPER_ADMIN' && (
+            <>
+              <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
+                Grupos
+              </button>
+              <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
+                Capas
+              </button>
+            </>
+          )}
           <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
             Transporte Pesado
           </button>
@@ -654,7 +658,7 @@ export default function AdminPage() {
         )}
 
         {/* GRUPOS TAB */}
-        {activeTab === 'grupos' && (
+        {activeTab === 'grupos' && dbUser?.rol === 'SUPER_ADMIN' && (
           <div className={styles.gruposGrid}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               <section className={styles.formSection}>
@@ -784,9 +788,9 @@ export default function AdminPage() {
         )}
 
         {/* CAPAS TAB */}
-        {activeTab === 'capas' && (
+        {activeTab === 'capas' && dbUser?.rol === 'SUPER_ADMIN' && (
           <>
-            {selectedCapaForRecords ? (
+            {viewingCapaRecords ? (
               <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <h2 style={{ margin: 0 }}>Registros de Capa: {selectedCapaForRecords.nombre}</h2>

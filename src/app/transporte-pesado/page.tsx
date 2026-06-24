@@ -14,7 +14,10 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
   loading: () => <div style={{ height: '200px', width: '100%', backgroundColor: '#eee', borderRadius: '8px', marginBottom: '15px' }} />
 });
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function TransportePesadoWizard() {
+  const { dbUser, loading } = useAuth();
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [nombreSolicitante, setNombreSolicitante] = useState('');
@@ -49,22 +52,42 @@ export default function TransportePesadoWizard() {
         const payload = JSON.parse(hashContent);
         if (payload.text) {
           textToParse = payload.text;
-          if (payload.urls) urls = payload.urls;
+        }
+        if (payload.urls && Array.isArray(payload.urls)) {
+          urls = payload.urls;
         }
       } catch (e) {
-        // Fallback: no era JSON, era solo texto (marcador viejo)
+        // Fallback: no era JSON, era solo texto
       }
 
       if (textToParse && textToParse.trim().length > 10) {
         setImportText(textToParse);
         setMagicUrls(urls);
         setShowImport(true);
-        // Clear hash silently
         window.history.replaceState(null, '', window.location.pathname);
         handleImport(textToParse);
       }
     }
   }, []);
+
+  if (loading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
+  }
+
+  if (!dbUser || (dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR' && dbUser.rol !== 'USUARIO')) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f7fa', padding: '20px', textAlign: 'center' }}>
+        <Truck size={64} color="#ccc" style={{ marginBottom: '20px' }} />
+        <h2 style={{ color: '#333' }}>Acceso Restringido</h2>
+        <p style={{ color: '#666', maxWidth: '400px', lineHeight: '1.6' }}>
+          No tenés permisos para acceder al Asistente de Transporte Pesado. Por favor, iniciá sesión con una cuenta autorizada o contactá a un administrador.
+        </p>
+        <a href="/" style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#29B6F6', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: 'bold' }}>
+          Volver al Mapa
+        </a>
+      </div>
+    );
+  }
 
   const handleNextStep1 = (e: React.FormEvent) => {
     e.preventDefault();
