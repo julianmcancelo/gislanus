@@ -601,26 +601,7 @@ export default function TransportePesadoWizard() {
               <p style={detailStyle}><strong>Solicitud:</strong> {numeroSolicitud}</p>
               <p style={detailStyle}><strong>Solicitante:</strong> {nombreSolicitante}</p>
               
-              <div style={{ marginTop: '15px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <strong style={{ color: '#333' }}>Calles detectadas en la ruta:</strong>
-                  {calles.length !== new Set(calles).size && (
-                    <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#666' }}>
-                      <input 
-                        type="checkbox" 
-                        checked={showRepetitions} 
-                        onChange={(e) => setShowRepetitions(e.target.checked)} 
-                      />
-                      Mostrar repetidas
-                    </label>
-                  )}
-                </div>
-                <ul style={{ margin: 0, paddingLeft: '20px', color: '#555', fontSize: '14px', lineHeight: '1.5' }}>
-                  {callesToDisplay.length > 0 ? callesToDisplay.map((s, i) => (
-                    <li key={i}>{s}</li>
-                  )) : <li>Ruta sin calles identificadas</li>}
-                </ul>
-              </div>
+              
             </div>
 
             <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
