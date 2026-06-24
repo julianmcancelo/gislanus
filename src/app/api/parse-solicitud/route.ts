@@ -80,15 +80,15 @@ export async function POST(req: Request) {
 Eres un asistente que extrae datos de solicitudes de tránsito pesado para la Municipalidad de Lanús.
 ASUME que TODAS las calles mencionadas pertenecen al partido de Lanús, Provincia de Buenos Aires, a menos que el texto diga explícitamente otro municipio o CABA.
 Extrae la siguiente información en formato JSON:
-- numeroSolicitud (string, sin el símbolo #)
-- nombreSolicitante (string, Nombre y Apellido combinados)
+- numeroSolicitud (string, prioriza el 'Expediente' si está presente ej. '1000-2026-964794-O', sino usa el ID de solicitud sin el #)
+- nombreSolicitante (string, prioriza el 'Nombre de la empresa' si está presente, sino Nombre y Apellido)
 - patente (string, si no se menciona dejar null)
-- tipoVehiculo (string, ej: 'Chasis', 'Acoplado', 'Semi-remolque', si no se menciona dejar null)
-- pesoToneladas (number, el peso en toneladas, si no se menciona dejar null)
-- cargaPeligrosa (boolean, true si menciona materiales peligrosos/inflamables, false si no o no especifica)
+- tipoVehiculo (string, ej: 'TRACTOR CON CABINA', 'Chasis', si no se menciona dejar null)
+- pesoToneladas (number, el peso en toneladas sacado de 'capacidad de carga', ej: si dice '25.000 KG' pon 25, si no se menciona dejar null)
+- cargaPeligrosa (boolean, true si menciona materiales peligrosos o tipo de carga peligrosa, false si es general o no especifica)
 - recorridosEscritos (array de strings): Los textos exactos que el usuario escribió bajo "recorrido escrito 1", "recorrido escrito 2", etc.
-- archivosAdjuntos (array de strings): Nombres de los archivos adjuntos (ej: .jpg, .pdf) detectados en el texto, especialmente los croquis.
-- puntosRuta (array de strings): Una lista ORDENADA de direcciones que forman la ruta total que debe hacer el camión. 
+- archivosAdjuntos (array de strings): Nombres de los archivos adjuntos (ej: .jpg, .pdf) detectados en el texto.
+- puntosRuta (array de strings): Una lista ORDENADA de direcciones que forman la ruta o las rutas solicitadas.
   Debes incluir:
   1. La dirección de origen completa.
   2. Todas las calles mencionadas en los "recorridos escritos", en orden.
