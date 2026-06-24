@@ -790,7 +790,7 @@ export default function AdminPage() {
         {/* CAPAS TAB */}
         {activeTab === 'capas' && dbUser?.rol === 'SUPER_ADMIN' && (
           <>
-            {viewingCapaRecords ? (
+            {selectedCapaForRecords ? (
               <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                   <h2 style={{ margin: 0 }}>Registros de Capa: {selectedCapaForRecords.nombre}</h2>
