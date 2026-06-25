@@ -709,21 +709,54 @@ export default function AdminPage() {
       reader.onload = (e) => {
         try {
           const geo = JSON.parse(e.target?.result as string);
-          const features = geo.type === 'FeatureCollection' ? geo.features
+          const features: any[] = geo.type === 'FeatureCollection' ? geo.features
             : geo.type === 'Feature' ? [geo]
-            : ['LineString', 'MultiLineString'].includes(geo.type) ? [{ type: 'Feature', properties: {}, geometry: geo }]
+            : ['LineString', 'MultiLineString'].includes(geo.type)
+              ? [{ type: 'Feature', properties: {}, geometry: geo }]
             : [];
-          features.forEach((f: any) => {
-            if (!f.geometry) return;
-            const p = f.properties || {};
-            previews.push({
-              nombre: p.name || p.nombre || p.ref || file.name.replace(/\.geojson$/i, ''),
-              numero: p.ref || p.numero || '',
-              color: resolveColor(p.colour || p.color),
-              descripcion: p.operator || p.descripcion || '',
-              datosGeo: JSON.stringify(f),
+
+          // ── Formato profesional (grupo/subgrupo/ramal) ──────────────────
+          const tieneGrupos = features.some(f => f.properties?.subgrupo);
+          if (tieneGrupos) {
+            // Agrupar features por subgrupo → 1 LineaTransporte por ramal
+            const porSubgrupo: Record<string, any[]> = {};
+            features.forEach(f => {
+              if (!f.geometry) return;
+              const sg = f.properties?.subgrupo || 'Sin ramal';
+              if (!porSubgrupo[sg]) porSubgrupo[sg] = [];
+              porSubgrupo[sg].push(f);
             });
-          });
+
+            Object.entries(porSubgrupo).forEach(([sg, fts]) => {
+              const p = fts[0].properties || {};
+              const fc = { type: 'FeatureCollection', features: fts };
+              // Nombre del grupo principal (ej: "Línea 28"), ramal como subcategoria
+              const grupoPrincipal = p.grupo || p.linea_nombre || file.name.replace(/\.geojson$/i, '');
+              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : sg;
+              previews.push({
+                nombre: grupoPrincipal,
+                numero: p.linea || p.ref || '',
+                color: resolveColor(p.color_ramal_orig || p.colour),
+                descripcion: [p.operador, p.ciudad].filter(Boolean).join(' · ') || '',
+                subcategoriaAuto: ramalNombre,
+                datosGeo: JSON.stringify(fc),
+              });
+            });
+          } else {
+            // ── Formato simple ──────────────────────────────────────────────
+            features.forEach((f: any) => {
+              if (!f.geometry) return;
+              const p = f.properties || {};
+              previews.push({
+                nombre: p.name || p.nombre || p.linea_nombre || file.name.replace(/\.geojson$/i, ''),
+                numero: p.ref || p.linea || p.numero || '',
+                color: resolveColor(p.colour || p.color || p.stroke || p.color_hex),
+                descripcion: p.operator || p.operador || p.descripcion || '',
+                subcategoriaAuto: '',
+                datosGeo: JSON.stringify(f),
+              });
+            });
+          }
         } catch { toast.error(`Error leyendo ${file.name}`); }
         pending--;
         if (pending === 0) setLineaImportPreview(prev => [...prev, ...previews]);
@@ -742,9 +775,13 @@ export default function AdminPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...item,
+            nombre: item.nombre,
+            numero: item.numero || null,
+            color: item.color,
+            descripcion: item.descripcion || null,
+            datosGeo: item.datosGeo,
             categoria: lineaImportCategoria,
-            subcategoria: lineaImportSubcategoria.trim() || null,
+            subcategoria: lineaImportSubcategoria.trim() || item.subcategoriaAuto || null,
           }),
         });
         if (res.ok) ok++; else fail++;
@@ -1641,6 +1678,7 @@ export default function AdminPage() {
                                 <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Color</th>
                                 <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nombre</th>
                                 <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nro</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Subcat / Ramal</th>
                                 <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Descripción</th>
                                 <th style={{ padding: '6px 2px', borderBottom: '1px solid #e5e7eb' }}></th>
                               </tr>
@@ -1663,7 +1701,10 @@ export default function AdminPage() {
                                       onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, numero: e.target.value } : p))}
                                       style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '2px 6px', fontSize: '0.82rem', width: '60px' }} />
                                   </td>
-                                  <td style={{ padding: '5px 8px', color: '#6b7280', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <td style={{ padding: '5px 8px', fontSize: '0.78rem', color: '#7c3aed', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {item.subcategoriaAuto || lineaImportSubcategoria || '—'}
+                                  </td>
+                                  <td style={{ padding: '5px 8px', color: '#6b7280', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {item.descripcion || '—'}
                                   </td>
                                   <td style={{ padding: '5px 8px' }}>
