@@ -53,6 +53,18 @@ model Usuario {
   creadoEn    DateTime @default(now())
 }
 
+model LineaTransporte {
+  id            String   @id @default(cuid())
+  nombre        String
+  numero        String?
+  color         String   @default("#E53E3E")
+  descripcion   String?
+  activo        Boolean  @default(true)
+  datosGeo      String   // GeoJSON LineString o FeatureCollection con múltiples segmentos
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
 model RutaTransporte {
   id                String   @id @default(cuid())
   // Identificación de la solicitud

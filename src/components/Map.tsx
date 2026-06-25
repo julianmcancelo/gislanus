@@ -232,16 +232,33 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas] = await Promise.all([
+        const [resCapas, resRutas, resLineas] = await Promise.all([
           fetch('/api/capas'),
-          fetch('/api/rutas-transporte')
+          fetch('/api/rutas-transporte'),
+          fetch('/api/lineas-transporte'),
         ]);
-        
+
         const dataCapas = await resCapas.json();
         const dataRutas = await resRutas.json();
-        
+        const dataLineas = await resLineas.json();
+
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
+        const validLineas = Array.isArray(dataLineas) ? dataLineas.filter((l: any) => l.activo !== false) : [];
+
+        // Convert lineas to capa-like objects for unified rendering
+        const formatedLineas = validLineas.map((l: any) => {
+          const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+          return {
+            id: `linea-${l.id}`,
+            nombre: l.numero ? `Línea ${l.numero} – ${l.nombre}` : l.nombre,
+            datosGeo: geo,
+            color: l.color || '#E53E3E',
+            visibilidad: 'PUBLIC',
+            rolesPermitidos: [],
+            grupo: { nombre: 'Líneas de Transporte Público' },
+          };
+        });
 
         const formatedRutas = validRutas.map((r: any, index: number) => {
           // Generar un color único usando el ángulo dorado para máxima distinción visual
@@ -298,7 +315,7 @@ export default function MapComponent() {
           };
         });
 
-        const allData = [...validCapas, ...formatedRutas];
+        const allData = [...validCapas, ...formatedRutas, ...formatedLineas];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {

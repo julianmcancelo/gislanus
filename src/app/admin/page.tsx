@@ -9,6 +9,7 @@ import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
+const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
 
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
@@ -53,9 +54,20 @@ export default function AdminPage() {
   const [grupos, setGrupos] = useState<any[]>([]);
   const [subgrupos, setSubgrupos] = useState<any[]>([]);
   const [rutas, setRutas] = useState<any[]>([]);
+  const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  // Líneas editor state
+  const [lineaEditorOpen, setLineaEditorOpen] = useState(false);
+  const [editingLinea, setEditingLinea] = useState<any | null>(null);
+  const [lineaFormNombre, setLineaFormNombre] = useState('');
+  const [lineaFormNumero, setLineaFormNumero] = useState('');
+  const [lineaFormColor, setLineaFormColor] = useState('#E53E3E');
+  const [lineaFormDescripcion, setLineaFormDescripcion] = useState('');
+  const [lineaFormSaving, setLineaFormSaving] = useState(false);
+  const [selectedLineas, setSelectedLineas] = useState<string[]>([]);
+
   // Bulk selection for rutas
   const [selectedRutas, setSelectedRutas] = useState<string[]>([]);
 
@@ -123,24 +135,27 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const [resCapas, resGrupos, resSubGrupos, resRutas, resUsuarios] = await Promise.all([
+      const [resCapas, resGrupos, resSubGrupos, resRutas, resUsuarios, resLineas] = await Promise.all([
         fetch('/api/capas'),
         fetch('/api/grupos'),
         fetch('/api/subgrupos'),
         fetch('/api/rutas-transporte'),
-        authFetch('/api/usuarios')
+        authFetch('/api/usuarios'),
+        fetch('/api/lineas-transporte'),
       ]);
       const dataCapas = await resCapas.json();
       const dataGrupos = await resGrupos.json();
       const dataSubGrupos = await resSubGrupos.json();
       const dataRutas = await resRutas.json();
       const dataUsuarios = await resUsuarios.json();
+      const dataLineas = await resLineas.json();
 
       setCapas(Array.isArray(dataCapas) ? dataCapas : []);
       setGrupos(Array.isArray(dataGrupos) ? dataGrupos : []);
       setSubgrupos(Array.isArray(dataSubGrupos) ? dataSubGrupos : []);
       setRutas(Array.isArray(dataRutas) ? dataRutas : []);
       setUsuarios(Array.isArray(dataUsuarios) ? dataUsuarios : []);
+      setLineas(Array.isArray(dataLineas) ? dataLineas : []);
     } catch (e) {
       console.error(e);
     }
@@ -640,6 +655,85 @@ export default function AdminPage() {
     }
   };
 
+  const openNewLinea = () => {
+    setEditingLinea(null);
+    setLineaFormNombre('');
+    setLineaFormNumero('');
+    setLineaFormColor('#E53E3E');
+    setLineaFormDescripcion('');
+    setLineaEditorOpen(true);
+  };
+
+  const openEditLinea = (linea: any) => {
+    setEditingLinea(linea);
+    setLineaFormNombre(linea.nombre);
+    setLineaFormNumero(linea.numero || '');
+    setLineaFormColor(linea.color || '#E53E3E');
+    setLineaFormDescripcion(linea.descripcion || '');
+    setLineaEditorOpen(true);
+  };
+
+  const handleSaveLinea = async (geojson: any) => {
+    if (!lineaFormNombre.trim()) { toast.error('El nombre de la línea es obligatorio.'); return; }
+    setLineaFormSaving(true);
+    try {
+      const payload = {
+        nombre: lineaFormNombre.trim(),
+        numero: lineaFormNumero.trim() || null,
+        color: lineaFormColor,
+        descripcion: lineaFormDescripcion.trim() || null,
+        datosGeo: JSON.stringify(geojson),
+      };
+      const res = editingLinea
+        ? await authFetch(`/api/lineas-transporte/${editingLinea.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await authFetch('/api/lineas-transporte', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+      if (!res.ok) throw new Error(await res.text());
+      toast.success(editingLinea ? 'Línea actualizada.' : 'Línea creada.');
+      setLineaEditorOpen(false);
+      fetchData();
+    } catch (e: any) {
+      toast.error('Error al guardar la línea.');
+    } finally {
+      setLineaFormSaving(false);
+    }
+  };
+
+  const handleDeleteLinea = async (id: string) => {
+    if (!confirm('¿Eliminar esta línea permanentemente?')) return;
+    try {
+      await authFetch(`/api/lineas-transporte/${id}`, { method: 'DELETE' });
+      toast.success('Línea eliminada.');
+      fetchData();
+    } catch {
+      toast.error('Error al eliminar la línea.');
+    }
+  };
+
+  const handleBulkToggleLineas = async (activo: boolean) => {
+    if (selectedLineas.length === 0) return;
+    try {
+      const res = await authFetch('/api/lineas-transporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedLineas, activo }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${selectedLineas.length} línea(s) ${activo ? 'activadas' : 'desactivadas'}.`);
+      setSelectedLineas([]);
+      fetchData();
+    } catch {
+      toast.error('Error al actualizar las líneas.');
+    }
+  };
+
   const handleDeleteRuta = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar esta solicitud de forma permanente?')) {
       try {
@@ -676,6 +770,11 @@ export default function AdminPage() {
           <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
             Transporte Pesado
           </button>
+          {dbUser?.rol === 'SUPER_ADMIN' && (
+            <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
+              Líneas de Colectivo
+            </button>
+          )}
           {dbUser?.rol === 'SUPER_ADMIN' && (
             <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
               Usuarios
@@ -1326,6 +1425,168 @@ export default function AdminPage() {
                       ))}
                       {rutas.length === 0 && (
                         <tr><td colSpan={8} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 'lineas' && dbUser?.rol === 'SUPER_ADMIN' && (
+            <section className={styles.fullSection}>
+              <h2>Líneas de Transporte Público</h2>
+              <p className={styles.tabDescription}>Creá y editá las trazas de las líneas de colectivo usando el editor de rutas.</p>
+
+              {/* Editor full-screen overlay */}
+              {lineaEditorOpen && (
+                <div style={{
+                  position: 'fixed', inset: 0, zIndex: 9999,
+                  display: 'flex', flexDirection: 'column',
+                  background: '#1a1a2e',
+                }}>
+                  {/* Header del editor */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '10px 18px', background: '#16213e',
+                    borderBottom: '1px solid #0f3460', flexShrink: 0,
+                  }}>
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
+                      {editingLinea ? '✏️ Editar línea' : '➕ Nueva línea'}
+                    </span>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <input
+                        placeholder="Nombre *"
+                        value={lineaFormNombre}
+                        onChange={e => setLineaFormNombre(e.target.value)}
+                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '160px' }}
+                      />
+                      <input
+                        placeholder="Número (ej: 27)"
+                        value={lineaFormNumero}
+                        onChange={e => setLineaFormNumero(e.target.value)}
+                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', width: '110px' }}
+                      />
+                      <label style={{ color: '#cbd5e1', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        Color:
+                        <input
+                          type="color"
+                          value={lineaFormColor}
+                          onChange={e => setLineaFormColor(e.target.value)}
+                          style={{ width: '36px', height: '30px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        />
+                      </label>
+                      <input
+                        placeholder="Descripción"
+                        value={lineaFormDescripcion}
+                        onChange={e => setLineaFormDescripcion(e.target.value)}
+                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '180px' }}
+                      />
+                    </div>
+                    <span style={{ color: '#94a3b8', fontSize: '0.78rem', marginLeft: 'auto' }}>
+                      Hacé clic en el mapa para trazar la ruta · Arrastrá los waypoints para ajustar
+                    </span>
+                  </div>
+                  {/* Map area */}
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <LineaEditorMap
+                      color={lineaFormColor}
+                      initialGeo={editingLinea ? (() => { try { return JSON.parse(editingLinea.datosGeo); } catch { return null; } })() : undefined}
+                      onSave={handleSaveLinea}
+                      onCancel={() => setLineaEditorOpen(false)}
+                      isSaving={lineaFormSaving}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Bulk action bar */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  className={styles.submitBtn}
+                  onClick={openNewLinea}
+                  style={{ fontWeight: 700 }}
+                >
+                  + Nueva línea
+                </button>
+                {selectedLineas.length > 0 && (
+                  <>
+                    <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedLineas.length} seleccionada(s)</span>
+                    <button className={styles.approveBtn} onClick={() => handleBulkToggleLineas(true)}>Activar en mapa</button>
+                    <button className={styles.rejectBtn} onClick={() => handleBulkToggleLineas(false)}>Desactivar en mapa</button>
+                    <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }} onClick={() => setSelectedLineas([])}>Limpiar selección</button>
+                  </>
+                )}
+              </div>
+
+              {loading ? <p>Cargando líneas…</p> : (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={{ width: '36px' }}>
+                          <input
+                            type="checkbox"
+                            checked={lineas.length > 0 && selectedLineas.length === lineas.length}
+                            onChange={e => setSelectedLineas(e.target.checked ? lineas.map(l => l.id) : [])}
+                          />
+                        </th>
+                        <th>Línea</th>
+                        <th>Descripción</th>
+                        <th>Visible</th>
+                        <th>Traza</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lineas.map(linea => (
+                        <tr key={linea.id} style={{ opacity: linea.activo === false ? 0.45 : 1 }}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={selectedLineas.includes(linea.id)}
+                              onChange={e => setSelectedLineas(prev =>
+                                e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id)
+                              )}
+                            />
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{
+                                display: 'inline-block', width: '14px', height: '14px',
+                                borderRadius: '3px', background: linea.color, flexShrink: 0,
+                              }} />
+                              <div>
+                                <strong>{linea.nombre}</strong>
+                                {linea.numero && <span style={{ marginLeft: '6px', color: '#6b7280', fontSize: '0.82rem' }}>#{linea.numero}</span>}
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ color: '#6b7280', fontSize: '0.85rem' }}>{linea.descripcion || '-'}</td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span title={linea.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}>
+                              {linea.activo !== false ? '👁️' : '🚫'}
+                            </span>
+                          </td>
+                          <td>
+                            <StaticMapPreview geoData={(() => { try { return JSON.parse(linea.datosGeo); } catch { return null; } })()} />
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => openEditLinea(linea)}>
+                                Editar traza
+                              </button>
+                              <button className={styles.deleteBtn} onClick={() => handleDeleteLinea(linea.id)}>
+                                Eliminar
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {lineas.length === 0 && (
+                        <tr><td colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '30px' }}>
+                          No hay líneas cargadas. Hacé clic en "+ Nueva línea" para comenzar.
+                        </td></tr>
                       )}
                     </tbody>
                   </table>
