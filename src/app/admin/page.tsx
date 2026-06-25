@@ -737,8 +737,9 @@ export default function AdminPage() {
               const nombre = p.linea_nombre || p.grupo || meta.nombre_linea
                 || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
               const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : (p.subgrupo_detalle || p.subgrupo || '');
-              const sentidoRaw = (p.sentido || '').toLowerCase();
-              const sentido = sentidoRaw === 'ida' ? 'IDA' : sentidoRaw === 'vuelta' ? 'VUELTA' : null;
+              const sentidoRaw = (p.sentido || p.sentido_label || '').trim();
+              // Normalize to uppercase, strip emoji prefixes, preserve any value
+              const sentidoNorm = sentidoRaw.replace(/^[\p{Emoji}\s]+/u, '').trim().toUpperCase() || null;
               const color = resolveColor(p.color_hex || p.color_ramal_orig || p.stroke);
               const partsDesc: string[] = [];
               if (p.operador) partsDesc.push(p.operador);
@@ -751,7 +752,7 @@ export default function AdminPage() {
                 color,
                 descripcion: partsDesc.join(' · '),
                 subcategoriaAuto: ramalNombre,
-                sentido,
+                sentido: sentidoNorm,
                 datosGeo: JSON.stringify(f),
               });
             });
@@ -2037,10 +2038,16 @@ export default function AdminPage() {
 
                                               {/* ── Level 4: Sentido rows ── */}
                                               {(!ramalLabel || isRamalOpen) && ramalRecords.map((linea: any, si: number) => {
-                                                const isIda = linea.sentido === 'IDA';
-                                                const isVuelta = linea.sentido === 'VUELTA';
+                                                const sentido = (linea.sentido || '').toUpperCase();
+                                                const isIda = sentido === 'IDA';
+                                                const isVuelta = sentido === 'VUELTA';
                                                 const isActive = linea.activo !== false;
                                                 const indent = ramalLabel ? '68px' : '44px';
+                                                // Human-readable label: capitalize first letter of each word
+                                                const sentidoLabel = sentido
+                                                  ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
+                                                  : 'Sin sentido';
+                                                const sentidoColor = isIda ? '#1e40af' : isVuelta ? '#6d28d9' : '#374151';
                                                 return (
                                                   <div key={linea.id} style={{
                                                     display: 'flex', alignItems: 'center', gap: '10px',
@@ -2055,12 +2062,12 @@ export default function AdminPage() {
                                                       style={{ width: '13px', height: '13px', cursor: 'pointer', flexShrink: 0 }}
                                                     />
                                                     {/* Direction icon + label */}
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '90px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '100px' }}>
                                                       <span style={{ color: isIda ? '#1d4ed8' : isVuelta ? '#7c3aed' : '#6b7280', display: 'flex', alignItems: 'center' }}>
                                                         {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
                                                       </span>
-                                                      <span style={{ fontSize: '0.83rem', fontWeight: 600, color: isIda ? '#1e40af' : isVuelta ? '#6d28d9' : '#374151' }}>
-                                                        {isIda ? 'Ida' : isVuelta ? 'Vuelta' : 'Sin sentido'}
+                                                      <span style={{ fontSize: '0.83rem', fontWeight: 600, color: sentidoColor }}>
+                                                        {sentidoLabel}
                                                       </span>
                                                     </div>
                                                     {linea.descripcion && (
