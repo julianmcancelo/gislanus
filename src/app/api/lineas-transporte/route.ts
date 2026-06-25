@@ -68,6 +68,23 @@ export async function POST(req: Request) {
   }
 }
 
+// Bulk DELETE: { ids: string[] }
+export async function DELETE(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
+  try {
+    const { ids } = await req.json();
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    }
+    await prisma.lineaTransporte.deleteMany({ where: { id: { in: ids } } });
+    return NextResponse.json({ deleted: ids.length });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
 // Bulk PATCH: { ids: string[], activo: boolean }
 export async function PATCH(req: Request) {
   const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);

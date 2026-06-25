@@ -927,6 +927,27 @@ export default function AdminPage() {
     }
   };
 
+  const handleBulkDeleteLineas = async () => {
+    if (selectedLineas.length === 0) return;
+    if (!confirm(`¿Eliminar ${selectedLineas.length} traza(s)? Esta acción no se puede deshacer.`)) return;
+    const prev = lineas;
+    setLineas(l => l.filter(x => !selectedLineas.includes(x.id)));
+    try {
+      const res = await authFetch('/api/lineas-transporte', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedLineas }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${selectedLineas.length} traza(s) eliminada(s).`);
+      setSelectedLineas([]);
+      emitirCambioMapa('lineas');
+    } catch {
+      setLineas(prev);
+      toast.error('Error al eliminar las trazas.');
+    }
+  };
+
   const handleBulkToggleLineas = async (activo: boolean) => {
     if (selectedLineas.length === 0) return;
     try {
@@ -1905,6 +1926,10 @@ export default function AdminPage() {
                     <span style={{ fontWeight: 600, color: '#1d4ed8', fontSize: '0.82rem' }}>{selectedLineas.length} seleccionadas</span>
                     <button onClick={() => handleBulkToggleLineas(true)} style={{ padding: '4px 10px', borderRadius: '5px', border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem' }}>Activar</button>
                     <button onClick={() => handleBulkToggleLineas(false)} style={{ padding: '4px 10px', borderRadius: '5px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem' }}>Desactivar</button>
+                    <button onClick={handleBulkDeleteLineas} style={{ padding: '4px 10px', borderRadius: '5px', border: 'none', background: '#7f1d1d', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                      Eliminar
+                    </button>
                     <button onClick={() => setSelectedLineas([])} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.78rem', padding: '4px 6px' }}>Limpiar</button>
                   </div>
                 )}
