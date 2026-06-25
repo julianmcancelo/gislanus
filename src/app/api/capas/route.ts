@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/authGuard';
 
+// Allow large GeoJSON uploads (up to 50MB)
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const capas = await prisma.capa.findMany({

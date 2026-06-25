@@ -410,10 +410,36 @@ export default function AdminPage() {
     setPreviewCapas(updated);
   };
 
+  // Reduce coordinate precision to 6 decimals (~11cm accuracy) to shrink payload
+  const simplifyGeoData = (geoData: string): string => {
+    try {
+      const roundCoord = (n: number) => Math.round(n * 1e6) / 1e6;
+      const processCoords = (coords: any): any => {
+        if (typeof coords[0] === 'number') return coords.map(roundCoord);
+        return coords.map(processCoords);
+      };
+      const obj = JSON.parse(geoData);
+      const walk = (node: any): any => {
+        if (!node) return node;
+        if (node.coordinates) return { ...node, coordinates: processCoords(node.coordinates) };
+        if (node.geometry) return { ...node, geometry: walk(node.geometry) };
+        if (node.features) return { ...node, features: node.features.map(walk) };
+        return node;
+      };
+      return JSON.stringify(walk(obj));
+    } catch { return geoData; }
+  };
+
   const handleConfirmUpload = async () => {
     setIsProcessing(true);
     try {
       for (const capa of previewCapas) {
+        const geoData = simplifyGeoData(capa.datosGeo);
+        const sizeKB = Math.round(geoData.length / 1024);
+        if (sizeKB > 45000) {
+          toast.error(`La capa "${capa.nombre}" es demasiado grande (${sizeKB} KB). Dividila en partes más pequeñas.`);
+          continue;
+        }
         await authFetch('/api/capas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -422,7 +448,7 @@ export default function AdminPage() {
             color: capa.color,
             icono: capa.icono,
             type: capa.tipo,
-            geoData: capa.datosGeo,
+            geoData,
             grupoId: capa.grupoId,
             subGrupoId: capa.subGrupoId
           }),
