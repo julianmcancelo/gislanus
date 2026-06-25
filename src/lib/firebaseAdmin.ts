@@ -1,16 +1,23 @@
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+
+const FIREBASE_JWKS_URL = 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
+
+let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
+
 export async function verifyIdToken(token: string): Promise<{ uid: string } | null> {
   const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-  if (projectId && clientEmail && privateKey) {
+  if (projectId) {
     try {
-      const { initializeApp, getApps, cert } = await import('firebase-admin/app');
-      const { getAuth } = await import('firebase-admin/auth');
-      if (getApps().length === 0) {
-        initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+      if (!jwks) {
+        jwks = createRemoteJWKSet(new URL(FIREBASE_JWKS_URL));
       }
-      return await getAuth().verifyIdToken(token);
+      const { payload } = await jwtVerify(token, jwks, {
+        issuer: `https://securetoken.google.com/${projectId}`,
+        audience: projectId,
+      });
+      const uid = (payload.user_id as string | undefined) ?? payload.sub;
+      return uid ? { uid } : null;
     } catch {
       // fall through to basic decode
     }

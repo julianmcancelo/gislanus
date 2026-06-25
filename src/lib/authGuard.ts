@@ -13,6 +13,18 @@ export async function requireRole(req: Request, allowedRoles: string[]): Promise
   }
 
   const token = authHeader.slice(7);
+
+  // Bypass mode for local development
+  if (token === 'bypass-token' && process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true') {
+    const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
+    const user = await prisma.usuario.findUnique({
+      where: { email: superAdminEmail },
+      select: { id: true, rol: true, email: true },
+    });
+    if (user && allowedRoles.includes(user.rol)) return { user };
+    return { error: NextResponse.json({ error: 'Sin permisos (bypass)' }, { status: 403 }) };
+  }
+
   const decoded = await verifyIdToken(token);
   if (!decoded) {
     return { error: NextResponse.json({ error: 'Token inválido' }, { status: 401 }) };
