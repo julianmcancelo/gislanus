@@ -20,16 +20,37 @@ export default function TransportePesadoWizard() {
   const { dbUser, loading } = useAuth();
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
+  const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
+  const [fechaCreacion, setFechaCreacion] = useState('');
   const [nombreSolicitante, setNombreSolicitante] = useState('');
+  const [empresaSolicitante, setEmpresaSolicitante] = useState('');
+  const [cuilCuit, setCuilCuit] = useState('');
+  const [emailSolicitante, setEmailSolicitante] = useState('');
+  const [telefonoSolicitante, setTelefonoSolicitante] = useState('');
   const [patente, setPatente] = useState('');
   const [tipoVehiculo, setTipoVehiculo] = useState('');
   const [pesoToneladas, setPesoToneladas] = useState('');
   const [cargaPeligrosa, setCargaPeligrosa] = useState(false);
-  const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
-  const [vigenciaDesde, setVigenciaDesde] = useState('');
-  const [vigenciaHasta, setVigenciaHasta] = useState('');
+  const [tipoCarga, setTipoCarga] = useState('');
+  const [largoVehiculo, setLargoVehiculo] = useState('');
+  const [anchoVehiculo, setAnchoVehiculo] = useState('');
+  const [alturaVehiculo, setAlturaVehiculo] = useState('');
+  const [cantidadEjes, setCantidadEjes] = useState('');
   const [aseguradora, setAseguradora] = useState('');
   const [nroSeguro, setNroSeguro] = useState('');
+  const [origenDireccion, setOrigenDireccion] = useState('');
+  const [origenLocalidad, setOrigenLocalidad] = useState('');
+  const [origenPartido, setOrigenPartido] = useState('');
+  const [origenNombre, setOrigenNombre] = useState('');
+  const [destinoDireccion, setDestinoDireccion] = useState('');
+  const [destinoLocalidad, setDestinoLocalidad] = useState('');
+  const [destinoPartido, setDestinoPartido] = useState('');
+  const [destinoNombre, setDestinoNombre] = useState('');
+  const [frecuencia, setFrecuencia] = useState('');
+  const [horario, setHorario] = useState('');
+  const [observaciones, setObservaciones] = useState('');
+  const [vigenciaDesde, setVigenciaDesde] = useState('');
+  const [vigenciaHasta, setVigenciaHasta] = useState('');
   const [datosGeo, setDatosGeo] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -38,21 +59,23 @@ export default function TransportePesadoWizard() {
   const [showImport, setShowImport] = useState(false);
   const [parsedInfo, setParsedInfo] = useState<any>(null);
   const [magicUrls, setMagicUrls] = useState<string[]>([]);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const hashContent = decodeURIComponent(window.location.hash.substring(1));
       let textToParse = hashContent;
       let urls: string[] = [];
+      let pdfUrl: string | null = null;
+      let qrUrl: string | null = null;
 
       try {
         const payload = JSON.parse(hashContent);
-        if (payload.text) {
-          textToParse = payload.text;
-        }
-        if (payload.urls && Array.isArray(payload.urls)) {
-          urls = payload.urls;
-        }
+        if (payload.text) textToParse = payload.text;
+        if (payload.urls && Array.isArray(payload.urls)) urls = payload.urls;
+        if (payload.imageUrls && Array.isArray(payload.imageUrls)) urls = payload.imageUrls;
+        if (payload.pdfUrl) pdfUrl = payload.pdfUrl;
+        if (payload.qrUrl) qrUrl = payload.qrUrl;
       } catch (e) {
         // Fallback: no era JSON, era solo texto
       }
@@ -62,7 +85,7 @@ export default function TransportePesadoWizard() {
         setMagicUrls(urls);
         setShowImport(true);
         window.history.replaceState(null, '', window.location.pathname);
-        handleImport(textToParse);
+        handleImport(textToParse, pdfUrl, qrUrl);
       }
     }
   }, []);
@@ -93,7 +116,7 @@ export default function TransportePesadoWizard() {
     }
   };
 
-  const handleImport = async (textToImport?: string) => {
+  const handleImport = async (textToImport?: string, pdfUrl?: string | null, qrUrl?: string | null) => {
     // Si viene por argumento (del useEffect) lo usamos, sino usamos el state
     const text = typeof textToImport === 'string' ? textToImport : importText;
     if (!text.trim()) return;
@@ -102,24 +125,58 @@ export default function TransportePesadoWizard() {
       const res = await fetch('/api/parse-solicitud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text, pdfUrl: pdfUrl ?? null, qrUrl: qrUrl ?? null })
       });
       const data = await res.json();
+      console.log('[parse-solicitud response]', JSON.stringify(data, null, 2));
       if (!res.ok) throw new Error(data.error || 'Error processing text');
 
-      if (data.numeroSolicitud) setNumeroSolicitud(data.numeroSolicitud);
-      if (data.nombreSolicitante) setNombreSolicitante(data.nombreSolicitante);
-      if (data.patente) setPatente(data.patente);
-      if (data.tipoVehiculo) setTipoVehiculo(data.tipoVehiculo);
-      if (data.pesoToneladas) setPesoToneladas(data.pesoToneladas.toString());
-      if (data.cargaPeligrosa !== undefined) setCargaPeligrosa(data.cargaPeligrosa);
-      if (data.idSolicitudWeb) setIdSolicitudWeb(data.idSolicitudWeb);
-      if (data.vigenciaDesde) setVigenciaDesde(data.vigenciaDesde);
-      if (data.vigenciaHasta) setVigenciaHasta(data.vigenciaHasta);
-      if (data.aseguradora) setAseguradora(data.aseguradora);
-      if (data.nroSeguro) setNroSeguro(data.nroSeguro);
+      setNumeroSolicitud(data.numeroSolicitud || '');
+      setIdSolicitudWeb(data.idSolicitudWeb || '');
+      setFechaCreacion(data.fechaCreacion || '');
+      setNombreSolicitante(data.nombreSolicitante || '');
+      setEmpresaSolicitante(data.empresaSolicitante || '');
+      setCuilCuit(data.cuilCuit || '');
+      setEmailSolicitante(data.emailSolicitante || '');
+      setTelefonoSolicitante(data.telefonoSolicitante || '');
+      setPatente(data.patente || '');
+      setTipoVehiculo(data.tipoVehiculo || '');
+      setPesoToneladas(data.pesoToneladas != null ? String(data.pesoToneladas) : '');
+      setCargaPeligrosa(!!data.cargaPeligrosa);
+      setTipoCarga(data.tipoCarga || '');
+      setLargoVehiculo(data.largoVehiculo || '');
+      setAnchoVehiculo(data.anchoVehiculo || '');
+      setAlturaVehiculo(data.alturaVehiculo || '');
+      setCantidadEjes(data.cantidadEjes != null ? String(data.cantidadEjes) : '');
+      setAseguradora(data.aseguradora || '');
+      setNroSeguro(data.nroSeguro || '');
+      setOrigenDireccion(data.origenDireccion || '');
+      setOrigenLocalidad(data.origenLocalidad || '');
+      setOrigenPartido(data.origenPartido || '');
+      setOrigenNombre(data.origenNombre || '');
+      setDestinoDireccion(data.destinoDireccion || '');
+      setDestinoLocalidad(data.destinoLocalidad || '');
+      setDestinoPartido(data.destinoPartido || '');
+      setDestinoNombre(data.destinoNombre || '');
+      setFrecuencia(data.frecuencia || '');
+      setHorario(data.horario || '');
+      setObservaciones(data.observaciones || '');
+      setVigenciaDesde(data.vigenciaDesde || '');
+      setVigenciaHasta(data.vigenciaHasta || '');
       
+      setSelectedRouteIndex(0);
       setParsedInfo(data);
+
+      if (data.datosGeo && data.datosGeo.features && data.datosGeo.features.length > 0) {
+        const firstFeature = data.datosGeo.features.find((f: any) => f.properties.originalIndex === 0) || data.datosGeo.features[0];
+        setDatosGeo({
+          type: "FeatureCollection",
+          features: [firstFeature]
+        });
+      } else {
+        setDatosGeo(null);
+      }
+
       setStep(1.5); // Vamos al paso de revisión
     } catch (err) {
       alert('Hubo un error importando el texto. Por favor verifique el formato e intente nuevamente.');
@@ -130,6 +187,44 @@ export default function TransportePesadoWizard() {
     }
   };
 
+  const handleSelectRoute = (idx: number) => {
+    setSelectedRouteIndex(idx);
+    if (parsedInfo && parsedInfo.datosGeo && parsedInfo.datosGeo.features) {
+      const feature = parsedInfo.datosGeo.features.find((f: any) => f.properties.originalIndex === idx);
+      if (feature) {
+        setDatosGeo({
+          type: "FeatureCollection",
+          features: [feature]
+        });
+      } else {
+        setDatosGeo(null);
+      }
+    } else {
+      setDatosGeo(null);
+    }
+  };
+
+  const handleNextRouteProcess = () => {
+    const nextIdx = selectedRouteIndex + 1;
+    setSelectedRouteIndex(nextIdx);
+    
+    if (parsedInfo && parsedInfo.datosGeo && parsedInfo.datosGeo.features) {
+      const feature = parsedInfo.datosGeo.features.find((f: any) => f.properties.originalIndex === nextIdx);
+      if (feature) {
+        setDatosGeo({
+          type: "FeatureCollection",
+          features: [feature]
+        });
+      } else {
+        setDatosGeo(null);
+      }
+    } else {
+      setDatosGeo(null);
+    }
+    
+    setStep(1.5);
+  };
+
   const handleMapComplete = (data: any, detectedStreets: string[]) => {
     setDatosGeo(data);
     setStep(3);
@@ -138,23 +233,48 @@ export default function TransportePesadoWizard() {
   const handleSubmitFinal = async () => {
     setIsSubmitting(true);
     try {
+      const routeText = parsedInfo && parsedInfo.recorridosDetalle && parsedInfo.recorridosDetalle[selectedRouteIndex]
+        ? parsedInfo.recorridosDetalle[selectedRouteIndex].calles.join(' - ')
+        : "";
+
       const response = await fetch('/api/rutas-transporte', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           numeroSolicitud,
+          idSolicitudWeb,
+          fechaCreacion,
           nombreSolicitante,
+          empresaSolicitante,
+          cuilCuit,
+          emailSolicitante,
+          telefonoSolicitante,
           patente,
           tipoVehiculo,
           pesoToneladas,
           cargaPeligrosa,
-          idSolicitudWeb,
-          vigenciaDesde,
-          vigenciaHasta,
+          tipoCarga,
+          largoVehiculo,
+          anchoVehiculo,
+          alturaVehiculo,
+          cantidadEjes: cantidadEjes ? parseInt(cantidadEjes) : null,
           aseguradora,
           nroSeguro,
+          origenDireccion,
+          origenLocalidad,
+          origenPartido,
+          origenNombre,
+          destinoDireccion,
+          destinoLocalidad,
+          destinoPartido,
+          destinoNombre,
+          frecuencia,
+          horario,
+          observaciones,
+          vigenciaDesde,
+          vigenciaHasta,
           datosGeo: JSON.stringify(datosGeo),
-          calles: ""
+          calles: routeText
         })
       });
 
@@ -176,6 +296,7 @@ export default function TransportePesadoWizard() {
     setNroSeguro('');
     setDatosGeo(null);
     setParsedInfo(null);
+    setSelectedRouteIndex(0);
     setStep(1);
   };
 
@@ -212,31 +333,47 @@ export default function TransportePesadoWizard() {
   }
 
   if (step === 2.5) {
+    const hasNextRoute = parsedInfo && parsedInfo.recorridosDetalle && selectedRouteIndex < parsedInfo.recorridosDetalle.length - 1;
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
           <CheckCircle size={48} color="#29B6F6" style={{ marginBottom: '20px' }} />
           <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Recorrido Guardado!</h2>
           <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            El recorrido para el vehículo <strong>{patente || 'Sin patente'}</strong> se ha guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
-            <br/><br/>
-            ¿Desea registrar otro vehículo para esta misma solicitud o finalizar el proceso?
+            El recorrido se ha guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
+            {hasNextRoute && (
+              <>
+                <br/><br/>
+                Esta solicitud contiene múltiples recorridos importados. Quedan <strong>{parsedInfo.recorridosDetalle.length - (selectedRouteIndex + 1)}</strong> recorrido(s) por procesar.
+              </>
+            )}
           </p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <button 
-              onClick={handleAddAnotherRoute} 
-              style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db' }}
-              disabled={isSubmitting}
-            >
-              Agregar Otro Vehículo
-            </button>
-            <button 
-              onClick={handleFinishRequest} 
-              style={btnStyle}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Finalizando...' : 'Finalizar Solicitud Completa'}
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
+            {hasNextRoute && (
+              <button 
+                onClick={handleNextRouteProcess} 
+                style={{ ...btnStyle, backgroundColor: '#8B5CF6', color: 'white', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)' }}
+                disabled={isSubmitting}
+              >
+                Procesar Siguiente Recorrido ({selectedRouteIndex + 2} de {parsedInfo.recorridosDetalle.length})
+              </button>
+            )}
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', width: '100%' }}>
+              <button 
+                onClick={handleAddAnotherRoute} 
+                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1 }}
+                disabled={isSubmitting}
+              >
+                Agregar Otro Vehículo
+              </button>
+              <button 
+                onClick={handleFinishRequest} 
+                style={{ ...btnStyle, flex: 1 }}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Finalizando...' : 'Finalizar Solicitud'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -560,7 +697,66 @@ export default function TransportePesadoWizard() {
               )}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {parsedInfo.recorridosDetalle && parsedInfo.recorridosDetalle.length > 1 && (
+              <div style={{ 
+                backgroundColor: '#faf5ff', 
+                padding: '18px', 
+                borderRadius: '8px', 
+                marginBottom: '20px', 
+                border: '1px solid #e9d5ff',
+                width: '100%',
+                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
+              }}>
+                <h3 style={{ fontWeight: 'bold', color: '#6b21a8', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', margin: '0 0 5px 0' }}>
+                  <span>🛣️</span> Múltiples recorridos detectados
+                </h3>
+                <p style={{ fontSize: '12px', color: '#7e22ce', margin: '0 0 12px 0' }}>
+                  Seleccione el recorrido que desea procesar y guardar en este paso (se importará 1 por 1):
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {parsedInfo.recorridosDetalle.map((r: any, idx: number) => {
+                    const hasGeo = parsedInfo.datosGeo && parsedInfo.datosGeo.features && parsedInfo.datosGeo.features.some((f: any) => f.properties.originalIndex === idx);
+                    const isSelected = selectedRouteIndex === idx;
+                    return (
+                      <label key={idx} style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: isSelected ? '2px solid #a855f7' : '1px solid #e2e8f0',
+                        backgroundColor: isSelected ? '#f3e8ff' : '#fff',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: isSelected ? '0 2px 8px rgba(168, 85, 247, 0.15)' : 'none'
+                      }}>
+                        <input 
+                          type="radio" 
+                          name="selectedRoute" 
+                          checked={isSelected} 
+                          onChange={() => handleSelectRoute(idx)}
+                          style={{ marginTop: '4px', marginRight: '10px', accentColor: '#7e22ce', width: '16px', height: '16px' }}
+                        />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: isSelected ? '#6b21a8' : '#333' }}>{r.descripcion}</span>
+                            {hasGeo ? (
+                              <span style={{ fontSize: '10px', padding: '2px 8px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: 'bold' }}>Trazado IA Listo</span>
+                            ) : (
+                              <span style={{ fontSize: '10px', padding: '2px 8px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '12px', fontWeight: 'bold' }}>Solo Texto</span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#555', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: '1.4' }}>
+                            {r.calles.join(' ➔ ')}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
               <button 
                 type="button" 
                 onClick={() => setStep(2)}
@@ -582,6 +778,7 @@ export default function TransportePesadoWizard() {
               <div style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden', border: '2px solid #E1F5FE' }}>
                 <WizardMap 
                   onComplete={handleMapComplete} 
+                  initialGeo={datosGeo}
                 />
               </div>
             </div>

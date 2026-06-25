@@ -55,19 +55,46 @@ model Usuario {
 
 model RutaTransporte {
   id                String   @id @default(cuid())
+  // Identificación de la solicitud
   numeroSolicitud   String
+  idSolicitudWeb    String?
+  fechaCreacion     String?
+  // Solicitante
   nombreSolicitante String
+  empresaSolicitante String?
+  cuilCuit          String?
+  emailSolicitante  String?
+  telefonoSolicitante String?
+  // Vehículo
   patente           String?
   tipoVehiculo      String?
   pesoToneladas     Float?
   cargaPeligrosa    Boolean  @default(false)
-  datosGeo          String
-  calles            String?
-  estado            String   @default("PENDIENTE")
-  idSolicitudWeb    String?
-  vigenciaDesde     String?
-  vigenciaHasta     String?
+  tipoCarga         String?
+  largoVehiculo     String?
+  anchoVehiculo     String?
+  alturaVehiculo    String?
+  cantidadEjes      Int?
   aseguradora       String?
   nroSeguro         String?
+  // Recorrido
+  calles            String?
+  origenDireccion   String?
+  origenLocalidad   String?
+  origenPartido     String?
+  origenNombre      String?
+  destinoDireccion  String?
+  destinoLocalidad  String?
+  destinoPartido    String?
+  destinoNombre     String?
+  frecuencia        String?
+  horario           String?
+  observaciones     String?
+  // Vigencia y estado
+  vigenciaDesde     String?
+  vigenciaHasta     String?
+  estado            String   @default("PENDIENTE")
+  // GeoJSON
+  datosGeo          String
   creadoEn          DateTime @default(now())
 }

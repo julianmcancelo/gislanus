@@ -104,64 +104,65 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
   };
 
   return (
-    <div style={{ 
-      position: 'absolute', 
-      top: '20px', 
-      left: activeTab ? '420px' : '70px', 
+    <div style={{
+      position: 'absolute',
+      top: '14px',
+      left: activeTab ? '360px' : '60px',
       zIndex: 1000,
-      transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      transition: 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'flex-start'
+      alignItems: 'flex-start',
+      gap: '6px',
     }} className="hide-on-print">
+      {/* Grupo 1: Navegación */}
       <div className="map-toolbar">
         <button onClick={handleZoomIn} className="map-tool-btn" title="Acercar">
-          <Plus size={18} />
+          <Plus size={16} />
         </button>
         <div className="map-divider" />
-        <button onClick={handleHome} className="map-tool-btn primary" title="Vista General">
-          <Home size={18} />
+        <button onClick={handleHome} className="map-tool-btn primary" title="Vista general">
+          <Home size={16} />
         </button>
         <div className="map-divider" />
         <button onClick={handleZoomOut} className="map-tool-btn" title="Alejar">
-          <Minus size={18} />
+          <Minus size={16} />
         </button>
+      </div>
 
-        <div className="map-divider" />
-        <button onClick={handleFullscreen} className="map-tool-btn" title="Pantalla Completa">
-          <Maximize size={18} />
+      {/* Grupo 2: Utilidades */}
+      <div className="map-toolbar">
+        <button onClick={handleFullscreen} className="map-tool-btn" title="Pantalla completa">
+          <Maximize size={16} />
         </button>
-
         <div className="map-divider" />
-        
-        <div 
+        <div
           style={{ position: 'relative' }}
           onMouseEnter={() => setShowPrintMenu(true)}
           onMouseLeave={() => setShowPrintMenu(false)}
         >
           <button className="map-tool-btn" title="Imprimir">
-            <Printer size={18} />
+            <Printer size={16} />
           </button>
-          
           {showPrintMenu && (
-            <div style={{ 
-              position: 'absolute', 
-              left: '100%', 
-              top: 0, 
+            <div style={{
+              position: 'absolute',
+              left: '100%',
+              top: 0,
               marginLeft: '8px',
-              display: 'flex', 
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              display: 'flex',
+              background: 'rgba(15,23,42,0.92)',
               backdropFilter: 'blur(12px)',
-              borderRadius: '8px', 
-              border: '1px solid rgba(0,0,0,0.1)',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-              overflow: 'hidden', 
+              borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+              overflow: 'hidden',
               height: '36px',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
             }}>
-              <button onClick={handlePrintFull} style={printBtnStyle}>Completo</button>
-              <div style={{ width: '1px', backgroundColor: 'rgba(0,0,0,0.1)', margin: '6px 0' }} />
-              <button onClick={handlePrintZone} style={printBtnStyle}>Selección de zona</button>
+              <button onClick={handlePrintFull} style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}>Completo</button>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 0' }} />
+              <button onClick={handlePrintZone} style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}>Selección</button>
             </div>
           )}
         </div>
@@ -169,8 +170,8 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
         {isAdmin && (
           <>
             <div className="map-divider" />
-            <button onClick={handleSave} className="map-tool-btn success" title="Guardar Ediciones del Mapa">
-              <Save size={18} />
+            <button onClick={handleSave} className="map-tool-btn success" title="Guardar ediciones">
+              <Save size={16} />
             </button>
           </>
         )}
@@ -248,12 +249,33 @@ export default function MapComponent() {
           const colorUnico = `hsl(${hue}, 85%, 55%)`;
 
           const parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo;
+          const transporteProps = {
+            _tipo: 'transporte',
+            _numeroSolicitud: r.numeroSolicitud,
+            _estado: r.estado,
+            _nombreSolicitante: r.nombreSolicitante,
+            _empresaSolicitante: r.empresaSolicitante || null,
+            _fechaCreacion: r.fechaCreacion || null,
+            _tipoCarga: r.tipoCarga || null,
+            _patente: r.patente || null,
+            _tipoVehiculo: r.tipoVehiculo || null,
+            _pesoToneladas: r.pesoToneladas || null,
+            _origenNombre: r.origenNombre || r.origenLocalidad || null,
+            _origenDireccion: r.origenDireccion || null,
+            _destinoNombre: r.destinoNombre || r.destinoLocalidad || null,
+            _destinoDireccion: r.destinoDireccion || null,
+            _frecuencia: r.frecuencia || null,
+            _horario: r.horario || null,
+            _vigenciaDesde: r.vigenciaDesde || null,
+            _vigenciaHasta: r.vigenciaHasta || null,
+            _calles: r.calles || null,
+          };
           if (parsedGeo.type === 'Feature') {
-            parsedGeo.properties = { ...parsedGeo.properties, Calles: r.calles };
+            parsedGeo.properties = { ...parsedGeo.properties, ...transporteProps };
           } else if (parsedGeo.features) {
             parsedGeo.features = parsedGeo.features.map((f: any) => ({
               ...f,
-              properties: { ...f.properties, Calles: r.calles }
+              properties: { ...f.properties, ...transporteProps },
             }));
           }
 
@@ -262,10 +284,17 @@ export default function MapComponent() {
             nombre: `#${r.numeroSolicitud} (${r.nombreSolicitante}) - ${r.estado.toUpperCase()}`,
             datosGeo: parsedGeo,
             color: colorUnico,
-            visibilidad: 'PRIVATE', // Asumimos que las rutas son privadas por defecto
-            rolesPermitidos: ['ADMINISTRADOR'], // Solo administradores ven las rutas
-            grupo: { nombre: 'Solicitudes Transporte Pesado' }, // Grupo virtual para la UI
-            numeroSolicitud: r.numeroSolicitud
+            visibilidad: 'PRIVATE',
+            rolesPermitidos: ['ADMINISTRADOR'],
+            grupo: { nombre: 'Solicitudes Transporte Pesado' },
+            numeroSolicitud: r.numeroSolicitud,
+            estado: r.estado,
+            nombreSolicitante: r.nombreSolicitante,
+            empresaSolicitante: r.empresaSolicitante || null,
+            fechaCreacion: r.fechaCreacion || null,
+            tipoCarga: r.tipoCarga || null,
+            origenNombre: r.origenNombre || r.origenLocalidad || null,
+            destinoNombre: r.destinoNombre || r.destinoLocalidad || null,
           };
         });
 
@@ -292,7 +321,14 @@ export default function MapComponent() {
           icono: l.icono || null,
           grupo: l.grupo,
           subGrupo: l.subGrupo,
-          numeroSolicitud: l.numeroSolicitud
+          numeroSolicitud: l.numeroSolicitud,
+          estado: l.estado || null,
+          nombreSolicitante: l.nombreSolicitante || null,
+          empresaSolicitante: l.empresaSolicitante || null,
+          fechaCreacion: l.fechaCreacion || null,
+          tipoCarga: l.tipoCarga || null,
+          origenNombre: l.origenNombre || null,
+          destinoNombre: l.destinoNombre || null,
         }));
         setCapasConfig(config);
 
@@ -537,42 +573,113 @@ export default function MapComponent() {
               }}
               onEachFeature={(feature, l) => {
                 const props = feature.properties || {};
-                const rawName = props.nombre || props.name || props.Nombre || props.Name || props.title || props.Title || props.ESTABLECIM || props.Establecim || props.escuela || props.ESCUELA || capa.nombre;
-                
-                let extraPropsHtml = '';
-                const keysToHide = ['dblayerid', 'nombre', 'name', 'title', 'establecim', 'escuela', 'color', 'stroke', 'fill', 'marker-color', 'marker-symbol', 'marker-size', 'group', 'id', 'fid', '_id', 'stroke-width', 'stroke-opacity', 'fill-opacity'];
-                
-                const translateMapKey = (k: string) => {
-                  const lower = k.toLowerCase();
-                  if (lower === 'description') return 'Descripción';
-                  if (lower === 'address') return 'Dirección';
-                  if (lower === 'type') return 'Tipo';
-                  if (lower === 'category') return 'Categoría';
-                  if (lower === 'phone') return 'Teléfono';
-                  if (lower === 'email') return 'Correo';
-                  // return capitalized version of the original key if no translation
-                  return k.charAt(0).toUpperCase() + k.slice(1);
-                };
+                const isTransporte = props._tipo === 'transporte';
 
-                for (const [key, val] of Object.entries(props)) {
-                   const lowerKey = key.toLowerCase();
-                   // Skip internal or display fields we already use for styling or name
-                   if (keysToHide.includes(lowerKey)) continue;
-                   
-                   if (val !== null && val !== undefined && String(val).trim() !== '') {
-                      extraPropsHtml += `<li style="margin-bottom: 4px; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px;"><b>${escapeHtml(translateMapKey(key))}:</b> ${escapeHtml(String(val))}</li>`;
-                   }
+                let popupContent = '';
+
+                if (isTransporte) {
+                  // ── Popup enriquecido para Transporte Pesado ──
+                  const estadoColors: Record<string, string> = {
+                    PENDIENTE: '#ca8a04', APROBADO: '#16a34a',
+                    RECHAZADO: '#dc2626', VENCIDO: '#ea580c', BORRADOR: '#94a3b8',
+                  };
+                  const estadoBg: Record<string, string> = {
+                    PENDIENTE: '#fef9c3', APROBADO: '#dcfce7',
+                    RECHAZADO: '#fee2e2', VENCIDO: '#ffedd5', BORRADOR: '#f1f5f9',
+                  };
+                  const estado = (props._estado || '').toUpperCase();
+                  const dotColor = estadoColors[estado] || '#94a3b8';
+                  const bgColor = estadoBg[estado] || '#f1f5f9';
+
+                  const row = (label: string, val: string | null) =>
+                    val ? `<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+                      <span style="font-size:11px;color:#94a3b8;min-width:90px;flex-shrink:0;">${label}</span>
+                      <span style="font-size:11px;color:#1e293b;font-weight:500;">${escapeHtml(val)}</span>
+                    </div>` : '';
+
+                  const origen = [props._origenDireccion, props._origenNombre].filter(Boolean).join(', ');
+                  const destino = [props._destinoDireccion, props._destinoNombre].filter(Boolean).join(', ');
+
+                  popupContent = `
+                    <div style="font-family:'Inter',system-ui,sans-serif;width:280px;">
+                      <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:12px 14px;border-radius:6px 6px 0 0;margin:-1px -1px 0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                          <span style="font-size:13px;font-weight:800;color:#f1f5f9;">Solicitud #${escapeHtml(String(props._numeroSolicitud || ''))}</span>
+                          <span style="background:${bgColor};color:${dotColor};border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;">${estado}</span>
+                        </div>
+                        <div style="font-size:11px;color:#94a3b8;">${escapeHtml(props._empresaSolicitante || props._nombreSolicitante || '')}</div>
+                        ${props._empresaSolicitante && props._nombreSolicitante !== props._empresaSolicitante
+                          ? `<div style="font-size:10px;color:#64748b;margin-top:2px;">${escapeHtml(props._nombreSolicitante)}</div>` : ''}
+                      </div>
+                      <div style="padding:10px 14px;">
+                        ${props._tipoVehiculo || props._patente ? `
+                        <div style="display:flex;gap:6px;margin-bottom:8px;">
+                          ${props._tipoVehiculo ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;">${escapeHtml(props._tipoVehiculo)}</span>` : ''}
+                          ${props._patente ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;font-family:monospace;">${escapeHtml(props._patente)}</span>` : ''}
+                          ${props._pesoToneladas ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;">${escapeHtml(String(props._pesoToneladas))} t</span>` : ''}
+                        </div>` : ''}
+                        ${row('Tipo de carga', props._tipoCarga)}
+                        ${origen ? row('Origen', origen) : ''}
+                        ${destino ? row('Destino', destino) : ''}
+                        ${props._origenNombre && props._destinoNombre ? `
+                        <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+                          <span style="font-size:10px;color:#94a3b8;min-width:90px;">Recorrido</span>
+                          <span style="font-size:11px;color:#0ea5e9;font-weight:600;">${escapeHtml(props._origenNombre)} → ${escapeHtml(props._destinoNombre)}</span>
+                        </div>` : ''}
+                        ${row('Frecuencia', props._frecuencia)}
+                        ${row('Horario', props._horario)}
+                        ${props._vigenciaDesde || props._vigenciaHasta ? row('Vigencia',
+                          [props._vigenciaDesde, props._vigenciaHasta].filter(Boolean).join(' → ')) : ''}
+                        ${props._fechaCreacion ? row('Fecha solicitud', props._fechaCreacion.slice(0,10)) : ''}
+                        ${props._calles ? `
+                        <div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e8edf3;">
+                          <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Calles</div>
+                          <div style="font-size:10px;color:#475569;line-height:1.6;">${escapeHtml(props._calles)}</div>
+                        </div>` : ''}
+                      </div>
+                    </div>`;
+                } else {
+                  // ── Popup genérico para capas GIS ──
+                  const rawName = props.nombre || props.name || props.Nombre || props.Name ||
+                    props.title || props.Title || props.ESTABLECIM || props.Establecim ||
+                    props.escuela || props.ESCUELA || capa.nombre;
+
+                  const keysToHide = new Set(['dblayerid','nombre','name','title','establecim','escuela',
+                    'color','stroke','fill','marker-color','marker-symbol','marker-size',
+                    'group','id','fid','_id','stroke-width','stroke-opacity','fill-opacity',
+                    'calles']);
+
+                  const labelMap: Record<string, string> = {
+                    description:'Descripción', address:'Dirección', type:'Tipo',
+                    category:'Categoría', phone:'Teléfono', email:'Correo',
+                    direccion:'Dirección', telefono:'Teléfono', barrio:'Barrio',
+                    localidad:'Localidad', partido:'Partido', provincia:'Provincia',
+                  };
+
+                  let rowsHtml = '';
+                  for (const [key, val] of Object.entries(props)) {
+                    if (keysToHide.has(key.toLowerCase())) continue;
+                    if (val === null || val === undefined || String(val).trim() === '') continue;
+                    const label = labelMap[key.toLowerCase()] || (key.charAt(0).toUpperCase() + key.slice(1));
+                    rowsHtml += `<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;">
+                      <span style="font-size:11px;color:#94a3b8;min-width:80px;flex-shrink:0;">${escapeHtml(label)}</span>
+                      <span style="font-size:11px;color:#1e293b;font-weight:500;">${escapeHtml(String(val))}</span>
+                    </div>`;
+                  }
+
+                  popupContent = `
+                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:200px;max-width:280px;">
+                      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:2px solid ${capa.color};">
+                        <div style="width:10px;height:10px;border-radius:50%;background:${capa.color};flex-shrink:0;"></div>
+                        <span style="font-size:13px;font-weight:700;color:#1e293b;">${escapeHtml(String(rawName))}</span>
+                      </div>
+                      <div style="padding:6px 14px 10px;">
+                        ${rowsHtml || '<p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">Sin detalles adicionales.</p>'}
+                      </div>
+                    </div>`;
                 }
-                
-                const safeName = escapeHtml(String(rawName));
-                const popupContent = `
-                  <div style="font-family: sans-serif; min-width: 220px; max-height: 250px; overflow-y: auto;">
-                    <h3 style="margin: 0 0 10px 0; color: #29B6F6; font-size: 15px; border-bottom: 2px solid #29B6F6; padding-bottom: 5px;">${safeName}</h3>
-                    ${extraPropsHtml ? `<ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #4A4A4A;">${extraPropsHtml}</ul>` : '<p style="margin:0; font-size:12px; color:#888;">Sin detalles adicionales</p>'}
-                  </div>
-                `;
-                
-                l.bindPopup(popupContent);
+
+                l.bindPopup(popupContent, { maxWidth: 320 });
               }}
             />
           );
