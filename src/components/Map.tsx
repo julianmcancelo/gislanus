@@ -400,11 +400,12 @@ export default function MapComponent() {
         const config = visibleData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
-          active: false,
+          active: !l.numeroSolicitud,
           color: l.color,
           icono: l.icono || null,
           grupo: l.grupo,
           subGrupo: l.subGrupo,
+          subSubGrupo: l.subSubGrupo || null,
           numeroSolicitud: l.numeroSolicitud,
           estado: l.estado || null,
           nombreSolicitante: l.nombreSolicitante || null,
