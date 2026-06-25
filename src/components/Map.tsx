@@ -305,6 +305,8 @@ export default function MapComponent() {
             if (!ramalLabel) {
               if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
               else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
+              else if (fp.subgrupo) ramalLabel = fp.subgrupo;
+              else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
             }
             if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
           }
@@ -398,7 +400,7 @@ export default function MapComponent() {
         const config = visibleData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
-          active: !l.numeroSolicitud,
+          active: !l.numeroSolicitud && !l.id?.startsWith('linea-'),
           color: l.color,
           icono: l.icono || null,
           grupo: l.grupo,
