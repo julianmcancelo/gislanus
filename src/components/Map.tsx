@@ -241,7 +241,7 @@ export default function MapComponent() {
         const dataRutas = await resRutas.json();
         
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
-        const validRutas = Array.isArray(dataRutas) ? dataRutas : [];
+        const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
 
         const formatedRutas = validRutas.map((r: any, index: number) => {
           // Generar un color único usando el ángulo dorado para máxima distinción visual
@@ -549,15 +549,15 @@ export default function MapComponent() {
               pointToLayer={(feature, latlng) => {
                 if (capa.icono && lucideIconsList[capa.icono]) {
                   const IconComp = lucideIconsList[capa.icono];
-                  const svgString = renderToString(<IconComp size={18} color="white" />);
-                  const innerHtml = `<div style="background-color: ${capa.color}; width: 32px; height: 32px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; transform: translateY(-5px);">${svgString}</div>`;
-                  
+                  const svgString = renderToString(<IconComp size={11} color="white" />);
+                  const innerHtml = `<div style="background-color: ${capa.color}; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">${svgString}</div>`;
+
                   const customIcon = L.divIcon({
                     html: innerHtml,
                     className: 'custom-lucide-marker',
-                    iconSize: [32, 32],
-                    iconAnchor: [16, 32],
-                    popupAnchor: [0, -32]
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10],
+                    popupAnchor: [0, -12]
                   });
                   return L.marker(latlng, { icon: customIcon });
                 }

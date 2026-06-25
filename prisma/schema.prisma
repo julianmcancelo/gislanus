@@ -94,6 +94,7 @@ model RutaTransporte {
   vigenciaDesde     String?
   vigenciaHasta     String?
   estado            String   @default("PENDIENTE")
+  activo            Boolean  @default(true)
   // GeoJSON
   datosGeo          String
   creadoEn          DateTime @default(now())

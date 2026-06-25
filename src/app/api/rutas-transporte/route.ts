@@ -102,3 +102,20 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// Bulk PATCH: { ids: string[], activo: boolean }
+export async function PATCH(req: Request) {
+  try {
+    const { ids, activo } = await req.json();
+    if (!Array.isArray(ids) || ids.length === 0 || typeof activo !== 'boolean') {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
+    }
+    await prisma.rutaTransporte.updateMany({
+      where: { id: { in: ids } },
+      data: { activo },
+    });
+    return NextResponse.json({ updated: ids.length });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

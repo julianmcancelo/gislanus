@@ -56,6 +56,9 @@ export default function AdminPage() {
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Bulk selection for rutas
+  const [selectedRutas, setSelectedRutas] = useState<string[]>([]);
+
   // Edit & Bulk Delete State
   const [selectedCapas, setSelectedCapas] = useState<string[]>([]);
   const [editingCapa, setEditingCapa] = useState<string | null>(null);
@@ -617,6 +620,23 @@ export default function AdminPage() {
       }
     } catch (e) {
       toast.error('Error de conexión al actualizar el rol.');
+    }
+  };
+
+  const handleBulkToggleRutas = async (activo: boolean) => {
+    if (selectedRutas.length === 0) return;
+    try {
+      const res = await authFetch('/api/rutas-transporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedRutas, activo }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${selectedRutas.length} solicitud(es) ${activo ? 'activadas' : 'desactivadas'} en el mapa.`);
+      setSelectedRutas([]);
+      fetchData();
+    } catch {
+      toast.error('Error al actualizar las solicitudes.');
     }
   };
 
@@ -1194,22 +1214,60 @@ export default function AdminPage() {
             <section className={styles.fullSection}>
               <h2>Solicitudes de Transporte Pesado</h2>
               <p className={styles.tabDescription}>Gestione las rutas propuestas por los choferes y transportistas.</p>
+
+              {/* Bulk action bar */}
+              {selectedRutas.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', padding: '10px 14px', background: '#e8f0fe', borderRadius: '8px', border: '1px solid #3b82f6' }}>
+                  <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedRutas.length} seleccionada(s)</span>
+                  <button
+                    className={styles.approveBtn}
+                    onClick={() => handleBulkToggleRutas(true)}
+                  >Activar en mapa</button>
+                  <button
+                    className={styles.rejectBtn}
+                    onClick={() => handleBulkToggleRutas(false)}
+                  >Desactivar en mapa</button>
+                  <button
+                    style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }}
+                    onClick={() => setSelectedRutas([])}
+                  >Limpiar selección</button>
+                </div>
+              )}
+
               {loading ? <p>Cargando solicitudes...</p> : (
                 <div className={styles.tableWrapper}>
                   <table className={styles.table}>
                     <thead>
                       <tr>
+                        <th style={{ width: '36px' }}>
+                          <input
+                            type="checkbox"
+                            checked={rutas.length > 0 && selectedRutas.length === rutas.length}
+                            onChange={e => setSelectedRutas(e.target.checked ? rutas.map(r => r.id) : [])}
+                            title="Seleccionar todas"
+                          />
+                        </th>
                         <th>ID Solicitud</th>
                         <th>Solicitante</th>
                         <th>Datos Técnicos</th>
                         <th>Estado</th>
+                        <th>Visible</th>
                         <th>Mapa</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {rutas.map(ruta => (
-                        <tr key={ruta.id}>
+                        <tr key={ruta.id} style={{ opacity: ruta.activo === false ? 0.5 : 1 }}>
+                          <td>
+                            <input
+                              type="checkbox"
+                              checked={selectedRutas.includes(ruta.id)}
+                              onChange={e => setSelectedRutas(prev =>
+                                e.target.checked ? [...prev, ruta.id] : prev.filter(id => id !== ruta.id)
+                              )}
+                            />
+                          </td>
                           <td>
                             <strong>#{ruta.numeroSolicitud}</strong>
                             {ruta.idSolicitudWeb && <div style={{ fontSize: '0.8rem', color: '#888' }}>ID Web: {ruta.idSolicitudWeb}</div>}
@@ -1230,17 +1288,22 @@ export default function AdminPage() {
                           </td>
                           <td>
                             <span className={`${styles.badge} ${
-                              ruta.estado === 'PENDIENTE' ? styles.badgePendiente : 
+                              ruta.estado === 'PENDIENTE' ? styles.badgePendiente :
                               ruta.estado === 'APROBADA' ? styles.badgeAprobada : styles.badgeRechazada
                             }`}>
                               {ruta.estado}
                             </span>
                           </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <span style={{ fontSize: '1.1rem' }} title={ruta.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}>
+                              {ruta.activo !== false ? '👁️' : '🚫'}
+                            </span>
+                          </td>
                           <td>
                             <div className={styles.mapPreviewWrapper}>
                               <StaticMapPreview geoData={
-                                typeof ruta.datosGeo === 'string' ? 
-                                  ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })() 
+                                typeof ruta.datosGeo === 'string' ?
+                                  ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })()
                                   : ruta.datosGeo
                               } />
                             </div>
@@ -1262,7 +1325,7 @@ export default function AdminPage() {
                         </tr>
                       ))}
                       {rutas.length === 0 && (
-                        <tr><td colSpan={5} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
+                        <tr><td colSpan={8} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
                       )}
                     </tbody>
                   </table>
