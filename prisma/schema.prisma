@@ -60,7 +60,8 @@ model LineaTransporte {
   color         String   @default("#E53E3E")
   descripcion   String?
   categoria     String   @default("NACIONAL")   // NACIONAL | PROVINCIAL | MUNICIPAL
-  subcategoria  String?                          // e.g. "Ramal Norte", "Corredor Sur"
+  subcategoria  String?                          // ramal, e.g. "Ramal A"
+  sentido       String?                          // IDA | VUELTA | null
   activo        Boolean  @default(true)
   datosGeo      String
   creadoEn      DateTime @default(now())

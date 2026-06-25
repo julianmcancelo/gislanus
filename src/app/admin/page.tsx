@@ -73,6 +73,10 @@ export default function AdminPage() {
   const [lineaFiltro, setLineaFiltro] = useState('');
   const [lineaFiltroCategoria, setLineaFiltroCategoria] = useState('');
 
+  // Tree expand state for lineas
+  const [expandedLineas, setExpandedLineas] = useState<Set<string>>(new Set());
+  const [expandedRamales, setExpandedRamales] = useState<Set<string>>(new Set());
+
   // GeoJSON import modal
   const [lineaImportOpen, setLineaImportOpen] = useState(false);
   const [lineaImportCategoria, setLineaImportCategoria] = useState('NACIONAL');
@@ -718,45 +722,33 @@ export default function AdminPage() {
           // Metadata de nivel raíz (formato profesional)
           const meta = geo.metadata || {};
 
-          // ── Formato profesional (grupo/subgrupo/ramal) ──────────────────
+          // ── Formato profesional (grupo/subgrupo/ramal/sentido) ─────────
           const tieneGrupos = features.some((f: any) => f.properties?.subgrupo);
           if (tieneGrupos) {
-            const porSubgrupo: Record<string, any[]> = {};
+            // 1 registro por feature (ramal+sentido) para control granular
             features.forEach((f: any) => {
               if (!f.geometry) return;
-              const sg = f.properties?.subgrupo || 'Sin ramal';
-              if (!porSubgrupo[sg]) porSubgrupo[sg] = [];
-              porSubgrupo[sg].push(f);
-            });
-
-            Object.entries(porSubgrupo).forEach(([, fts]) => {
-              const p = fts[0].properties || {};
-              const fc = { type: 'FeatureCollection', features: fts };
-
-              // ── Extraer todos los datos disponibles ──
+              const p = f.properties || {};
               const numero = p.linea || meta.linea || p.ref || '';
               const nombre = p.linea_nombre || p.grupo || meta.nombre_linea
                 || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
-              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : (p.subgrupo || '');
-              const color = resolveColor(p.color_ramal_orig || p.colour);
-
-              // Descripción enriquecida: empresa · ciudad · cabeceras · distancia total
-              const distanciaTotal = fts.reduce((acc: number, f: any) =>
-                acc + (f.properties?.distancia_km || 0), 0);
+              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : (p.subgrupo_detalle || p.subgrupo || '');
+              const sentidoRaw = (p.sentido || '').toLowerCase();
+              const sentido = sentidoRaw === 'ida' ? 'IDA' : sentidoRaw === 'vuelta' ? 'VUELTA' : null;
+              const color = resolveColor(p.color_hex || p.color_ramal_orig || p.stroke);
               const partsDesc: string[] = [];
               if (p.operador) partsDesc.push(p.operador);
               if (p.ciudad) partsDesc.push(p.ciudad);
               if (p.cabecera_inicio && p.cabecera_fin) partsDesc.push(`${p.cabecera_inicio} ↔ ${p.cabecera_fin}`);
-              if (distanciaTotal > 0) partsDesc.push(`~${distanciaTotal.toFixed(1)} km`);
-              if (meta.fuente) partsDesc.push(`Fuente: ${meta.fuente}`);
-
+              if (p.distancia_km) partsDesc.push(`${p.distancia_km} km`);
               previews.push({
                 nombre,
                 numero,
                 color,
                 descripcion: partsDesc.join(' · '),
                 subcategoriaAuto: ramalNombre,
-                datosGeo: JSON.stringify(fc),
+                sentido,
+                datosGeo: JSON.stringify(f),
               });
             });
           } else {
@@ -806,6 +798,7 @@ export default function AdminPage() {
             datosGeo: item.datosGeo,
             categoria: lineaImportCategoria,
             subcategoria: lineaImportSubcategoria.trim() || item.subcategoriaAuto || null,
+            sentido: item.sentido || null,
           }),
         });
         if (res.ok) ok++; else fail++;
@@ -888,6 +881,23 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleLinea = async (id: string, activo: boolean) => {
+    // Optimistic update
+    setLineas(prev => prev.map(l => l.id === id ? { ...l, activo } : l));
+    try {
+      await authFetch(`/api/lineas-transporte/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activo }),
+      });
+      emitirCambioMapa('lineas');
+    } catch {
+      // Revert on error
+      setLineas(prev => prev.map(l => l.id === id ? { ...l, activo: !activo } : l));
+      toast.error('Error al actualizar.');
+    }
+  };
+
   const handleBulkToggleLineas = async (activo: boolean) => {
     if (selectedLineas.length === 0) return;
     try {
@@ -901,6 +911,23 @@ export default function AdminPage() {
       setSelectedLineas([]);
       fetchData();
     } catch {
+      toast.error('Error al actualizar las líneas.');
+    }
+  };
+
+  const handleBulkToggleLineas_ids = async (ids: string[], activo: boolean) => {
+    if (ids.length === 0) return;
+    setLineas(prev => prev.map(l => ids.includes(l.id) ? { ...l, activo } : l));
+    try {
+      const res = await authFetch('/api/lineas-transporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, activo }),
+      });
+      if (!res.ok) throw new Error();
+      emitirCambioMapa('lineas');
+    } catch {
+      setLineas(prev => prev.map(l => ids.includes(l.id) ? { ...l, activo: !activo } : l));
       toast.error('Error al actualizar las líneas.');
     }
   };
@@ -1798,83 +1825,179 @@ export default function AdminPage() {
                 const LABELS: Record<string, string> = { NACIONAL: '🇦🇷 Nacionales', PROVINCIAL: '🏛️ Provinciales', MUNICIPAL: '🏘️ Municipales' };
                 const CAT_COLORS: Record<string, string> = { NACIONAL: '#1d4ed8', PROVINCIAL: '#7c3aed', MUNICIPAL: '#059669' };
 
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {CATS.map(cat => {
-                      const catLineas = filtered.filter(l => (l.categoria || 'NACIONAL') === cat);
-                      if (catLineas.length === 0 && lineaFiltroCategoria && lineaFiltroCategoria !== cat) return null;
+                // Group: cat → lineaKey (nombre+numero) → ramal (subcategoria) → [lineas]
+                type LineaGroup = { nombre: string; numero: string | null; color: string; records: any[] };
+                const grouped: Record<string, LineaGroup[]> = {};
+                for (const cat of CATS) {
+                  const catLineas = filtered.filter(l => (l.categoria || 'NACIONAL') === cat);
+                  const byLinea: Record<string, LineaGroup> = {};
+                  for (const l of catLineas) {
+                    const key = `${l.nombre}__${l.numero || ''}`;
+                    if (!byLinea[key]) byLinea[key] = { nombre: l.nombre, numero: l.numero || null, color: l.color, records: [] };
+                    byLinea[key].records.push(l);
+                  }
+                  grouped[cat] = Object.values(byLinea).sort((a, b) => {
+                    const na = parseInt(a.numero || '9999'), nb = parseInt(b.numero || '9999');
+                    return na !== nb ? na - nb : a.nombre.localeCompare(b.nombre);
+                  });
+                }
 
-                      // Group by subcategoria
-                      const subcats = Array.from(new Set(catLineas.map(l => l.subcategoria || ''))).sort();
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {CATS.map(cat => {
+                      const catGroups = grouped[cat] || [];
+                      if (catGroups.length === 0 && lineaFiltroCategoria && lineaFiltroCategoria !== cat) return null;
+                      const catAllIds = catGroups.flatMap(g => g.records.map((r: any) => r.id));
+                      const catAllActive = catAllIds.length > 0 && catAllIds.every(id => {
+                        const l = lineas.find(x => x.id === id);
+                        return l && l.activo !== false;
+                      });
 
                       return (
-                        <div key={cat} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
-                          {/* Category header */}
+                        <div key={cat} style={{ border: `2px solid ${CAT_COLORS[cat]}`, borderRadius: '10px', overflow: 'hidden' }}>
+                          {/* Level 1: Categoria */}
                           <div style={{ background: CAT_COLORS[cat], color: '#fff', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <input type="checkbox"
-                              checked={catLineas.length > 0 && catLineas.every(l => selectedLineas.includes(l.id))}
+                              checked={catAllIds.length > 0 && catAllIds.every(id => selectedLineas.includes(id))}
                               onChange={e => {
-                                const ids = catLineas.map(l => l.id);
-                                setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...ids])] : prev.filter(id => !ids.includes(id)));
+                                setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...catAllIds])] : prev.filter(id => !catAllIds.includes(id)));
                               }}
                             />
-                            <strong style={{ fontSize: '1rem' }}>{LABELS[cat]}</strong>
-                            <span style={{ opacity: 0.8, fontSize: '0.85rem' }}>{catLineas.length} líneas</span>
+                            <strong style={{ fontSize: '1rem', flex: 1 }}>{LABELS[cat]}</strong>
+                            <span style={{ opacity: 0.8, fontSize: '0.82rem' }}>{catGroups.length} líneas · {catAllIds.length} trazas</span>
+                            <button
+                              onClick={() => { const ids = catAllIds; handleBulkToggleLineas_ids(ids, true); }}
+                              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem' }}
+                              title="Activar todas">👁️ Activar</button>
+                            <button
+                              onClick={() => { const ids = catAllIds; handleBulkToggleLineas_ids(ids, false); }}
+                              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem' }}
+                              title="Desactivar todas">🚫 Desactivar</button>
                           </div>
 
-                          {catLineas.length === 0 ? (
+                          {catGroups.length === 0 ? (
                             <div style={{ padding: '20px', color: '#9ca3af', textAlign: 'center', fontSize: '0.85rem' }}>
-                              No hay líneas {LABELS[cat].split(' ')[1]?.toLowerCase() || ''} cargadas
+                              No hay líneas cargadas
                             </div>
                           ) : (
-                            subcats.map(sub => {
-                              const subLineas = catLineas.filter(l => (l.subcategoria || '') === sub);
-                              return (
-                                <div key={sub}>
-                                  {sub && (
-                                    <div style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb', padding: '6px 16px 6px 40px', fontSize: '0.8rem', color: '#374151', fontWeight: 600 }}>
-                                      📂 {sub} <span style={{ fontWeight: 400, color: '#9ca3af' }}>({subLineas.length})</span>
+                            <div style={{ padding: '8px' }}>
+                              {catGroups.map(group => {
+                                const lineaKey = `${cat}__${group.nombre}__${group.numero || ''}`;
+                                const isLineaOpen = expandedLineas.has(lineaKey);
+                                const lineaIds = group.records.map((r: any) => r.id);
+                                const activeCount = group.records.filter((r: any) => r.activo !== false).length;
+
+                                // Group records by ramal (subcategoria)
+                                const byRamal: Record<string, any[]> = {};
+                                for (const r of group.records) {
+                                  const ramal = r.subcategoria || '__sin_ramal__';
+                                  if (!byRamal[ramal]) byRamal[ramal] = [];
+                                  byRamal[ramal].push(r);
+                                }
+                                const ramalKeys = Object.keys(byRamal).sort();
+
+                                return (
+                                  <div key={lineaKey} style={{ marginBottom: '6px', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                                    {/* Level 2: Línea */}
+                                    <div
+                                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8fafc', cursor: 'pointer', userSelect: 'none' }}
+                                      onClick={() => setExpandedLineas(prev => {
+                                        const next = new Set(prev);
+                                        next.has(lineaKey) ? next.delete(lineaKey) : next.add(lineaKey);
+                                        return next;
+                                      })}
+                                    >
+                                      <input type="checkbox"
+                                        checked={lineaIds.every(id => selectedLineas.includes(id))}
+                                        onChange={e => {
+                                          e.stopPropagation();
+                                          setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...lineaIds])] : prev.filter(id => !lineaIds.includes(id)));
+                                        }}
+                                        onClick={e => e.stopPropagation()}
+                                      />
+                                      <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: group.color, flexShrink: 0, display: 'inline-block' }} />
+                                      <strong style={{ fontSize: '0.92rem' }}>
+                                        {group.numero ? `Línea ${group.numero}` : group.nombre}
+                                      </strong>
+                                      {group.numero && group.nombre !== `Línea ${group.numero}` && (
+                                        <span style={{ color: '#6b7280', fontSize: '0.82rem' }}>{group.nombre}</span>
+                                      )}
+                                      <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: activeCount === lineaIds.length ? '#059669' : activeCount === 0 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>
+                                        {activeCount}/{lineaIds.length} activas
+                                      </span>
+                                      <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, true); }}
+                                        style={{ background: '#dcfce7', border: 'none', color: '#059669', borderRadius: '4px', padding: '2px 7px', cursor: 'pointer', fontSize: '0.73rem' }}>Activar</button>
+                                      <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, false); }}
+                                        style={{ background: '#fee2e2', border: 'none', color: '#dc2626', borderRadius: '4px', padding: '2px 7px', cursor: 'pointer', fontSize: '0.73rem' }}>Desactivar</button>
+                                      <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{isLineaOpen ? '▲' : '▼'}</span>
                                     </div>
-                                  )}
-                                  <table className={styles.table} style={{ margin: 0 }}>
-                                    <tbody>
-                                      {subLineas.map(linea => (
-                                        <tr key={linea.id} style={{ opacity: linea.activo === false ? 0.45 : 1 }}>
-                                          <td style={{ width: '36px', paddingLeft: sub ? '40px' : '16px' }}>
-                                            <input type="checkbox"
-                                              checked={selectedLineas.includes(linea.id)}
-                                              onChange={e => setSelectedLineas(prev =>
-                                                e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id)
+
+                                    {isLineaOpen && (
+                                      <div>
+                                        {ramalKeys.map(ramalKey => {
+                                          const ramalRecords = byRamal[ramalKey];
+                                          const ramalLabel = ramalKey === '__sin_ramal__' ? null : ramalKey;
+                                          const ramalExpandKey = `${lineaKey}__${ramalKey}`;
+                                          const isRamalOpen = expandedRamales.has(ramalExpandKey);
+                                          const ramalIds = ramalRecords.map((r: any) => r.id);
+
+                                          return (
+                                            <div key={ramalKey} style={{ borderTop: '1px solid #f3f4f6' }}>
+                                              {/* Level 3: Ramal */}
+                                              {ramalLabel && (
+                                                <div
+                                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px 6px 32px', background: '#fafafa', cursor: 'pointer', userSelect: 'none' }}
+                                                  onClick={() => setExpandedRamales(prev => {
+                                                    const next = new Set(prev);
+                                                    next.has(ramalExpandKey) ? next.delete(ramalExpandKey) : next.add(ramalExpandKey);
+                                                    return next;
+                                                  })}
+                                                >
+                                                  <span style={{ color: '#7c3aed', fontSize: '0.85rem', fontWeight: 600 }}>📂 {ramalLabel}</span>
+                                                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>({ramalRecords.length})</span>
+                                                  <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
+                                                    <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, true); }}
+                                                      style={{ background: '#dcfce7', border: 'none', color: '#059669', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '0.7rem' }}>👁️ Act.</button>
+                                                    <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, false); }}
+                                                      style={{ background: '#fee2e2', border: 'none', color: '#dc2626', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '0.7rem' }}>🚫 Des.</button>
+                                                  </span>
+                                                  <span style={{ color: '#9ca3af', fontSize: '0.78rem' }}>{isRamalOpen ? '▲' : '▼'}</span>
+                                                </div>
                                               )}
-                                            />
-                                          </td>
-                                          <td style={{ minWidth: '220px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: linea.color, flexShrink: 0, display: 'inline-block' }} />
-                                              <strong>{linea.nombre}</strong>
-                                              {linea.numero && <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>#{linea.numero}</span>}
+
+                                              {/* Level 4: Sentido rows */}
+                                              {(!ramalLabel || isRamalOpen) && ramalRecords.map((linea: any) => {
+                                                const sentidoLabel = linea.sentido === 'IDA' ? '➡️ Ida' : linea.sentido === 'VUELTA' ? '⬅️ Vuelta' : '↔️ Sin sentido';
+                                                const isActive = linea.activo !== false;
+                                                return (
+                                                  <div key={linea.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 12px 7px 52px', borderTop: '1px solid #f3f4f6', background: isActive ? '#fff' : '#fafafa', opacity: isActive ? 1 : 0.6 }}>
+                                                    <input type="checkbox"
+                                                      checked={selectedLineas.includes(linea.id)}
+                                                      onChange={e => setSelectedLineas(prev => e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id))}
+                                                    />
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500, flex: 1 }}>{sentidoLabel}</span>
+                                                    {linea.descripcion && <span style={{ fontSize: '0.72rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{linea.descripcion}</span>}
+                                                    {/* Toggle switch */}
+                                                    <button
+                                                      onClick={() => handleToggleLinea(linea.id, !isActive)}
+                                                      title={isActive ? 'Visible en el mapa — clic para ocultar' : 'Oculta del mapa — clic para mostrar'}
+                                                      style={{ background: isActive ? '#dcfce7' : '#fee2e2', border: `1px solid ${isActive ? '#86efac' : '#fca5a5'}`, borderRadius: '20px', padding: '3px 10px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: isActive ? '#059669' : '#dc2626', transition: 'all 0.15s', minWidth: '70px', textAlign: 'center' }}>
+                                                      {isActive ? '👁️ Visible' : '🚫 Oculta'}
+                                                    </button>
+                                                    <button className={styles.submitBtn} style={{ padding: '4px 9px', fontSize: '0.75rem' }} onClick={() => openEditLinea(linea)}>Editar</button>
+                                                    <button className={styles.deleteBtn} style={{ padding: '4px 9px', fontSize: '0.75rem' }} onClick={() => handleDeleteLinea(linea.id)}>✕</button>
+                                                  </div>
+                                                );
+                                              })}
                                             </div>
-                                            {linea.descripcion && <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px', paddingLeft: '20px' }}>{linea.descripcion}</div>}
-                                          </td>
-                                          <td style={{ textAlign: 'center', width: '60px' }}>
-                                            <span title={linea.activo !== false ? 'Visible' : 'Oculta'}>{linea.activo !== false ? '👁️' : '🚫'}</span>
-                                          </td>
-                                          <td style={{ width: '120px' }}>
-                                            <StaticMapPreview geoData={(() => { try { return JSON.parse(linea.datosGeo); } catch { return null; } })()} />
-                                          </td>
-                                          <td>
-                                            <div style={{ display: 'flex', gap: '4px' }}>
-                                              <button className={styles.submitBtn} style={{ padding: '5px 10px', fontSize: '0.78rem' }} onClick={() => openEditLinea(linea)}>Editar traza</button>
-                                              <button className={styles.deleteBtn} style={{ padding: '5px 10px', fontSize: '0.78rem' }} onClick={() => handleDeleteLinea(linea.id)}>✕</button>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              );
-                            })
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
                       );
