@@ -155,14 +155,14 @@ export default function AdminPage() {
     const unsub = escucharNotificaciones((notif) => {
       toast((t) => (
         <span>
-          🚛 <strong>Nueva solicitud #{notif.numeroSolicitud}</strong><br/>
+          <strong>Nueva solicitud #{notif.numeroSolicitud}</strong><br/>
           {notif.nombreSolicitante}
           <button
             onClick={() => { setActiveTab('solicitudes'); toast.dismiss(t.id); fetchData(); }}
             style={{ marginLeft: '10px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
           >Ver</button>
         </span>
-      ), { duration: 10000, icon: '📥' });
+      ), { duration: 10000 });
       fetchData();
     });
     return unsub;
@@ -1599,8 +1599,15 @@ export default function AdminPage() {
                             </span>
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <span style={{ fontSize: '1.1rem' }} title={ruta.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}>
-                              {ruta.activo !== false ? '👁️' : '🚫'}
+                            <span
+                              title={ruta.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}
+                              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', background: ruta.activo !== false ? '#dcfce7' : '#f3f4f6', color: ruta.activo !== false ? '#16a34a' : '#9ca3af' }}
+                            >
+                              {ruta.activo !== false ? (
+                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.6"/><circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.6"/></svg>
+                              ) : (
+                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                              )}
                             </span>
                           </td>
                           <td>
@@ -1648,7 +1655,7 @@ export default function AdminPage() {
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', background: '#1a1a2e' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', background: '#16213e', borderBottom: '1px solid #0f3460', flexShrink: 0, flexWrap: 'wrap' }}>
                     <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem', marginRight: '4px' }}>
-                      {editingLinea ? '✏️ Editar línea' : '➕ Nueva línea'}
+                      {editingLinea ? 'Editar línea' : 'Nueva línea'}
                     </span>
                     <input placeholder="Nombre *" value={lineaFormNombre} onChange={e => setLineaFormNombre(e.target.value)}
                       style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '150px', background: '#0f172a', color: '#f1f5f9' }} />
@@ -1689,85 +1696,114 @@ export default function AdminPage() {
               {/* ── Import modal ── */}
               {lineaImportOpen && (
                 <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ background: '#fff', borderRadius: '12px', padding: '28px', width: '680px', maxWidth: '95vw', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-                    <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>📂 Importar GeoJSON → Líneas de Transporte</h3>
+                  <div style={{ background: '#fff', borderRadius: '14px', padding: '28px', width: '720px', maxWidth: '95vw', maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.18)', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#111827' }}>Importar GeoJSON</h3>
+                        <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: '#9ca3af' }}>Líneas de transporte público</p>
+                      </div>
+                      <button onClick={() => { setLineaImportOpen(false); setLineaImportPreview([]); }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '4px', display: 'flex', alignItems: 'center' }}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                      </button>
+                    </div>
 
                     {/* Drop zone */}
-                    <label style={{ display: 'block', border: '2px dashed #3b82f6', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px', color: '#3b82f6', background: '#eff6ff' }}
+                    <label style={{ display: 'block', border: '2px dashed #bfdbfe', borderRadius: '10px', padding: '28px 24px', textAlign: 'center', cursor: 'pointer', marginBottom: '18px', background: '#f8faff' }}
                       onDragOver={e => e.preventDefault()}
                       onDrop={e => { e.preventDefault(); handleLineaImportFiles(e.dataTransfer.files); }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '6px' }}>📁</div>
-                      <div style={{ fontWeight: 600 }}>Arrastrá archivos o hacé clic para seleccionar</div>
-                      <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>GeoJSON con LineString, MultiLineString o FeatureCollection. Múltiples archivos permitidos.</div>
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px', color: '#3b82f6' }}>
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="4" width="24" height="24" rx="4" stroke="currentColor" strokeWidth="1.5"/><path d="M16 10v12M10 16l6-6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div style={{ fontWeight: 600, color: '#1d4ed8', fontSize: '0.9rem' }}>Arrastrá archivos o hacé clic para seleccionar</div>
+                      <div style={{ fontSize: '0.78rem', color: '#9ca3af', marginTop: '5px' }}>GeoJSON con LineString, MultiLineString o FeatureCollection · Múltiples archivos</div>
                       <input type="file" accept=".geojson,.json" multiple style={{ display: 'none' }}
                         onChange={e => handleLineaImportFiles(e.target.files)} />
                     </label>
 
                     {/* Categoría y subcategoría para el lote */}
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
                       <div>
-                        <label style={{ fontSize: '0.82rem', color: '#374151', display: 'block', marginBottom: '4px' }}>Categoría para este lote</label>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '5px' }}>Categoría del lote</label>
                         <select value={lineaImportCategoria} onChange={e => setLineaImportCategoria(e.target.value)}
-                          style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
+                          style={{ padding: '8px 12px', borderRadius: '7px', border: '1.5px solid #e5e7eb', fontSize: '0.875rem', background: '#fff', color: '#374151', cursor: 'pointer' }}>
                           <option value="NACIONAL">Nacional</option>
                           <option value="PROVINCIAL">Provincial</option>
                           <option value="MUNICIPAL">Municipal</option>
                         </select>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ fontSize: '0.82rem', color: '#374151', display: 'block', marginBottom: '4px' }}>Subcategoría (opcional)</label>
+                      <div style={{ flex: 1, minWidth: '180px' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '5px' }}>Subcategoría (opcional)</label>
                         <input value={lineaImportSubcategoria} onChange={e => setLineaImportSubcategoria(e.target.value)}
                           placeholder="ej: Ramal Sur, Corredor Oeste…"
-                          style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box' }} />
+                          style={{ padding: '8px 12px', borderRadius: '7px', border: '1.5px solid #e5e7eb', fontSize: '0.875rem', width: '100%', boxSizing: 'border-box', outline: 'none' }} />
                       </div>
                     </div>
 
                     {/* Preview list */}
                     {lineaImportPreview.length > 0 && (
-                      <div style={{ marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <strong style={{ fontSize: '0.9rem' }}>{lineaImportPreview.length} feature(s) listas para importar</strong>
-                          <button onClick={() => setLineaImportPreview([])} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}>Limpiar todo</button>
+                      <div style={{ marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>
+                            {lineaImportPreview.length} traza{lineaImportPreview.length !== 1 ? 's' : ''} detectada{lineaImportPreview.length !== 1 ? 's' : ''}
+                          </span>
+                          <button onClick={() => setLineaImportPreview([])} style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                            Limpiar todo
+                          </button>
                         </div>
-                        <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-                            <thead style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
-                              <tr>
-                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Color</th>
-                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nombre</th>
-                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nro</th>
-                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Subcat / Ramal</th>
-                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Descripción</th>
-                                <th style={{ padding: '6px 2px', borderBottom: '1px solid #e5e7eb' }}></th>
+                        <div style={{ maxHeight: '260px', overflowY: 'auto', border: '1.5px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.81rem' }}>
+                            <thead>
+                              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                                <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Color</th>
+                                <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nombre</th>
+                                <th style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nro.</th>
+                                <th style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ramal</th>
+                                <th style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sentido</th>
+                                <th style={{ padding: '7px 8px', textAlign: 'left', fontWeight: 600, color: '#6b7280', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Descripción</th>
+                                <th style={{ width: '28px' }}></th>
                               </tr>
                             </thead>
                             <tbody>
                               {lineaImportPreview.map((item, i) => (
-                                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                  <td style={{ padding: '5px 10px' }}>
-                                    <input type="color" value={item.color}
-                                      onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, color: e.target.value } : p))}
-                                      style={{ width: '28px', height: '22px', border: 'none', borderRadius: '3px', cursor: 'pointer' }} />
+                                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                                  <td style={{ padding: '6px 10px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <input type="color" value={item.color}
+                                        onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, color: e.target.value } : p))}
+                                        style={{ width: '24px', height: '20px', border: 'none', borderRadius: '3px', cursor: 'pointer', padding: 0 }} />
+                                      <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: item.color, display: 'inline-block', boxShadow: '0 0 0 1px rgba(0,0,0,0.1)', flexShrink: 0 }} />
+                                    </div>
                                   </td>
-                                  <td style={{ padding: '5px 10px' }}>
+                                  <td style={{ padding: '6px 10px' }}>
                                     <input value={item.nombre}
                                       onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, nombre: e.target.value } : p))}
-                                      style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '2px 6px', fontSize: '0.82rem', width: '100%' }} />
+                                      style={{ border: '1px solid #e5e7eb', borderRadius: '5px', padding: '3px 7px', fontSize: '0.81rem', width: '100%', minWidth: '120px' }} />
                                   </td>
-                                  <td style={{ padding: '5px 8px' }}>
+                                  <td style={{ padding: '6px 8px' }}>
                                     <input value={item.numero}
                                       onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, numero: e.target.value } : p))}
-                                      style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '2px 6px', fontSize: '0.82rem', width: '60px' }} />
+                                      style={{ border: '1px solid #e5e7eb', borderRadius: '5px', padding: '3px 7px', fontSize: '0.81rem', width: '54px' }} />
                                   </td>
-                                  <td style={{ padding: '5px 8px', fontSize: '0.78rem', color: '#7c3aed', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {item.subcategoriaAuto || lineaImportSubcategoria || '—'}
+                                  <td style={{ padding: '6px 8px', fontSize: '0.78rem', color: '#6d28d9', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                                    {item.subcategoriaAuto || lineaImportSubcategoria || <span style={{ color: '#d1d5db' }}>—</span>}
                                   </td>
-                                  <td style={{ padding: '5px 8px', color: '#6b7280', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {item.descripcion || '—'}
+                                  <td style={{ padding: '6px 8px' }}>
+                                    {item.sentido ? (
+                                      <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, background: item.sentido === 'IDA' ? '#eff6ff' : item.sentido === 'VUELTA' ? '#f5f3ff' : '#f9fafb', color: item.sentido === 'IDA' ? '#1d4ed8' : item.sentido === 'VUELTA' ? '#7c3aed' : '#374151', border: `1px solid ${item.sentido === 'IDA' ? '#bfdbfe' : item.sentido === 'VUELTA' ? '#ddd6fe' : '#e5e7eb'}` }}>
+                                        {item.sentido}
+                                      </span>
+                                    ) : <span style={{ color: '#d1d5db', fontSize: '0.78rem' }}>—</span>}
                                   </td>
-                                  <td style={{ padding: '5px 8px' }}>
+                                  <td style={{ padding: '6px 8px', color: '#9ca3af', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.78rem' }}>
+                                    {item.descripcion || <span style={{ color: '#d1d5db' }}>—</span>}
+                                  </td>
+                                  <td style={{ padding: '6px 8px', textAlign: 'center' }}>
                                     <button onClick={() => setLineaImportPreview(prev => prev.filter((_, j) => j !== i))}
-                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                                      style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }}>
+                                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2L2 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                                    </button>
                                   </td>
                                 </tr>
                               ))}
@@ -1778,16 +1814,21 @@ export default function AdminPage() {
                     )}
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', paddingTop: '4px', borderTop: '1px solid #f3f4f6', marginTop: '4px' }}>
                       <button onClick={() => { setLineaImportOpen(false); setLineaImportPreview([]); }}
-                        style={{ padding: '9px 20px', borderRadius: '6px', border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>
+                        style={{ padding: '9px 20px', borderRadius: '7px', border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: '0.875rem', color: '#374151', fontWeight: 500 }}>
                         Cancelar
                       </button>
                       <button
                         disabled={lineaImportPreview.length === 0 || lineaImportSaving}
                         onClick={handleConfirmLineaImport}
-                        style={{ padding: '9px 20px', borderRadius: '6px', border: 'none', background: lineaImportPreview.length > 0 ? '#1d4ed8' : '#d1d5db', color: '#fff', fontWeight: 700, cursor: lineaImportPreview.length > 0 ? 'pointer' : 'not-allowed' }}>
-                        {lineaImportSaving ? 'Importando…' : `Importar ${lineaImportPreview.length} línea(s)`}
+                        style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '9px 22px', borderRadius: '7px', border: 'none', background: lineaImportPreview.length > 0 ? '#1d4ed8' : '#e5e7eb', color: lineaImportPreview.length > 0 ? '#fff' : '#9ca3af', fontWeight: 700, cursor: lineaImportPreview.length > 0 ? 'pointer' : 'not-allowed', fontSize: '0.875rem' }}>
+                        {lineaImportSaving ? (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ animation: 'spin 1s linear infinite' }}><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.8" strokeDasharray="20 14"/></svg>
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 9v2.5A.5.5 0 002.5 12h9a.5.5 0 00.5-.5V9M7 2v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        )}
+                        {lineaImportSaving ? 'Importando…' : `Importar ${lineaImportPreview.length} traza${lineaImportPreview.length !== 1 ? 's' : ''}`}
                       </button>
                     </div>
                   </div>
