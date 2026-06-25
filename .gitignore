@@ -49,3 +49,4 @@ next-env.d.ts
 # Scratch / Test files
 scratch_*.js
 *.geojson
+!public/*.geojson
