@@ -191,7 +191,12 @@ export default function AdminPage() {
       setSubgrupos(Array.isArray(dataSubGrupos) ? dataSubGrupos : []);
       setRutas(Array.isArray(dataRutas) ? dataRutas : []);
       setUsuarios(Array.isArray(dataUsuarios) ? dataUsuarios : []);
-      setLineas(Array.isArray(dataLineas) ? dataLineas : []);
+      const lineasData: any[] = Array.isArray(dataLineas) ? dataLineas : [];
+      setLineas(lineasData);
+      // Auto-expand all lines so Category → Line → Ramal is visible by default
+      setExpandedLineas(new Set(
+        lineasData.map((l: any) => `${l.categoria || 'NACIONAL'}__${l.nombre}__${l.numero || ''}`)
+      ));
     } catch (e) {
       console.error(e);
     }
