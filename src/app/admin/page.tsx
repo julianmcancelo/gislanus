@@ -1788,30 +1788,36 @@ export default function AdminPage() {
               )}
 
               {/* ── Toolbar ── */}
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button className={styles.submitBtn} onClick={openNewLinea} style={{ fontWeight: 700 }}>+ Nueva línea</button>
-                <button onClick={() => setLineaImportOpen(true)}
-                  style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' }}>
-                  📂 Importar GeoJSON
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button onClick={openNewLinea} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '7px', border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', letterSpacing: '0.01em' }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                  Nueva línea
                 </button>
-                <input placeholder="Buscar línea…" value={lineaFiltro} onChange={e => setLineaFiltro(e.target.value)}
-                  style={{ padding: '7px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem', minWidth: '180px' }} />
+                <button onClick={() => setLineaImportOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '7px', border: '1.5px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 9v2.5A.5.5 0 002.5 12h9a.5.5 0 00.5-.5V9M7 2v7M4.5 6.5L7 9l2.5-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Importar GeoJSON
+                </button>
+                <div style={{ position: 'relative', flex: '1 1 200px', maxWidth: '280px' }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/><path d="M10 10l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  <input placeholder="Buscar por nombre o número…" value={lineaFiltro} onChange={e => setLineaFiltro(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px 8px 32px', borderRadius: '7px', border: '1.5px solid #e5e7eb', fontSize: '0.875rem', outline: 'none', background: '#fff' }} />
+                </div>
                 <select value={lineaFiltroCategoria} onChange={e => setLineaFiltroCategoria(e.target.value)}
-                  style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
+                  style={{ padding: '8px 12px', borderRadius: '7px', border: '1.5px solid #e5e7eb', fontSize: '0.875rem', background: '#fff', color: '#374151', cursor: 'pointer' }}>
                   <option value="">Todas las categorías</option>
                   <option value="NACIONAL">Nacional</option>
                   <option value="PROVINCIAL">Provincial</option>
                   <option value="MUNICIPAL">Municipal</option>
                 </select>
                 {selectedLineas.length > 0 && (
-                  <>
-                    <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedLineas.length} selec.</span>
-                    <button className={styles.approveBtn} onClick={() => handleBulkToggleLineas(true)}>Activar</button>
-                    <button className={styles.rejectBtn} onClick={() => handleBulkToggleLineas(false)}>Desactivar</button>
-                    <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }} onClick={() => setSelectedLineas([])}>✕ Limpiar</button>
-                  </>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '7px', background: '#eff6ff', border: '1.5px solid #bfdbfe' }}>
+                    <span style={{ fontWeight: 600, color: '#1d4ed8', fontSize: '0.82rem' }}>{selectedLineas.length} seleccionadas</span>
+                    <button onClick={() => handleBulkToggleLineas(true)} style={{ padding: '4px 10px', borderRadius: '5px', border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem' }}>Activar</button>
+                    <button onClick={() => handleBulkToggleLineas(false)} style={{ padding: '4px 10px', borderRadius: '5px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.78rem' }}>Desactivar</button>
+                    <button onClick={() => setSelectedLineas([])} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.78rem', padding: '4px 6px' }}>Limpiar</button>
+                  </div>
                 )}
-                <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: '0.85rem' }}>{lineas.length} líneas en total</span>
+                <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: '0.82rem', whiteSpace: 'nowrap' }}>{lineas.length} trazas en total</span>
               </div>
 
               {/* ── Grouped table ── */}
@@ -1822,10 +1828,63 @@ export default function AdminPage() {
                 );
 
                 const CATS = ['NACIONAL', 'PROVINCIAL', 'MUNICIPAL'] as const;
-                const LABELS: Record<string, string> = { NACIONAL: '🇦🇷 Nacionales', PROVINCIAL: '🏛️ Provinciales', MUNICIPAL: '🏘️ Municipales' };
-                const CAT_COLORS: Record<string, string> = { NACIONAL: '#1d4ed8', PROVINCIAL: '#7c3aed', MUNICIPAL: '#059669' };
+                const CAT_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
+                  NACIONAL:   { label: 'Nacional',   color: '#1e40af', bg: 'linear-gradient(135deg,#1d4ed8,#1e40af)', border: '#bfdbfe' },
+                  PROVINCIAL: { label: 'Provincial', color: '#6d28d9', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', border: '#ddd6fe' },
+                  MUNICIPAL:  { label: 'Municipal',  color: '#065f46', bg: 'linear-gradient(135deg,#059669,#065f46)', border: '#a7f3d0' },
+                };
 
-                // Group: cat → lineaKey (nombre+numero) → ramal (subcategoria) → [lineas]
+                // SVG helpers
+                const IconChevron = ({ open }: { open: boolean }) => (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transition: 'transform 0.18s', transform: open ? 'rotate(90deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+                    <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                );
+                const IconRoute = () => (
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <circle cx="2.5" cy="10.5" r="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                    <circle cx="10.5" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                    <path d="M2.5 9V6.5A4 4 0 016.5 2.5H9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                );
+                const IconArrowRight = () => (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M2 5.5h7M6 3l3 2.5L6 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                );
+                const IconArrowLeft = () => (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M9 5.5H2M5 3L2 5.5 5 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                );
+                const IconArrowBoth = () => (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M1 5.5h9M3 3.5L1 5.5l2 2M8 3.5l2 2-2 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                );
+                const IconEye = () => (
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.4"/>
+                    <circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                  </svg>
+                );
+                const IconEyeOff = () => (
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                );
+                const IconPencil = () => (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M8.5 1.5l2 2-7 7H1.5v-2l7-7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                  </svg>
+                );
+                const IconTrash = () => (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 4h8M5 4V2.5h2V4M4 4l.5 5.5h3L8 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                );
+
+                // Group: cat → lineaKey → ramal → [records]
                 type LineaGroup = { nombre: string; numero: string | null; color: string; records: any[] };
                 const grouped: Record<string, LineaGroup[]> = {};
                 for (const cat of CATS) {
@@ -1842,50 +1901,60 @@ export default function AdminPage() {
                   });
                 }
 
+                // Shared pill button style factory
+                const pillBtn = (variant: 'show' | 'hide' | 'ghost') => ({
+                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                  padding: '3px 10px', borderRadius: '20px', cursor: 'pointer', fontSize: '0.73rem', fontWeight: 600, transition: 'opacity 0.12s',
+                  border: variant === 'show' ? '1px solid #86efac' : variant === 'hide' ? '1px solid #fca5a5' : '1px solid #e5e7eb',
+                  background: variant === 'show' ? '#f0fdf4' : variant === 'hide' ? '#fef2f2' : '#f9fafb',
+                  color: variant === 'show' ? '#15803d' : variant === 'hide' ? '#b91c1c' : '#6b7280',
+                });
+
                 return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {CATS.map(cat => {
+                      const meta = CAT_META[cat];
                       const catGroups = grouped[cat] || [];
                       if (catGroups.length === 0 && lineaFiltroCategoria && lineaFiltroCategoria !== cat) return null;
                       const catAllIds = catGroups.flatMap(g => g.records.map((r: any) => r.id));
-                      const catAllActive = catAllIds.length > 0 && catAllIds.every(id => {
-                        const l = lineas.find(x => x.id === id);
-                        return l && l.activo !== false;
-                      });
 
                       return (
-                        <div key={cat} style={{ border: `2px solid ${CAT_COLORS[cat]}`, borderRadius: '10px', overflow: 'hidden' }}>
-                          {/* Level 1: Categoria */}
-                          <div style={{ background: CAT_COLORS[cat], color: '#fff', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div key={cat} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: `1.5px solid ${meta.border}` }}>
+
+                          {/* ── Level 1: Categoria header ── */}
+                          <div style={{ background: meta.bg, color: '#fff', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <input type="checkbox"
                               checked={catAllIds.length > 0 && catAllIds.every(id => selectedLineas.includes(id))}
-                              onChange={e => {
-                                setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...catAllIds])] : prev.filter(id => !catAllIds.includes(id)));
-                              }}
+                              onChange={e => setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...catAllIds])] : prev.filter(id => !catAllIds.includes(id)))}
+                              style={{ width: '15px', height: '15px', accentColor: '#fff', cursor: 'pointer' }}
                             />
-                            <strong style={{ fontSize: '1rem', flex: 1 }}>{LABELS[cat]}</strong>
-                            <span style={{ opacity: 0.8, fontSize: '0.82rem' }}>{catGroups.length} líneas · {catAllIds.length} trazas</span>
-                            <button
-                              onClick={() => { const ids = catAllIds; handleBulkToggleLineas_ids(ids, true); }}
-                              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem' }}
-                              title="Activar todas">👁️ Activar</button>
-                            <button
-                              onClick={() => { const ids = catAllIds; handleBulkToggleLineas_ids(ids, false); }}
-                              style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem' }}
-                              title="Desactivar todas">🚫 Desactivar</button>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{meta.label}</div>
+                              <div style={{ opacity: 0.75, fontSize: '0.75rem', marginTop: '1px' }}>{catGroups.length} {catGroups.length === 1 ? 'línea' : 'líneas'} · {catAllIds.length} trazas</div>
+                            </div>
+                            <button onClick={() => handleBulkToggleLineas_ids(catAllIds, true)}
+                              style={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.35)', color: '#fff', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                              Activar todas
+                            </button>
+                            <button onClick={() => handleBulkToggleLineas_ids(catAllIds, false)}
+                              style={{ background: 'rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                              Desactivar todas
+                            </button>
                           </div>
 
                           {catGroups.length === 0 ? (
-                            <div style={{ padding: '20px', color: '#9ca3af', textAlign: 'center', fontSize: '0.85rem' }}>
-                              No hay líneas cargadas
+                            <div style={{ padding: '28px', color: '#9ca3af', textAlign: 'center', fontSize: '0.85rem', background: '#fafafa' }}>
+                              No hay líneas cargadas en esta categoría
                             </div>
                           ) : (
-                            <div style={{ padding: '8px' }}>
-                              {catGroups.map(group => {
+                            <div style={{ background: '#fff' }}>
+                              {catGroups.map((group, gi) => {
                                 const lineaKey = `${cat}__${group.nombre}__${group.numero || ''}`;
                                 const isLineaOpen = expandedLineas.has(lineaKey);
                                 const lineaIds = group.records.map((r: any) => r.id);
                                 const activeCount = group.records.filter((r: any) => r.activo !== false).length;
+                                const statusColor = activeCount === lineaIds.length ? '#15803d' : activeCount === 0 ? '#b91c1c' : '#b45309';
+                                const statusBg = activeCount === lineaIds.length ? '#f0fdf4' : activeCount === 0 ? '#fef2f2' : '#fffbeb';
 
                                 // Group records by ramal (subcategoria)
                                 const byRamal: Record<string, any[]> = {};
@@ -1897,43 +1966,41 @@ export default function AdminPage() {
                                 const ramalKeys = Object.keys(byRamal).sort();
 
                                 return (
-                                  <div key={lineaKey} style={{ marginBottom: '6px', border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
-                                    {/* Level 2: Línea */}
+                                  <div key={lineaKey} style={{ borderTop: gi > 0 ? '1px solid #f3f4f6' : 'none' }}>
+
+                                    {/* ── Level 2: Línea row ── */}
                                     <div
-                                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8fafc', cursor: 'pointer', userSelect: 'none' }}
-                                      onClick={() => setExpandedLineas(prev => {
-                                        const next = new Set(prev);
-                                        next.has(lineaKey) ? next.delete(lineaKey) : next.add(lineaKey);
-                                        return next;
-                                      })}
+                                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 18px', background: isLineaOpen ? '#f8fafc' : '#fff', cursor: 'pointer', userSelect: 'none', transition: 'background 0.12s' }}
+                                      onClick={() => setExpandedLineas(prev => { const n = new Set(prev); n.has(lineaKey) ? n.delete(lineaKey) : n.add(lineaKey); return n; })}
                                     >
                                       <input type="checkbox"
                                         checked={lineaIds.every(id => selectedLineas.includes(id))}
-                                        onChange={e => {
-                                          e.stopPropagation();
-                                          setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...lineaIds])] : prev.filter(id => !lineaIds.includes(id)));
-                                        }}
+                                        onChange={e => { e.stopPropagation(); setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...lineaIds])] : prev.filter(id => !lineaIds.includes(id))); }}
                                         onClick={e => e.stopPropagation()}
+                                        style={{ width: '14px', height: '14px', cursor: 'pointer', flexShrink: 0 }}
                                       />
-                                      <span style={{ width: '10px', height: '10px', borderRadius: '2px', background: group.color, flexShrink: 0, display: 'inline-block' }} />
-                                      <strong style={{ fontSize: '0.92rem' }}>
+                                      {/* Color swatch */}
+                                      <span style={{ width: '14px', height: '14px', borderRadius: '3px', background: group.color, flexShrink: 0, display: 'inline-block', boxShadow: '0 0 0 1px rgba(0,0,0,0.1)' }} />
+                                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#111827' }}>
                                         {group.numero ? `Línea ${group.numero}` : group.nombre}
-                                      </strong>
+                                      </span>
                                       {group.numero && group.nombre !== `Línea ${group.numero}` && (
-                                        <span style={{ color: '#6b7280', fontSize: '0.82rem' }}>{group.nombre}</span>
+                                        <span style={{ color: '#6b7280', fontSize: '0.82rem', fontWeight: 400 }}>{group.nombre}</span>
                                       )}
-                                      <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: activeCount === lineaIds.length ? '#059669' : activeCount === 0 ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>
+                                      <span style={{ marginLeft: 'auto' }} />
+                                      {/* Active badge */}
+                                      <span style={{ padding: '2px 9px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700, background: statusBg, color: statusColor, border: `1px solid ${statusColor}22` }}>
                                         {activeCount}/{lineaIds.length} activas
                                       </span>
                                       <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, true); }}
-                                        style={{ background: '#dcfce7', border: 'none', color: '#059669', borderRadius: '4px', padding: '2px 7px', cursor: 'pointer', fontSize: '0.73rem' }}>Activar</button>
+                                        style={pillBtn('show')}>Activar</button>
                                       <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, false); }}
-                                        style={{ background: '#fee2e2', border: 'none', color: '#dc2626', borderRadius: '4px', padding: '2px 7px', cursor: 'pointer', fontSize: '0.73rem' }}>Desactivar</button>
-                                      <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{isLineaOpen ? '▲' : '▼'}</span>
+                                        style={pillBtn('hide')}>Desactivar</button>
+                                      <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}><IconChevron open={isLineaOpen} /></span>
                                     </div>
 
                                     {isLineaOpen && (
-                                      <div>
+                                      <div style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
                                         {ramalKeys.map(ramalKey => {
                                           const ramalRecords = byRamal[ramalKey];
                                           const ramalLabel = ramalKey === '__sin_ramal__' ? null : ramalKey;
@@ -1942,50 +2009,90 @@ export default function AdminPage() {
                                           const ramalIds = ramalRecords.map((r: any) => r.id);
 
                                           return (
-                                            <div key={ramalKey} style={{ borderTop: '1px solid #f3f4f6' }}>
-                                              {/* Level 3: Ramal */}
+                                            <div key={ramalKey} style={{ borderTop: '1px solid #f1f5f9' }}>
+
+                                              {/* ── Level 3: Ramal header ── */}
                                               {ramalLabel && (
                                                 <div
-                                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px 6px 32px', background: '#fafafa', cursor: 'pointer', userSelect: 'none' }}
-                                                  onClick={() => setExpandedRamales(prev => {
-                                                    const next = new Set(prev);
-                                                    next.has(ramalExpandKey) ? next.delete(ramalExpandKey) : next.add(ramalExpandKey);
-                                                    return next;
-                                                  })}
+                                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 18px 7px 44px', background: isRamalOpen ? '#f1f5f9' : '#f8fafc', cursor: 'pointer', userSelect: 'none', transition: 'background 0.12s' }}
+                                                  onClick={() => setExpandedRamales(prev => { const n = new Set(prev); n.has(ramalExpandKey) ? n.delete(ramalExpandKey) : n.add(ramalExpandKey); return n; })}
                                                 >
-                                                  <span style={{ color: '#7c3aed', fontSize: '0.85rem', fontWeight: 600 }}>📂 {ramalLabel}</span>
-                                                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>({ramalRecords.length})</span>
-                                                  <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-                                                    <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, true); }}
-                                                      style={{ background: '#dcfce7', border: 'none', color: '#059669', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '0.7rem' }}>👁️ Act.</button>
-                                                    <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, false); }}
-                                                      style={{ background: '#fee2e2', border: 'none', color: '#dc2626', borderRadius: '4px', padding: '2px 6px', cursor: 'pointer', fontSize: '0.7rem' }}>🚫 Des.</button>
-                                                  </span>
-                                                  <span style={{ color: '#9ca3af', fontSize: '0.78rem' }}>{isRamalOpen ? '▲' : '▼'}</span>
+                                                  <span style={{ color: '#6d28d9', display: 'flex', alignItems: 'center' }}><IconRoute /></span>
+                                                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>{ramalLabel}</span>
+                                                  <span style={{ fontSize: '0.73rem', color: '#9ca3af', fontWeight: 400 }}>{ramalRecords.length} traza{ramalRecords.length !== 1 ? 's' : ''}</span>
+                                                  <span style={{ marginLeft: 'auto' }} />
+                                                  <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, true); }}
+                                                    style={pillBtn('show')}>Activar</button>
+                                                  <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, false); }}
+                                                    style={pillBtn('hide')}>Desactivar</button>
+                                                  <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}><IconChevron open={isRamalOpen} /></span>
                                                 </div>
                                               )}
 
-                                              {/* Level 4: Sentido rows */}
-                                              {(!ramalLabel || isRamalOpen) && ramalRecords.map((linea: any) => {
-                                                const sentidoLabel = linea.sentido === 'IDA' ? '➡️ Ida' : linea.sentido === 'VUELTA' ? '⬅️ Vuelta' : '↔️ Sin sentido';
+                                              {/* ── Level 4: Sentido rows ── */}
+                                              {(!ramalLabel || isRamalOpen) && ramalRecords.map((linea: any, si: number) => {
+                                                const isIda = linea.sentido === 'IDA';
+                                                const isVuelta = linea.sentido === 'VUELTA';
                                                 const isActive = linea.activo !== false;
+                                                const indent = ramalLabel ? '68px' : '44px';
                                                 return (
-                                                  <div key={linea.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 12px 7px 52px', borderTop: '1px solid #f3f4f6', background: isActive ? '#fff' : '#fafafa', opacity: isActive ? 1 : 0.6 }}>
+                                                  <div key={linea.id} style={{
+                                                    display: 'flex', alignItems: 'center', gap: '10px',
+                                                    padding: `8px 18px 8px ${indent}`,
+                                                    borderTop: si > 0 || ramalLabel ? '1px solid #e9ecef' : 'none',
+                                                    background: isActive ? '#fff' : '#fafafa',
+                                                    transition: 'background 0.12s',
+                                                  }}>
                                                     <input type="checkbox"
                                                       checked={selectedLineas.includes(linea.id)}
                                                       onChange={e => setSelectedLineas(prev => e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id))}
+                                                      style={{ width: '13px', height: '13px', cursor: 'pointer', flexShrink: 0 }}
                                                     />
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: 500, flex: 1 }}>{sentidoLabel}</span>
-                                                    {linea.descripcion && <span style={{ fontSize: '0.72rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>{linea.descripcion}</span>}
-                                                    {/* Toggle switch */}
+                                                    {/* Direction icon + label */}
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '90px' }}>
+                                                      <span style={{ color: isIda ? '#1d4ed8' : isVuelta ? '#7c3aed' : '#6b7280', display: 'flex', alignItems: 'center' }}>
+                                                        {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
+                                                      </span>
+                                                      <span style={{ fontSize: '0.83rem', fontWeight: 600, color: isIda ? '#1e40af' : isVuelta ? '#6d28d9' : '#374151' }}>
+                                                        {isIda ? 'Ida' : isVuelta ? 'Vuelta' : 'Sin sentido'}
+                                                      </span>
+                                                    </div>
+                                                    {linea.descripcion && (
+                                                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '240px' }}>
+                                                        {linea.descripcion}
+                                                      </span>
+                                                    )}
+                                                    <span style={{ marginLeft: 'auto' }} />
+                                                    {/* Visibility toggle */}
                                                     <button
                                                       onClick={() => handleToggleLinea(linea.id, !isActive)}
-                                                      title={isActive ? 'Visible en el mapa — clic para ocultar' : 'Oculta del mapa — clic para mostrar'}
-                                                      style={{ background: isActive ? '#dcfce7' : '#fee2e2', border: `1px solid ${isActive ? '#86efac' : '#fca5a5'}`, borderRadius: '20px', padding: '3px 10px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: isActive ? '#059669' : '#dc2626', transition: 'all 0.15s', minWidth: '70px', textAlign: 'center' }}>
-                                                      {isActive ? '👁️ Visible' : '🚫 Oculta'}
+                                                      title={isActive ? 'Visible — clic para ocultar del mapa' : 'Oculta — clic para mostrar en el mapa'}
+                                                      style={{
+                                                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                                        padding: '4px 12px', borderRadius: '20px', cursor: 'pointer',
+                                                        fontWeight: 600, fontSize: '0.75rem', transition: 'all 0.15s',
+                                                        border: isActive ? '1.5px solid #86efac' : '1.5px dashed #d1d5db',
+                                                        background: isActive ? '#f0fdf4' : '#f9fafb',
+                                                        color: isActive ? '#15803d' : '#9ca3af',
+                                                        minWidth: '86px', justifyContent: 'center',
+                                                      }}>
+                                                      {isActive ? <IconEye /> : <IconEyeOff />}
+                                                      {isActive ? 'Visible' : 'Oculta'}
                                                     </button>
-                                                    <button className={styles.submitBtn} style={{ padding: '4px 9px', fontSize: '0.75rem' }} onClick={() => openEditLinea(linea)}>Editar</button>
-                                                    <button className={styles.deleteBtn} style={{ padding: '4px 9px', fontSize: '0.75rem' }} onClick={() => handleDeleteLinea(linea.id)}>✕</button>
+                                                    {/* Edit */}
+                                                    <button
+                                                      onClick={() => openEditLinea(linea)}
+                                                      title="Editar traza"
+                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 11px', borderRadius: '6px', border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                      <IconPencil /> Editar
+                                                    </button>
+                                                    {/* Delete */}
+                                                    <button
+                                                      onClick={() => handleDeleteLinea(linea.id)}
+                                                      title="Eliminar traza"
+                                                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '6px', border: '1.5px solid #fecaca', background: '#fff5f5', color: '#ef4444', cursor: 'pointer' }}>
+                                                      <IconTrash />
+                                                    </button>
                                                   </div>
                                                 );
                                               })}
@@ -2003,7 +2110,7 @@ export default function AdminPage() {
                       );
                     })}
                     {filtered.length === 0 && (
-                      <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px' }}>
+                      <div style={{ textAlign: 'center', color: '#9ca3af', padding: '48px 0', fontSize: '0.875rem' }}>
                         No se encontraron líneas con ese filtro.
                       </div>
                     )}
