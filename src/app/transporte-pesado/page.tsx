@@ -380,23 +380,59 @@ export default function TransportePesadoWizard() {
     );
   }
 
+  const stepLabels = ['Datos', 'Trazado', 'Confirmar'];
+  const currentStepNum = step === 1 ? 1 : step === 1.5 ? 1 : step === 2 ? 2 : 3;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f5f7fa' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
       {/* Wizard Header */}
-      <header style={{ 
-        height: '70px', 
-        backgroundColor: '#4A4A4A', 
-        color: 'white', 
-        display: 'flex', 
-        alignItems: 'center', 
-        padding: '0 30px', 
-        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+      <header style={{
+        height: '64px',
+        background: 'linear-gradient(135deg, #1a237e 0%, #283593 60%, #1565C0 100%)',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
         zIndex: 10
       }}>
-        <Truck size={28} color="#29B6F6" style={{ marginRight: '15px' }} />
-        <div>
-          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>Viabilidad de Transporte Pesado</h1>
-          <p style={{ margin: 0, fontSize: '12px', color: '#bbb' }}>Asistente de Registro de Traza</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '7px', display: 'flex' }}>
+            <Truck size={24} color="#90CAF9" />
+          </div>
+          <div>
+            <h1 style={{ margin: 0, fontSize: '17px', fontWeight: '700', letterSpacing: '0.2px' }}>Viabilidad de Transporte Pesado</h1>
+            <p style={{ margin: 0, fontSize: '11px', color: '#90CAF9', letterSpacing: '0.3px' }}>Municipio de Lanús · Asistente de Registro</p>
+          </div>
+        </div>
+        {/* Progress Steps */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+          {stepLabels.map((label, i) => {
+            const num = i + 1;
+            const isActive = num === currentStepNum;
+            const isDone = num < currentStepNum;
+            return (
+              <div key={num} style={{ display: 'flex', alignItems: 'center' }}>
+                {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#90CAF9' : 'rgba(255,255,255,0.25)', margin: '0 4px' }} />}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                  <div style={{
+                    width: '28px', height: '28px', borderRadius: '50%',
+                    backgroundColor: isActive ? '#29B6F6' : isDone ? '#90CAF9' : 'rgba(255,255,255,0.2)',
+                    color: 'white',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '13px', fontWeight: 'bold',
+                    border: isActive ? '2px solid white' : '2px solid transparent',
+                    boxShadow: isActive ? '0 0 0 3px rgba(41,182,246,0.4)' : 'none',
+                    transition: 'all 0.3s'
+                  }}>
+                    {isDone ? '✓' : num}
+                  </div>
+                  <span style={{ fontSize: '10px', color: isActive ? 'white' : 'rgba(255,255,255,0.6)', fontWeight: isActive ? '600' : '400' }}>{label}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </header>
 
@@ -405,48 +441,47 @@ export default function TransportePesadoWizard() {
         
         {step === 1 && (
           <form onSubmit={handleNextStep1} style={cardStyle}>
-            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <span style={stepBadgeStyle}>Paso 1 de 3</span>
-              <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Datos de la Solicitud</h2>
-              <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Vincule esta traza con su trámite actual.</p>
-              
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '15px' }}>
-                <button 
-                  type="button" 
+            {/* Form Header */}
+            <div style={{ marginBottom: '24px', textAlign: 'center', borderBottom: '1px solid #e8edf2', paddingBottom: '20px', width: '100%' }}>
+              <h2 style={{ margin: '0 0 6px 0', color: '#1a237e', fontSize: '20px', fontWeight: '700' }}>Datos de la Solicitud</h2>
+              <p style={{ color: '#64748b', fontSize: '13px', margin: '0 0 16px 0' }}>Completá los campos o usá el Asistente Mágico para cargar automáticamente.</p>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button
+                  type="button"
                   onClick={() => setShowImport(!showImport)}
-                  style={{ 
-                    ...btnStyle, 
-                    background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', 
-                    margin: 0,
-                    width: 'auto', 
-                    padding: '10px 20px', 
+                  style={{
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 18px',
                     fontSize: '14px',
-                    boxShadow: '0 4px 14px rgba(168, 85, 247, 0.4)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    transition: 'all 0.3s ease',
+                    fontWeight: '600',
+                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    boxShadow: '0 4px 12px rgba(124,58,237,0.35)',
                   }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 21-6-6m6-6v6h-6"/><path d="M17 10c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/><path d="m3 21 6-6"/><path d="M7 10C4.24 10 2 12.24 2 15s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5Z"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                   Asistente Mágico
                 </button>
-                <a 
-                  href="/instalar-asistente" 
+                <a
+                  href="/instalar-asistente"
                   target="_blank"
-                  style={{ 
-                    ...btnStyle, 
-                    backgroundColor: '#fff', 
-                    color: '#6b21a8', 
-                    border: '1px solid #d8b4fe',
-                    margin: 0,
-                    width: 'auto', 
-                    padding: '10px 20px', 
+                  style={{
+                    backgroundColor: '#f8f5ff',
+                    color: '#5b21b6',
+                    border: '1.5px solid #c4b5fd',
+                    borderRadius: '8px',
+                    padding: '10px 18px',
                     fontSize: '14px',
+                    fontWeight: '600',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
                   }}
                 >
                   Instalar Botón
@@ -499,145 +534,92 @@ export default function TransportePesadoWizard() {
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>N° de Solicitud Web (ID)</label>
-                <input 
-                  type="text" 
-                  value={idSolicitudWeb} 
-                  onChange={e => setIdSolicitudWeb(e.target.value)} 
-                  placeholder="Ej: 61433"
-                  style={inputStyle}
-                />
+            {/* SECCIÓN: Identificación */}
+            <div style={sectionStyle}>
+              <div style={sectionLabelStyle}>📋 Identificación del Trámite</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>N° de Solicitud Web (ID)</label>
+                  <input type="text" value={idSolicitudWeb} onChange={e => setIdSolicitudWeb(e.target.value)} placeholder="Ej: 61433" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>N° Expediente <span style={{ color: '#ef4444' }}>*</span></label>
+                  <input type="text" required value={numeroSolicitud} onChange={e => setNumeroSolicitud(e.target.value)} placeholder="Ej: 1000-2026-964794-O" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Vigencia Desde</label>
+                  <input type="text" value={vigenciaDesde} onChange={e => setVigenciaDesde(e.target.value)} placeholder="Ej: 19/06/2026" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Vigencia Hasta</label>
+                  <input type="text" value={vigenciaHasta} onChange={e => setVigenciaHasta(e.target.value)} placeholder="Ej: 16/12/2026" style={inputStyle} />
+                </div>
               </div>
               <div style={inputGroupStyle}>
-                <label style={labelStyle}>N° Expediente</label>
-                <input 
-                  type="text" 
-                  required 
-                  value={numeroSolicitud} 
-                  onChange={e => setNumeroSolicitud(e.target.value)} 
-                  placeholder="Ej: 1000-2026-964794-O"
-                  style={inputStyle}
-                />
+                <label style={labelStyle}>Razón Social / Nombre del Solicitante <span style={{ color: '#ef4444' }}>*</span></label>
+                <input type="text" required value={nombreSolicitante} onChange={e => setNombreSolicitante(e.target.value)} placeholder="Ingrese el nombre legal..." style={inputStyle} />
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Vigencia Desde</label>
-                <input 
-                  type="text" 
-                  value={vigenciaDesde} 
-                  onChange={e => setVigenciaDesde(e.target.value)} 
-                  placeholder="Ej: 19/06/2026"
-                  style={inputStyle}
-                />
-              </div>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Vigencia Hasta</label>
-                <input 
-                  type="text" 
-                  value={vigenciaHasta} 
-                  onChange={e => setVigenciaHasta(e.target.value)} 
-                  placeholder="Ej: 16/12/2026"
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-
-            <div style={inputGroupStyle}>
-              <label style={labelStyle}>Razón Social / Nombre del Solicitante</label>
-              <input 
-                type="text" 
-                required 
-                value={nombreSolicitante} 
-                onChange={e => setNombreSolicitante(e.target.value)} 
-                placeholder="Ingrese el nombre legal..."
-                style={inputStyle}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Patente (Tractor/Acoplado)</label>
-                <input 
-                  type="text" 
-                  value={patente} 
-                  onChange={e => setPatente(e.target.value)} 
-                  placeholder="Ej: AB123CD"
-                  style={inputStyle}
-                />
-              </div>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Tipo de Vehículo</label>
-                <select 
-                  value={tipoVehiculo} 
-                  onChange={e => setTipoVehiculo(e.target.value)}
-                  style={{...inputStyle, backgroundColor: '#fff'}}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Chasis">Chasis</option>
-                  <option value="Chasis con Acoplado">Chasis con Acoplado</option>
-                  <option value="Semi-remolque">Semi-remolque</option>
-                  <option value="Bitrén">Bitrén</option>
-                  <option value="Maquinaria Especial">Maquinaria Especial</option>
-                </select>
+            {/* SECCIÓN: Vehículo */}
+            <div style={sectionStyle}>
+              <div style={sectionLabelStyle}>🚛 Datos del Vehículo</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Patente (Tractor/Acoplado)</label>
+                  <input type="text" value={patente} onChange={e => setPatente(e.target.value)} placeholder="Ej: AB123CD" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Tipo de Vehículo</label>
+                  <select value={tipoVehiculo} onChange={e => setTipoVehiculo(e.target.value)} style={{ ...inputStyle, backgroundColor: '#fff' }}>
+                    <option value="">Seleccione...</option>
+                    <option value="Chasis">Chasis</option>
+                    <option value="Chasis con Acoplado">Chasis con Acoplado</option>
+                    <option value="Semi-remolque">Semi-remolque</option>
+                    <option value="Bitrén">Bitrén</option>
+                    <option value="Maquinaria Especial">Maquinaria Especial</option>
+                  </select>
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Peso Total (Toneladas)</label>
+                  <input type="number" step="0.1" value={pesoToneladas} onChange={e => setPesoToneladas(e.target.value)} placeholder="Ej: 45.5" style={inputStyle} />
+                </div>
+                <div style={{ ...inputGroupStyle, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                  <label style={labelStyle}>¿Carga Peligrosa?</label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', cursor: 'pointer',
+                    padding: '11px 14px',
+                    border: `2px solid ${cargaPeligrosa ? '#fca5a5' : '#e1e4e8'}`,
+                    borderRadius: '8px',
+                    backgroundColor: cargaPeligrosa ? '#fef2f2' : '#fafafa',
+                    transition: 'all 0.2s',
+                    gap: '10px'
+                  }}>
+                    <input type="checkbox" checked={cargaPeligrosa} onChange={e => setCargaPeligrosa(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#EF4444', flexShrink: 0 }} />
+                    <span style={{ fontSize: '14px', color: cargaPeligrosa ? '#dc2626' : '#555', fontWeight: cargaPeligrosa ? '600' : '400' }}>
+                      {cargaPeligrosa ? '⚠️ Sí, materiales peligrosos' : 'No, carga general'}
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Peso Total (Toneladas)</label>
-                <input 
-                  type="number" 
-                  step="0.1"
-                  value={pesoToneladas} 
-                  onChange={e => setPesoToneladas(e.target.value)} 
-                  placeholder="Ej: 45.5"
-                  style={inputStyle}
-                />
-              </div>
-              <div style={{ ...inputGroupStyle, justifyContent: 'center', display: 'flex', flexDirection: 'column' }}>
-                <label style={{...labelStyle, marginBottom: '8px'}}>¿Carga Peligrosa?</label>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={cargaPeligrosa} 
-                    onChange={e => setCargaPeligrosa(e.target.checked)}
-                    style={{ width: '18px', height: '18px', marginRight: '8px', accentColor: '#EF4444' }}
-                  />
-                  <span style={{ fontSize: '14px', color: cargaPeligrosa ? '#EF4444' : '#666', fontWeight: cargaPeligrosa ? 'bold' : 'normal' }}>
-                    {cargaPeligrosa ? 'Sí, incluye materiales peligrosos' : 'No, carga general'}
-                  </span>
-                </label>
+            {/* SECCIÓN: Seguro */}
+            <div style={sectionStyle}>
+              <div style={sectionLabelStyle}>🛡️ Datos del Seguro</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Aseguradora</label>
+                  <input type="text" value={aseguradora} onChange={e => setAseguradora(e.target.value)} placeholder="Ej: Sancor Seguros" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>N° de Seguro / Póliza</label>
+                  <input type="text" value={nroSeguro} onChange={e => setNroSeguro(e.target.value)} placeholder="Ej: 123456789" style={inputStyle} />
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Aseguradora</label>
-                <input 
-                  type="text" 
-                  value={aseguradora} 
-                  onChange={e => setAseguradora(e.target.value)} 
-                  placeholder="Ej: Sancor Seguros"
-                  style={inputStyle}
-                />
-              </div>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>N° de Seguro / Póliza</label>
-                <input 
-                  type="text" 
-                  value={nroSeguro} 
-                  onChange={e => setNroSeguro(e.target.value)} 
-                  placeholder="Ej: 123456789"
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-
-            <button type="submit" style={{ ...btnStyle, marginTop: '10px' }}>
+            <button type="submit" style={primaryBtnStyle}>
               Continuar al Mapa <ArrowRight size={18} style={{ marginLeft: '8px' }} />
             </button>
           </form>
@@ -821,69 +803,111 @@ const containerStyle: React.CSSProperties = {
   justifyContent: 'center',
   alignItems: 'center',
   minHeight: '100vh',
-  backgroundColor: '#f5f7fa',
+  backgroundColor: '#f0f4f8',
 };
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: 'white',
-  padding: '40px',
-  borderRadius: '12px',
-  boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+  padding: '32px 36px',
+  borderRadius: '16px',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
   width: '100%',
-  maxWidth: '500px',
+  maxWidth: '580px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  margin: '24px 0',
+  maxHeight: 'calc(100vh - 64px - 48px)',
+  overflowY: 'auto',
 };
 
 const stepBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#29B6F6',
-  color: 'white',
-  padding: '4px 12px',
+  backgroundColor: '#EEF2FF',
+  color: '#3730a3',
+  padding: '4px 14px',
   borderRadius: '20px',
-  fontSize: '12px',
-  fontWeight: 'bold',
+  fontSize: '11px',
+  fontWeight: '700',
   textTransform: 'uppercase',
   letterSpacing: '1px',
 };
 
+const sectionStyle: React.CSSProperties = {
+  width: '100%',
+  marginBottom: '8px',
+  backgroundColor: '#f8fafc',
+  borderRadius: '10px',
+  padding: '16px 18px',
+  border: '1px solid #e8edf2',
+};
+
+const sectionLabelStyle: React.CSSProperties = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: '#475569',
+  textTransform: 'uppercase',
+  letterSpacing: '0.8px',
+  marginBottom: '14px',
+};
+
 const inputGroupStyle: React.CSSProperties = {
   width: '100%',
-  marginBottom: '20px',
+  marginBottom: '12px',
 };
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  marginBottom: '8px',
-  fontWeight: 'bold',
-  color: '#444',
-  fontSize: '14px',
+  marginBottom: '6px',
+  fontWeight: '600',
+  color: '#374151',
+  fontSize: '13px',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '12px 15px',
-  border: '2px solid #e1e4e8',
-  borderRadius: '8px',
-  fontSize: '15px',
+  padding: '10px 13px',
+  border: '1.5px solid #d1d5db',
+  borderRadius: '7px',
+  fontSize: '14px',
   outline: 'none',
   transition: 'border-color 0.2s',
+  backgroundColor: 'white',
+  color: '#1f2937',
+  boxSizing: 'border-box',
 };
 
 const btnStyle: React.CSSProperties = {
   width: '100%',
-  padding: '14px',
-  backgroundColor: '#4A4A4A',
+  padding: '13px',
+  backgroundColor: '#374151',
   color: 'white',
   border: 'none',
   borderRadius: '8px',
-  fontSize: '16px',
-  fontWeight: 'bold',
+  fontSize: '15px',
+  fontWeight: '600',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   transition: 'background 0.2s',
+};
+
+const primaryBtnStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '14px',
+  background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+  color: 'white',
+  border: 'none',
+  borderRadius: '9px',
+  fontSize: '16px',
+  fontWeight: '700',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxShadow: '0 4px 14px rgba(29,78,216,0.35)',
+  marginTop: '8px',
+  letterSpacing: '0.2px',
 };
 
 const detailStyle: React.CSSProperties = {
