@@ -441,183 +441,119 @@ export default function TransportePesadoWizard() {
         
         {step === 1 && (
           <form onSubmit={handleNextStep1} style={cardStyle}>
-            {/* Form Header */}
-            <div style={{ marginBottom: '24px', textAlign: 'center', borderBottom: '1px solid #e8edf2', paddingBottom: '20px', width: '100%' }}>
-              <h2 style={{ margin: '0 0 6px 0', color: '#1a237e', fontSize: '20px', fontWeight: '700' }}>Datos de la Solicitud</h2>
-              <p style={{ color: '#64748b', fontSize: '13px', margin: '0 0 16px 0' }}>Completá los campos o usá el Asistente Mágico para cargar automáticamente.</p>
 
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowImport(!showImport)}
-                  style={{
-                    background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 18px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 12px rgba(124,58,237,0.35)',
-                  }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                  Asistente Mágico
+            {/* Asistente Mágico banner */}
+            <div style={{ width: '100%', marginBottom: '18px', background: 'linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%)', border: '1px solid #c4b5fd', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div>
+                <div style={{ fontWeight: '700', fontSize: '13px', color: '#4c1d95' }}>✨ Asistente Mágico</div>
+                <div style={{ fontSize: '12px', color: '#6d28d9', marginTop: '2px' }}>Pegá el texto de GDEBA y completamos todo automáticamente</div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: 'white', border: 'none', borderRadius: '7px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {showImport ? 'Cerrar' : 'Usar'}
                 </button>
-                <a
-                  href="/instalar-asistente"
-                  target="_blank"
-                  style={{
-                    backgroundColor: '#f8f5ff',
-                    color: '#5b21b6',
-                    border: '1.5px solid #c4b5fd',
-                    borderRadius: '8px',
-                    padding: '10px 18px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    textDecoration: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  Instalar Botón
+                <a href="/instalar-asistente" target="_blank" style={{ backgroundColor: 'white', color: '#5b21b6', border: '1px solid #c4b5fd', borderRadius: '7px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  Instalar
                 </a>
               </div>
             </div>
 
             {showImport && (
-              <div style={{ 
-                background: 'linear-gradient(to bottom right, #faf5ff, #f3e8ff)', 
-                padding: '20px', 
-                borderRadius: '12px', 
-                marginBottom: '25px', 
-                border: '1px solid #e9d5ff',
-                boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5), 0 4px 6px rgba(0,0,0,0.02)'
-              }}>
-                <label style={{ ...labelStyle, color: '#6b21a8', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
-                  <span>✨</span> Pegá el texto completo de la solicitud de GDEBA o TramitesWeb:
+              <div style={{ width: '100%', background: '#faf5ff', padding: '14px 16px', borderRadius: '10px', marginBottom: '16px', border: '1px solid #e9d5ff' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#6b21a8', fontSize: '13px' }}>
+                  Pegá el texto completo de la solicitud:
                 </label>
-                <textarea 
-                  rows={6}
-                  value={importText}
-                  onChange={e => setImportText(e.target.value)}
-                  placeholder="Ejemplo: ID: #61433... Nombre: MONTI OMAR... Patente: AH313BV..."
-                  style={{ 
-                    ...inputStyle, 
-                    resize: 'vertical', 
-                    borderColor: '#d8b4fe', 
-                    marginBottom: '15px',
-                    backgroundColor: 'rgba(255,255,255,0.8)',
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-                  }}
-                />
-                <button 
-                  type="button" 
-                  onClick={() => handleImport()}
-                  disabled={isImporting || !importText.trim()}
-                  style={{ 
-                    ...btnStyle, 
-                    background: isImporting ? '#c084fc' : 'linear-gradient(135deg, #9333ea 0%, #7e22ce 100%)', 
-                    width: '100%', 
-                    display: 'flex', 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    boxShadow: isImporting ? 'none' : '0 4px 12px rgba(147, 51, 234, 0.3)',
-                    border: '1px solid rgba(255,255,255,0.1)'
-                  }}>
-                  {isImporting ? <><Loader2 size={18} className="animate-spin" style={{ marginRight: '8px' }} /> Analizando con IA...</> : 'Procesar Texto Mágicamente'}
+                <textarea rows={5} value={importText} onChange={e => setImportText(e.target.value)} placeholder="Ejemplo: ID: #61433... Nombre: MONTI OMAR... Patente: AH313BV..." style={{ ...inputStyle, resize: 'vertical', borderColor: '#d8b4fe', marginBottom: '10px' }} />
+                <button type="button" onClick={() => handleImport()} disabled={isImporting || !importText.trim()} style={{ ...primaryBtnStyle, background: isImporting ? '#a78bfa' : 'linear-gradient(135deg, #7c3aed, #5b21b6)', boxShadow: 'none' }}>
+                  {isImporting ? <><Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />Analizando con IA...</> : 'Procesar automáticamente'}
                 </button>
               </div>
             )}
 
-            {/* SECCIÓN: Identificación */}
-            <div style={sectionStyle}>
-              <div style={sectionLabelStyle}>📋 Identificación del Trámite</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            {/* ── FILA 1: Expediente + ID Web + Vigencias ── */}
+            <fieldset style={fieldsetStyle}>
+              <legend style={legendStyle}>Identificación del Trámite</legend>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>N° de Solicitud Web (ID)</label>
-                  <input type="text" value={idSolicitudWeb} onChange={e => setIdSolicitudWeb(e.target.value)} placeholder="Ej: 61433" style={inputStyle} />
+                  <label style={labelStyle}>N° Expediente <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="text" required value={numeroSolicitud} onChange={e => setNumeroSolicitud(e.target.value)} placeholder="1000-2026-964794-O" style={inputStyle} />
                 </div>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>N° Expediente <span style={{ color: '#ef4444' }}>*</span></label>
-                  <input type="text" required value={numeroSolicitud} onChange={e => setNumeroSolicitud(e.target.value)} placeholder="Ej: 1000-2026-964794-O" style={inputStyle} />
+                  <label style={labelStyle}>ID Web</label>
+                  <input type="text" value={idSolicitudWeb} onChange={e => setIdSolicitudWeb(e.target.value)} placeholder="61433" style={inputStyle} />
                 </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '10px' }}>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Vigencia Desde</label>
-                  <input type="text" value={vigenciaDesde} onChange={e => setVigenciaDesde(e.target.value)} placeholder="Ej: 19/06/2026" style={inputStyle} />
+                  <input type="text" value={vigenciaDesde} onChange={e => setVigenciaDesde(e.target.value)} placeholder="19/06/2026" style={inputStyle} />
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Vigencia Hasta</label>
-                  <input type="text" value={vigenciaHasta} onChange={e => setVigenciaHasta(e.target.value)} placeholder="Ej: 16/12/2026" style={inputStyle} />
+                  <input type="text" value={vigenciaHasta} onChange={e => setVigenciaHasta(e.target.value)} placeholder="16/12/2026" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Razón Social / Solicitante <span style={{ color: '#dc2626' }}>*</span></label>
+                  <input type="text" required value={nombreSolicitante} onChange={e => setNombreSolicitante(e.target.value)} placeholder="Nombre legal o empresa" style={inputStyle} />
                 </div>
               </div>
-              <div style={inputGroupStyle}>
-                <label style={labelStyle}>Razón Social / Nombre del Solicitante <span style={{ color: '#ef4444' }}>*</span></label>
-                <input type="text" required value={nombreSolicitante} onChange={e => setNombreSolicitante(e.target.value)} placeholder="Ingrese el nombre legal..." style={inputStyle} />
-              </div>
-            </div>
+            </fieldset>
 
-            {/* SECCIÓN: Vehículo */}
-            <div style={sectionStyle}>
-              <div style={sectionLabelStyle}>🚛 Datos del Vehículo</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            {/* ── FILA 2: Vehículo ── */}
+            <fieldset style={fieldsetStyle}>
+              <legend style={legendStyle}>Datos del Vehículo</legend>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Patente (Tractor/Acoplado)</label>
-                  <input type="text" value={patente} onChange={e => setPatente(e.target.value)} placeholder="Ej: AB123CD" style={inputStyle} />
+                  <label style={labelStyle}>Patente</label>
+                  <input type="text" value={patente} onChange={e => setPatente(e.target.value)} placeholder="AB123CD" style={{ ...inputStyle, textTransform: 'uppercase' }} />
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Tipo de Vehículo</label>
                   <select value={tipoVehiculo} onChange={e => setTipoVehiculo(e.target.value)} style={{ ...inputStyle, backgroundColor: '#fff' }}>
                     <option value="">Seleccione...</option>
                     <option value="Chasis">Chasis</option>
-                    <option value="Chasis con Acoplado">Chasis con Acoplado</option>
+                    <option value="Chasis con Acoplado">Chasis c/ Acoplado</option>
                     <option value="Semi-remolque">Semi-remolque</option>
                     <option value="Bitrén">Bitrén</option>
                     <option value="Maquinaria Especial">Maquinaria Especial</option>
                   </select>
                 </div>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Peso Total (Toneladas)</label>
-                  <input type="number" step="0.1" value={pesoToneladas} onChange={e => setPesoToneladas(e.target.value)} placeholder="Ej: 45.5" style={inputStyle} />
+                  <label style={labelStyle}>Peso Total (Tn)</label>
+                  <input type="number" step="0.1" value={pesoToneladas} onChange={e => setPesoToneladas(e.target.value)} placeholder="45.5" style={inputStyle} />
                 </div>
-                <div style={{ ...inputGroupStyle, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+                <div style={inputGroupStyle}>
                   <label style={labelStyle}>¿Carga Peligrosa?</label>
                   <label style={{
-                    display: 'flex', alignItems: 'center', cursor: 'pointer',
-                    padding: '11px 14px',
-                    border: `2px solid ${cargaPeligrosa ? '#fca5a5' : '#e1e4e8'}`,
-                    borderRadius: '8px',
-                    backgroundColor: cargaPeligrosa ? '#fef2f2' : '#fafafa',
-                    transition: 'all 0.2s',
-                    gap: '10px'
+                    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                    padding: '9px 12px', height: '38px',
+                    border: `1.5px solid ${cargaPeligrosa ? '#fca5a5' : '#d1d5db'}`,
+                    borderRadius: '7px',
+                    backgroundColor: cargaPeligrosa ? '#fef2f2' : '#f9fafb',
                   }}>
-                    <input type="checkbox" checked={cargaPeligrosa} onChange={e => setCargaPeligrosa(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: '#EF4444', flexShrink: 0 }} />
-                    <span style={{ fontSize: '14px', color: cargaPeligrosa ? '#dc2626' : '#555', fontWeight: cargaPeligrosa ? '600' : '400' }}>
-                      {cargaPeligrosa ? '⚠️ Sí, materiales peligrosos' : 'No, carga general'}
+                    <input type="checkbox" checked={cargaPeligrosa} onChange={e => setCargaPeligrosa(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#dc2626', flexShrink: 0 }} />
+                    <span style={{ fontSize: '13px', color: cargaPeligrosa ? '#dc2626' : '#6b7280', fontWeight: cargaPeligrosa ? '600' : '400' }}>
+                      {cargaPeligrosa ? '⚠️ Sí' : 'No'}
                     </span>
                   </label>
                 </div>
               </div>
-            </div>
+            </fieldset>
 
-            {/* SECCIÓN: Seguro */}
-            <div style={sectionStyle}>
-              <div style={sectionLabelStyle}>🛡️ Datos del Seguro</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            {/* ── FILA 3: Seguro ── */}
+            <fieldset style={fieldsetStyle}>
+              <legend style={legendStyle}>Seguro</legend>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Aseguradora</label>
                   <input type="text" value={aseguradora} onChange={e => setAseguradora(e.target.value)} placeholder="Ej: Sancor Seguros" style={inputStyle} />
                 </div>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>N° de Seguro / Póliza</label>
-                  <input type="text" value={nroSeguro} onChange={e => setNroSeguro(e.target.value)} placeholder="Ej: 123456789" style={inputStyle} />
+                  <label style={labelStyle}>N° de Póliza</label>
+                  <input type="text" value={nroSeguro} onChange={e => setNroSeguro(e.target.value)} placeholder="123456789" style={inputStyle} />
                 </div>
               </div>
-            </div>
+            </fieldset>
 
             <button type="submit" style={primaryBtnStyle}>
               Continuar al Mapa <ArrowRight size={18} style={{ marginLeft: '8px' }} />
@@ -808,16 +744,16 @@ const containerStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: 'white',
-  padding: '32px 36px',
-  borderRadius: '16px',
+  padding: '24px 28px',
+  borderRadius: '14px',
   boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
   width: '100%',
-  maxWidth: '580px',
+  maxWidth: '780px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  margin: '24px 0',
-  maxHeight: 'calc(100vh - 64px - 48px)',
+  margin: '20px 16px',
+  maxHeight: 'calc(100vh - 64px - 40px)',
   overflowY: 'auto',
 };
 
@@ -850,9 +786,30 @@ const sectionLabelStyle: React.CSSProperties = {
   marginBottom: '14px',
 };
 
+const fieldsetStyle: React.CSSProperties = {
+  width: '100%',
+  border: '1.5px solid #e2e8f0',
+  borderRadius: '10px',
+  padding: '14px 16px 6px',
+  marginBottom: '12px',
+  backgroundColor: '#fafbfc',
+};
+
+const legendStyle: React.CSSProperties = {
+  fontSize: '11px',
+  fontWeight: '700',
+  color: '#1e3a5f',
+  textTransform: 'uppercase',
+  letterSpacing: '0.9px',
+  padding: '0 8px',
+  backgroundColor: 'white',
+  border: '1px solid #e2e8f0',
+  borderRadius: '4px',
+};
+
 const inputGroupStyle: React.CSSProperties = {
   width: '100%',
-  marginBottom: '12px',
+  marginBottom: '8px',
 };
 
 const labelStyle: React.CSSProperties = {
