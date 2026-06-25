@@ -285,18 +285,27 @@ export default function MapComponent() {
         const validLineas = Array.isArray(dataLineas) ? dataLineas.filter((l: any) => l.activo !== false) : [];
 
         const CAT_LABELS: Record<string, string> = {
-          NACIONAL: '🇦🇷 Líneas Nacionales',
-          PROVINCIAL: '🏛️ Líneas Provinciales',
-          MUNICIPAL: '🏘️ Líneas Municipales',
+          NACIONAL: 'Líneas Nacionales',
+          PROVINCIAL: 'Líneas Provinciales',
+          MUNICIPAL: 'Líneas Municipales',
         };
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
-          const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte Público';
-          const subGrupoNombre = l.subcategoria || null;
+          const catLabel = CAT_LABELS[cat] || 'Líneas de Transporte';
+          // grupo = "Líneas Nacionales / Línea 45"  → appears as child of category
+          const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
+          const grupoNombre = `${catLabel} / ${lineaLabel}`;
+          // subgrupo = ramal (subcategoria), plus sentido label if present
+          const sentidoLabel = l.sentido === 'IDA' ? ' — Ida' : l.sentido === 'VUELTA' ? ' — Vuelta' : l.sentido ? ` — ${l.sentido.charAt(0) + l.sentido.slice(1).toLowerCase()}` : '';
+          const subGrupoNombre = l.subcategoria ? `${l.subcategoria}${sentidoLabel}` : (l.sentido ? sentidoLabel.replace(' — ', '') : null);
+          // capa name: just sentido or ramal+sentido if no subcategoria
+          const nombre = l.subcategoria
+            ? (sentidoLabel ? sentidoLabel.replace(' — ', '') : l.nombre)
+            : (l.numero ? `Línea ${l.numero}` : l.nombre);
           return {
             id: `linea-${l.id}`,
-            nombre: l.numero ? `Línea ${l.numero} – ${l.nombre}` : l.nombre,
+            nombre,
             datosGeo: geo,
             color: l.color || '#E53E3E',
             visibilidad: 'PUBLIC',
