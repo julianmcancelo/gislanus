@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     const body = await req.json();
@@ -20,12 +22,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     });
 
     return NextResponse.json(subGrupo);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update sub-grupo' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
 
@@ -34,7 +39,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     });
 
     return NextResponse.json({ message: 'SubGrupo deleted successfully' });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete sub-grupo' }, { status: 500 });
   }
 }

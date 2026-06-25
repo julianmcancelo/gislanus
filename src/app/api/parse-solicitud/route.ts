@@ -144,7 +144,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: 'Falta configurar la API Key de OpenAI en las variables de entorno' }, { status: 500 });
     }
@@ -252,8 +252,6 @@ ${finalSelectionText}
 
     const resultString = completion.choices[0].message?.content;
     if (!resultString) throw new Error('OpenAI returned empty response');
-    console.log('[OpenAI raw response]', resultString.substring(0, 500));
-
     let extractedData = JSON.parse(resultString);
 
     // Normalize: sometimes gpt-4o-mini returns nested objects keyed by section headers
@@ -275,8 +273,6 @@ ${finalSelectionText}
       }
       extractedData = flat;
     }
-
-    console.log('[extractedData keys]', Object.keys(extractedData));
 
     // Normalize numeroSolicitud: strip "EXTERNO-" prefix and trailing "-0"
     if (extractedData.numeroSolicitud) {

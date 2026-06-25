@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
 export async function GET() {
   try {
@@ -30,34 +29,33 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const url = new URL(req.url);
     const isDryRun = url.searchParams.get('dryRun') === 'true';
 
     const body = await req.json();
 
-    // If it's an array, validate each item (bulk create logic used in AdminPage)
     const items = Array.isArray(body) ? body : [body];
 
     for (const item of items) {
       const { name, type, color, geoData } = item;
 
-      // Validate name
       if (!name || typeof name !== 'string' || name.length > 150) {
         return NextResponse.json({ error: 'Nombre inválido o demasiado largo' }, { status: 400 });
       }
 
-      // Validate color
       const hexColorRegex = /^#([0-9A-F]{3}){1,2}$/i;
       if (color && !hexColorRegex.test(color)) {
         return NextResponse.json({ error: 'Color inválido. Debe ser hexadecimal.' }, { status: 400 });
       }
 
-      // Validate geoData basic structure (just checking if it's parsable or an object)
       if (!geoData) {
         return NextResponse.json({ error: 'Faltan datos geográficos' }, { status: 400 });
       }
-      
+
       let parsedGeo;
       if (typeof geoData === 'string') {
         try {
@@ -70,7 +68,7 @@ export async function POST(req: Request) {
       }
 
       if (!parsedGeo.type || (parsedGeo.type !== 'FeatureCollection' && parsedGeo.type !== 'Feature')) {
-         return NextResponse.json({ error: 'Formato GeoJSON inválido' }, { status: 400 });
+        return NextResponse.json({ error: 'Formato GeoJSON inválido' }, { status: 400 });
       }
     }
 
@@ -78,7 +76,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, preview: true });
     }
 
-    // Since AdminPage sends an array of items to create, handle bulk create
     if (Array.isArray(body)) {
       const createdCapas = [];
       for (const item of body) {
@@ -99,7 +96,6 @@ export async function POST(req: Request) {
       }
       return NextResponse.json(createdCapas, { status: 201 });
     } else {
-      // Single create fallback
       const capa = await prisma.capa.create({
         data: {
           nombre: body.name,

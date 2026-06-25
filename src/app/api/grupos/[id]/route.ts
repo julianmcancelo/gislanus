@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     await prisma.grupo.delete({
@@ -16,10 +18,13 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     const body = await req.json();
-    
+
     const updateData: any = {};
     if (body.nombre) updateData.nombre = body.nombre;
     if (body.color) updateData.color = body.color;

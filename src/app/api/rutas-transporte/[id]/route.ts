@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     const { estado } = await req.json();
@@ -24,9 +26,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
-    
+
     await prisma.rutaTransporte.delete({
       where: { id }
     });

@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos de usuario' }, { status: 400 });
     }
 
-    // El super admin definido
-    const SUPER_ADMIN_EMAIL = 'julianmcancelo@gmail.com';
+    const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
 
     // Buscar si el usuario ya existe
     let usuario = await prisma.usuario.findUnique({

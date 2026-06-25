@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
 import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
+import toast, { Toaster } from 'react-hot-toast';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 
@@ -20,7 +21,18 @@ const translatePropKey = (key: string) => {
 };
 
 export default function AdminPage() {
-  const { user, dbUser, loading: authLoading } = useAuth();
+  const { user, dbUser, loading: authLoading, getIdToken } = useAuth();
+
+  const authFetch = async (input: string, init: RequestInit = {}) => {
+    const token = await getIdToken();
+    return fetch(input, {
+      ...init,
+      headers: {
+        ...(init.headers as Record<string, string> || {}),
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  };
   const router = useRouter();
 
   // Protect route
@@ -113,7 +125,7 @@ export default function AdminPage() {
         fetch('/api/grupos'),
         fetch('/api/subgrupos'),
         fetch('/api/rutas-transporte'),
-        fetch('/api/usuarios')
+        authFetch('/api/usuarios')
       ]);
       const dataCapas = await resCapas.json();
       const dataGrupos = await resGrupos.json();
@@ -138,7 +150,7 @@ export default function AdminPage() {
     if (!grupoNombre) return;
     setIsProcessing(true);
     try {
-      await fetch('/api/grupos', {
+      await authFetch('/api/grupos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: grupoNombre, color: grupoColor })
@@ -146,14 +158,14 @@ export default function AdminPage() {
       setGrupoNombre('');
       fetchData();
     } catch (e) {
-      alert('Error al crear grupo');
+      toast.error('Error al crear grupo');
     }
     setIsProcessing(false);
   };
 
   const saveEditGrupo = async (id: string) => {
     try {
-      await fetch(`/api/grupos/${id}`, {
+      await authFetch(`/api/grupos/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: grupoNombre, color: grupoColor })
@@ -161,13 +173,13 @@ export default function AdminPage() {
       setEditingGrupo(null);
       fetchData();
     } catch (e) {
-      alert('Error al editar grupo');
+      toast.error('Error al editar grupo');
     }
   };
 
   const handleDeleteGrupo = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar este grupo?')) {
-      await fetch(`/api/grupos/${id}`, { method: 'DELETE' });
+      await authFetch(`/api/grupos/${id}`, { method: 'DELETE' });
       fetchData();
     }
   };
@@ -184,7 +196,7 @@ export default function AdminPage() {
     if (!subGrupoNombre || !subGrupoParentId) return;
     setIsProcessing(true);
     try {
-      await fetch('/api/subgrupos', {
+      await authFetch('/api/subgrupos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: subGrupoNombre, color: subGrupoColor, grupoId: subGrupoParentId })
@@ -192,14 +204,14 @@ export default function AdminPage() {
       setSubGrupoNombre('');
       fetchData();
     } catch (e) {
-      alert('Error al crear sub-grupo');
+      toast.error('Error al crear sub-grupo');
     }
     setIsProcessing(false);
   };
 
   const saveEditSubGrupo = async (id: string) => {
     try {
-      await fetch(`/api/subgrupos/${id}`, {
+      await authFetch(`/api/subgrupos/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: subGrupoNombre, color: subGrupoColor, grupoId: subGrupoParentId })
@@ -207,13 +219,13 @@ export default function AdminPage() {
       setEditingSubGrupo(null);
       fetchData();
     } catch (e) {
-      alert('Error al editar sub-grupo');
+      toast.error('Error al editar sub-grupo');
     }
   };
 
   const handleDeleteSubGrupo = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar este sub-grupo?')) {
-      await fetch(`/api/subgrupos/${id}`, { method: 'DELETE' });
+      await authFetch(`/api/subgrupos/${id}`, { method: 'DELETE' });
       fetchData();
     }
   };
@@ -271,7 +283,7 @@ export default function AdminPage() {
         }
       } catch (err) {
         console.error(err);
-        alert("Error procesando el archivo. Asegúrate que sea un KML, KMZ o GeoJSON válido.");
+        toast.error("Error procesando el archivo. Asegúrate que sea un KML, KMZ o GeoJSON válido.");
         setFileName('');
         setFileContent('');
       }
@@ -280,7 +292,7 @@ export default function AdminPage() {
 
   const handleSubmitCapa = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre) return alert('El nombre es obligatorio');
+    if (!nombre) { toast.error('El nombre es obligatorio'); return; }
     
     setIsProcessing(true);
     const body: any = { 
@@ -296,14 +308,16 @@ export default function AdminPage() {
     if (uploadType === 'file') {
       if (!fileContent) {
         setIsProcessing(false);
-        return alert('Debes seleccionar un archivo');
+        toast.error('Debes seleccionar un archivo');
+        return;
       }
       body.geoData = fileContent;
       body.type = fileType;
     } else {
       if (!url) {
         setIsProcessing(false);
-        return alert('Debes ingresar una URL');
+        toast.error('Debes ingresar una URL');
+        return;
       }
       body.url = url;
       body.type = url.toLowerCase().endsWith('.kml') ? 'kml' : 'geojson';
@@ -373,7 +387,7 @@ export default function AdminPage() {
       setPreviewCapas([{ id: 'mock-1', grupoId: grupoId || null, subGrupoId: subGrupoId || null, nombre, color, icono: icono || null, tipo: body.type, datosGeo: body.geoData }]);
 
     } catch (err) {
-      alert('Error al parsear el archivo. Asegurate de que sea válido.');
+      toast.error('Error al parsear el archivo. Asegurate de que sea válido.');
     }
     setIsProcessing(false);
   };
@@ -400,7 +414,7 @@ export default function AdminPage() {
     setIsProcessing(true);
     try {
       for (const capa of previewCapas) {
-        await fetch('/api/capas', {
+        await authFetch('/api/capas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -414,8 +428,8 @@ export default function AdminPage() {
           }),
         });
       }
-      
-      alert('Capa(s) guardada(s) correctamente');
+
+      toast.success('Capa(s) guardada(s) correctamente');
       fetchData();
       setPreviewCapas([]);
       setNombre('');
@@ -425,14 +439,14 @@ export default function AdminPage() {
       setGrupoId('');
       setSubGrupoId('');
     } catch (err) {
-      alert('Error de conexión');
+      toast.error('Error de conexión');
     }
     setIsProcessing(false);
   };
 
   const handleDeleteCapa = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar esta capa?')) {
-      await fetch(`/api/capas/${id}`, { method: 'DELETE' });
+      await authFetch(`/api/capas/${id}`, { method: 'DELETE' });
       fetchData();
     }
   };
@@ -453,7 +467,7 @@ export default function AdminPage() {
     if (selectedCapas.length === 0) return;
     if (confirm(`¿Seguro que deseas eliminar ${selectedCapas.length} capa(s)?`)) {
       for (const id of selectedCapas) {
-        await fetch(`/api/capas/${id}`, { method: 'DELETE' });
+        await authFetch(`/api/capas/${id}`, { method: 'DELETE' });
       }
       setSelectedCapas([]);
       fetchData();
@@ -471,12 +485,12 @@ export default function AdminPage() {
 
   const saveEditCapa = async (id: string) => {
     try {
-      await fetch(`/api/capas/${id}`, {
+      await authFetch(`/api/capas/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          nombre: editNombre.trim(), 
-          color: editColor, 
+        body: JSON.stringify({
+          nombre: editNombre.trim(),
+          color: editColor,
           icono: editIcono || null,
           grupoId: editGrupoId || null,
           subGrupoId: editSubGrupoId || null
@@ -485,7 +499,7 @@ export default function AdminPage() {
       setEditingCapa(null);
       fetchData();
     } catch (e) {
-      alert('Error al guardar cambios');
+      toast.error('Error al guardar cambios');
     }
   };
 
@@ -509,7 +523,7 @@ export default function AdminPage() {
         setCapaRecords([]);
       }
     } catch (e) {
-      alert('Error al cargar los registros.');
+      toast.error('Error al cargar los registros.');
     }
     setLoadingRecords(false);
   };
@@ -532,14 +546,13 @@ export default function AdminPage() {
     // Patch to DB
     const geoData = { type: 'FeatureCollection', features: updatedFeatures };
     try {
-      await fetch(`/api/capas/${selectedCapaForRecords.id}`, {
+      await authFetch(`/api/capas/${selectedCapaForRecords.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ geoData })
       });
-      // Option: show toast
     } catch (e) {
-      alert('Error al guardar el registro en la base de datos.');
+      toast.error('Error al guardar el registro en la base de datos.');
     }
   };
 
@@ -552,48 +565,49 @@ export default function AdminPage() {
   // ----- RUTAS LOGIC -----
   const handleEstadoRuta = async (id: string, nuevoEstado: string) => {
     try {
-      await fetch(`/api/rutas-transporte/${id}`, {
+      await authFetch(`/api/rutas-transporte/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: nuevoEstado })
       });
       fetchData();
     } catch (e) {
-      alert('Error al actualizar el estado.');
+      toast.error('Error al actualizar el estado.');
     }
   };
 
   // ----- USUARIOS LOGIC -----
   const handleRoleChange = async (id: string, nuevoRol: string) => {
     try {
-      const res = await fetch(`/api/usuarios/${id}`, {
+      const res = await authFetch(`/api/usuarios/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rol: nuevoRol })
       });
       if (res.ok) {
-        fetchData(); // Reload users
+        fetchData();
       } else {
-        alert('Error al actualizar el rol.');
+        toast.error('Error al actualizar el rol.');
       }
     } catch (e) {
-      alert('Error de conexión al actualizar el rol.');
+      toast.error('Error de conexión al actualizar el rol.');
     }
   };
 
   const handleDeleteRuta = async (id: string) => {
     if (confirm('¿Seguro que deseas eliminar esta solicitud de forma permanente?')) {
       try {
-        await fetch(`/api/rutas-transporte/${id}`, { method: 'DELETE' });
+        await authFetch(`/api/rutas-transporte/${id}`, { method: 'DELETE' });
         fetchData();
       } catch (e) {
-        alert('Error al eliminar la solicitud.');
+        toast.error('Error al eliminar la solicitud.');
       }
     }
   };
 
   return (
     <div className={styles.adminLayout}>
+      <Toaster position="top-right" />
       {/* SIDEBAR */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
@@ -634,7 +648,16 @@ export default function AdminPage() {
         {activeTab === 'dashboard' && (
           <section className={styles.fullSection}>
             <h2>Resumen General</h2>
-            {loading ? <p>Cargando estadísticas...</p> : (
+            {loading ? (
+              <div className={styles.dashboardGrid}>
+                {[1,2,3,4].map(i => (
+                  <div key={i} className={styles.statCard} style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>
+                    <div style={{ height: 40, background: 'rgba(255,255,255,0.1)', borderRadius: 6, marginBottom: 8 }} />
+                    <div style={{ height: 16, background: 'rgba(255,255,255,0.07)', borderRadius: 4 }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
               <div className={styles.dashboardGrid}>
                 <div className={styles.statCard}>
                   <div className={styles.statValue}>{grupos.length}</div>

@@ -26,6 +26,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (e: string, p: string) => Promise<void>;
   logout: () => Promise<void>;
+  getIdToken: () => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextType>({
   loginWithGoogle: async () => {},
   loginWithEmail: async () => {},
   logout: async () => {},
+  getIdToken: async () => '',
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -171,6 +173,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const getIdToken = async (): Promise<string> => {
+    if (isBypass) return 'bypass-token';
+    if (!user) throw new Error('No hay usuario autenticado');
+    return user.getIdToken();
+  };
+
   const logout = async () => {
     if (isBypass) {
       localStorage.removeItem('gis_lanus_mock_user');
@@ -188,7 +196,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, dbUser, loading, loginWithGoogle, loginWithEmail, logout }}>
+    <AuthContext.Provider value={{ user, dbUser, loading, loginWithGoogle, loginWithEmail, logout, getIdToken }}>
       {children}
     </AuthContext.Provider>
   );

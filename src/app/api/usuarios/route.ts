@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
-const prisma = new PrismaClient();
+export async function GET(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
 
-export async function GET() {
   try {
     const usuarios = await prisma.usuario.findMany({
       orderBy: { creadoEn: 'desc' },

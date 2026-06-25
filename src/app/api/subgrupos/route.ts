@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
 export async function GET() {
   try {
@@ -11,12 +10,15 @@ export async function GET() {
       }
     });
     return NextResponse.json(subgrupos);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch sub-grupos' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const body = await req.json();
     const { nombre, color, grupoId } = body;
