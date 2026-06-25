@@ -12,6 +12,7 @@ interface Capa {
   color: string;
   grupo?: { nombre: string };
   subGrupo?: { nombre: string };
+  subSubGrupo?: { nombre: string } | null;
   numeroSolicitud?: string;
   estado?: string;
   nombreSolicitante?: string;
@@ -29,9 +30,14 @@ interface SidebarProps {
   setActiveTab: (tab: 'layers' | 'info' | null) => void;
 }
 
+type SubgrupoData = {
+  capasDirectas: Capa[];
+  subsubgrupos: Record<string, Capa[]>;
+};
+
 type GroupedData = {
   capasDirectas: Capa[];
-  subgrupos: Record<string, Capa[]>;
+  subgrupos: Record<string, SubgrupoData>;
 };
 
 const ESTADO_CONFIG: Record<string, { bg: string; dot: string; label: string; short: string }> = {
@@ -214,8 +220,14 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
         if (!groups[gName]) groups[gName] = { capasDirectas: [], subgrupos: {} };
         if (capa.subGrupo?.nombre) {
           const sgName = capa.subGrupo.nombre;
-          if (!groups[gName].subgrupos[sgName]) groups[gName].subgrupos[sgName] = [];
-          groups[gName].subgrupos[sgName].push(capa);
+          if (!groups[gName].subgrupos[sgName]) groups[gName].subgrupos[sgName] = { capasDirectas: [], subsubgrupos: {} };
+          if (capa.subSubGrupo?.nombre) {
+            const ssgName = capa.subSubGrupo.nombre;
+            if (!groups[gName].subgrupos[sgName].subsubgrupos[ssgName]) groups[gName].subgrupos[sgName].subsubgrupos[ssgName] = [];
+            groups[gName].subgrupos[sgName].subsubgrupos[ssgName].push(capa);
+          } else {
+            groups[gName].subgrupos[sgName].capasDirectas.push(capa);
+          }
         } else {
           groups[gName].capasDirectas.push(capa);
         }
@@ -228,14 +240,32 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
   const toggleNode = (key: string) => setExpandedNodes(prev => ({ ...prev, [key]: !prev[key] }));
 
-  const toggleAll = (gName: string, active: boolean) => {
+  const flattenGroup = (gName: string): Capa[] => {
     const data = grupos[gName];
-    const all = [...data.capasDirectas, ...Object.values(data.subgrupos).flat()];
-    all.forEach(c => { if (c.active !== active) alternarCapa(c.id); });
+    return [
+      ...data.capasDirectas,
+      ...Object.values(data.subgrupos).flatMap(sg => [
+        ...sg.capasDirectas,
+        ...Object.values(sg.subsubgrupos).flat(),
+      ]),
+    ];
+  };
+
+  const flattenSubGroup = (gName: string, sgName: string): Capa[] => {
+    const sg = grupos[gName].subgrupos[sgName];
+    return [...sg.capasDirectas, ...Object.values(sg.subsubgrupos).flat()];
+  };
+
+  const toggleAll = (gName: string, active: boolean) => {
+    flattenGroup(gName).forEach(c => { if (c.active !== active) alternarCapa(c.id); });
   };
 
   const toggleSubAll = (gName: string, sgName: string, active: boolean) => {
-    grupos[gName].subgrupos[sgName].forEach(c => { if (c.active !== active) alternarCapa(c.id); });
+    flattenSubGroup(gName, sgName).forEach(c => { if (c.active !== active) alternarCapa(c.id); });
+  };
+
+  const toggleSubSubAll = (gName: string, sgName: string, ssgName: string, active: boolean) => {
+    grupos[gName].subgrupos[sgName].subsubgrupos[ssgName].forEach(c => { if (c.active !== active) alternarCapa(c.id); });
   };
 
   const canAccessTransporte = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'USUARIO';
@@ -366,7 +396,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
             <div className={styles.layersList}>
               {Object.entries(grupos).map(([gName, gData]) => {
                 const isOpen = expandedNodes[gName];
-                const allCapas = [...gData.capasDirectas, ...Object.values(gData.subgrupos).flat()];
+                const allCapas = flattenGroup(gName);
                 const allActive = allCapas.length > 0 && allCapas.every(l => l.active);
                 const someActive = allCapas.some(l => l.active) && !allActive;
                 const isTransporte = gName === 'Solicitudes Transporte Pesado';
@@ -374,74 +404,95 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
                 return (
                   <div key={gName} className={styles.layerGroup}>
-                    {/* Header del grupo */}
+                    {/* Level 1: Grupo header */}
                     <div className={styles.groupHeader} onClick={() => toggleNode(gName)}>
                       <span className={styles.expandChevron}>{isOpen ? '▾' : '▸'}</span>
-
                       {!isTransporte && (
-                        <input
-                          type="checkbox"
-                          checked={allActive}
+                        <input type="checkbox" checked={allActive}
                           ref={el => { if (el) el.indeterminate = someActive; }}
                           onChange={e => { e.stopPropagation(); toggleAll(gName, e.target.checked); }}
-                          onClick={e => e.stopPropagation()}
-                          className={styles.groupCheckbox}
-                        />
+                          onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
                       )}
-
                       <span className={styles.groupName}>{gName}</span>
-
                       <span className={isTransporte ? styles.badgeBlue : styles.badgeGray}>
                         {isTransporte ? `${activeCount}/${allCapas.length}` : allCapas.length}
                       </span>
                     </div>
 
-                    {/* Items del grupo */}
                     {isOpen && (
                       <div className={styles.groupItems}>
                         {isTransporte ? (
-                          <TransporteGroup
-                            capas={allCapas}
-                            onToggle={alternarCapa}
-                            expandedSols={expandedSols}
-                            toggleSol={toggleSol}
-                          />
+                          <TransporteGroup capas={allCapas} onToggle={alternarCapa} expandedSols={expandedSols} toggleSol={toggleSol} />
                         ) : (
                           <>
-                            {/* Subgrupos */}
-                            {Object.entries(gData.subgrupos).map(([sgName, sgCapas]) => {
+                            {Object.entries(gData.subgrupos).map(([sgName, sgData]) => {
                               const sgKey = `${gName}|${sgName}`;
                               const sgOpen = expandedNodes[sgKey];
+                              const sgCapas = flattenSubGroup(gName, sgName);
                               const sgAllActive = sgCapas.every(l => l.active);
                               const sgSome = sgCapas.some(l => l.active) && !sgAllActive;
+                              const hasSsg = Object.keys(sgData.subsubgrupos).length > 0;
 
                               return (
                                 <div key={sgKey} className={styles.subGroup}>
+                                  {/* Level 2: Subgrupo header (línea) */}
                                   <div className={styles.subGroupHeader} onClick={() => toggleNode(sgKey)}>
                                     <span className={styles.expandChevron} style={{ fontSize: '0.6rem' }}>{sgOpen ? '▾' : '▸'}</span>
-                                    <input
-                                      type="checkbox"
-                                      checked={sgAllActive}
+                                    <input type="checkbox" checked={sgAllActive}
                                       ref={el => { if (el) el.indeterminate = sgSome; }}
                                       onChange={e => { e.stopPropagation(); toggleSubAll(gName, sgName, e.target.checked); }}
-                                      onClick={e => e.stopPropagation()}
-                                      className={styles.groupCheckbox}
-                                    />
+                                      onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
                                     <span className={styles.subGroupName}>{sgName}</span>
                                     <span className={styles.badgeGray}>{sgCapas.length}</span>
                                   </div>
+
                                   {sgOpen && (
                                     <div style={{ paddingLeft: '8px' }}>
-                                      {sgCapas.map(capa => (
-                                        <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
-                                      ))}
+                                      {hasSsg ? (
+                                        Object.entries(sgData.subsubgrupos).map(([ssgName, ssgCapas]) => {
+                                          const ssgKey = `${sgKey}|${ssgName}`;
+                                          const ssgOpen = expandedNodes[ssgKey] !== false;
+                                          const ssgAllActive = ssgCapas.every(l => l.active);
+                                          const ssgSome = ssgCapas.some(l => l.active) && !ssgAllActive;
+
+                                          return (
+                                            <div key={ssgKey} style={{ marginBottom: '2px' }}>
+                                              {/* Level 3: Sub-subgrupo header (ramal) */}
+                                              <div
+                                                onClick={() => toggleNode(ssgKey)}
+                                                style={{
+                                                  display: 'flex', alignItems: 'center', gap: '4px',
+                                                  padding: '3px 6px', borderRadius: '4px', cursor: 'pointer',
+                                                  background: '#f1f5f9', marginBottom: '2px',
+                                                }}>
+                                                <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>{ssgOpen ? '▾' : '▸'}</span>
+                                                <input type="checkbox" checked={ssgAllActive}
+                                                  ref={el => { if (el) el.indeterminate = ssgSome; }}
+                                                  onChange={e => { e.stopPropagation(); toggleSubSubAll(gName, sgName, ssgName, e.target.checked); }}
+                                                  onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
+                                                <span style={{ fontSize: '0.69rem', fontWeight: 600, color: '#475569', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ssgName}</span>
+                                                <span className={styles.badgeGray}>{ssgCapas.length}</span>
+                                              </div>
+                                              {ssgOpen && (
+                                                <div style={{ paddingLeft: '8px' }}>
+                                                  {ssgCapas.map(capa => (
+                                                    <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
+                                                  ))}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        sgData.capasDirectas.map(capa => (
+                                          <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
+                                        ))
+                                      )}
                                     </div>
                                   )}
                                 </div>
                               );
                             })}
-
-                            {/* Capas directas */}
                             {gData.capasDirectas.map(capa => (
                               <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
                             ))}

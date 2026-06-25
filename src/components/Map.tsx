@@ -292,17 +292,17 @@ export default function MapComponent() {
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
-          const catLabel = CAT_LABELS[cat] || 'Líneas de Transporte';
-          // grupo = "Líneas Nacionales / Línea 45"  → appears as child of category
+          // Level 1 grupo  = categoría  ("Líneas Nacionales")
+          const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
+          // Level 2 subGrupo = línea  ("Línea 45")
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
-          const grupoNombre = `${catLabel} / ${lineaLabel}`;
-          // subgrupo = ramal (subcategoria), plus sentido label if present
-          const sentidoLabel = l.sentido === 'IDA' ? ' — Ida' : l.sentido === 'VUELTA' ? ' — Vuelta' : l.sentido ? ` — ${l.sentido.charAt(0) + l.sentido.slice(1).toLowerCase()}` : '';
-          const subGrupoNombre = l.subcategoria ? `${l.subcategoria}${sentidoLabel}` : (l.sentido ? sentidoLabel.replace(' — ', '') : null);
-          // capa name: just sentido or ramal+sentido if no subcategoria
-          const nombre = l.subcategoria
-            ? (sentidoLabel ? sentidoLabel.replace(' — ', '') : l.nombre)
-            : (l.numero ? `Línea ${l.numero}` : l.nombre);
+          // Level 3 subSubGrupo = ramal  ("Ramal A")
+          const ramalLabel = l.subcategoria || null;
+          // capa nombre = sentido  ("Ida" / "Vuelta" / valor normalizado)
+          const sentido = (l.sentido || '').toUpperCase();
+          const nombre = sentido
+            ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
+            : (l.subcategoria ? lineaLabel : lineaLabel);
           return {
             id: `linea-${l.id}`,
             nombre,
@@ -311,7 +311,8 @@ export default function MapComponent() {
             visibilidad: 'PUBLIC',
             rolesPermitidos: [],
             grupo: { nombre: grupoNombre },
-            subGrupo: subGrupoNombre ? { nombre: subGrupoNombre } : null,
+            subGrupo: { nombre: lineaLabel },
+            subSubGrupo: ramalLabel ? { nombre: ramalLabel } : null,
           };
         });
 
