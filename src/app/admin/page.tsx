@@ -7,6 +7,7 @@ import JSZip from 'jszip';
 import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
+import { escucharNotificaciones, emitirCambioMapa } from '@/lib/rtdb';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -131,6 +132,26 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  // Escuchar nuevas solicitudes de transporte en tiempo real
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const unsub = escucharNotificaciones((notif) => {
+      toast((t) => (
+        <span>
+          🚛 <strong>Nueva solicitud #{notif.numeroSolicitud}</strong><br/>
+          {notif.nombreSolicitante}
+          <button
+            onClick={() => { setActiveTab('solicitudes'); toast.dismiss(t.id); fetchData(); }}
+            style={{ marginLeft: '10px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '4px', padding: '3px 8px', cursor: 'pointer', fontSize: '0.8rem' }}
+          >Ver</button>
+        </span>
+      ), { duration: 10000, icon: '📥' });
+      fetchData();
+    });
+    return unsub;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -474,6 +495,7 @@ export default function AdminPage() {
       }
 
       toast.success('Capa(s) guardada(s) correctamente');
+      emitirCambioMapa('capas');
       fetchData();
       setPreviewCapas([]);
       setNombre('');
@@ -697,6 +719,7 @@ export default function AdminPage() {
           });
       if (!res.ok) throw new Error(await res.text());
       toast.success(editingLinea ? 'Línea actualizada.' : 'Línea creada.');
+      emitirCambioMapa('lineas');
       setLineaEditorOpen(false);
       fetchData();
     } catch (e: any) {

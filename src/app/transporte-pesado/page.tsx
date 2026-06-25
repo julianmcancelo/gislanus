@@ -15,6 +15,7 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
 });
 
 import { useAuth } from '@/context/AuthContext';
+import { emitirNuevaSolicitud } from '@/lib/rtdb';
 
 export default function TransportePesadoWizard() {
   const { dbUser, loading } = useAuth();
@@ -279,6 +280,12 @@ export default function TransportePesadoWizard() {
       });
 
       if (!response.ok) throw new Error('Error saving route');
+      const saved = await response.json();
+      emitirNuevaSolicitud({
+        solicitudId: saved.id,
+        numeroSolicitud: saved.numeroSolicitud,
+        nombreSolicitante: saved.nombreSolicitante,
+      });
       setStep(2.5);
     } catch (err) {
       alert('Error al guardar la solicitud. Por favor, intente nuevamente.');

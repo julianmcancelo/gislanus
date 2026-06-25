@@ -9,6 +9,7 @@ import { renderToString } from 'react-dom/server';
 import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
+import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
@@ -180,6 +181,42 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
   );
 }
 
+// ── Tracking en tiempo real ──────────────────────────────────────────────────
+function TrackingLayer({ markers }: { markers: any[] }) {
+  const map = useMap();
+  const layerRef = useRef<Record<string, L.Marker>>({});
+
+  useEffect(() => {
+    const activeIds = new Set(markers.map((m) => m.vehiculoId));
+
+    // Remove stale markers
+    Object.keys(layerRef.current).forEach((id) => {
+      if (!activeIds.has(id)) {
+        map.removeLayer(layerRef.current[id]);
+        delete layerRef.current[id];
+      }
+    });
+
+    // Add / update markers
+    markers.forEach((m) => {
+      const latlng: L.LatLngExpression = [m.lat, m.lng];
+      const popup = `<strong>🚗 ${m.nombre}</strong><br/>ID: ${m.vehiculoId}${m.velocidad != null ? `<br/>🚀 ${m.velocidad} km/h` : ''}`;
+      if (layerRef.current[m.vehiculoId]) {
+        layerRef.current[m.vehiculoId].setLatLng(latlng).setPopupContent(popup);
+      } else {
+        const icon = L.divIcon({
+          html: `<div style="background:#f97316;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.4)">🚗</div>`,
+          className: '', iconSize: [32, 32], iconAnchor: [16, 16],
+        });
+        const marker = L.marker(latlng, { icon }).addTo(map).bindPopup(popup);
+        layerRef.current[m.vehiculoId] = marker;
+      }
+    });
+  }, [markers, map]);
+
+  return null;
+}
+
 function GeomanController({ isAdmin }: { isAdmin: boolean }) {
   const map = useMap();
   useEffect(() => {
@@ -217,6 +254,7 @@ export default function MapComponent() {
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const [activeTab, setActiveTab] = useState<'layers' | 'info' | null>('layers');
   const [baseLayer, setBaseLayer] = useState<any>(null);
+  const [trackingMarkers, setTrackingMarkers] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchCapas = async () => {
@@ -381,6 +419,23 @@ export default function MapComponent() {
 
     fetchCapas();
   }, [user]);
+
+  // Re-fetch cuando otro admin modifica capas o líneas
+  useEffect(() => {
+    const unsubCapas = escucharCambioMapa('capas', () => {
+      toast('🗺️ Capas actualizadas', { duration: 3000 });
+    });
+    const unsubLineas = escucharCambioMapa('lineas', () => {
+      toast('🚌 Líneas actualizadas', { duration: 3000 });
+    });
+    return () => { unsubCapas(); unsubLineas(); };
+  }, []);
+
+  // Escuchar posiciones GPS en tiempo real
+  useEffect(() => {
+    const unsub = escucharTracking((entries) => setTrackingMarkers(entries));
+    return unsub;
+  }, []);
 
   const fetchingRef = useRef<Record<string, boolean>>({});
 
@@ -715,6 +770,7 @@ export default function MapComponent() {
             interactive={false}
           />
         )}
+        <TrackingLayer markers={trackingMarkers} />
         <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
       </MapContainer>
         </div>
