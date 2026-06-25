@@ -73,6 +73,13 @@ export default function AdminPage() {
   const [lineaFiltro, setLineaFiltro] = useState('');
   const [lineaFiltroCategoria, setLineaFiltroCategoria] = useState('');
 
+  // GeoJSON import modal
+  const [lineaImportOpen, setLineaImportOpen] = useState(false);
+  const [lineaImportCategoria, setLineaImportCategoria] = useState('NACIONAL');
+  const [lineaImportSubcategoria, setLineaImportSubcategoria] = useState('');
+  const [lineaImportPreview, setLineaImportPreview] = useState<any[]>([]);
+  const [lineaImportSaving, setLineaImportSaving] = useState(false);
+
   // Bulk selection for rutas
   const [selectedRutas, setSelectedRutas] = useState<string[]>([]);
 
@@ -679,6 +686,76 @@ export default function AdminPage() {
     } catch {
       toast.error('Error al actualizar las solicitudes.');
     }
+  };
+
+  const COLOR_MAP: Record<string, string> = {
+    red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
+    orange: '#f97316', purple: '#a855f7', black: '#1f2937', brown: '#92400e',
+    pink: '#ec4899', cyan: '#06b6d4', grey: '#6b7280', gray: '#6b7280',
+  };
+
+  const resolveColor = (raw?: string) => {
+    if (!raw) return '#3b82f6';
+    if (raw.startsWith('#')) return raw;
+    return COLOR_MAP[raw.toLowerCase()] || '#3b82f6';
+  };
+
+  const handleLineaImportFiles = (files: FileList | null) => {
+    if (!files) return;
+    const previews: any[] = [];
+    let pending = files.length;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const geo = JSON.parse(e.target?.result as string);
+          const features = geo.type === 'FeatureCollection' ? geo.features
+            : geo.type === 'Feature' ? [geo]
+            : ['LineString', 'MultiLineString'].includes(geo.type) ? [{ type: 'Feature', properties: {}, geometry: geo }]
+            : [];
+          features.forEach((f: any) => {
+            if (!f.geometry) return;
+            const p = f.properties || {};
+            previews.push({
+              nombre: p.name || p.nombre || p.ref || file.name.replace(/\.geojson$/i, ''),
+              numero: p.ref || p.numero || '',
+              color: resolveColor(p.colour || p.color),
+              descripcion: p.operator || p.descripcion || '',
+              datosGeo: JSON.stringify(f),
+            });
+          });
+        } catch { toast.error(`Error leyendo ${file.name}`); }
+        pending--;
+        if (pending === 0) setLineaImportPreview(prev => [...prev, ...previews]);
+      };
+      reader.readAsText(file);
+    });
+  };
+
+  const handleConfirmLineaImport = async () => {
+    if (lineaImportPreview.length === 0) return;
+    setLineaImportSaving(true);
+    let ok = 0, fail = 0;
+    for (const item of lineaImportPreview) {
+      try {
+        const res = await authFetch('/api/lineas-transporte', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...item,
+            categoria: lineaImportCategoria,
+            subcategoria: lineaImportSubcategoria.trim() || null,
+          }),
+        });
+        if (res.ok) ok++; else fail++;
+      } catch { fail++; }
+    }
+    setLineaImportSaving(false);
+    toast.success(`${ok} líneas importadas${fail ? ` (${fail} fallaron)` : ''}.`);
+    emitirCambioMapa('lineas');
+    setLineaImportOpen(false);
+    setLineaImportPreview([]);
+    fetchData();
   };
 
   const openNewLinea = () => {
@@ -1514,9 +1591,117 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* ── Import modal ── */}
+              {lineaImportOpen && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ background: '#fff', borderRadius: '12px', padding: '28px', width: '680px', maxWidth: '95vw', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+                    <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>📂 Importar GeoJSON → Líneas de Transporte</h3>
+
+                    {/* Drop zone */}
+                    <label style={{ display: 'block', border: '2px dashed #3b82f6', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', marginBottom: '16px', color: '#3b82f6', background: '#eff6ff' }}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={e => { e.preventDefault(); handleLineaImportFiles(e.dataTransfer.files); }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '6px' }}>📁</div>
+                      <div style={{ fontWeight: 600 }}>Arrastrá archivos o hacé clic para seleccionar</div>
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>GeoJSON con LineString, MultiLineString o FeatureCollection. Múltiples archivos permitidos.</div>
+                      <input type="file" accept=".geojson,.json" multiple style={{ display: 'none' }}
+                        onChange={e => handleLineaImportFiles(e.target.files)} />
+                    </label>
+
+                    {/* Categoría y subcategoría para el lote */}
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                      <div>
+                        <label style={{ fontSize: '0.82rem', color: '#374151', display: 'block', marginBottom: '4px' }}>Categoría para este lote</label>
+                        <select value={lineaImportCategoria} onChange={e => setLineaImportCategoria(e.target.value)}
+                          style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
+                          <option value="NACIONAL">Nacional</option>
+                          <option value="PROVINCIAL">Provincial</option>
+                          <option value="MUNICIPAL">Municipal</option>
+                        </select>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ fontSize: '0.82rem', color: '#374151', display: 'block', marginBottom: '4px' }}>Subcategoría (opcional)</label>
+                        <input value={lineaImportSubcategoria} onChange={e => setLineaImportSubcategoria(e.target.value)}
+                          placeholder="ej: Ramal Sur, Corredor Oeste…"
+                          style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box' }} />
+                      </div>
+                    </div>
+
+                    {/* Preview list */}
+                    {lineaImportPreview.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <strong style={{ fontSize: '0.9rem' }}>{lineaImportPreview.length} feature(s) listas para importar</strong>
+                          <button onClick={() => setLineaImportPreview([])} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}>Limpiar todo</button>
+                        </div>
+                        <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                            <thead style={{ background: '#f9fafb', position: 'sticky', top: 0 }}>
+                              <tr>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Color</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nombre</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Nro</th>
+                                <th style={{ padding: '6px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Descripción</th>
+                                <th style={{ padding: '6px 2px', borderBottom: '1px solid #e5e7eb' }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {lineaImportPreview.map((item, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                  <td style={{ padding: '5px 10px' }}>
+                                    <input type="color" value={item.color}
+                                      onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, color: e.target.value } : p))}
+                                      style={{ width: '28px', height: '22px', border: 'none', borderRadius: '3px', cursor: 'pointer' }} />
+                                  </td>
+                                  <td style={{ padding: '5px 10px' }}>
+                                    <input value={item.nombre}
+                                      onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, nombre: e.target.value } : p))}
+                                      style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '2px 6px', fontSize: '0.82rem', width: '100%' }} />
+                                  </td>
+                                  <td style={{ padding: '5px 8px' }}>
+                                    <input value={item.numero}
+                                      onChange={e => setLineaImportPreview(prev => prev.map((p, j) => j === i ? { ...p, numero: e.target.value } : p))}
+                                      style={{ border: '1px solid #e5e7eb', borderRadius: '4px', padding: '2px 6px', fontSize: '0.82rem', width: '60px' }} />
+                                  </td>
+                                  <td style={{ padding: '5px 8px', color: '#6b7280', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {item.descripcion || '—'}
+                                  </td>
+                                  <td style={{ padding: '5px 8px' }}>
+                                    <button onClick={() => setLineaImportPreview(prev => prev.filter((_, j) => j !== i))}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 700 }}>✕</button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                      <button onClick={() => { setLineaImportOpen(false); setLineaImportPreview([]); }}
+                        style={{ padding: '9px 20px', borderRadius: '6px', border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>
+                        Cancelar
+                      </button>
+                      <button
+                        disabled={lineaImportPreview.length === 0 || lineaImportSaving}
+                        onClick={handleConfirmLineaImport}
+                        style={{ padding: '9px 20px', borderRadius: '6px', border: 'none', background: lineaImportPreview.length > 0 ? '#1d4ed8' : '#d1d5db', color: '#fff', fontWeight: 700, cursor: lineaImportPreview.length > 0 ? 'pointer' : 'not-allowed' }}>
+                        {lineaImportSaving ? 'Importando…' : `Importar ${lineaImportPreview.length} línea(s)`}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ── Toolbar ── */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button className={styles.submitBtn} onClick={openNewLinea} style={{ fontWeight: 700 }}>+ Nueva línea</button>
+                <button onClick={() => setLineaImportOpen(true)}
+                  style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' }}>
+                  📂 Importar GeoJSON
+                </button>
                 <input placeholder="Buscar línea…" value={lineaFiltro} onChange={e => setLineaFiltro(e.target.value)}
                   style={{ padding: '7px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem', minWidth: '180px' }} />
                 <select value={lineaFiltroCategoria} onChange={e => setLineaFiltroCategoria(e.target.value)}
