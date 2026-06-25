@@ -296,13 +296,22 @@ export default function MapComponent() {
           const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
           // Level 2 subGrupo = línea  ("Línea 45")
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
-          // Level 3 subSubGrupo = ramal  ("Ramal A")
-          const ramalLabel = l.subcategoria || null;
-          // capa nombre = sentido  ("Ida" / "Vuelta" / valor normalizado)
-          const sentido = (l.sentido || '').toUpperCase();
+          // Level 3 subSubGrupo = ramal — fallback to GeoJSON feature properties for old records
+          let ramalLabel = l.subcategoria || null;
+          let sentidoRaw = (l.sentido || '').toUpperCase();
+          if (!ramalLabel || !sentidoRaw) {
+            const firstFeature = geo?.type === 'Feature' ? geo : geo?.features?.[0];
+            const fp = firstFeature?.properties || {};
+            if (!ramalLabel) {
+              if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
+              else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
+            }
+            if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
+          }
+          const sentido = sentidoRaw;
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
-            : (l.subcategoria ? lineaLabel : lineaLabel);
+            : lineaLabel;
           return {
             id: `linea-${l.id}`,
             nombre,
@@ -389,7 +398,7 @@ export default function MapComponent() {
         const config = visibleData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
-          active: l.numeroSolicitud ? true : false,
+          active: !l.numeroSolicitud,
           color: l.color,
           icono: l.icono || null,
           grupo: l.grupo,
