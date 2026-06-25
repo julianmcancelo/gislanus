@@ -715,29 +715,46 @@ export default function AdminPage() {
               ? [{ type: 'Feature', properties: {}, geometry: geo }]
             : [];
 
+          // Metadata de nivel raíz (formato profesional)
+          const meta = geo.metadata || {};
+
           // ── Formato profesional (grupo/subgrupo/ramal) ──────────────────
-          const tieneGrupos = features.some(f => f.properties?.subgrupo);
+          const tieneGrupos = features.some((f: any) => f.properties?.subgrupo);
           if (tieneGrupos) {
-            // Agrupar features por subgrupo → 1 LineaTransporte por ramal
             const porSubgrupo: Record<string, any[]> = {};
-            features.forEach(f => {
+            features.forEach((f: any) => {
               if (!f.geometry) return;
               const sg = f.properties?.subgrupo || 'Sin ramal';
               if (!porSubgrupo[sg]) porSubgrupo[sg] = [];
               porSubgrupo[sg].push(f);
             });
 
-            Object.entries(porSubgrupo).forEach(([sg, fts]) => {
+            Object.entries(porSubgrupo).forEach(([, fts]) => {
               const p = fts[0].properties || {};
               const fc = { type: 'FeatureCollection', features: fts };
-              // Nombre del grupo principal (ej: "Línea 28"), ramal como subcategoria
-              const grupoPrincipal = p.grupo || p.linea_nombre || file.name.replace(/\.geojson$/i, '');
-              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : sg;
+
+              // ── Extraer todos los datos disponibles ──
+              const numero = p.linea || meta.linea || p.ref || '';
+              const nombre = p.linea_nombre || p.grupo || meta.nombre_linea
+                || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
+              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : (p.subgrupo || '');
+              const color = resolveColor(p.color_ramal_orig || p.colour);
+
+              // Descripción enriquecida: empresa · ciudad · cabeceras · distancia total
+              const distanciaTotal = fts.reduce((acc: number, f: any) =>
+                acc + (f.properties?.distancia_km || 0), 0);
+              const partsDesc: string[] = [];
+              if (p.operador) partsDesc.push(p.operador);
+              if (p.ciudad) partsDesc.push(p.ciudad);
+              if (p.cabecera_inicio && p.cabecera_fin) partsDesc.push(`${p.cabecera_inicio} ↔ ${p.cabecera_fin}`);
+              if (distanciaTotal > 0) partsDesc.push(`~${distanciaTotal.toFixed(1)} km`);
+              if (meta.fuente) partsDesc.push(`Fuente: ${meta.fuente}`);
+
               previews.push({
-                nombre: grupoPrincipal,
-                numero: p.linea || p.ref || '',
-                color: resolveColor(p.color_ramal_orig || p.colour),
-                descripcion: [p.operador, p.ciudad].filter(Boolean).join(' · ') || '',
+                nombre,
+                numero,
+                color,
+                descripcion: partsDesc.join(' · '),
                 subcategoriaAuto: ramalNombre,
                 datosGeo: JSON.stringify(fc),
               });
@@ -747,11 +764,18 @@ export default function AdminPage() {
             features.forEach((f: any) => {
               if (!f.geometry) return;
               const p = f.properties || {};
+              const numero = p.ref || p.linea || p.numero || meta.linea || '';
+              const nombre = p.name || p.nombre || p.linea_nombre
+                || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
+              const partsDesc: string[] = [];
+              if (p.operator || p.operador) partsDesc.push(p.operator || p.operador);
+              if (p.from && p.to) partsDesc.push(`${p.from} ↔ ${p.to}`);
+              if (p.network) partsDesc.push(p.network);
               previews.push({
-                nombre: p.name || p.nombre || p.linea_nombre || file.name.replace(/\.geojson$/i, ''),
-                numero: p.ref || p.linea || p.numero || '',
+                nombre,
+                numero,
                 color: resolveColor(p.colour || p.color || p.stroke || p.color_hex),
-                descripcion: p.operator || p.operador || p.descripcion || '',
+                descripcion: partsDesc.join(' · ') || p.descripcion || '',
                 subcategoriaAuto: '',
                 datosGeo: JSON.stringify(f),
               });
