@@ -726,8 +726,12 @@ export default function AdminPage() {
           const tieneGrupos = features.some((f: any) => f.properties?.subgrupo);
           if (tieneGrupos) {
             // 1 registro por feature (ramal+sentido) para control granular
+            // Ignorar features de vehículos/puntos — solo importar trazas LineString/MultiLineString
             features.forEach((f: any) => {
               if (!f.geometry) return;
+              const gtype = f.geometry.type;
+              if (gtype !== 'LineString' && gtype !== 'MultiLineString') return;
+              if (f.properties?.tipo === 'vehiculo_activo') return;
               const p = f.properties || {};
               const numero = p.linea || meta.linea || p.ref || '';
               const nombre = p.linea_nombre || p.grupo || meta.nombre_linea
@@ -755,6 +759,8 @@ export default function AdminPage() {
             // ── Formato simple ──────────────────────────────────────────────
             features.forEach((f: any) => {
               if (!f.geometry) return;
+              const gtype = f.geometry.type;
+              if (gtype !== 'LineString' && gtype !== 'MultiLineString') return;
               const p = f.properties || {};
               const numero = p.ref || p.linea || p.numero || meta.linea || '';
               const nombre = p.name || p.nombre || p.linea_nombre
