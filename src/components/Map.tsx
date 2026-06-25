@@ -284,9 +284,16 @@ export default function MapComponent() {
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
         const validLineas = Array.isArray(dataLineas) ? dataLineas.filter((l: any) => l.activo !== false) : [];
 
-        // Convert lineas to capa-like objects for unified rendering
+        const CAT_LABELS: Record<string, string> = {
+          NACIONAL: '🇦🇷 Líneas Nacionales',
+          PROVINCIAL: '🏛️ Líneas Provinciales',
+          MUNICIPAL: '🏘️ Líneas Municipales',
+        };
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+          const cat = l.categoria || 'NACIONAL';
+          const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte Público';
+          const subGrupoNombre = l.subcategoria || null;
           return {
             id: `linea-${l.id}`,
             nombre: l.numero ? `Línea ${l.numero} – ${l.nombre}` : l.nombre,
@@ -294,7 +301,8 @@ export default function MapComponent() {
             color: l.color || '#E53E3E',
             visibilidad: 'PUBLIC',
             rolesPermitidos: [],
-            grupo: { nombre: 'Líneas de Transporte Público' },
+            grupo: { nombre: grupoNombre },
+            subGrupo: subGrupoNombre ? { nombre: subGrupoNombre } : null,
           };
         });
 

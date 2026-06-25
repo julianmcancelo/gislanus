@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   if (guard.error) return guard.error;
 
   try {
-    const { nombre, numero, color, descripcion, datosGeo } = await req.json();
+    const { nombre, numero, color, descripcion, categoria, subcategoria, datosGeo } = await req.json();
 
     if (!nombre || !datosGeo) {
       return NextResponse.json({ error: 'Faltan campos obligatorios: nombre y datosGeo' }, { status: 400 });
@@ -52,6 +52,8 @@ export async function POST(req: Request) {
         numero: numero || null,
         color: color || '#E53E3E',
         descripcion: descripcion || null,
+        categoria: categoria || 'NACIONAL',
+        subcategoria: subcategoria || null,
         datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
       },
     });

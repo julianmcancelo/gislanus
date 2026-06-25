@@ -66,8 +66,12 @@ export default function AdminPage() {
   const [lineaFormNumero, setLineaFormNumero] = useState('');
   const [lineaFormColor, setLineaFormColor] = useState('#E53E3E');
   const [lineaFormDescripcion, setLineaFormDescripcion] = useState('');
+  const [lineaFormCategoria, setLineaFormCategoria] = useState('NACIONAL');
+  const [lineaFormSubcategoria, setLineaFormSubcategoria] = useState('');
   const [lineaFormSaving, setLineaFormSaving] = useState(false);
   const [selectedLineas, setSelectedLineas] = useState<string[]>([]);
+  const [lineaFiltro, setLineaFiltro] = useState('');
+  const [lineaFiltroCategoria, setLineaFiltroCategoria] = useState('');
 
   // Bulk selection for rutas
   const [selectedRutas, setSelectedRutas] = useState<string[]>([]);
@@ -683,6 +687,8 @@ export default function AdminPage() {
     setLineaFormNumero('');
     setLineaFormColor('#E53E3E');
     setLineaFormDescripcion('');
+    setLineaFormCategoria('NACIONAL');
+    setLineaFormSubcategoria('');
     setLineaEditorOpen(true);
   };
 
@@ -692,6 +698,8 @@ export default function AdminPage() {
     setLineaFormNumero(linea.numero || '');
     setLineaFormColor(linea.color || '#E53E3E');
     setLineaFormDescripcion(linea.descripcion || '');
+    setLineaFormCategoria(linea.categoria || 'NACIONAL');
+    setLineaFormSubcategoria(linea.subcategoria || '');
     setLineaEditorOpen(true);
   };
 
@@ -704,6 +712,8 @@ export default function AdminPage() {
         numero: lineaFormNumero.trim() || null,
         color: lineaFormColor,
         descripcion: lineaFormDescripcion.trim() || null,
+        categoria: lineaFormCategoria,
+        subcategoria: lineaFormSubcategoria.trim() || null,
         datosGeo: JSON.stringify(geojson),
       };
       const res = editingLinea
@@ -1459,58 +1469,36 @@ export default function AdminPage() {
           {activeTab === 'lineas' && dbUser?.rol === 'SUPER_ADMIN' && (
             <section className={styles.fullSection}>
               <h2>Líneas de Transporte Público</h2>
-              <p className={styles.tabDescription}>Creá y editá las trazas de las líneas de colectivo usando el editor de rutas.</p>
+              <p className={styles.tabDescription}>Organizá y editá las trazas de todas las líneas agrupadas por jurisdicción.</p>
 
-              {/* Editor full-screen overlay */}
+              {/* ── Editor full-screen overlay ── */}
               {lineaEditorOpen && (
-                <div style={{
-                  position: 'fixed', inset: 0, zIndex: 9999,
-                  display: 'flex', flexDirection: 'column',
-                  background: '#1a1a2e',
-                }}>
-                  {/* Header del editor */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                    padding: '10px 18px', background: '#16213e',
-                    borderBottom: '1px solid #0f3460', flexShrink: 0,
-                  }}>
-                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', background: '#1a1a2e' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', background: '#16213e', borderBottom: '1px solid #0f3460', flexShrink: 0, flexWrap: 'wrap' }}>
+                    <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem', marginRight: '4px' }}>
                       {editingLinea ? '✏️ Editar línea' : '➕ Nueva línea'}
                     </span>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <input
-                        placeholder="Nombre *"
-                        value={lineaFormNombre}
-                        onChange={e => setLineaFormNombre(e.target.value)}
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '160px' }}
-                      />
-                      <input
-                        placeholder="Número (ej: 27)"
-                        value={lineaFormNumero}
-                        onChange={e => setLineaFormNumero(e.target.value)}
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', width: '110px' }}
-                      />
-                      <label style={{ color: '#cbd5e1', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        Color:
-                        <input
-                          type="color"
-                          value={lineaFormColor}
-                          onChange={e => setLineaFormColor(e.target.value)}
-                          style={{ width: '36px', height: '30px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                        />
-                      </label>
-                      <input
-                        placeholder="Descripción"
-                        value={lineaFormDescripcion}
-                        onChange={e => setLineaFormDescripcion(e.target.value)}
-                        style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '180px' }}
-                      />
-                    </div>
-                    <span style={{ color: '#94a3b8', fontSize: '0.78rem', marginLeft: 'auto' }}>
-                      Hacé clic en el mapa para trazar la ruta · Arrastrá los waypoints para ajustar
-                    </span>
+                    <input placeholder="Nombre *" value={lineaFormNombre} onChange={e => setLineaFormNombre(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '150px', background: '#0f172a', color: '#f1f5f9' }} />
+                    <input placeholder="Número (ej: 27)" value={lineaFormNumero} onChange={e => setLineaFormNumero(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', width: '100px', background: '#0f172a', color: '#f1f5f9' }} />
+                    <select value={lineaFormCategoria} onChange={e => setLineaFormCategoria(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', background: '#0f172a', color: '#f1f5f9' }}>
+                      <option value="NACIONAL">Nacional</option>
+                      <option value="PROVINCIAL">Provincial</option>
+                      <option value="MUNICIPAL">Municipal</option>
+                    </select>
+                    <input placeholder="Subcategoría (ej: Ramal Norte)" value={lineaFormSubcategoria} onChange={e => setLineaFormSubcategoria(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '160px', background: '#0f172a', color: '#f1f5f9' }} />
+                    <input placeholder="Descripción" value={lineaFormDescripcion} onChange={e => setLineaFormDescripcion(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #4b5563', fontSize: '0.9rem', minWidth: '160px', background: '#0f172a', color: '#f1f5f9' }} />
+                    <label style={{ color: '#cbd5e1', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      Color:
+                      <input type="color" value={lineaFormColor} onChange={e => setLineaFormColor(e.target.value)}
+                        style={{ width: '36px', height: '30px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} />
+                    </label>
+                    <span style={{ color: '#64748b', fontSize: '0.75rem', marginLeft: 'auto' }}>Clic en mapa → waypoints → ruta automática</span>
                   </div>
-                  {/* Map area */}
                   <div style={{ flex: 1, minHeight: 0 }}>
                     <LineaEditorMap
                       lineaId={editingLinea?.id}
@@ -1526,98 +1514,129 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* Bulk action bar */}
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button
-                  className={styles.submitBtn}
-                  onClick={openNewLinea}
-                  style={{ fontWeight: 700 }}
-                >
-                  + Nueva línea
-                </button>
+              {/* ── Toolbar ── */}
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className={styles.submitBtn} onClick={openNewLinea} style={{ fontWeight: 700 }}>+ Nueva línea</button>
+                <input placeholder="Buscar línea…" value={lineaFiltro} onChange={e => setLineaFiltro(e.target.value)}
+                  style={{ padding: '7px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem', minWidth: '180px' }} />
+                <select value={lineaFiltroCategoria} onChange={e => setLineaFiltroCategoria(e.target.value)}
+                  style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '0.9rem' }}>
+                  <option value="">Todas las categorías</option>
+                  <option value="NACIONAL">Nacional</option>
+                  <option value="PROVINCIAL">Provincial</option>
+                  <option value="MUNICIPAL">Municipal</option>
+                </select>
                 {selectedLineas.length > 0 && (
                   <>
-                    <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedLineas.length} seleccionada(s)</span>
-                    <button className={styles.approveBtn} onClick={() => handleBulkToggleLineas(true)}>Activar en mapa</button>
-                    <button className={styles.rejectBtn} onClick={() => handleBulkToggleLineas(false)}>Desactivar en mapa</button>
-                    <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }} onClick={() => setSelectedLineas([])}>Limpiar selección</button>
+                    <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedLineas.length} selec.</span>
+                    <button className={styles.approveBtn} onClick={() => handleBulkToggleLineas(true)}>Activar</button>
+                    <button className={styles.rejectBtn} onClick={() => handleBulkToggleLineas(false)}>Desactivar</button>
+                    <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }} onClick={() => setSelectedLineas([])}>✕ Limpiar</button>
                   </>
                 )}
+                <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: '0.85rem' }}>{lineas.length} líneas en total</span>
               </div>
 
-              {loading ? <p>Cargando líneas…</p> : (
-                <div className={styles.tableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th style={{ width: '36px' }}>
-                          <input
-                            type="checkbox"
-                            checked={lineas.length > 0 && selectedLineas.length === lineas.length}
-                            onChange={e => setSelectedLineas(e.target.checked ? lineas.map(l => l.id) : [])}
-                          />
-                        </th>
-                        <th>Línea</th>
-                        <th>Descripción</th>
-                        <th>Visible</th>
-                        <th>Traza</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {lineas.map(linea => (
-                        <tr key={linea.id} style={{ opacity: linea.activo === false ? 0.45 : 1 }}>
-                          <td>
-                            <input
-                              type="checkbox"
-                              checked={selectedLineas.includes(linea.id)}
-                              onChange={e => setSelectedLineas(prev =>
-                                e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id)
-                              )}
+              {/* ── Grouped table ── */}
+              {loading ? <p>Cargando líneas…</p> : (() => {
+                const filtered = lineas.filter(l =>
+                  (!lineaFiltroCategoria || l.categoria === lineaFiltroCategoria) &&
+                  (!lineaFiltro || l.nombre.toLowerCase().includes(lineaFiltro.toLowerCase()) || (l.numero || '').includes(lineaFiltro))
+                );
+
+                const CATS = ['NACIONAL', 'PROVINCIAL', 'MUNICIPAL'] as const;
+                const LABELS: Record<string, string> = { NACIONAL: '🇦🇷 Nacionales', PROVINCIAL: '🏛️ Provinciales', MUNICIPAL: '🏘️ Municipales' };
+                const CAT_COLORS: Record<string, string> = { NACIONAL: '#1d4ed8', PROVINCIAL: '#7c3aed', MUNICIPAL: '#059669' };
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {CATS.map(cat => {
+                      const catLineas = filtered.filter(l => (l.categoria || 'NACIONAL') === cat);
+                      if (catLineas.length === 0 && lineaFiltroCategoria && lineaFiltroCategoria !== cat) return null;
+
+                      // Group by subcategoria
+                      const subcats = Array.from(new Set(catLineas.map(l => l.subcategoria || ''))).sort();
+
+                      return (
+                        <div key={cat} style={{ border: '1px solid #e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+                          {/* Category header */}
+                          <div style={{ background: CAT_COLORS[cat], color: '#fff', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <input type="checkbox"
+                              checked={catLineas.length > 0 && catLineas.every(l => selectedLineas.includes(l.id))}
+                              onChange={e => {
+                                const ids = catLineas.map(l => l.id);
+                                setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...ids])] : prev.filter(id => !ids.includes(id)));
+                              }}
                             />
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{
-                                display: 'inline-block', width: '14px', height: '14px',
-                                borderRadius: '3px', background: linea.color, flexShrink: 0,
-                              }} />
-                              <div>
-                                <strong>{linea.nombre}</strong>
-                                {linea.numero && <span style={{ marginLeft: '6px', color: '#6b7280', fontSize: '0.82rem' }}>#{linea.numero}</span>}
-                              </div>
+                            <strong style={{ fontSize: '1rem' }}>{LABELS[cat]}</strong>
+                            <span style={{ opacity: 0.8, fontSize: '0.85rem' }}>{catLineas.length} líneas</span>
+                          </div>
+
+                          {catLineas.length === 0 ? (
+                            <div style={{ padding: '20px', color: '#9ca3af', textAlign: 'center', fontSize: '0.85rem' }}>
+                              No hay líneas {LABELS[cat].split(' ')[1]?.toLowerCase() || ''} cargadas
                             </div>
-                          </td>
-                          <td style={{ color: '#6b7280', fontSize: '0.85rem' }}>{linea.descripcion || '-'}</td>
-                          <td style={{ textAlign: 'center' }}>
-                            <span title={linea.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}>
-                              {linea.activo !== false ? '👁️' : '🚫'}
-                            </span>
-                          </td>
-                          <td>
-                            <StaticMapPreview geoData={(() => { try { return JSON.parse(linea.datosGeo); } catch { return null; } })()} />
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '5px' }}>
-                              <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => openEditLinea(linea)}>
-                                Editar traza
-                              </button>
-                              <button className={styles.deleteBtn} onClick={() => handleDeleteLinea(linea.id)}>
-                                Eliminar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {lineas.length === 0 && (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', color: '#9ca3af', padding: '30px' }}>
-                          No hay líneas cargadas. Hacé clic en "+ Nueva línea" para comenzar.
-                        </td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                          ) : (
+                            subcats.map(sub => {
+                              const subLineas = catLineas.filter(l => (l.subcategoria || '') === sub);
+                              return (
+                                <div key={sub}>
+                                  {sub && (
+                                    <div style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb', padding: '6px 16px 6px 40px', fontSize: '0.8rem', color: '#374151', fontWeight: 600 }}>
+                                      📂 {sub} <span style={{ fontWeight: 400, color: '#9ca3af' }}>({subLineas.length})</span>
+                                    </div>
+                                  )}
+                                  <table className={styles.table} style={{ margin: 0 }}>
+                                    <tbody>
+                                      {subLineas.map(linea => (
+                                        <tr key={linea.id} style={{ opacity: linea.activo === false ? 0.45 : 1 }}>
+                                          <td style={{ width: '36px', paddingLeft: sub ? '40px' : '16px' }}>
+                                            <input type="checkbox"
+                                              checked={selectedLineas.includes(linea.id)}
+                                              onChange={e => setSelectedLineas(prev =>
+                                                e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id)
+                                              )}
+                                            />
+                                          </td>
+                                          <td style={{ minWidth: '220px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              <span style={{ width: '12px', height: '12px', borderRadius: '3px', background: linea.color, flexShrink: 0, display: 'inline-block' }} />
+                                              <strong>{linea.nombre}</strong>
+                                              {linea.numero && <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>#{linea.numero}</span>}
+                                            </div>
+                                            {linea.descripcion && <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px', paddingLeft: '20px' }}>{linea.descripcion}</div>}
+                                          </td>
+                                          <td style={{ textAlign: 'center', width: '60px' }}>
+                                            <span title={linea.activo !== false ? 'Visible' : 'Oculta'}>{linea.activo !== false ? '👁️' : '🚫'}</span>
+                                          </td>
+                                          <td style={{ width: '120px' }}>
+                                            <StaticMapPreview geoData={(() => { try { return JSON.parse(linea.datosGeo); } catch { return null; } })()} />
+                                          </td>
+                                          <td>
+                                            <div style={{ display: 'flex', gap: '4px' }}>
+                                              <button className={styles.submitBtn} style={{ padding: '5px 10px', fontSize: '0.78rem' }} onClick={() => openEditLinea(linea)}>Editar traza</button>
+                                              <button className={styles.deleteBtn} style={{ padding: '5px 10px', fontSize: '0.78rem' }} onClick={() => handleDeleteLinea(linea.id)}>✕</button>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px' }}>
+                        No se encontraron líneas con ese filtro.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </section>
           )}
 

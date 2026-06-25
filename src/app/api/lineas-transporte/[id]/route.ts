@@ -26,6 +26,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (body.numero !== undefined) data.numero = body.numero;
     if (body.color !== undefined) data.color = body.color;
     if (body.descripcion !== undefined) data.descripcion = body.descripcion;
+    if (body.categoria !== undefined) data.categoria = body.categoria;
+    if (body.subcategoria !== undefined) data.subcategoria = body.subcategoria;
     if (body.activo !== undefined) data.activo = body.activo;
     if (body.datosGeo !== undefined) {
       data.datosGeo = typeof body.datosGeo === 'string' ? body.datosGeo : JSON.stringify(body.datosGeo);
