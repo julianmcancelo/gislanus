@@ -1513,8 +1513,11 @@ export default function AdminPage() {
                   {/* Map area */}
                   <div style={{ flex: 1, minHeight: 0 }}>
                     <LineaEditorMap
+                      lineaId={editingLinea?.id}
                       color={lineaFormColor}
                       initialGeo={editingLinea ? (() => { try { return JSON.parse(editingLinea.datosGeo); } catch { return null; } })() : undefined}
+                      sessionId={`${user?.uid}-${Date.now()}`}
+                      userInfo={{ uid: user?.uid || 'anon', email: dbUser?.email || '', nombre: dbUser?.email?.split('@')[0] || 'Admin' }}
                       onSave={handleSaveLinea}
                       onCancel={() => setLineaEditorOpen(false)}
                       isSaving={lineaFormSaving}

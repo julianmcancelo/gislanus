@@ -1,4 +1,4 @@
-import { ref, push, set, onValue, onChildAdded, off, serverTimestamp } from 'firebase/database';
+import { ref, push, set, remove, onValue, onChildAdded, off, serverTimestamp } from 'firebase/database';
 import { rtdb } from './firebase';
 
 // ─── Notifications ────────────────────────────────────────────────────────────
@@ -71,6 +71,76 @@ export function publicarPosicion(vehiculoId: string, data: Omit<TrackingEntry, '
 export function detenerTracking(vehiculoId: string) {
   const r = ref(rtdb, `tracking/${vehiculoId}/activo`);
   return set(r, false);
+}
+
+// ─── Collaborative presence ───────────────────────────────────────────────────
+// Structure: /presence/{sessionId} → { uid, email, nombre, recurso, color, timestamp }
+// recurso: 'linea:{id}' | 'capas' | 'dashboard' | etc.
+
+export type PresenceEntry = {
+  uid: string;
+  email: string;
+  nombre: string;
+  recurso: string;  // what the user is currently editing
+  color: string;
+  timestamp: object;
+};
+
+const PRESENCE_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+let _presenceColor = '';
+
+export function getPresenceColor(uid: string) {
+  if (!_presenceColor) {
+    // deterministic color from uid
+    const idx = uid.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % PRESENCE_COLORS.length;
+    _presenceColor = PRESENCE_COLORS[idx];
+  }
+  return _presenceColor;
+}
+
+export function publicarPresencia(sessionId: string, data: Omit<PresenceEntry, 'timestamp'>) {
+  const r = ref(rtdb, `presence/${sessionId}`);
+  return set(r, { ...data, timestamp: serverTimestamp() });
+}
+
+export function eliminarPresencia(sessionId: string) {
+  return remove(ref(rtdb, `presence/${sessionId}`));
+}
+
+export function escucharPresencia(
+  callback: (entries: (PresenceEntry & { sessionId: string })[]) => void
+) {
+  const r = ref(rtdb, 'presence');
+  const handler = onValue(r, (snap) => {
+    if (!snap.exists()) { callback([]); return; }
+    const entries: any[] = [];
+    snap.forEach((child: any) => { entries.push({ sessionId: child.key, ...child.val() }); });
+    callback(entries);
+  });
+  return () => off(r, 'value', handler);
+}
+
+// ─── Collaborative linea edits (live waypoints broadcast) ─────────────────────
+// Structure: /collab/linea/{lineaId}/waypoints → [[lat,lng], ...]
+
+export function publicarWaypoints(lineaId: string, waypoints: [number, number][]) {
+  const r = ref(rtdb, `collab/linea/${lineaId}/waypoints`);
+  return set(r, waypoints);
+}
+
+export function escucharWaypoints(
+  lineaId: string,
+  callback: (waypoints: [number, number][]) => void
+) {
+  const r = ref(rtdb, `collab/linea/${lineaId}/waypoints`);
+  const handler = onValue(r, (snap) => {
+    callback(snap.exists() ? snap.val() : []);
+  });
+  return () => off(r, 'value', handler);
+}
+
+export function limpiarWaypoints(lineaId: string) {
+  return remove(ref(rtdb, `collab/linea/${lineaId}`));
 }
 
 export function escucharTracking(

@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/authGuard';
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const linea = await prisma.lineaTransporte.findUnique({ where: { id: params.id } });
+    const linea = await prisma.lineaTransporte.findUnique({ where: { id } });
     if (!linea) return NextResponse.json({ error: 'No encontrada' }, { status: 404 });
     return NextResponse.json(linea);
   } catch (error: any) {
@@ -12,10 +13,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
   if (guard.error) return guard.error;
 
+  const { id } = await params;
   try {
     const body = await req.json();
     const data: any = {};
@@ -29,19 +31,20 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data.datosGeo = typeof body.datosGeo === 'string' ? body.datosGeo : JSON.stringify(body.datosGeo);
     }
 
-    const linea = await prisma.lineaTransporte.update({ where: { id: params.id }, data });
+    const linea = await prisma.lineaTransporte.update({ where: { id }, data });
     return NextResponse.json(linea);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
   if (guard.error) return guard.error;
 
+  const { id } = await params;
   try {
-    await prisma.lineaTransporte.delete({ where: { id: params.id } });
+    await prisma.lineaTransporte.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
