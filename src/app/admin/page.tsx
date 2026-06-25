@@ -675,8 +675,25 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleRuta = async (id: string, activo: boolean) => {
+    setRutas(prev => prev.map(r => r.id === id ? { ...r, activo } : r));
+    try {
+      const res = await authFetch('/api/rutas-transporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [id], activo }),
+      });
+      if (!res.ok) throw new Error();
+      emitirCambioMapa('rutas');
+    } catch {
+      setRutas(prev => prev.map(r => r.id === id ? { ...r, activo: !activo } : r));
+      toast.error('Error al actualizar la solicitud.');
+    }
+  };
+
   const handleBulkToggleRutas = async (activo: boolean) => {
     if (selectedRutas.length === 0) return;
+    setRutas(prev => prev.map(r => selectedRutas.includes(r.id) ? { ...r, activo } : r));
     try {
       const res = await authFetch('/api/rutas-transporte', {
         method: 'PATCH',
@@ -684,10 +701,10 @@ export default function AdminPage() {
         body: JSON.stringify({ ids: selectedRutas, activo }),
       });
       if (!res.ok) throw new Error();
-      toast.success(`${selectedRutas.length} solicitud(es) ${activo ? 'activadas' : 'desactivadas'} en el mapa.`);
+      emitirCambioMapa('rutas');
       setSelectedRutas([]);
-      fetchData();
     } catch {
+      setRutas(prev => prev.map(r => selectedRutas.includes(r.id) ? { ...r, activo: !activo } : r));
       toast.error('Error al actualizar las solicitudes.');
     }
   };
@@ -1519,43 +1536,56 @@ export default function AdminPage() {
               <h2>Solicitudes de Transporte Pesado</h2>
               <p className={styles.tabDescription}>Gestione las rutas propuestas por los choferes y transportistas.</p>
 
-              {/* Bulk action bar */}
-              {selectedRutas.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', padding: '10px 14px', background: '#e8f0fe', borderRadius: '8px', border: '1px solid #3b82f6' }}>
-                  <span style={{ fontWeight: 600, color: '#1d4ed8' }}>{selectedRutas.length} seleccionada(s)</span>
-                  <button
-                    className={styles.approveBtn}
-                    onClick={() => handleBulkToggleRutas(true)}
-                  >Activar en mapa</button>
-                  <button
-                    className={styles.rejectBtn}
-                    onClick={() => handleBulkToggleRutas(false)}
-                  >Desactivar en mapa</button>
-                  <button
-                    style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem' }}
-                    onClick={() => setSelectedRutas([])}
-                  >Limpiar selección</button>
+              {/* Toolbar */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="checkbox"
+                    checked={rutas.length > 0 && selectedRutas.length === rutas.length}
+                    onChange={e => setSelectedRutas(e.target.checked ? rutas.map(r => r.id) : [])}
+                    style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#1d4ed8' }}
+                    title="Seleccionar todas"
+                  />
+                  <span style={{ fontSize: '0.82rem', color: '#6b7280' }}>
+                    {selectedRutas.length > 0 ? `${selectedRutas.length} seleccionada${selectedRutas.length !== 1 ? 's' : ''}` : 'Seleccionar todas'}
+                  </span>
                 </div>
-              )}
+                {selectedRutas.length > 0 && (
+                  <>
+                    <div style={{ width: '1px', height: '20px', background: '#e5e7eb' }} />
+                    <button
+                      onClick={() => handleBulkToggleRutas(true)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.5"/><circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/></svg>
+                      Activar en mapa
+                    </button>
+                    <button
+                      onClick={() => handleBulkToggleRutas(false)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #fca5a5', background: '#fef2f2', color: '#b91c1c', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      Ocultar del mapa
+                    </button>
+                    <button
+                      onClick={() => setSelectedRutas([])}
+                      style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: '0.78rem', padding: '6px 8px' }}>
+                      Limpiar
+                    </button>
+                  </>
+                )}
+                <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: '0.82rem' }}>{rutas.length} solicitudes en total</span>
+              </div>
 
               {loading ? <p>Cargando solicitudes...</p> : (
                 <div className={styles.tableWrapper}>
                   <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th style={{ width: '36px' }}>
-                          <input
-                            type="checkbox"
-                            checked={rutas.length > 0 && selectedRutas.length === rutas.length}
-                            onChange={e => setSelectedRutas(e.target.checked ? rutas.map(r => r.id) : [])}
-                            title="Seleccionar todas"
-                          />
-                        </th>
+                        <th style={{ width: '36px' }}></th>
                         <th>ID Solicitud</th>
                         <th>Solicitante</th>
                         <th>Datos Técnicos</th>
                         <th>Estado</th>
-                        <th>Visible</th>
+                        <th style={{ textAlign: 'center' }}>Visible</th>
                         <th>Mapa</th>
                         <th>Acciones</th>
                       </tr>
@@ -1599,16 +1629,24 @@ export default function AdminPage() {
                             </span>
                           </td>
                           <td style={{ textAlign: 'center' }}>
-                            <span
-                              title={ruta.activo !== false ? 'Visible en mapa' : 'Oculta en mapa'}
-                              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', background: ruta.activo !== false ? '#dcfce7' : '#f3f4f6', color: ruta.activo !== false ? '#16a34a' : '#9ca3af' }}
-                            >
+                            <button
+                              onClick={() => handleToggleRuta(ruta.id, ruta.activo === false)}
+                              title={ruta.activo !== false ? 'Visible — clic para ocultar del mapa' : 'Oculta — clic para mostrar en el mapa'}
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                padding: '4px 10px', borderRadius: '20px', cursor: 'pointer',
+                                fontWeight: 600, fontSize: '0.73rem', transition: 'all 0.15s',
+                                border: ruta.activo !== false ? '1.5px solid #86efac' : '1.5px dashed #d1d5db',
+                                background: ruta.activo !== false ? '#f0fdf4' : '#f9fafb',
+                                color: ruta.activo !== false ? '#15803d' : '#9ca3af',
+                              }}>
                               {ruta.activo !== false ? (
-                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.6"/><circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.6"/></svg>
+                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.5"/><circle cx="6.5" cy="6.5" r="1.5" stroke="currentColor" strokeWidth="1.5"/></svg>
                               ) : (
-                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                                <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                               )}
-                            </span>
+                              {ruta.activo !== false ? 'Visible' : 'Oculta'}
+                            </button>
                           </td>
                           <td>
                             <div className={styles.mapPreviewWrapper}>
