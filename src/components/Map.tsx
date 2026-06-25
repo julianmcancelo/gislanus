@@ -69,10 +69,17 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
     }
   };
 
-  const handlePrintFull = () => window.print();
-  
+  const handlePrintFull = () => {
+    window.onafterprint = () => {
+      window.onafterprint = null;
+      // Force Leaflet to recalculate size after print dialog closes
+      setTimeout(() => map?.invalidateSize(), 100);
+    };
+    window.print();
+  };
+
   const handlePrintZone = () => {
-    toast('Seleccione un área en el mapa y presione Enter (Funcionalidad en desarrollo)', { icon: 'ℹ️' });
+    toast('Funcionalidad en desarrollo', { duration: 2500 });
   };
 
   const handleSave = async () => {
