@@ -89,6 +89,20 @@ model DispositivoBloqueado {
   creadoEn    DateTime @default(now())
 }
 
+model SesionQR {
+  id                String    @id @default(cuid())
+  estado            String    @default("PENDIENTE") // PENDIENTE | ESCANEADO | APROBADO | RECHAZADO
+  nombre            String?
+  email             String?
+  deviceFingerprint String?
+  deviceInfo        String?
+  ipCelular         String?
+  customToken       String?
+  creadoEn          DateTime  @default(now())
+  expiraEn          DateTime
+  revisadoEn        DateTime?
+}
+
 model RutaTransporte {
   id                String   @id @default(cuid())
   // Identificación de la solicitud

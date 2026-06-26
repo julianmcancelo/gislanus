@@ -175,20 +175,20 @@ export default function AdminPage() {
   const fetchSolicitudesQr = async () => {
     try {
       const [resSols, resBloq] = await Promise.all([
-        authFetch('/api/auth/qr-solicitar'),
+        authFetch('/api/auth/qr-session'),
         authFetch('/api/auth/qr-bloqueados'),
       ]);
       const sols = resSols.ok ? await resSols.json() : [];
       const bloq = resBloq.ok ? await resBloq.json() : [];
       setSolicitudesQr(Array.isArray(sols) ? sols : []);
-      setSolicitudesQrPendientes((Array.isArray(sols) ? sols : []).filter((s: any) => s.estado === 'PENDIENTE').length);
+      setSolicitudesQrPendientes((Array.isArray(sols) ? sols : []).filter((s: any) => s.estado === 'ESCANEADO').length);
       setDispositivosBloqueados(Array.isArray(bloq) ? bloq : []);
     } catch {}
   };
 
   const handleQrAccion = async (id: string, accion: 'aprobar' | 'rechazar' | 'bloquear') => {
     try {
-      const res = await authFetch(`/api/auth/qr-solicitar/${id}`, {
+      const res = await authFetch(`/api/auth/qr-session/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accion }),
@@ -2407,17 +2407,17 @@ export default function AdminPage() {
                             <td style={{ padding: '8px 12px', fontWeight: 600 }}>{s.nombre}</td>
                             <td style={{ padding: '8px 12px', color: '#4b5563' }}>{s.email}</td>
                             <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 11, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.deviceInfo}>{s.deviceInfo || '—'}</td>
-                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{s.ipAddress || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{s.ipCelular || '—'}</td>
                             <td style={{ padding: '8px 12px', color: '#6b7280', whiteSpace: 'nowrap' }}>{new Date(s.creadoEn).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</td>
                             <td style={{ padding: '8px 12px' }}>
                               <span style={{
                                 padding: '2px 8px', borderRadius: 9999, fontSize: 11, fontWeight: 700,
-                                background: s.estado === 'PENDIENTE' ? '#fef9c3' : s.estado === 'APROBADO' ? '#dcfce7' : s.estado === 'BLOQUEADO' ? '#fee2e2' : '#f1f5f9',
-                                color: s.estado === 'PENDIENTE' ? '#854d0e' : s.estado === 'APROBADO' ? '#166534' : s.estado === 'BLOQUEADO' ? '#dc2626' : '#4b5563',
+                                background: s.estado === 'ESCANEADO' ? '#fef9c3' : s.estado === 'APROBADO' ? '#dcfce7' : s.estado === 'BLOQUEADO' ? '#fee2e2' : '#f1f5f9',
+                                color: s.estado === 'ESCANEADO' ? '#854d0e' : s.estado === 'APROBADO' ? '#166534' : s.estado === 'BLOQUEADO' ? '#dc2626' : '#4b5563',
                               }}>{s.estado}</span>
                             </td>
                             <td style={{ padding: '8px 12px' }}>
-                              {s.estado === 'PENDIENTE' && (
+                              {s.estado === 'ESCANEADO' && (
                                 <div style={{ display: 'flex', gap: 4 }}>
                                   <button onClick={() => handleQrAccion(s.id, 'aprobar')} style={{ padding: '3px 8px', borderRadius: 5, border: 'none', background: '#16a34a', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Aprobar</button>
                                   <button onClick={() => handleQrAccion(s.id, 'rechazar')} style={{ padding: '3px 8px', borderRadius: 5, border: 'none', background: '#dc2626', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Rechazar</button>
