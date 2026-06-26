@@ -99,13 +99,23 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
     try {
       for (const [id, features] of Object.entries(layersToSave)) {
         const geoData = { type: 'FeatureCollection', features };
-        await fetch(`/api/layers/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ geoData })
-        });
+        if (id.startsWith('linea-')) {
+          // Transit line: save geometry via lineas-transporte API
+          const lineaId = id.replace(/^linea-/, '');
+          await fetch(`/api/lineas-transporte/${lineaId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ datosGeo: JSON.stringify(geoData) }),
+          });
+        } else {
+          await fetch(`/api/layers/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ geoData }),
+          });
+        }
       }
-      toast.success('Geometrías actualizadas exitosamente');
+      toast.success('Geometrías guardadas');
     } catch (err) {
       toast.error('Error al guardar las geometrías');
     }
@@ -618,10 +628,9 @@ export default function MapComponent() {
 
           <MapContainer 
             center={center} 
-            zoom={14} 
+            zoom={14}
             style={{ width: '100%', height: '100%', zIndex: 1 }}
             zoomControl={false}
-            preferCanvas={true}
             ref={setMapInstance}
           >
         <TileLayer
