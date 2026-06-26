@@ -417,7 +417,7 @@ export default function MapComponent() {
         const config = visibleData.map((l: any) => ({
           id: l.id,
           nombre: l.nombre,
-          active: !l.numeroSolicitud,
+          active: false,
           color: l.color,
           icono: l.icono || null,
           grupo: l.grupo,
