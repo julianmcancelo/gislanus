@@ -77,10 +77,10 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-slate-800 text-4xl md:text-5xl font-black tracking-widest uppercase mb-4 drop-shadow-sm">
-            GIS <span className="text-[#0ea5e9]">Lanús</span>
+            Municipio <span className="text-[#0ea5e9]">Lanús</span>
           </h1>
           <p className="text-slate-600/90 text-sm md:text-base tracking-[0.2em] font-bold uppercase bg-white/50 px-4 py-1 rounded-full backdrop-blur-md border border-white/50">
-            Sistema de Información Geográfica
+            Portal de Gestión Interna
           </p>
           <div className="w-16 h-1.5 bg-gradient-to-r from-[#0ea5e9] to-[#38bdf8] rounded-full mt-8 mx-auto shadow-sm" />
         </div>
