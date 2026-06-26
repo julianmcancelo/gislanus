@@ -56,7 +56,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       });
     }
 
-    const customToken = await createCustomToken(usuario.firebaseUid);
+    let customToken: string;
+    try {
+      customToken = await createCustomToken(usuario.firebaseUid);
+    } catch (e: any) {
+      return NextResponse.json(
+        { error: `No se pudo generar el token de acceso. Verificá las variables de entorno de Firebase Admin (FIREBASE_ADMIN_PROJECT_ID, FIREBASE_ADMIN_CLIENT_EMAIL, FIREBASE_ADMIN_PRIVATE_KEY). Detalle: ${e.message}` },
+        { status: 500 }
+      );
+    }
 
     await prisma.solicitudDispositivo.update({
       where: { id },
