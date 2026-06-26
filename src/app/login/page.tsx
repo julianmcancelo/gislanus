@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [qrEstado, setQrEstado] = useState<'cargando' | 'listo' | 'escaneado' | 'aprobado' | 'rechazado' | 'expirado'>('cargando');
 
-  if (user) { router.push('/'); return null; }
+  if (user) { router.push('/bienvenida'); return null; }
 
   const crearSesion = useCallback(async () => {
     setQrEstado('cargando');
@@ -52,7 +52,7 @@ export default function LoginPage() {
           setQrEstado('aprobado');
           try {
             await signInWithCustomToken(auth, data.customToken);
-            router.push('/');
+            router.push('/bienvenida');
           } catch {
             setError('Error al iniciar sesión con QR. Intentá de nuevo.');
             crearSesion();
@@ -79,7 +79,7 @@ export default function LoginPage() {
     setError('');
     try {
       await loginWithEmail(email, password);
-      router.push('/');
+      router.push('/bienvenida');
     } catch {
       setError('Credenciales incorrectas.');
     } finally {
@@ -190,7 +190,7 @@ export default function LoginPage() {
           </div>
 
           <button
-            onClick={async () => { setLoadingGoogle(true); setError(''); try { await loginWithGoogle(); router.push('/'); } catch { setError('Error al iniciar sesión con Google.'); } finally { setLoadingGoogle(false); } }}
+            onClick={async () => { setLoadingGoogle(true); setError(''); try { await loginWithGoogle(); router.push('/bienvenida'); } catch { setError('Error al iniciar sesión con Google.'); } finally { setLoadingGoogle(false); } }}
             type="button" disabled={loadingGoogle || loadingEmail}
             style={{ marginTop: 14, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#0f172a', border: '1px solid #334155', borderRadius: 12, padding: '12px 20px', color: '#cbd5e1', fontSize: 14, fontWeight: 600, cursor: 'pointer', opacity: loadingGoogle ? 0.6 : 1 }}
             onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = '#475569')}
