@@ -193,11 +193,14 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accion }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
       toast.success(accion === 'aprobar' ? 'Acceso aprobado.' : accion === 'rechazar' ? 'Solicitud rechazada.' : 'Dispositivo bloqueado.');
       fetchSolicitudesQr();
-    } catch {
-      toast.error('Error al procesar la solicitud.');
+    } catch (e: any) {
+      toast.error(e.message || 'Error al procesar la solicitud.');
     }
   };
 
