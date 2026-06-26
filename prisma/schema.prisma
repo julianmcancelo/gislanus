@@ -68,6 +68,27 @@ model LineaTransporte {
   actualizadoEn DateTime @updatedAt
 }
 
+model SolicitudDispositivo {
+  id                String    @id @default(cuid())
+  nombre            String
+  email             String
+  deviceFingerprint String?
+  deviceInfo        String?
+  ipAddress         String?
+  estado            String    @default("PENDIENTE")
+  customToken       String?
+  creadoEn          DateTime  @default(now())
+  revisadoEn        DateTime?
+}
+
+model DispositivoBloqueado {
+  id          String   @id @default(cuid())
+  fingerprint String   @unique
+  motivo      String?
+  email       String?
+  creadoEn    DateTime @default(now())
+}
+
 model RutaTransporte {
   id                String   @id @default(cuid())
   // Identificación de la solicitud

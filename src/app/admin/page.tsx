@@ -48,7 +48,10 @@ export default function AdminPage() {
     }
   }, [user, dbUser, authLoading, router]);
 
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes' | 'usuarios'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'grupos' | 'capas' | 'solicitudes' | 'usuarios' | 'acceso-qr'
+  const [solicitudesQr, setSolicitudesQr] = useState<any[]>([]);
+  const [dispositivosBloqueados, setDispositivosBloqueados] = useState<any[]>([]);
+  const [solicitudesQrPendientes, setSolicitudesQrPendientes] = useState(0);
   
   // Dashboard & GIS State
   const [capas, setCapas] = useState<any[]>([]);
@@ -168,6 +171,46 @@ export default function AdminPage() {
     return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchSolicitudesQr = async () => {
+    try {
+      const [resSols, resBloq] = await Promise.all([
+        authFetch('/api/auth/qr-solicitar'),
+        authFetch('/api/auth/qr-bloqueados'),
+      ]);
+      const sols = resSols.ok ? await resSols.json() : [];
+      const bloq = resBloq.ok ? await resBloq.json() : [];
+      setSolicitudesQr(Array.isArray(sols) ? sols : []);
+      setSolicitudesQrPendientes((Array.isArray(sols) ? sols : []).filter((s: any) => s.estado === 'PENDIENTE').length);
+      setDispositivosBloqueados(Array.isArray(bloq) ? bloq : []);
+    } catch {}
+  };
+
+  const handleQrAccion = async (id: string, accion: 'aprobar' | 'rechazar' | 'bloquear') => {
+    try {
+      const res = await authFetch(`/api/auth/qr-solicitar/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(accion === 'aprobar' ? 'Acceso aprobado.' : accion === 'rechazar' ? 'Solicitud rechazada.' : 'Dispositivo bloqueado.');
+      fetchSolicitudesQr();
+    } catch {
+      toast.error('Error al procesar la solicitud.');
+    }
+  };
+
+  const handleDesbloquear = async (id: string) => {
+    try {
+      const res = await authFetch(`/api/auth/qr-desbloquear/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast.success('Dispositivo desbloqueado.');
+      fetchSolicitudesQr();
+    } catch {
+      toast.error('Error al desbloquear.');
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -1026,6 +1069,14 @@ export default function AdminPage() {
           {dbUser?.rol === 'SUPER_ADMIN' && (
             <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
               Usuarios
+            </button>
+          )}
+          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR') && (
+            <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }}>
+              Acceso QR
+              {solicitudesQrPendientes > 0 && (
+                <span style={{ marginLeft: 6, background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{solicitudesQrPendientes}</span>
+              )}
             </button>
           )}
         </nav>
@@ -2310,6 +2361,106 @@ export default function AdminPage() {
                   </table>
                 </div>
               )}
+            </section>
+          )}
+
+          {/* ── Acceso QR ── */}
+          {activeTab === 'acceso-qr' && (
+            <section className={styles.fullSection}>
+              <h2>Acceso por QR</h2>
+              <p className={styles.tabDescription}>
+                Gestioná las solicitudes de acceso por código QR. Aprobá, rechazá o bloqueá dispositivos.
+              </p>
+
+              {/* Solicitudes */}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                    Solicitudes
+                    {solicitudesQrPendientes > 0 && (
+                      <span style={{ marginLeft: 8, background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{solicitudesQrPendientes} pendientes</span>
+                    )}
+                  </h3>
+                  <button onClick={fetchSolicitudesQr} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
+                    Actualizar
+                  </button>
+                </div>
+
+                {solicitudesQr.length === 0 ? (
+                  <p style={{ color: '#9ca3af', fontSize: 13 }}>No hay solicitudes registradas.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc' }}>
+                          {['Nombre', 'Email', 'Dispositivo', 'IP', 'Fecha', 'Estado', 'Acciones'].map(h => (
+                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {solicitudesQr.map((s: any) => (
+                          <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px', fontWeight: 600 }}>{s.nombre}</td>
+                            <td style={{ padding: '8px 12px', color: '#4b5563' }}>{s.email}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 11, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.deviceInfo}>{s.deviceInfo || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{s.ipAddress || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', whiteSpace: 'nowrap' }}>{new Date(s.creadoEn).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              <span style={{
+                                padding: '2px 8px', borderRadius: 9999, fontSize: 11, fontWeight: 700,
+                                background: s.estado === 'PENDIENTE' ? '#fef9c3' : s.estado === 'APROBADO' ? '#dcfce7' : s.estado === 'BLOQUEADO' ? '#fee2e2' : '#f1f5f9',
+                                color: s.estado === 'PENDIENTE' ? '#854d0e' : s.estado === 'APROBADO' ? '#166534' : s.estado === 'BLOQUEADO' ? '#dc2626' : '#4b5563',
+                              }}>{s.estado}</span>
+                            </td>
+                            <td style={{ padding: '8px 12px' }}>
+                              {s.estado === 'PENDIENTE' && (
+                                <div style={{ display: 'flex', gap: 4 }}>
+                                  <button onClick={() => handleQrAccion(s.id, 'aprobar')} style={{ padding: '3px 8px', borderRadius: 5, border: 'none', background: '#16a34a', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Aprobar</button>
+                                  <button onClick={() => handleQrAccion(s.id, 'rechazar')} style={{ padding: '3px 8px', borderRadius: 5, border: 'none', background: '#dc2626', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Rechazar</button>
+                                  <button onClick={() => handleQrAccion(s.id, 'bloquear')} style={{ padding: '3px 8px', borderRadius: 5, border: 'none', background: '#7f1d1d', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Bloquear</button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Dispositivos bloqueados */}
+              <div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: 12 }}>Dispositivos bloqueados</h3>
+                {dispositivosBloqueados.length === 0 ? (
+                  <p style={{ color: '#9ca3af', fontSize: 13 }}>No hay dispositivos bloqueados.</p>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc' }}>
+                          {['Fingerprint', 'Email', 'Fecha', 'Acción'].map(h => (
+                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, fontSize: 11, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dispositivosBloqueados.map((d: any) => (
+                          <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: 11, color: '#6b7280' }}>{d.fingerprint.slice(0, 16)}…</td>
+                            <td style={{ padding: '8px 12px', color: '#4b5563' }}>{d.email || '—'}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{new Date(d.creadoEn).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                            <td style={{ padding: '8px 12px' }}>
+                              <button onClick={() => handleDesbloquear(d.id)} style={{ padding: '3px 10px', borderRadius: 5, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Desbloquear</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </section>
           )}
         </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function LoginPage() {
   const { loginWithGoogle, loginWithEmail, user } = useAuth();
@@ -237,7 +238,20 @@ export default function LoginPage() {
             Continuar con Google
           </button>
 
-          <p style={{ textAlign: 'center', marginTop: 28, color: '#475569', fontSize: 11 }}>
+          {/* QR access section */}
+          <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #1e293b', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <p style={{ color: '#475569', fontSize: 11, margin: 0 }}>O escaneá para solicitar acceso</p>
+            <div style={{ background: '#fff', padding: 10, borderRadius: 10, display: 'inline-block' }}>
+              <QRCodeSVG
+                value={typeof window !== 'undefined' ? `${window.location.origin}/qr` : '/qr'}
+                size={100}
+                bgColor="#ffffff"
+                fgColor="#0f172a"
+              />
+            </div>
+          </div>
+
+          <p style={{ textAlign: 'center', marginTop: 16, color: '#334155', fontSize: 11 }}>
             Acceso restringido · Solo personal autorizado
           </p>
         </div>
