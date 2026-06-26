@@ -47,28 +47,57 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'El código QR expiró. Pedí uno nuevo.' }, { status: 400 });
     }
 
+    const fingerprint = body.deviceFingerprint || null;
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+
     // Verificar si el dispositivo está bloqueado
-    if (body.deviceFingerprint) {
-      const bloqueado = await prisma.dispositivoBloqueado.findUnique({
-        where: { fingerprint: body.deviceFingerprint },
-      });
+    if (fingerprint) {
+      const bloqueado = await prisma.dispositivoBloqueado.findUnique({ where: { fingerprint } });
       if (bloqueado) return NextResponse.json({ bloqueado: true, error: 'Dispositivo bloqueado.' }, { status: 403 });
     }
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+    // Verificar si este dispositivo ya fue aprobado antes → auto-aprobar
+    if (fingerprint) {
+      const aprobadaAntes = await prisma.sesionQR.findFirst({
+        where: { deviceFingerprint: fingerprint, estado: 'APROBADO' },
+        orderBy: { revisadoEn: 'desc' },
+      });
 
+      if (aprobadaAntes?.email) {
+        const emailAprobado = aprobadaAntes.email;
+        let usuario = await prisma.usuario.findUnique({ where: { email: emailAprobado } });
+        if (!usuario) {
+          usuario = await prisma.usuario.create({
+            data: { firebaseUid: `qr_${id}`, email: emailAprobado, nombre: aprobadaAntes.nombre || emailAprobado, rol: 'USUARIO' },
+          });
+        }
+        let customToken: string;
+        try {
+          customToken = await createCustomToken(usuario.firebaseUid);
+        } catch (e: any) {
+          return NextResponse.json({ error: `Error generando token: ${e.message}` }, { status: 500 });
+        }
+        await prisma.sesionQR.update({
+          where: { id },
+          data: { estado: 'APROBADO', nombre: aprobadaAntes.nombre, email: emailAprobado, deviceFingerprint: fingerprint, deviceInfo: body.deviceInfo || null, ipCelular: ip, customToken, revisadoEn: new Date() },
+        });
+        return NextResponse.json({ ok: true, autoAprobado: true });
+      }
+    }
+
+    // Dispositivo nuevo — espera aprobación del admin
     await prisma.sesionQR.update({
       where: { id },
       data: {
         estado: 'ESCANEADO',
         nombre: body.nombre,
         email: body.email?.toLowerCase(),
-        deviceFingerprint: body.deviceFingerprint || null,
+        deviceFingerprint: fingerprint,
         deviceInfo: body.deviceInfo || null,
         ipCelular: ip,
       },
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, autoAprobado: false });
   }
 
   // Acciones de admin

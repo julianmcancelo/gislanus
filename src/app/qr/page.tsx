@@ -113,14 +113,14 @@ function QrForm() {
       const data = await res.json();
       if (!res.ok) {
         if (data.bloqueado) { setEstado('bloqueado'); return; }
-        // Si el QR expiró u otro error, limpiar identidad y mostrar form
         setError(data.error || 'Error al enviar.');
         setEstado('form');
         return;
       }
       // Guardar identidad para próximas veces
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ nombre: n, email: em }));
-      setEstado('esperando');
+      // Si ya estaba aprobado, no hace falta esperar
+      setEstado(data.autoAprobado ? 'aprobado' : 'esperando');
     } catch {
       setError('Error de conexión.');
       setEstado('form');
