@@ -57,6 +57,8 @@ async function buildFingerprint(): Promise<{ hash: string; info: string }> {
   return { hash, info };
 }
 
+const STORAGE_KEY = 'qr_identity';
+
 function QrForm() {
   const params = useSearchParams();
   const sid = params.get('sid');
@@ -66,7 +68,20 @@ function QrForm() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
 
-  // Polling solo para detectar rechazo/bloqueo mientras espera
+  // Al montar: si ya tiene identidad guardada, enviar automáticamente
+  useEffect(() => {
+    if (!sid) return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const { nombre: n, email: em } = JSON.parse(saved);
+        if (n && em) enviarSolicitud(n, em);
+      } catch {}
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sid]);
+
+  // Polling mientras espera
   useEffect(() => {
     if (estado !== 'esperando' || !sid) return;
     const interval = setInterval(async () => {
@@ -82,10 +97,8 @@ function QrForm() {
     return () => clearInterval(interval);
   }, [estado, sid]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nombre.trim() || !email.trim()) { setError('Completá todos los campos.'); return; }
-    if (!sid) { setError('Código QR inválido. Escaneá de nuevo.'); return; }
+  const enviarSolicitud = async (n: string, em: string) => {
+    if (!sid) return;
     setEstado('enviando');
     setError('');
 
@@ -95,20 +108,29 @@ function QrForm() {
       const res = await fetch(`/api/auth/qr-session/${sid}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accion: 'solicitar', nombre: nombre.trim(), email: email.trim().toLowerCase(), deviceFingerprint: hash, deviceInfo: info }),
+        body: JSON.stringify({ accion: 'solicitar', nombre: n, email: em.toLowerCase(), deviceFingerprint: hash, deviceInfo: info }),
       });
       const data = await res.json();
       if (!res.ok) {
         if (data.bloqueado) { setEstado('bloqueado'); return; }
+        // Si el QR expiró u otro error, limpiar identidad y mostrar form
         setError(data.error || 'Error al enviar.');
         setEstado('form');
         return;
       }
+      // Guardar identidad para próximas veces
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ nombre: n, email: em }));
       setEstado('esperando');
     } catch {
       setError('Error de conexión.');
       setEstado('form');
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nombre.trim() || !email.trim()) { setError('Completá todos los campos.'); return; }
+    await enviarSolicitud(nombre.trim(), email.trim());
   };
 
   const s = {
@@ -170,6 +192,9 @@ function QrForm() {
       </svg>
       <h2 style={{ ...s.title, color: '#f87171' }}>Acceso denegado</h2>
       <p style={s.sub}>Tu solicitud fue rechazada. Contactá al administrador.</p>
+      <button onClick={() => { localStorage.removeItem(STORAGE_KEY); setEstado('form'); setNombre(''); setEmail(''); }} style={{ background: '#334155', color: '#94a3b8', border: 'none', borderRadius: 8, padding: '7px 16px', fontSize: 12, cursor: 'pointer', marginTop: 8 }}>
+        Usar otra cuenta
+      </button>
     </div></div>
   );
 
