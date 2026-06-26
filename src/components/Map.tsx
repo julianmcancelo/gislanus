@@ -331,10 +331,24 @@ export default function MapComponent() {
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
             : lineaLabel;
+          const lineaProps = {
+            _tipo: 'linea',
+            _linea: lineaLabel,
+            _ramal: ramalLabel || null,
+            _sentido: sentido || null,
+            _operador: l.descripcion || null,
+            _color: l.color || '#E53E3E',
+          };
+          let geoConProps = geo;
+          if (geo?.type === 'Feature') {
+            geoConProps = { ...geo, properties: lineaProps };
+          } else if (geo?.features) {
+            geoConProps = { ...geo, features: geo.features.map((f: any) => ({ ...f, properties: lineaProps })) };
+          }
           return {
             id: `linea-${l.id}`,
             nombre,
-            datosGeo: geo,
+            datosGeo: geoConProps,
             color: l.color || '#E53E3E',
             visibilidad: 'PUBLIC',
             rolesPermitidos: [],
@@ -692,10 +706,28 @@ export default function MapComponent() {
               onEachFeature={(feature, l) => {
                 const props = feature.properties || {};
                 const isTransporte = props._tipo === 'transporte';
+                const isLinea = props._tipo === 'linea';
 
                 let popupContent = '';
 
-                if (isTransporte) {
+                if (isLinea) {
+                  // ── Popup limpio para Líneas de Transporte ──
+                  const sentidoLabel = props._sentido
+                    ? props._sentido.charAt(0) + props._sentido.slice(1).toLowerCase()
+                    : null;
+                  popupContent = `
+                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:180px;max-width:260px;">
+                      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:3px solid ${props._color || capa.color};">
+                        <div style="width:10px;height:10px;border-radius:50%;background:${props._color || capa.color};flex-shrink:0;"></div>
+                        <span style="font-size:13px;font-weight:800;color:#1e293b;">${escapeHtml(props._linea || capa.nombre)}</span>
+                      </div>
+                      <div style="padding:8px 14px 10px;display:flex;flex-direction:column;gap:4px;">
+                        ${props._ramal ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Ramal</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(props._ramal)}</span></div>` : ''}
+                        ${sentidoLabel ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Sentido</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(sentidoLabel)}</span></div>` : ''}
+                        ${props._operador ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Operador</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(props._operador)}</span></div>` : ''}
+                      </div>
+                    </div>`;
+                } else if (isTransporte) {
                   // ── Popup enriquecido para Transporte Pesado ──
                   const estadoColors: Record<string, string> = {
                     PENDIENTE: '#ca8a04', APROBADO: '#16a34a',
