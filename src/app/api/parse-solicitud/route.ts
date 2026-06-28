@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { clipGeometryToLanus } from '@/utils/geo';
 
 async function queryUrl(url: string) {
   const res = await fetch(url, { headers: { 'User-Agent': 'LanusGIS/1.0' } });
@@ -84,7 +85,7 @@ async function buildRouteForStreets(streets: string[], index: number, descriptio
           color: color,
           originalIndex: index
         },
-        geometry: routeData.routes[0].geometry
+        geometry: clipGeometryToLanus(routeData.routes[0].geometry)
       };
     }
   } catch (e) {

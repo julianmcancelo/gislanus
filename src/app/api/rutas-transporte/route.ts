@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,16 @@ export async function POST(req: Request) {
 
     if (!parsedGeo.type || (parsedGeo.type !== 'FeatureCollection' && parsedGeo.type !== 'Feature')) {
       return NextResponse.json({ error: 'Formato GeoJSON inválido' }, { status: 400 });
+    }
+
+    // Clip geometry to Lanús borders
+    if (parsedGeo.type === 'FeatureCollection') {
+      parsedGeo.features = parsedGeo.features.map((f: any) => ({
+        ...f,
+        geometry: clipGeometryToLanus(f.geometry)
+      }));
+    } else if (parsedGeo.type === 'Feature') {
+      parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
     }
 
     const ruta = await prisma.rutaTransporte.create({
