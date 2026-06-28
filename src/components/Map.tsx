@@ -643,6 +643,11 @@ export default function MapComponent() {
           <MapContainer 
             center={center} 
             zoom={14}
+            minZoom={12}
+            maxBounds={[
+              [-34.7505, -58.4519], // Sur-Oeste
+              [-34.6537, -58.3284]  // Nor-Este
+            ]}
             style={{ width: '100%', height: '100%', zIndex: 1 }}
             zoomControl={false}
             ref={setMapInstance}

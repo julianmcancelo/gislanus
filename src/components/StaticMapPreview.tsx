@@ -22,6 +22,11 @@ export default function StaticMapPreview({ geoData }: { geoData: any }) {
       <MapContainer 
         center={[-34.7042, -58.3961]} 
         zoom={13} 
+        minZoom={12}
+        maxBounds={[
+          [-34.7505, -58.4519], // Sur-Oeste
+          [-34.6537, -58.3284]  // Nor-Este
+        ]}
         style={{ width: '100%', height: '100%' }}
         zoomControl={false}
         dragging={false}

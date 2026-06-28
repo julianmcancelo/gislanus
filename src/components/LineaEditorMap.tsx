@@ -190,7 +190,17 @@ export default function LineaEditorMap({
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }} ref={containerRef}>
-      <MapContainer center={CENTER} zoom={13} style={{ width: '100%', height: '100%' }} zoomControl>
+      <MapContainer 
+        center={CENTER} 
+        zoom={13} 
+        minZoom={12}
+        maxBounds={[
+          [-34.7505, -58.4519], // Sur-Oeste
+          [-34.6537, -58.3284]  // Nor-Este
+        ]}
+        style={{ width: '100%', height: '100%' }} 
+        zoomControl
+      >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
         <EditorController
           color={color}
