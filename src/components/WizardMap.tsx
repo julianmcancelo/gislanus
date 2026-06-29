@@ -66,12 +66,9 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       },
       // @ts-ignore
       router: L.Routing.osrmv1({
-        serviceUrl: 'https://api.mapbox.com/directions/v5/mapbox',
-        profile: 'driving',
-        urlParameters: {
-          access_token: process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-        }
-      } as any),
+        serviceUrl: 'https://router.project-osrm.org/route/v1',
+        profile: 'driving'
+      }),
       show: false, // Ocultar el panel de instrucciones para mantener limpio el UI
       addWaypoints: true,
       createMarker: function(i: number, wp: any, nWps: number) {
