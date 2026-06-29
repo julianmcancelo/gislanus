@@ -5,7 +5,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import MapSearch from './MapSearch';
-import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus } from 'lucide-react';
+import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route } from 'lucide-react';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
