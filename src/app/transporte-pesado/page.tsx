@@ -922,6 +922,7 @@ export default function TransportePesadoWizard() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         zIndex: 10
       }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ padding: '4px', display: 'flex', background: 'transparent' }}>
             <img src="/logo-lanus.png" alt="Lanús Logo" style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
           </div>
