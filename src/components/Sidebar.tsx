@@ -21,6 +21,7 @@ interface Capa {
   tipoCarga?: string;
   origenNombre?: string;
   destinoNombre?: string;
+  datosGeo?: any;
 }
 
 interface SidebarProps {
