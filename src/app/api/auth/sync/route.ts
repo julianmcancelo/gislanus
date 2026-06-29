@@ -11,6 +11,23 @@ export async function POST(req: Request) {
 
     const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
 
+    // Asegurar que los roles básicos existan en la tabla RolPermisos
+    const rolesBasicos = [
+      { rol: 'SUPER_ADMIN', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, gestionarGrupos: true, gestionarUsuarios: true },
+      { rol: 'ADMINISTRADOR', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, gestionarGrupos: true, gestionarUsuarios: false },
+      { rol: 'OPERADOR', accesoAdmin: true, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: true, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'CHOFER', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: true, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'VECINO', accesoAdmin: false, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: false, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'PENDIENTE', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: false, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false }
+    ];
+
+    for (const r of rolesBasicos) {
+      const existe = await prisma.rolPermisos.findUnique({ where: { rol: r.rol } });
+      if (!existe) {
+        await prisma.rolPermisos.create({ data: r });
+      }
+    }
+
     // Buscar si el usuario ya existe
     let usuario = await prisma.usuario.findUnique({
       where: { firebaseUid: uid },
@@ -53,7 +70,12 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json(usuario);
+    // Obtener los permisos del rol del usuario
+    const permisos = await prisma.rolPermisos.findUnique({
+      where: { rol: usuario.rol }
+    });
+
+    return NextResponse.json({ ...usuario, permisos });
   } catch (error) {
     console.error('Error sincronizando usuario:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

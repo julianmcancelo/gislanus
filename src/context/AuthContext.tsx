@@ -10,6 +10,18 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 
+export interface PermisosRol {
+  accesoAdmin: boolean;
+  verCapas: boolean;
+  editarCapas: boolean;
+  verLineas: boolean;
+  editarLineas: boolean;
+  verRutas: boolean;
+  editarRutas: boolean;
+  gestionarGrupos: boolean;
+  gestionarUsuarios: boolean;
+}
+
 export interface DbUser {
   id: string;
   firebaseUid: string;
@@ -17,6 +29,7 @@ export interface DbUser {
   nombre: string | null;
   rol: string;
   creadoEn: string;
+  permisos?: PermisosRol;
 }
 
 interface AuthContextType {

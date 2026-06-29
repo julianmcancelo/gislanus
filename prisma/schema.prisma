@@ -149,3 +149,17 @@ model RutaTransporte {
   datosGeo          String
   creadoEn          DateTime @default(now())
 }
+
+model RolPermisos {
+  id                String   @id @default(cuid())
+  rol               String   @unique
+  accesoAdmin       Boolean  @default(false)
+  verCapas          Boolean  @default(false)
+  editarCapas       Boolean  @default(false)
+  verLineas         Boolean  @default(false)
+  editarLineas      Boolean  @default(false)
+  verRutas          Boolean  @default(false)
+  editarRutas       Boolean  @default(false)
+  gestionarGrupos   Boolean  @default(false)
+  gestionarUsuarios Boolean  @default(false)
+}

@@ -268,8 +268,10 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
     grupos[gName].subgrupos[sgName].subsubgrupos[ssgName].forEach(c => { if (c.active !== active) alternarCapa(c.id); });
   };
 
-  const canAccessTransporte = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR' || dbUser?.rol === 'USUARIO';
-  const canAccessAdmin = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR';
+  // Usar los nuevos permisos dinámicos (o fallback a super_admin por las dudas)
+  const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
+  const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canAccessAdmin = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
 
   return (
     <div className={styles.sidebarContainer}>

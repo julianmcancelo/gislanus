@@ -43,7 +43,7 @@ export default function AdminPage() {
     if (!authLoading) {
       if (!user) {
         router.push('/login');
-      } else if (dbUser && dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR' && dbUser.rol !== 'OPERADOR') {
+      } else if (dbUser && !(dbUser.permisos?.accesoAdmin || dbUser.rol === 'SUPER_ADMIN')) {
         router.push('/');
       }
     }
@@ -61,6 +61,7 @@ export default function AdminPage() {
   const [rutas, setRutas] = useState<any[]>([]);
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Líneas editor state
@@ -216,6 +217,42 @@ export default function AdminPage() {
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const res = await authFetch('/api/roles');
+      if (res.ok) {
+        const data = await res.json();
+        setRolesPermisosData(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePermisoChange = async (id: string, field: string, value: boolean) => {
+    const rolToUpdate = rolesPermisosData.find(r => r.id === id);
+    if (!rolToUpdate) return;
+    
+    // Optimistic update
+    const prev = [...rolesPermisosData];
+    setRolesPermisosData(prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+    
+    try {
+      const res = await authFetch('/api/roles', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, rol: rolToUpdate.rol, [field]: value })
+      });
+      if (!res.ok) {
+        throw new Error('Error al actualizar');
+      }
+      toast.success('Permiso actualizado. Aplicará en el próximo inicio de sesión.');
+    } catch (err) {
+      toast.error('Error al guardar el permiso');
+      setRolesPermisosData(prev); // revert
+    }
+  };
+
   const fetchData = async () => {
     try {
       const [resCapas, resGrupos, resSubGrupos, resRutas, resUsuarios, resLineas] = await Promise.all([
@@ -240,10 +277,16 @@ export default function AdminPage() {
       setUsuarios(Array.isArray(dataUsuarios) ? dataUsuarios : []);
       const lineasData: any[] = Array.isArray(dataLineas) ? dataLineas : [];
       setLineas(lineasData);
+      
       // Auto-expand all lines so Category → Line → Ramal is visible by default
       setExpandedLineas(new Set(
         lineasData.map((l: any) => `${l.categoria || 'NACIONAL'}__${l.nombre}__${l.numero || ''}`)
       ));
+
+      // Cargar roles si tiene permisos
+      if (dbUser?.permisos?.gestionarUsuarios) {
+        await fetchRoles();
+      }
     } catch (e) {
       console.error(e);
     }
@@ -1052,30 +1095,37 @@ export default function AdminPage() {
           <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
             Dashboard
           </button>
-          {dbUser?.rol === 'SUPER_ADMIN' && (
+          {dbUser?.permisos?.gestionarGrupos && (
             <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
               Grupos
             </button>
           )}
-          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
+          {dbUser?.permisos?.verCapas && (
             <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
               Capas
             </button>
           )}
-          <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
-            Transporte Pesado
-          </button>
-          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
+          {dbUser?.permisos?.verRutas && (
+            <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
+              Transporte Pesado
+            </button>
+          )}
+          {dbUser?.permisos?.verLineas && (
             <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
               Líneas de Colectivo
             </button>
           )}
-          {dbUser?.rol === 'SUPER_ADMIN' && (
+          {dbUser?.permisos?.gestionarUsuarios && (
             <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
               Usuarios
             </button>
           )}
-          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR') && (
+          {dbUser?.permisos?.gestionarUsuarios && (
+            <button className={`${styles.menuItem} ${activeTab === 'roles' ? styles.active : ''}`} onClick={() => setActiveTab('roles')}>
+              Roles y Permisos
+            </button>
+          )}
+          {dbUser?.permisos?.accesoAdmin && (
             <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }}>
               Acceso QR
               {solicitudesQrPendientes > 0 && (
@@ -1168,7 +1218,7 @@ export default function AdminPage() {
         )}
 
         {/* GRUPOS TAB */}
-        {activeTab === 'grupos' && dbUser?.rol === 'SUPER_ADMIN' && (
+        {activeTab === 'grupos' && dbUser?.permisos?.gestionarGrupos && (
           <div className={styles.gruposGrid}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               <section className={styles.formSection}>
@@ -1298,7 +1348,7 @@ export default function AdminPage() {
         )}
 
         {/* CAPAS TAB */}
-        {activeTab === 'capas' && (dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
+        {activeTab === 'capas' && dbUser?.permisos?.verCapas && (
           <>
             {selectedCapaForRecords ? (
               <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
@@ -1331,7 +1381,7 @@ export default function AdminPage() {
                                       const isDesc = k.toLowerCase().includes('desc');
                                       return (
                                         <div key={k} style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: isDesc ? '1 / -1' : 'auto' }}>
-                                          <label style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold', textTransform: 'capitalize' }}>{translatePropKey(k)}</label>
+                                          <label style={{ fontSize: '0.85rem', color: '#64648b', fontWeight: 'bold', textTransform: 'capitalize' }}>{translatePropKey(k)}</label>
                                           {isDesc ? (
                                             <textarea 
                                               value={editRecordProps[k] || ''} 
@@ -1651,7 +1701,7 @@ export default function AdminPage() {
             </>
           )}
 
-          {activeTab === 'solicitudes' && (
+          {activeTab === 'solicitudes' && dbUser?.permisos?.verRutas && (
             <section className={styles.fullSection}>
               <h2>Solicitudes de Transporte Pesado</h2>
               <p className={styles.tabDescription}>Gestione las rutas propuestas por los choferes y transportistas.</p>
@@ -1803,7 +1853,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'lineas' && (dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
+          {activeTab === 'lineas' && dbUser?.permisos?.verLineas && (
             <section className={styles.fullSection}>
               <h2>Líneas de Transporte Público</h2>
               <p className={styles.tabDescription}>Organizá y editá las trazas de todas las líneas agrupadas por jurisdicción.</p>
@@ -2336,7 +2386,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'usuarios' && dbUser?.rol === 'SUPER_ADMIN' && (
+          {activeTab === 'usuarios' && dbUser?.permisos?.gestionarUsuarios && (
             <section className={styles.fullSection}>
               <h2>Gestión de Usuarios</h2>
               <p className={styles.tabDescription}>
@@ -2401,6 +2451,68 @@ export default function AdminPage() {
                       {usuarios.length === 0 && (
                         <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#646970' }}>No hay usuarios registrados en el sistema.</td></tr>
                       )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {activeTab === 'roles' && dbUser?.permisos?.gestionarUsuarios && (
+            <section className={styles.fullSection}>
+              <h2>Roles y Permisos</h2>
+              <p className={styles.tabDescription}>
+                Configurá los permisos dinámicos para cada rol del sistema. Los cambios aplicarán en el próximo inicio de sesión de los usuarios.
+              </p>
+              
+              {loading ? (
+                <p>Cargando roles...</p>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.table} style={{ width: '100%', borderCollapse: 'collapse', marginTop: 20 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0', textAlign: 'left', minWidth: 150 }}>Rol</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Acceso Admin</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Ver Capas</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Capas</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Ver Transp.</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Transp.</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Ver Colectivos</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Colectivos</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Gestión Usuarios</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rolesPermisosData.map((rolData: any) => (
+                        <tr key={rolData.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '12px', fontWeight: 'bold' }}>{rolData.rol}</td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.accesoAdmin} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'accesoAdmin', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.verCapas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'verCapas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.editarCapas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'editarCapas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.verRutas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'verRutas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.editarRutas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'editarRutas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.verLineas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'verLineas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.editarLineas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'editarLineas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.gestionarUsuarios} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'gestionarUsuarios', e.target.checked)} />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
