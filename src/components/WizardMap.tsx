@@ -315,7 +315,7 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints }: 
           <GeoJSON 
             data={initialGeo} 
             style={(feature) => ({
-              color: feature?.properties?.color || '#8B5CF6',
+              color: feature?.properties?.color || '#29B6F6',
               weight: 6,
               opacity: 0.8,
               lineCap: 'round',

@@ -101,37 +101,60 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
   const cfg = getEstado(capa.estado);
   const route = [capa.origenNombre, capa.destinoNombre].filter(Boolean).join(' → ');
 
-  return (
-    <div
-      onClick={onToggle}
-      title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
-      style={{
-        display: 'flex', alignItems: 'center', gap: '6px',
-        padding: '5px 8px', borderRadius: '6px', cursor: 'pointer',
-        background: capa.active ? '#fff' : 'transparent',
-        borderLeft: `3px solid ${capa.color}`,
-        marginBottom: '3px',
-        opacity: capa.active ? 1 : 0.5,
-        transition: 'background 0.12s, opacity 0.12s',
-      }}
-    >
-      <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
-      <span style={{ fontWeight: 700, fontSize: '0.74rem', color: '#1e293b', flexShrink: 0 }}>
-        #{capa.numeroSolicitud}
-      </span>
-      <span style={{
-        fontSize: '0.69rem', color: '#64748b',
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
-      }}>
-        {route || capa.tipoCarga || ''}
-      </span>
-      <span style={{
-        background: cfg.bg, color: cfg.dot,
-        borderRadius: '4px', padding: '0 5px',
-        fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.05em', flexShrink: 0,
-      }}>
-        {cfg.short}
-      </span>
+    <div>
+      <div
+        onClick={onToggle}
+        title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '6px',
+          padding: '5px 8px', borderRadius: '6px', cursor: 'pointer',
+          background: capa.active ? '#fff' : 'transparent',
+          borderLeft: `3px solid ${capa.color}`,
+          marginBottom: '3px',
+          opacity: capa.active ? 1 : 0.5,
+          transition: 'background 0.12s, opacity 0.12s',
+        }}
+      >
+        <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+        <span style={{ fontWeight: 700, fontSize: '0.74rem', color: '#1e293b', flexShrink: 0 }}>
+          #{capa.numeroSolicitud}
+        </span>
+        <span style={{
+          fontSize: '0.69rem', color: '#64748b',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
+        }}>
+          {route || capa.tipoCarga || ''}
+        </span>
+        <span style={{
+          background: cfg.bg, color: cfg.dot,
+          borderRadius: '4px', padding: '0 5px',
+          fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.05em', flexShrink: 0,
+        }}>
+          {cfg.short}
+        </span>
+      </div>
+      
+      {capa.active && (() => {
+        let geo = capa.datosGeo;
+        if (typeof geo === 'string') {
+          try { geo = JSON.parse(geo); } catch(e) {}
+        }
+        if (geo?.type === 'FeatureCollection' && geo.features?.length > 1) {
+          return (
+            <div style={{ paddingLeft: '14px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {geo.features.map((f: any, idx: number) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.properties?.color || '#29B6F6', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.65rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {f.properties?.name || `Recorrido ${idx + 1}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        }
+        return null;
+      })()}
     </div>
   );
 }
