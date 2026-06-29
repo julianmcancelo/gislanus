@@ -63,6 +63,7 @@ export default function AdminPage() {
   const [rutasSearchTerm, setRutasSearchTerm] = useState('');
   const [rutasFilterStatus, setRutasFilterStatus] = useState('TODAS');
   const [errorLineas, setErrorLineas] = useState<string | null>(null);
+  const [previewRutaGeo, setPreviewRutaGeo] = useState<{ geo: any; numero: string } | null>(null);
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
@@ -1871,11 +1872,22 @@ export default function AdminPage() {
                           </td>
                           <td>
                             <div className={styles.mapPreviewWrapper}>
-                              <StaticMapPreview geoData={
-                                typeof ruta.datosGeo === 'string' ?
-                                  ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })()
-                                  : ruta.datosGeo
-                              } />
+                              <div style={{ cursor: 'pointer', position: 'relative' }} onClick={() => {
+                                let geo = ruta.datosGeo;
+                                if (typeof geo === 'string') {
+                                  try { geo = JSON.parse(geo); } catch { geo = null; }
+                                }
+                                if (geo) setPreviewRutaGeo({ geo, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
+                              }}>
+                                <StaticMapPreview geoData={
+                                  typeof ruta.datosGeo === 'string' ?
+                                    ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })()
+                                    : ruta.datosGeo
+                                } />
+                                <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', pointerEvents: 'none', zIndex: 10, backdropFilter: 'blur(4px)' }}>
+                                  <MapIcon size={12} /> Ampliar Mapa
+                                </div>
+                              </div>
                             </div>
                           </td>
                           <td>
@@ -2691,6 +2703,28 @@ export default function AdminPage() {
             </section>
           )}
         </div>
+
+        {/* ── Modal de Vista Previa de Mapa ── */}
+        {previewRutaGeo && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(2px)' }}>
+            <div style={{ background: '#fff', borderRadius: '14px', padding: '24px', width: '90vw', maxWidth: '1000px', height: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MapIcon size={20} color="#3b82f6" /> Ruta: {previewRutaGeo.numero}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748b' }}>Vista detallada interactiva</p>
+                </div>
+                <button onClick={() => setPreviewRutaGeo(null)} style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', color: '#64748b', display: 'flex' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div style={{ flex: 1, borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                <StaticMapPreview geoData={previewRutaGeo.geo} interactive={true} height="100%" />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

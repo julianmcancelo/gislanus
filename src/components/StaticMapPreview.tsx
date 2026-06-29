@@ -16,9 +16,9 @@ function FitBounds({ geoData }: { geoData: any }) {
   return null;
 }
 
-export default function StaticMapPreview({ geoData }: { geoData: any }) {
+export default function StaticMapPreview({ geoData, interactive = false, height = '200px' }: { geoData: any, interactive?: boolean, height?: string }) {
   return (
-    <div style={{ height: '200px', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ccc', marginBottom: '15px', position: 'relative', zIndex: 0 }}>
+    <div style={{ height, width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #ccc', marginBottom: '15px', position: 'relative', zIndex: 0 }}>
       <MapContainer 
         center={[-34.7042, -58.3961]} 
         zoom={13} 
@@ -28,10 +28,10 @@ export default function StaticMapPreview({ geoData }: { geoData: any }) {
           [-34.6537, -58.3284]  // Nor-Este
         ]}
         style={{ width: '100%', height: '100%' }}
-        zoomControl={false}
-        dragging={false}
-        scrollWheelZoom={false}
-        doubleClickZoom={false}
+        zoomControl={interactive}
+        dragging={interactive}
+        scrollWheelZoom={interactive}
+        doubleClickZoom={interactive}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
