@@ -1006,7 +1006,15 @@ export default function TransportePesadoWizard() {
             return (
               <div key={num} style={{ display: 'flex', alignItems: 'center' }}>
                 {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#3b82f6' : '#e2e8f0', margin: '0 4px', transition: 'background-color 0.3s' }} />}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+                <div 
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: isDone ? 'pointer' : 'default' }}
+                  onClick={() => {
+                    if (isDone) {
+                      setStep(num);
+                    }
+                  }}
+                  title={isDone ? `Volver al Paso ${num}` : ''}
+                >
                   <div style={{
                     width: '30px', height: '30px', borderRadius: '50%',
                     background: isActive ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : isDone ? '#eff6ff' : '#f8fafc',
@@ -1015,8 +1023,12 @@ export default function TransportePesadoWizard() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontWeight: '800', fontSize: '13px',
                     boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 10px rgba(37, 99, 235, 0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}>
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: isDone ? 'scale(1.05)' : 'scale(1)'
+                  }}
+                  onMouseOver={(e) => { if(isDone) e.currentTarget.style.transform = 'scale(1.1)'; }}
+                  onMouseOut={(e) => { if(isDone) e.currentTarget.style.transform = 'scale(1.05)'; }}
+                  >
                     {isDone ? <CheckCircle size={15} /> : num}
                   </div>
                   <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '500', color: isActive ? '#0f172a' : isDone ? '#3b82f6' : '#94a3b8' }}>
@@ -1092,8 +1104,11 @@ export default function TransportePesadoWizard() {
               <legend style={legendStyle}>Identificación del Trámite</legend>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>N° Expediente <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input type="text" required value={numeroSolicitud} onChange={e => setNumeroSolicitud(e.target.value)} placeholder="1000-2026-964794-O" style={inputStyle} />
+                  <label style={labelStyle}>
+                    N° Expediente <span style={{ color: '#dc2626' }}>*</span>
+                    {numeroSolicitud.trim().length > 0 && <CheckCircle size={14} color="#16a34a" style={{ marginLeft: '6px' }} />}
+                  </label>
+                  <input type="text" required value={numeroSolicitud} onChange={e => setNumeroSolicitud(e.target.value)} placeholder="1000-2026-964794-O" style={{ ...inputStyle, borderColor: numeroSolicitud.trim().length > 0 ? '#86efac' : '#cbd5e1' }} />
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>ID Web</label>
@@ -1110,8 +1125,11 @@ export default function TransportePesadoWizard() {
                   <input type="text" value={vigenciaHasta} onChange={e => setVigenciaHasta(e.target.value)} placeholder="16/12/2026" style={inputStyle} />
                 </div>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Razón Social / Solicitante <span style={{ color: '#dc2626' }}>*</span></label>
-                  <input type="text" required value={nombreSolicitante} onChange={e => setNombreSolicitante(e.target.value)} placeholder="Nombre legal o empresa" style={inputStyle} />
+                  <label style={labelStyle}>
+                    Razón Social / Solicitante <span style={{ color: '#dc2626' }}>*</span>
+                    {nombreSolicitante.trim().length > 0 && <CheckCircle size={14} color="#16a34a" style={{ marginLeft: '6px' }} />}
+                  </label>
+                  <input type="text" required value={nombreSolicitante} onChange={e => setNombreSolicitante(e.target.value)} placeholder="Nombre legal o empresa" style={{ ...inputStyle, borderColor: nombreSolicitante.trim().length > 0 ? '#86efac' : '#cbd5e1' }} />
                 </div>
               </div>
             </fieldset>
@@ -1121,8 +1139,11 @@ export default function TransportePesadoWizard() {
               <legend style={legendStyle}>Datos del Vehículo</legend>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', marginBottom: '10px' }}>
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Patente</label>
-                  <input type="text" value={patente} onChange={e => setPatente(e.target.value)} placeholder="AB123CD" style={{ ...inputStyle, textTransform: 'uppercase' }} />
+                  <label style={labelStyle}>
+                    Patente
+                    {patente.trim().length > 5 && <CheckCircle size={14} color="#16a34a" style={{ marginLeft: '6px' }} />}
+                  </label>
+                  <input type="text" value={patente} onChange={e => setPatente(e.target.value)} placeholder="AB123CD" style={{ ...inputStyle, textTransform: 'uppercase', borderColor: patente.trim().length > 5 ? '#86efac' : '#cbd5e1' }} />
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Tipo de Vehículo</label>
