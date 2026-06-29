@@ -842,52 +842,78 @@ export default function TransportePesadoWizard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRutas.map(ruta => (
-                      <tr key={ruta.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s' }}>
-                        <td style={{ padding: '15px 20px' }}>
-                          <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '1rem' }}>#{ruta.numeroSolicitud}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
-                        </td>
-                        <td style={{ padding: '15px 20px' }}>
-                          <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>
-                          {ruta.empresaSolicitante && <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.nombreSolicitante}</div>}
-                        </td>
-                        <td style={{ padding: '15px 20px' }}>
-                          <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.patente || '-'}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.tipoVehiculo || '-'}</div>
-                        </td>
-                        <td style={{ padding: '15px 20px' }}>
-                          <span style={{ 
-                            padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.025em',
-                            backgroundColor: ruta.estado === 'APROBADA' ? '#d1fae5' : ruta.estado === 'RECHAZADA' ? '#fee2e2' : '#fef3c7',
-                            color: ruta.estado === 'APROBADA' ? '#065f46' : ruta.estado === 'RECHAZADA' ? '#991b1b' : '#92400e'
-                          }}>
-                            {ruta.estado}
-                          </span>
-                        </td>
-                        <td style={{ padding: '15px 20px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                          {ruta.enlaceDocumento && (
-                            <a 
-                              href={ruta.enlaceDocumento}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
-                              title="Ver Documento Original"
-                            >
-                              <FileText size={14} /> PDF
-                            </a>
+                    {(() => {
+                      const groups = filteredRutas.reduce((acc, ruta) => {
+                        const key = `${ruta.numeroSolicitud || 'Sin-ID'}-${ruta.patente || 'Sin-Patente'}`;
+                        if (!acc[key]) acc[key] = [];
+                        acc[key].push(ruta);
+                        return acc;
+                      }, {} as Record<string, any[]>);
+                      
+                      return Object.entries(groups).map(([groupKey, groupRoutes]) => (
+                        <React.Fragment key={groupKey}>
+                          {groupRoutes.length > 1 && (
+                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', borderTop: '2px solid #e2e8f0' }}>
+                              <td colSpan={5} style={{ padding: '10px 20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <strong style={{ color: '#0f172a', fontSize: '0.95rem' }}>Solicitud: #{groupRoutes[0].numeroSolicitud}</strong>
+                                  <span style={{ fontSize: '0.85rem', color: '#475569', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>Patente: {groupRoutes[0].patente || 'N/A'}</span>
+                                  <span style={{ fontSize: '0.75rem', color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '12px', fontWeight: 600, border: '1px solid #bfdbfe' }}>{groupRoutes.length} recorridos</span>
+                                </div>
+                              </td>
+                            </tr>
                           )}
-                          <button 
-                            onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
-                            style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
-                          >
-                            <Edit2 size={14} /> Editar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          {groupRoutes.map(ruta => (
+                            <tr key={ruta.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s', backgroundColor: groupRoutes.length > 1 ? '#fafafa' : 'transparent' }}>
+                              <td style={{ padding: '15px 20px', paddingLeft: groupRoutes.length > 1 ? '40px' : '20px' }}>
+                                <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '1rem' }}>
+                                  {groupRoutes.length > 1 ? <span style={{ fontSize: '0.85rem', color: '#64748b' }}>↳ Recorrido</span> : `#${ruta.numeroSolicitud}`}
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
+                              </td>
+                              <td style={{ padding: '15px 20px' }}>
+                                <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>
+                                {ruta.empresaSolicitante && <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.nombreSolicitante}</div>}
+                              </td>
+                              <td style={{ padding: '15px 20px' }}>
+                                <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.patente || '-'}</div>
+                                <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.tipoVehiculo || '-'}</div>
+                              </td>
+                              <td style={{ padding: '15px 20px' }}>
+                                <span style={{ 
+                                  padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.025em',
+                                  backgroundColor: ruta.estado === 'APROBADA' ? '#d1fae5' : ruta.estado === 'RECHAZADA' ? '#fee2e2' : '#fef3c7',
+                                  color: ruta.estado === 'APROBADA' ? '#065f46' : ruta.estado === 'RECHAZADA' ? '#991b1b' : '#92400e'
+                                }}>
+                                  {ruta.estado}
+                                </span>
+                              </td>
+                              <td style={{ padding: '15px 20px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                {ruta.enlaceDocumento && (
+                                  <a 
+                                    href={ruta.enlaceDocumento}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                                    title="Ver Documento Original"
+                                  >
+                                    <FileText size={14} /> PDF
+                                  </a>
+                                )}
+                                <button 
+                                  onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
+                                  style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
+                                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
+                                >
+                                  <Edit2 size={14} /> Editar
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      ));
+                    })()}
                     {filteredRutas.length === 0 && (
                       <tr>
                         <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7280' }}>
