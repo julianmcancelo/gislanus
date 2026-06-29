@@ -126,13 +126,13 @@ ${text}
     const extractedData = JSON.parse(resultString);
     
     if (!extractedData.calles || !Array.isArray(extractedData.calles) || extractedData.calles.length < 2) {
-       return NextResponse.json({ error: 'No se pudieron detectar suficientes calles para armar un trayecto.' }, { status: 400 });
+      return NextResponse.json({ error: 'No se detectaron suficientes calles. Intentá escribir al menos dos calles del recorrido.' }, { status: 400 });
     }
 
     const feature = await buildRouteForStreets(extractedData.calles, index || 0, description || 'Recorrido IA');
-    
+
     if (!feature) {
-      return NextResponse.json({ error: 'No se pudo trazar el recorrido en el mapa.' }, { status: 400 });
+      return NextResponse.json({ error: `No se pudieron ubicar las calles en el mapa (${extractedData.calles.slice(0,3).join(', ')}…). Verificá los nombres e intentá de nuevo.` }, { status: 400 });
     }
 
     return NextResponse.json({ feature });

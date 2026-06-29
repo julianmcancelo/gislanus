@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock } from 'lucide-react';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -74,6 +74,8 @@ export default function TransportePesadoWizard() {
   const [parsedInfo, setParsedInfo] = useState<any>(null);
   const [magicUrls, setMagicUrls] = useState<string[]>([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash) {
@@ -187,44 +189,12 @@ export default function TransportePesadoWizard() {
       if (typeof window !== 'undefined' && viewMode === 'wizard') {
         const draft = localStorage.getItem('lanus-transporte-draft');
         if (draft) {
-          if (window.confirm('Tenés una solicitud a medio cargar guardada en borrador. ¿Querés restaurarla?')) {
-            try {
-              const parsed = JSON.parse(draft);
-              if (parsed.numeroSolicitud) setNumeroSolicitud(parsed.numeroSolicitud);
-              if (parsed.nombreSolicitante) setNombreSolicitante(parsed.nombreSolicitante);
-              if (parsed.empresaSolicitante) setEmpresaSolicitante(parsed.empresaSolicitante);
-              if (parsed.cuilCuit) setCuilCuit(parsed.cuilCuit);
-              if (parsed.emailSolicitante) setEmailSolicitante(parsed.emailSolicitante);
-              if (parsed.telefonoSolicitante) setTelefonoSolicitante(parsed.telefonoSolicitante);
-              if (parsed.patente) setPatente(parsed.patente);
-              if (parsed.tipoVehiculo) setTipoVehiculo(parsed.tipoVehiculo);
-              if (parsed.pesoToneladas) setPesoToneladas(parsed.pesoToneladas);
-              if (parsed.cargaPeligrosa) setCargaPeligrosa(parsed.cargaPeligrosa);
-              if (parsed.tipoCarga) setTipoCarga(parsed.tipoCarga);
-              if (parsed.largoVehiculo) setLargoVehiculo(parsed.largoVehiculo);
-              if (parsed.anchoVehiculo) setAnchoVehiculo(parsed.anchoVehiculo);
-              if (parsed.alturaVehiculo) setAlturaVehiculo(parsed.alturaVehiculo);
-              if (parsed.cantidadEjes) setCantidadEjes(parsed.cantidadEjes);
-              if (parsed.aseguradora) setAseguradora(parsed.aseguradora);
-              if (parsed.nroSeguro) setNroSeguro(parsed.nroSeguro);
-              if (parsed.origenDireccion) setOrigenDireccion(parsed.origenDireccion);
-              if (parsed.origenLocalidad) setOrigenLocalidad(parsed.origenLocalidad);
-              if (parsed.origenPartido) setOrigenPartido(parsed.origenPartido);
-              if (parsed.origenNombre) setOrigenNombre(parsed.origenNombre);
-              if (parsed.destinoDireccion) setDestinoDireccion(parsed.destinoDireccion);
-              if (parsed.destinoLocalidad) setDestinoLocalidad(parsed.destinoLocalidad);
-              if (parsed.destinoPartido) setDestinoPartido(parsed.destinoPartido);
-              if (parsed.destinoNombre) setDestinoNombre(parsed.destinoNombre);
-              if (parsed.frecuencia) setFrecuencia(parsed.frecuencia);
-              if (parsed.horario) setHorario(parsed.horario);
-              if (parsed.observaciones) setObservaciones(parsed.observaciones);
-              if (parsed.vigenciaDesde) setVigenciaDesde(parsed.vigenciaDesde);
-              if (parsed.vigenciaHasta) setVigenciaHasta(parsed.vigenciaHasta);
-            } catch (e) {
-              console.error('Error loading draft', e);
-            }
-          } else {
-            localStorage.removeItem('lanus-transporte-draft');
+          try {
+            const parsed = JSON.parse(draft);
+            setPendingDraft(parsed);
+            setShowDraftModal(true);
+          } catch (e) {
+            console.error('Error loading draft', e);
           }
         }
       }
@@ -606,6 +576,49 @@ export default function TransportePesadoWizard() {
   const stepLabels = ['Datos', 'Trazado', 'Confirmar'];
   const currentStepNum = step === 1 ? 1 : step === 1.5 ? 1 : step === 2 ? 2 : 3;
 
+  const restoreDraft = () => {
+    if (!pendingDraft) return;
+    const p = pendingDraft;
+    if (p.numeroSolicitud) setNumeroSolicitud(p.numeroSolicitud);
+    if (p.nombreSolicitante) setNombreSolicitante(p.nombreSolicitante);
+    if (p.empresaSolicitante) setEmpresaSolicitante(p.empresaSolicitante);
+    if (p.cuilCuit) setCuilCuit(p.cuilCuit);
+    if (p.emailSolicitante) setEmailSolicitante(p.emailSolicitante);
+    if (p.telefonoSolicitante) setTelefonoSolicitante(p.telefonoSolicitante);
+    if (p.patente) setPatente(p.patente);
+    if (p.tipoVehiculo) setTipoVehiculo(p.tipoVehiculo);
+    if (p.pesoToneladas) setPesoToneladas(p.pesoToneladas);
+    if (p.cargaPeligrosa) setCargaPeligrosa(p.cargaPeligrosa);
+    if (p.tipoCarga) setTipoCarga(p.tipoCarga);
+    if (p.largoVehiculo) setLargoVehiculo(p.largoVehiculo);
+    if (p.anchoVehiculo) setAnchoVehiculo(p.anchoVehiculo);
+    if (p.alturaVehiculo) setAlturaVehiculo(p.alturaVehiculo);
+    if (p.cantidadEjes) setCantidadEjes(p.cantidadEjes);
+    if (p.aseguradora) setAseguradora(p.aseguradora);
+    if (p.nroSeguro) setNroSeguro(p.nroSeguro);
+    if (p.origenDireccion) setOrigenDireccion(p.origenDireccion);
+    if (p.origenLocalidad) setOrigenLocalidad(p.origenLocalidad);
+    if (p.origenPartido) setOrigenPartido(p.origenPartido);
+    if (p.origenNombre) setOrigenNombre(p.origenNombre);
+    if (p.destinoDireccion) setDestinoDireccion(p.destinoDireccion);
+    if (p.destinoLocalidad) setDestinoLocalidad(p.destinoLocalidad);
+    if (p.destinoPartido) setDestinoPartido(p.destinoPartido);
+    if (p.destinoNombre) setDestinoNombre(p.destinoNombre);
+    if (p.frecuencia) setFrecuencia(p.frecuencia);
+    if (p.horario) setHorario(p.horario);
+    if (p.observaciones) setObservaciones(p.observaciones);
+    if (p.vigenciaDesde) setVigenciaDesde(p.vigenciaDesde);
+    if (p.vigenciaHasta) setVigenciaHasta(p.vigenciaHasta);
+    setShowDraftModal(false);
+    setPendingDraft(null);
+  };
+
+  const discardDraft = () => {
+    localStorage.removeItem('lanus-transporte-draft');
+    setShowDraftModal(false);
+    setPendingDraft(null);
+  };
+
   const filteredRutas = rutasList.filter(ruta => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = !term || 
@@ -640,7 +653,7 @@ export default function TransportePesadoWizard() {
             </div>
             <div>
               <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Transporte Pesado</h1>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Municipio de Lanús</p>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Gestión de permisos</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -798,7 +811,7 @@ export default function TransportePesadoWizard() {
 
         <div style={{ flex: 1, padding: '30px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* Dashboard Stats */}
-          {!loadingRutas && rutas.length > 0 && (
+          {!loadingRutas && rutasList.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
               <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -806,7 +819,7 @@ export default function TransportePesadoWizard() {
                 </div>
                 <div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Total Solicitudes</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutas.length}</h3>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.length}</h3>
                 </div>
               </div>
               <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
@@ -815,7 +828,7 @@ export default function TransportePesadoWizard() {
                 </div>
                 <div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Pendientes</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutas.filter(r => r.estado === 'PENDIENTE').length}</h3>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.filter(r => r.estado === 'PENDIENTE').length}</h3>
                 </div>
               </div>
               <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
@@ -824,7 +837,7 @@ export default function TransportePesadoWizard() {
                 </div>
                 <div>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Aprobadas</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutas.filter(r => r.estado === 'APROBADA').length}</h3>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.filter(r => r.estado === 'APROBADA').length}</h3>
                 </div>
               </div>
             </div>
@@ -994,7 +1007,7 @@ export default function TransportePesadoWizard() {
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Viabilidad de Transporte Pesado</h1>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Municipio de Lanús · Asistente de Registro</p>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Asistente de registro</p>
           </div>
         </div>
         {/* Progress Steps */}
@@ -1071,18 +1084,18 @@ export default function TransportePesadoWizard() {
               </div>
             )}
 
-            {/* Asistente Mágico banner */}
-            <div style={{ width: '100%', marginBottom: '18px', background: 'linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%)', border: '1px solid #c4b5fd', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            {/* Importar desde GDEBA */}
+            <div style={{ width: '100%', marginBottom: '16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <div>
-                <div style={{ fontWeight: '700', fontSize: '13px', color: '#4c1d95' }}>✨ Asistente Mágico</div>
-                <div style={{ fontSize: '12px', color: '#6d28d9', marginTop: '2px' }}>Pegá el texto de GDEBA y completamos todo automáticamente</div>
+                <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>Importar desde GDEBA</div>
+                <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '1px' }}>Pegá el texto de la solicitud y completamos los campos automáticamente</div>
               </div>
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: 'white', border: 'none', borderRadius: '7px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {showImport ? 'Cerrar' : 'Usar'}
+              <div style={{ display: 'flex', gap: '7px', flexShrink: 0 }}>
+                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {showImport ? 'Cerrar' : 'Importar'}
                 </button>
-                <a href="/instalar-asistente" target="_blank" style={{ backgroundColor: 'white', color: '#5b21b6', border: '1px solid #c4b5fd', borderRadius: '7px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                  Instalar
+                <a href="/instalar-asistente" target="_blank" style={{ backgroundColor: 'white', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                  Instalar extensión
                 </a>
               </div>
             </div>
@@ -1201,13 +1214,15 @@ export default function TransportePesadoWizard() {
 
         {step === 1.5 && parsedInfo && (
           <div style={{ ...cardStyle, maxWidth: '600px' }}>
-            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <span style={{ ...stepBadgeStyle, backgroundColor: '#F3E8FF', color: '#6B21A8' }}>Revisión de IA</span>
-              <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Datos Extraídos</h2>
-              <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>Por favor, verifique que la información detectada sea correcta.</p>
+            <div style={{ marginBottom: '16px', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+                <span style={stepBadgeStyle}>Datos importados</span>
+              </div>
+              <h2 style={{ margin: '8px 0 2px', fontSize: '17px', fontWeight: '800', color: '#111827' }}>Verificar datos</h2>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>Revisá que la información sea correcta antes de continuar.</p>
             </div>
 
-            <div style={{ backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e2e8f0', color: '#334155' }}>
+            <div style={{ background: '#f9fafb', padding: '14px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #e5e7eb', color: '#374151', width: '100%' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
                 <div><strong style={{ color: '#0f172a' }}>ID Web:</strong> {idSolicitudWeb || '-'}</div>
                 <div><strong style={{ color: '#0f172a' }}>N° Expediente:</strong> {numeroSolicitud}</div>
@@ -1303,16 +1318,11 @@ export default function TransportePesadoWizard() {
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-              <button 
-                type="button" 
-                onClick={() => {
-                  if (parsedInfo?.datosGeo) {
-                    setDatosGeo(parsedInfo.datosGeo);
-                  }
-                  setStep(2);
-                }}
-                style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
-                Continuar al Mapa para Dibujar la Ruta <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+              <button
+                type="button"
+                onClick={() => { if (parsedInfo?.datosGeo) setDatosGeo(parsedInfo.datosGeo); setStep(2); }}
+                style={{ ...primaryBtnStyle }}>
+                Continuar al mapa <ArrowRight size={16} style={{ marginLeft: '6px' }} />
               </button>
             </div>
           </div>
@@ -1321,12 +1331,12 @@ export default function TransportePesadoWizard() {
         {step === 2 && (
           <div style={{ flex: 1, display: 'flex', width: '100%', height: '100%' }}>
             <div style={{ flex: 1, position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'white', padding: '15px 25px', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ backgroundColor: '#E1F5FE', color: '#0288D1', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>2</div>
-                <span style={{ fontWeight: 500, color: '#333' }}>Dibuje la ruta en el mapa</span>
+              <div style={{ position: 'absolute', top: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, backgroundColor: 'white', padding: '8px 18px', borderRadius: '9999px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid #e5e7eb' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb' }} />
+                <span style={{ fontWeight: 600, color: '#374151', fontSize: '13px' }}>Dibujá la ruta en el mapa</span>
               </div>
 
-              <div style={{ width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden', border: '2px solid #E1F5FE' }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
                 <WizardMap 
                   onComplete={handleMapComplete} 
                   initialGeo={datosGeo}
@@ -1339,10 +1349,12 @@ export default function TransportePesadoWizard() {
 
         {step === 3 && (
           <div style={cardStyle}>
-            <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-              <span style={stepBadgeStyle}>Paso 3 de 3</span>
-              <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Confirmar Traza</h2>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Frecuencia:</strong> {frecuencia || 'No especificada'}</p>
+            <div style={{ marginBottom: '16px', width: '100%' }}>
+              <h2 style={{ margin: '0 0 4px', fontSize: '17px', fontWeight: '800', color: '#111827' }}>Confirmar y enviar</h2>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                Solicitud <strong style={{ color: '#374151' }}>#{numeroSolicitud}</strong>
+                {frecuencia ? ` · ${frecuencia}` : ''}
+              </p>
                 
               {tracedStreets.length > 0 && (
                 <div style={{ marginTop: '15px', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1392,16 +1404,46 @@ export default function TransportePesadoWizard() {
               
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-              <button onClick={() => setStep(2)} style={{ ...btnStyle, backgroundColor: '#888', flex: 1 }}>Re-dibujar</button>
-              <button onClick={handleSubmitFinal} disabled={isSubmitting} style={{ ...btnStyle, flex: 2, display: 'flex', justifyContent: 'center' }}>
-                {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Confirmar y Enviar'}
+            <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '8px' }}>
+              <button onClick={() => setStep(2)} style={{ ...btnStyle, background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: '600', flex: 1 }}>
+                Redibujar
+              </button>
+              <button onClick={handleSubmitFinal} disabled={isSubmitting} style={{ ...primaryBtnStyle, flex: 2, marginTop: 0 }}>
+                {isSubmitting ? <Loader2 className="animate-spin" size={16} style={{ marginRight: 6 }} /> : null}
+                {isSubmitting ? 'Enviando...' : 'Confirmar y enviar'}
               </button>
             </div>
           </div>
         )}
 
       </div>
+
+      {/* ── Modal: restaurar borrador ── */}
+      {showDraftModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(4px)' }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '32px 28px', width: 360, boxShadow: '0 20px 60px rgba(0,0,0,0.18)', border: '1px solid #e5e7eb', textAlign: 'center' }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+              <FileText size={24} color="#2563eb" />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Borrador guardado</h3>
+            <p style={{ margin: '0 0 24px', fontSize: 14, color: '#64748b', lineHeight: 1.6 }}>
+              Tenés una solicitud sin finalizar.<br />¿Querés retomar desde donde la dejaste?
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={discardDraft}
+                style={{ flex: 1, padding: '10px', fontSize: 13, fontWeight: 600, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 9, cursor: 'pointer' }}>
+                Empezar nueva
+              </button>
+              <button
+                onClick={restoreDraft}
+                style={{ flex: 2, padding: '10px', fontSize: 13, fontWeight: 700, background: '#2563eb', color: '#fff', border: 'none', borderRadius: 9, cursor: 'pointer' }}>
+                Retomar solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1410,86 +1452,67 @@ export default function TransportePesadoWizard() {
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   minHeight: '100vh',
-  backgroundColor: '#f8fafc',
-  backgroundImage: 'radial-gradient(circle at top right, rgba(41, 182, 246, 0.08) 0%, transparent 40%), radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.08) 0%, transparent 40%)',
+  backgroundColor: '#f1f5f9',
+  padding: '24px 16px',
 };
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: 'rgba(255, 255, 255, 0.85)',
-  backdropFilter: 'blur(12px)',
-  padding: '32px',
-  borderRadius: '20px',
-  boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(15, 23, 42, 0.05)',
-  border: '1px solid rgba(255, 255, 255, 0.7)',
+  backgroundColor: '#ffffff',
+  padding: '28px 32px',
+  borderRadius: '12px',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
+  border: '1px solid #e5e7eb',
   width: '100%',
   maxWidth: '820px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  margin: '24px 16px',
-  maxHeight: 'calc(100vh - 64px - 40px)',
-  overflowY: 'auto',
-  transition: 'all 0.3s ease',
 };
 
 const stepBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#f1f5f9',
-  color: '#334155',
-  padding: '6px 16px',
-  borderRadius: '20px',
+  backgroundColor: '#eff6ff',
+  color: '#2563eb',
+  padding: '3px 10px',
+  borderRadius: '9999px',
   fontSize: '11px',
-  fontWeight: '800',
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  border: '1px solid #e2e8f0',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+  fontWeight: '700',
+  letterSpacing: '0.04em',
+  border: '1px solid #bfdbfe',
 };
 
 const sectionStyle: React.CSSProperties = {
   width: '100%',
   marginBottom: '12px',
-  backgroundColor: '#ffffff',
-  borderRadius: '12px',
-  padding: '20px 22px',
-  border: '1px solid #e2e8f0',
-  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
 };
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontSize: '13px',
-  fontWeight: '800',
-  color: '#0f172a',
+  fontSize: '11px',
+  fontWeight: '700',
+  color: '#6b7280',
   textTransform: 'uppercase',
-  letterSpacing: '1px',
-  marginBottom: '18px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
+  letterSpacing: '0.06em',
+  marginBottom: '10px',
 };
 
 const fieldsetStyle: React.CSSProperties = {
   width: '100%',
-  border: '1px solid #cbd5e1',
-  borderRadius: '12px',
-  padding: '16px 18px 8px',
-  marginBottom: '16px',
-  backgroundColor: '#f8fafc',
-  transition: 'all 0.2s ease',
+  border: '1px solid #e5e7eb',
+  borderRadius: '8px',
+  padding: '14px 16px 6px',
+  marginBottom: '14px',
+  backgroundColor: '#f9fafb',
 };
 
 const legendStyle: React.CSSProperties = {
   fontSize: '11px',
-  fontWeight: '800',
-  color: '#334155',
+  fontWeight: '700',
+  color: '#6b7280',
   textTransform: 'uppercase',
-  letterSpacing: '1px',
-  padding: '4px 12px',
-  backgroundColor: '#ffffff',
-  border: '1px solid #cbd5e1',
-  borderRadius: '6px',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+  letterSpacing: '0.06em',
+  padding: '2px 8px',
+  backgroundColor: '#f9fafb',
 };
 
 const inputGroupStyle: React.CSSProperties = {
@@ -1499,23 +1522,22 @@ const inputGroupStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  marginBottom: '6px',
+  marginBottom: '4px',
   fontWeight: '600',
   color: '#374151',
-  fontSize: '13px',
+  fontSize: '12px',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '11px 14px',
+  padding: '8px 11px',
   fontSize: '13px',
-  border: '1px solid #cbd5e1',
-  borderRadius: '8px',
-  color: '#334155',
+  border: '1px solid #d1d5db',
+  borderRadius: '7px',
+  color: '#111827',
   backgroundColor: '#ffffff',
-  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
-  transition: 'all 0.2s',
   outline: 'none',
+  boxSizing: 'border-box' as const,
 };
 
 const btnStyle: React.CSSProperties = {
@@ -1523,29 +1545,26 @@ const btnStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  transition: 'background 0.2s',
 };
 
 const primaryBtnStyle: React.CSSProperties = {
   width: '100%',
-  padding: '14px',
-  background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+  padding: '11px',
+  background: '#2563eb',
   color: 'white',
   border: 'none',
-  borderRadius: '9px',
-  fontSize: '16px',
-  fontWeight: '700',
+  borderRadius: '8px',
+  fontSize: '14px',
+  fontWeight: '600',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  boxShadow: '0 4px 14px rgba(29,78,216,0.35)',
   marginTop: '8px',
-  letterSpacing: '0.2px',
 };
 
 const detailStyle: React.CSSProperties = {
-  margin: '0 0 8px 0',
-  color: '#444',
-  fontSize: '15px',
+  margin: '0 0 6px 0',
+  color: '#374151',
+  fontSize: '13px',
 };

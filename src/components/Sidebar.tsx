@@ -455,7 +455,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                   </div>
                 </div>
                 <p style={{ margin: 0, fontSize: '0.68rem', color: '#64748b', lineHeight: 1.6 }}>
-                  Plataforma del <span style={{ color: '#94a3b8', fontWeight: 600 }}>Municipio de Lanús</span> para la gestión de datos geoespaciales.
+                  Plataforma centralizada para la gestión de datos geoespaciales e información territorial.
                 </p>
               </div>
 
@@ -538,7 +538,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               )}
 
               <p style={{ fontSize: '0.6rem', color: '#d1d5db', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.7 }}>
-                Municipio de Lanús · Secretaría de Obras Públicas
+                GIS Lanús · v2.0
               </p>
             </div>
           </div>

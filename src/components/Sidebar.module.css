@@ -13,14 +13,14 @@
 /* ─── Nav Strip ─────────────────────────────────────── */
 .navStrip {
   width: 48px;
-  background: linear-gradient(180deg, #0c1220 0%, #0a1018 100%);
+  background: #1e2535;
   border-right: 1px solid rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 12px 0;
   gap: 2px;
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.45), inset -1px 0 0 rgba(255,255,255,0.03);
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   z-index: 2;
 }
@@ -51,8 +51,8 @@
 }
 
 .navIconActive {
-  background: rgba(56, 189, 248, 0.1);
-  color: #7dd3fc;
+  background: rgba(37, 99, 235, 0.15);
+  color: #93c5fd;
 }
 
 .navIconActive::after {
@@ -63,17 +63,17 @@
   transform: translateY(-50%);
   width: 2px;
   height: 16px;
-  background: linear-gradient(180deg, #38bdf8, #7dd3fc);
+  background: #60a5fa;
   border-radius: 0 2px 2px 0;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
 }
 
 /* ─── Panel ─────────────────────────────────────────── */
 .panel {
   width: 0;
-  background: #f8fafc;
-  border-right: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.07);
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.06);
   overflow: hidden;
   transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: auto;
@@ -105,7 +105,7 @@
 /* ─── Panel Header ──────────────────────────────────── */
 .panelHeader {
   padding: 14px 14px 11px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -113,7 +113,6 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
 }
 
 .panelHeaderIcon {
@@ -142,36 +141,31 @@
   flex-direction: column;
   gap: 5px;
   flex: 1;
+  background: #f9fafb;
 }
 
 /* ─── Layer Group ───────────────────────────────────── */
 .layerGroup {
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  transition: box-shadow 0.15s;
-}
-
-.layerGroup:hover {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .groupHeader {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 10px 9px 8px;
-  background: #fafbfc;
+  padding: 8px 10px 8px 8px;
+  background: #f9fafb;
   cursor: pointer;
   transition: background 0.1s;
   user-select: none;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .groupHeader:hover {
-  background: #f1f5f9;
+  background: #f3f4f6;
 }
 
 .groupColorDot {
@@ -230,7 +224,7 @@
 }
 
 .groupItems {
-  padding: 5px 8px 7px;
+  padding: 5px 8px 6px;
   background: #fff;
 }
 
@@ -351,7 +345,7 @@
 }
 
 .toggleInput:checked + .toggleSlider {
-  background: #0ea5e9;
+  background: #2563eb;
 }
 
 .toggleInput:checked + .toggleSlider::before {
