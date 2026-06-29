@@ -19,6 +19,7 @@ function WizardMapController({ onComplete, initialGeo }: any) {
   const map = useMap();
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
+  const [waypoints, setWaypoints] = useState<any[]>([]);
 
   // Auto zoom to initialGeo bounds if provided
   useEffect(() => {
@@ -88,6 +89,11 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       }
     });
 
+    control.on('waypointschanged', function(e: any) {
+      const validWps = e.waypoints ? e.waypoints.filter((w:any) => w.latLng) : control.getWaypoints().filter((w:any) => w.latLng);
+      setWaypoints([...validWps]);
+    });
+
     setRoutingControl(control);
 
     const onMapClick = (e: any) => {
@@ -154,6 +160,34 @@ function WizardMapController({ onComplete, initialGeo }: any) {
 
   return (
     <>
+      {waypoints.length > 0 && (
+        <div style={{ position: 'absolute', top: '80px', left: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '250px', maxHeight: '400px', overflowY: 'auto' }}>
+          <h4 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '14px' }}>Puntos del Recorrido</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {waypoints.map((wp, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>
+                  {i === 0 ? '📍 Inicio' : i === waypoints.length - 1 ? '🏁 Destino' : `🛑 Parada ${i}`}
+                </span>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); routingControl.spliceWaypoints(i, 1); }}
+                  style={{ background: '#fee2e2', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}
+                  title="Eliminar punto"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+          {currentRoute && currentRoute.summary && (
+            <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <span>📏 {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km</span>
+              <span>⏱️ {Math.round(currentRoute.summary.totalTime / 60)} min</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {currentRoute ? (
         <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
           <button 
