@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { MapPin, Truck, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 
@@ -18,6 +19,8 @@ import { useAuth } from '@/context/AuthContext';
 import { emitirNuevaSolicitud } from '@/lib/rtdb';
 
 export default function TransportePesadoWizard() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('editId');
   const { dbUser, loading } = useAuth();
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
@@ -92,6 +95,61 @@ export default function TransportePesadoWizard() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (editId) {
+      const fetchEditData = async () => {
+        try {
+          const res = await fetch(`/api/rutas-transporte/${editId}`);
+          if (!res.ok) throw new Error('No se pudo cargar la solicitud');
+          const data = await res.json();
+          setNumeroSolicitud(data.numeroSolicitud || '');
+          setIdSolicitudWeb(data.idSolicitudWeb || '');
+          setFechaCreacion(data.fechaCreacion || '');
+          setNombreSolicitante(data.nombreSolicitante || '');
+          setEmpresaSolicitante(data.empresaSolicitante || '');
+          setCuilCuit(data.cuilCuit || '');
+          setEmailSolicitante(data.emailSolicitante || '');
+          setTelefonoSolicitante(data.telefonoSolicitante || '');
+          setPatente(data.patente || '');
+          setTipoVehiculo(data.tipoVehiculo || '');
+          setPesoToneladas(data.pesoToneladas ? String(data.pesoToneladas) : '');
+          setCargaPeligrosa(!!data.cargaPeligrosa);
+          setTipoCarga(data.tipoCarga || '');
+          setLargoVehiculo(data.largoVehiculo || '');
+          setAnchoVehiculo(data.anchoVehiculo || '');
+          setAlturaVehiculo(data.alturaVehiculo || '');
+          setCantidadEjes(data.cantidadEjes ? String(data.cantidadEjes) : '');
+          setAseguradora(data.aseguradora || '');
+          setNroSeguro(data.nroSeguro || '');
+          setOrigenDireccion(data.origenDireccion || '');
+          setOrigenLocalidad(data.origenLocalidad || '');
+          setOrigenPartido(data.origenPartido || '');
+          setOrigenNombre(data.origenNombre || '');
+          setDestinoDireccion(data.destinoDireccion || '');
+          setDestinoLocalidad(data.destinoLocalidad || '');
+          setDestinoPartido(data.destinoPartido || '');
+          setDestinoNombre(data.destinoNombre || '');
+          setFrecuencia(data.frecuencia || '');
+          setHorario(data.horario || '');
+          setObservaciones(data.observaciones || '');
+          setVigenciaDesde(data.vigenciaDesde || '');
+          setVigenciaHasta(data.vigenciaHasta || '');
+          if (data.datosGeo) {
+            let parsedGeo = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;
+            setDatosGeo(parsedGeo);
+            if (parsedGeo.properties && parsedGeo.properties.waypoints) {
+              setSavedWaypoints(parsedGeo.properties.waypoints);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error al cargar la ruta para edición.');
+        }
+      };
+      fetchEditData();
+    }
+  }, [editId]);
 
   if (loading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
@@ -208,55 +266,71 @@ export default function TransportePesadoWizard() {
       const routeText = tracedStreets.length > 0 
         ? tracedStreets.join(' - ')
         : (parsedInfo && parsedInfo.calles ? parsedInfo.calles : "");
+      
+      const payload: any = {
+        numeroSolicitud,
+        idSolicitudWeb,
+        fechaCreacion,
+        nombreSolicitante,
+        empresaSolicitante,
+        cuilCuit,
+        emailSolicitante,
+        telefonoSolicitante,
+        patente,
+        tipoVehiculo,
+        pesoToneladas,
+        cargaPeligrosa,
+        tipoCarga,
+        largoVehiculo,
+        anchoVehiculo,
+        alturaVehiculo,
+        cantidadEjes: cantidadEjes ? parseInt(cantidadEjes) : null,
+        aseguradora,
+        nroSeguro,
+        origenDireccion,
+        origenLocalidad,
+        origenPartido,
+        origenNombre,
+        destinoDireccion,
+        destinoLocalidad,
+        destinoPartido,
+        destinoNombre,
+        frecuencia,
+        horario,
+        observaciones,
+        vigenciaDesde,
+        vigenciaHasta,
+        datosGeo: JSON.stringify(datosGeo),
+        calles: routeText
+      };
 
-      const response = await fetch('/api/rutas-transporte', {
-        method: 'POST',
+      if (editId) {
+        payload.editadoPorId = dbUser?.id;
+        payload.editadoPorNombre = dbUser?.nombre || dbUser?.email;
+      } else {
+        payload.creadoPorId = dbUser?.id;
+        payload.creadoPorNombre = dbUser?.nombre || dbUser?.email;
+      }
+
+      const method = editId ? 'PUT' : 'POST';
+      const url = editId ? `/api/rutas-transporte/${editId}` : '/api/rutas-transporte';
+
+      const response = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          numeroSolicitud,
-          idSolicitudWeb,
-          fechaCreacion,
-          nombreSolicitante,
-          empresaSolicitante,
-          cuilCuit,
-          emailSolicitante,
-          telefonoSolicitante,
-          patente,
-          tipoVehiculo,
-          pesoToneladas,
-          cargaPeligrosa,
-          tipoCarga,
-          largoVehiculo,
-          anchoVehiculo,
-          alturaVehiculo,
-          cantidadEjes: cantidadEjes ? parseInt(cantidadEjes) : null,
-          aseguradora,
-          nroSeguro,
-          origenDireccion,
-          origenLocalidad,
-          origenPartido,
-          origenNombre,
-          destinoDireccion,
-          destinoLocalidad,
-          destinoPartido,
-          destinoNombre,
-          frecuencia,
-          horario,
-          observaciones,
-          vigenciaDesde,
-          vigenciaHasta,
-          datosGeo: JSON.stringify(datosGeo),
-          calles: routeText
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) throw new Error('Error saving route');
       const saved = await response.json();
-      emitirNuevaSolicitud({
-        solicitudId: saved.id,
-        numeroSolicitud: saved.numeroSolicitud,
-        nombreSolicitante: saved.nombreSolicitante,
-      });
+      
+      if (!editId) {
+        emitirNuevaSolicitud({
+          solicitudId: saved.id,
+          numeroSolicitud: saved.numeroSolicitud,
+          nombreSolicitante: saved.nombreSolicitante,
+        });
+      }
       setStep(2.5);
     } catch (err) {
       alert('Error al guardar la solicitud. Por favor, intente nuevamente.');
@@ -417,6 +491,15 @@ export default function TransportePesadoWizard() {
         
         {step === 1 && (
           <form onSubmit={handleNextStep1} style={cardStyle}>
+            {editId && (
+              <div style={{ width: '100%', marginBottom: '18px', background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '18px', marginRight: '10px' }}>✏️</span>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#92400E' }}>Modo Edición</div>
+                  <div style={{ fontSize: '12px', color: '#B45309' }}>Estás editando un recorrido existente. Los cambios sobreescribirán la traza anterior.</div>
+                </div>
+              </div>
+            )}
 
             {/* Asistente Mágico banner */}
             <div style={{ width: '100%', marginBottom: '18px', background: 'linear-gradient(135deg, #ede9fe 0%, #f5f3ff 100%)', border: '1px solid #c4b5fd', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>

@@ -15,7 +15,8 @@ export async function POST(req: Request) {
       destinoDireccion, destinoLocalidad, destinoPartido, destinoNombre,
       frecuencia, horario, observaciones,
       vigenciaDesde, vigenciaHasta,
-      datosGeo, calles
+      datosGeo, calles,
+      creadoPorId, creadoPorNombre
     } = body;
 
     if (!numeroSolicitud || !nombreSolicitante || !datosGeo) {
@@ -88,6 +89,8 @@ export async function POST(req: Request) {
         datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
         calles: calles || null,
         estado: 'BORRADOR',
+        creadoPorId: creadoPorId || null,
+        creadoPorNombre: creadoPorNombre || null,
       },
     });
 

@@ -144,6 +144,11 @@ model RutaTransporte {
   vigenciaDesde     String?
   vigenciaHasta     String?
   estado            String   @default("PENDIENTE")
+  // Tracking y Auditoría
+  creadoPorId       String?
+  creadoPorNombre   String?
+  editadoPorId      String?
+  editadoPorNombre  String?
   activo            Boolean  @default(true)
   // GeoJSON
   datosGeo          String

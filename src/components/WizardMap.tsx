@@ -171,7 +171,8 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
     const geojson = {
       type: 'Feature',
       properties: {
-        streets: uniqueStreets.join(' - ')
+        streets: uniqueStreets.join(' - '),
+        waypoints: waypoints
       },
       geometry: {
         type: 'LineString',

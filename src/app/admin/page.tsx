@@ -1789,6 +1789,12 @@ export default function AdminPage() {
                               {ruta.aseguradora && <div><strong>Seguro:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(${ruta.nroSeguro})` : ''}</div>}
                               {ruta.cargaPeligrosa && <div style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '4px' }}>Carga Peligrosa</div>}
                             </div>
+                            {dbUser?.rol === 'SUPER_ADMIN' && (ruta.creadoPorNombre || ruta.editadoPorNombre) && (
+                              <div style={{ marginTop: '6px', padding: '4px', background: '#f3f4f6', borderRadius: '4px', fontSize: '0.75rem', color: '#6b7280' }}>
+                                {ruta.creadoPorNombre && <div><strong>Cargó:</strong> {ruta.creadoPorNombre}</div>}
+                                {ruta.editadoPorNombre && <div><strong>Editó:</strong> {ruta.editadoPorNombre}</div>}
+                              </div>
+                            )}
                           </td>
                           <td>
                             <span className={`${styles.badge} ${
@@ -1839,7 +1845,16 @@ export default function AdminPage() {
                                 <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
                               </div>
                             )}
-                            <button className={styles.deleteBtn} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
+                            <div style={{ display: 'flex', gap: '5px' }}>
+                              <button 
+                                className={styles.submitBtn} 
+                                style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#8b5cf6', borderColor: '#7c3aed' }} 
+                                onClick={() => window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank')}
+                              >
+                                ✏️ Editar
+                              </button>
+                              <button className={styles.deleteBtn} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
+                            </div>
                           </td>
                         </tr>
                       ))}
