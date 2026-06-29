@@ -42,7 +42,7 @@ export default function AdminPage() {
     if (!authLoading) {
       if (!user) {
         router.push('/login');
-      } else if (dbUser && dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR') {
+      } else if (dbUser && dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR' && dbUser.rol !== 'OPERADOR') {
         router.push('/');
       }
     }
@@ -1052,19 +1052,19 @@ export default function AdminPage() {
             Dashboard
           </button>
           {dbUser?.rol === 'SUPER_ADMIN' && (
-            <>
-              <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
-                Grupos
-              </button>
-              <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
-                Capas
-              </button>
-            </>
+            <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
+              Grupos
+            </button>
+          )}
+          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
+            <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
+              Capas
+            </button>
           )}
           <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
             Transporte Pesado
           </button>
-          {dbUser?.rol === 'SUPER_ADMIN' && (
+          {(dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
             <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
               Líneas de Colectivo
             </button>
@@ -1093,36 +1093,75 @@ export default function AdminPage() {
         
         {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && (
-          <section className={styles.fullSection}>
-            <h2>Resumen General</h2>
+          <section className={styles.fullSection} style={{ background: 'transparent', boxShadow: 'none', border: 'none', padding: 0 }}>
             {loading ? (
-              <div className={styles.dashboardGrid}>
-                {[1,2,3,4].map(i => (
-                  <div key={i} className={styles.statCard} style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>
-                    <div style={{ height: 40, background: 'rgba(255,255,255,0.1)', borderRadius: 6, marginBottom: 8 }} />
-                    <div style={{ height: 16, background: 'rgba(255,255,255,0.07)', borderRadius: 4 }} />
-                  </div>
-                ))}
-              </div>
+              <p>Cargando dashboard...</p>
             ) : (
-              <div className={styles.dashboardGrid}>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>{grupos.length}</div>
-                  <div className={styles.statLabel}>Grupos Creados</div>
+              <>
+                <div className={styles.dashboardGrid}>
+                  <div className={`${styles.statCard} ${styles.total}`}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel}>Total Solicitudes</span>
+                      <span className={styles.statIcon}>📋</span>
+                    </div>
+                    <div className={styles.statValue}>{rutas.length}</div>
+                  </div>
+                  
+                  <div className={`${styles.statCard} ${styles.nuevos}`}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel}>Rutas Pendientes</span>
+                      <span className={styles.statIcon}>⏳</span>
+                    </div>
+                    <div className={styles.statValue}>{rutas.filter(r => r.estado === 'PENDIENTE').length}</div>
+                  </div>
+                  
+                  <div className={`${styles.statCard} ${styles.proceso}`}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel}>Capas Activas</span>
+                      <span className={styles.statIcon}>🗺️</span>
+                    </div>
+                    <div className={styles.statValue}>{capas.length}</div>
+                  </div>
+                  
+                  <div className={`${styles.statCard} ${styles.resueltos}`}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel}>Usuarios Activos</span>
+                      <span className={styles.statIcon}>👥</span>
+                    </div>
+                    <div className={styles.statValue}>{usuarios.filter(u => u.rol !== 'PENDIENTE').length}</div>
+                  </div>
                 </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>{subgrupos.length}</div>
-                  <div className={styles.statLabel}>Sub-grupos Creados</div>
+
+                <div style={{ textAlign: 'center', marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '2px', textTransform: 'uppercase' }}>Alertas y Datos Secundarios</span>
                 </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>{capas.length}</div>
-                  <div className={styles.statLabel}>Capas Activas</div>
+
+                <div className={styles.dashboardGrid} style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                  <div className={`${styles.statCard} ${styles.alert}`} style={{ background: '#fef2f2', borderColor: '#fecaca' }}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel} style={{ color: '#991b1b' }}>Usuarios Pendientes (Sin Acceso)</span>
+                      <span className={styles.statIcon}>⚠️</span>
+                    </div>
+                    <div className={styles.statValue} style={{ color: '#991b1b' }}>{usuarios.filter(u => u.rol === 'PENDIENTE').length}</div>
+                  </div>
+
+                  <div className={`${styles.statCard} ${styles.purple}`} style={{ background: '#faf5ff', borderColor: '#e9d5ff' }}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel} style={{ color: '#6b21a8' }}>Líneas de Transporte</span>
+                      <span className={styles.statIcon}>🚌</span>
+                    </div>
+                    <div className={styles.statValue} style={{ color: '#6b21a8' }}>{lineas.length}</div>
+                  </div>
+
+                  <div className={`${styles.statCard} ${styles.proceso}`} style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
+                    <div className={styles.statHeader}>
+                      <span className={styles.statLabel} style={{ color: '#92400e' }}>Accesos QR (Histórico)</span>
+                      <span className={styles.statIcon}>📱</span>
+                    </div>
+                    <div className={styles.statValue} style={{ color: '#92400e' }}>{solicitudesQr.length}</div>
+                  </div>
                 </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statValue}>{rutas.filter(r => r.estado === 'PENDIENTE').length}</div>
-                  <div className={styles.statLabel}>Rutas Pendientes</div>
-                </div>
-              </div>
+              </>
             )}
           </section>
         )}
@@ -1258,7 +1297,7 @@ export default function AdminPage() {
         )}
 
         {/* CAPAS TAB */}
-        {activeTab === 'capas' && dbUser?.rol === 'SUPER_ADMIN' && (
+        {activeTab === 'capas' && (dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
           <>
             {selectedCapaForRecords ? (
               <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
@@ -1763,7 +1802,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'lineas' && dbUser?.rol === 'SUPER_ADMIN' && (
+          {activeTab === 'lineas' && (dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR') && (
             <section className={styles.fullSection}>
               <h2>Líneas de Transporte Público</h2>
               <p className={styles.tabDescription}>Organizá y editá las trazas de todas las líneas agrupadas por jurisdicción.</p>
@@ -2351,7 +2390,8 @@ export default function AdminPage() {
                               <option value="PENDIENTE">BLOQUEADO / PENDIENTE</option>
                               <option value="VECINO">VECINO (Público)</option>
                               <option value="CHOFER">CHOFER (Rutas)</option>
-                              <option value="ADMINISTRADOR">ADMINISTRADOR (Capas)</option>
+                              <option value="OPERADOR">OPERADOR (Editor de Trazas)</option>
+                              <option value="ADMINISTRADOR">ADMINISTRADOR (Avanzado)</option>
                               <option value="SUPER_ADMIN">SUPER_ADMIN (Total)</option>
                             </select>
                           </td>

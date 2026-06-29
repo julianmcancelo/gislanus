@@ -268,8 +268,8 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
     grupos[gName].subgrupos[sgName].subsubgrupos[ssgName].forEach(c => { if (c.active !== active) alternarCapa(c.id); });
   };
 
-  const canAccessTransporte = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'USUARIO';
-  const canAccessAdmin = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR';
+  const canAccessTransporte = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR' || dbUser?.rol === 'USUARIO';
+  const canAccessAdmin = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR';
 
   return (
     <div className={styles.sidebarContainer}>
@@ -610,6 +610,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                     }}>
                       {dbUser?.rol === 'SUPER_ADMIN' ? 'Super Administrador' :
                        dbUser?.rol === 'ADMINISTRADOR' ? 'Administrador' :
+                       dbUser?.rol === 'OPERADOR' ? 'Operador' :
                        dbUser?.rol === 'USUARIO' ? 'Usuario' : dbUser?.rol}
                     </span>
                   </div>
