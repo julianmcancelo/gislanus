@@ -20,8 +20,12 @@ import { emitirNuevaSolicitud } from '@/lib/rtdb';
 
 export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
-  const editId = searchParams.get('editId');
+  const urlEditId = searchParams.get('editId');
   const { dbUser, loading } = useAuth();
+  const [viewMode, setViewMode] = useState<'list' | 'wizard'>(urlEditId ? 'wizard' : 'list');
+  const [editId, setEditId] = useState<string | null>(urlEditId);
+  const [rutasList, setRutasList] = useState<any[]>([]);
+  const [loadingRutas, setLoadingRutas] = useState(false);
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
@@ -140,6 +144,17 @@ export default function TransportePesadoWizard() {
             setDatosGeo(parsedGeo);
             if (parsedGeo.properties && parsedGeo.properties.waypoints) {
               setSavedWaypoints(parsedGeo.properties.waypoints);
+            } else if (parsedGeo.geometry && parsedGeo.geometry.coordinates && parsedGeo.geometry.type === 'LineString') {
+              // Legacy route (no waypoints saved). Use first and last coordinates to initialize the router.
+              const coords = parsedGeo.geometry.coordinates;
+              if (coords.length >= 2) {
+                const start = coords[0];
+                const end = coords[coords.length - 1];
+                setSavedWaypoints([
+                  { latLng: { lat: start[1], lng: start[0] } },
+                  { latLng: { lat: end[1], lng: end[0] } }
+                ]);
+              }
             }
           }
         } catch (err) {
@@ -148,8 +163,40 @@ export default function TransportePesadoWizard() {
         }
       };
       fetchEditData();
+    } else {
+      // Reset form if no editId
+      setNumeroSolicitud(''); setIdSolicitudWeb(''); setFechaCreacion(''); setNombreSolicitante('');
+      setEmpresaSolicitante(''); setCuilCuit(''); setEmailSolicitante(''); setTelefonoSolicitante('');
+      setPatente(''); setTipoVehiculo(''); setPesoToneladas(''); setCargaPeligrosa(false);
+      setTipoCarga(''); setLargoVehiculo(''); setAnchoVehiculo(''); setAlturaVehiculo('');
+      setCantidadEjes(''); setAseguradora(''); setNroSeguro(''); setOrigenDireccion('');
+      setOrigenLocalidad(''); setOrigenPartido(''); setOrigenNombre(''); setDestinoDireccion('');
+      setDestinoLocalidad(''); setDestinoPartido(''); setDestinoNombre(''); setFrecuencia('');
+      setHorario(''); setObservaciones(''); setVigenciaDesde(''); setVigenciaHasta('');
+      setDatosGeo(null); setSavedWaypoints([]); setTracedStreets([]);
     }
   }, [editId]);
+
+  const fetchRutasList = async () => {
+    setLoadingRutas(true);
+    try {
+      const res = await fetch('/api/rutas-transporte');
+      if (res.ok) {
+        const data = await res.json();
+        setRutasList(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingRutas(false);
+    }
+  };
+
+  useEffect(() => {
+    if (viewMode === 'list') {
+      fetchRutasList();
+    }
+  }, [viewMode]);
 
   if (loading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
@@ -385,7 +432,15 @@ export default function TransportePesadoWizard() {
           <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
             La solicitud <strong>#{numeroSolicitud}</strong> y todos sus vehículos han sido guardados correctamente. Nuestro equipo los verificará.
           </p>
-          <button onClick={() => window.location.reload()} style={btnStyle}>Registrar Otra Solicitud</button>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={() => window.location.reload()} style={btnStyle}>Registrar Otra Solicitud</button>
+            <button 
+              onClick={() => { setIsSuccess(false); setViewMode('list'); fetchRutasList(); }} 
+              style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db' }}
+            >
+              Ir al Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -433,6 +488,111 @@ export default function TransportePesadoWizard() {
   const stepLabels = ['Datos', 'Trazado', 'Confirmar'];
   const currentStepNum = step === 1 ? 1 : step === 1.5 ? 1 : step === 2 ? 2 : 3;
 
+  if (viewMode === 'list') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
+        <header style={{
+          height: '64px',
+          background: 'linear-gradient(135deg, #1a237e 0%, #283593 60%, #1565C0 100%)',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+          zIndex: 10
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '7px', display: 'flex' }}>
+              <Truck size={24} color="#90CAF9" />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '17px', fontWeight: '700', letterSpacing: '0.2px' }}>Transporte Pesado</h1>
+              <p style={{ margin: 0, fontSize: '11px', color: '#90CAF9', letterSpacing: '0.3px' }}>Panel de Solicitudes</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => { setEditId(null); setViewMode('wizard'); }} 
+            style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#10b981', borderColor: '#059669', fontSize: '14px' }}
+          >
+            ➕ Nueva Solicitud
+          </button>
+        </header>
+
+        <div style={{ flex: 1, padding: '30px', overflowY: 'auto' }}>
+          <div style={{ ...cardStyle, maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0', overflow: 'hidden' }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
+              <h2 style={{ margin: 0, color: '#374151', fontSize: '1.2rem' }}>Listado de Recorridos</h2>
+            </div>
+            
+            {loadingRutas ? (
+              <div style={{ padding: '60px', textAlign: 'center' }}><Loader2 className="animate-spin" size={36} color="#29B6F6" style={{ margin: '0 auto' }}/></div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e5e7eb', backgroundColor: '#f3f4f6', textAlign: 'left', color: '#4b5563' }}>
+                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Solicitud</th>
+                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Empresa / Solicitante</th>
+                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Vehículo</th>
+                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Estado</th>
+                      <th style={{ padding: '15px 20px', fontWeight: '600', textAlign: 'right' }}>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rutasList.map(ruta => (
+                      <tr key={ruta.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s' }}>
+                        <td style={{ padding: '15px 20px' }}>
+                          <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '1rem' }}>#{ruta.numeroSolicitud}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
+                        </td>
+                        <td style={{ padding: '15px 20px' }}>
+                          <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>
+                          {ruta.empresaSolicitante && <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.nombreSolicitante}</div>}
+                        </td>
+                        <td style={{ padding: '15px 20px' }}>
+                          <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.patente || '-'}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.tipoVehiculo || '-'}</div>
+                        </td>
+                        <td style={{ padding: '15px 20px' }}>
+                          <span style={{ 
+                            padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.025em',
+                            backgroundColor: ruta.estado === 'APROBADA' ? '#d1fae5' : ruta.estado === 'RECHAZADA' ? '#fee2e2' : '#fef3c7',
+                            color: ruta.estado === 'APROBADA' ? '#065f46' : ruta.estado === 'RECHAZADA' ? '#991b1b' : '#92400e'
+                          }}>
+                            {ruta.estado}
+                          </span>
+                        </td>
+                        <td style={{ padding: '15px 20px', textAlign: 'right' }}>
+                          <button 
+                            onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
+                            style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s' }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
+                          >
+                            ✏️ Editar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {rutasList.length === 0 && (
+                      <tr>
+                        <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7280' }}>
+                          <div style={{ marginBottom: '10px' }}><Truck size={48} color="#d1d5db" style={{ margin: '0 auto' }}/></div>
+                          No hay solicitudes registradas en el sistema.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
       {/* Wizard Header */}
@@ -478,7 +638,9 @@ export default function TransportePesadoWizard() {
                   }}>
                     {isDone ? '✓' : num}
                   </div>
-                  <span style={{ fontSize: '10px', color: isActive ? 'white' : 'rgba(255,255,255,0.6)', fontWeight: isActive ? '600' : '400' }}>{label}</span>
+                  <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '400', color: isActive ? 'white' : isDone ? '#90CAF9' : 'rgba(255,255,255,0.6)' }}>
+                    {label}
+                  </div>
                 </div>
               </div>
             );
@@ -487,8 +649,23 @@ export default function TransportePesadoWizard() {
       </header>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: step === 2 ? 'stretch' : 'center' }}>
+      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: step === 2 ? 'stretch' : 'center', alignItems: step === 2 ? 'stretch' : 'center' }}>
         
+        {step !== 2 && (
+          <button 
+            onClick={() => { setViewMode('list'); setEditId(null); fetchRutasList(); }}
+            style={{ 
+              position: 'absolute', top: '20px', left: '20px', 
+              background: 'white', border: '1px solid #e5e7eb', color: '#4b5563', 
+              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
+              padding: '8px 16px', borderRadius: '8px', fontWeight: '500', fontSize: '14px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span>⬅️</span> Volver al listado
+          </button>
+        )}
+
         {step === 1 && (
           <form onSubmit={handleNextStep1} style={cardStyle}>
             {editId && (
