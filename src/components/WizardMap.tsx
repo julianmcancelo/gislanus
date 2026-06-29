@@ -286,7 +286,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       {/* Panel Superior Derecho: Mesa de Trabajo Multiruta */}
       <div ref={overlayRef} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)', padding: '18px', borderRadius: '14px', boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.6)', width: '290px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
         <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', borderBottom: '2px solid rgba(226, 232, 240, 0.6)', paddingBottom: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          Mesa de Trabajo Multiruta
+          <Route size={18} color="#3b82f6" /> Mesa de Trabajo
         </h3>
 
         {/* Lista de Trazos Guardados */}
@@ -295,12 +295,12 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
             <p style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', margin: 0 }}>No hay recorridos guardados.</p>
           ) : (
             savedFeatures.map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', background: '#f8fafc', borderRadius: '6px', border: `1px solid ${f.properties.color || '#e2e8f0'}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: f.properties.color || '#333' }}></span>
-                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155' }}>{f.properties.name || `Recorrido ${i+1}`}</span>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.7)', borderRadius: '8px', border: `1px solid ${f.properties.color || '#e2e8f0'}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ width: 14, height: 14, borderRadius: '50%', background: f.properties.color || '#333', boxShadow: `0 0 0 3px ${f.properties.color}33` }}></span>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#334155' }}>{f.properties.name || `Recorrido ${i+1}`}</span>
                 </div>
-                <button onClick={() => deleteFeature(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Eliminar recorrido"><Trash2 size={16} /></button>
+                <button onClick={() => deleteFeature(i)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }} title="Eliminar recorrido" onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'} onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}><Trash2 size={14} /></button>
               </div>
             ))
           )}
@@ -329,11 +329,15 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
               value={routeName}
               onChange={(e) => setRouteName(e.target.value)}
               placeholder="Ej: Ida, Vuelta, Recorrido A"
-              style={{ padding: '8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={{ padding: '10px 12px', fontSize: '13px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)', transition: 'border-color 0.2s', backgroundColor: 'rgba(255,255,255,0.9)' }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
+              onBlur={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
             />
             <button 
               onClick={() => setIsTracing(true)}
-              style={{ background: '#10B981', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)' }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.35)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)'; }}
             >
               <Plus size={16} strokeWidth={3} /> Iniciar Nuevo Trazado
             </button>

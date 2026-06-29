@@ -922,9 +922,8 @@ export default function TransportePesadoWizard() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         zIndex: 10
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
-            <Truck size={24} color="white" />
+          <div style={{ padding: '4px', display: 'flex', background: 'transparent' }}>
+            <img src="/logo-lanus.png" alt="Lanús Logo" style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Viabilidad de Transporte Pesado</h1>
