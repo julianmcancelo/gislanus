@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import LanusMask from './LanusMask';
 
 function FitBounds({ geoData }: { geoData: any }) {
   const map = useMap();
@@ -36,6 +37,7 @@ export default function StaticMapPreview({ geoData }: { geoData: any }) {
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
+        <LanusMask />
         {geoData && <GeoJSON data={geoData} style={{ color: '#29B6F6', weight: 5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />}
         <FitBounds geoData={geoData} />
       </MapContainer>

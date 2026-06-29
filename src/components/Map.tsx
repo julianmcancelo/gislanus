@@ -659,6 +659,8 @@ export default function MapComponent() {
           maxZoom={19}
         />
 
+        <LanusMask />
+
         <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
 
         {baseLayer && (

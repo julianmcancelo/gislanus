@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import LanusMask from './LanusMask';
 import {
   publicarPresencia, eliminarPresencia, escucharPresencia,
   publicarWaypoints, escucharWaypoints, limpiarWaypoints,
@@ -202,6 +203,7 @@ export default function LineaEditorMap({
         zoomControl
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap' />
+        <LanusMask />
         <EditorController
           color={color}
           initialGeo={initialGeo ?? null}
