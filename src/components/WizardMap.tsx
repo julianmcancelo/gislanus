@@ -20,8 +20,23 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [waypoints, setWaypoints] = useState<any[]>([]);
+  const [savedFeatures, setSavedFeatures] = useState<any[]>([]);
+  const [isTracing, setIsTracing] = useState(false);
+  const [routeName, setRouteName] = useState('Recorrido 1');
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Inicializar con initialGeo si existe
+  useEffect(() => {
+    if (initialGeo?.features && savedFeatures.length === 0) {
+      setSavedFeatures(initialGeo.features);
+      setRouteName(`Recorrido ${initialGeo.features.length + 1}`);
+    } else if (initialGeo?.type === 'Feature' && savedFeatures.length === 0) {
+      setSavedFeatures([initialGeo]);
+      setRouteName(`Recorrido 2`);
+    }
+  }, [initialGeo]);
 
   useEffect(() => {
     if (panelRef.current) {
@@ -31,7 +46,11 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
     if (buttonsRef.current) {
       L.DomEvent.disableClickPropagation(buttonsRef.current);
     }
-  }, [waypoints.length, currentRoute]);
+    if (overlayRef.current) {
+      L.DomEvent.disableClickPropagation(overlayRef.current);
+      L.DomEvent.disableScrollPropagation(overlayRef.current);
+    }
+  }, [waypoints.length, currentRoute, savedFeatures.length, isTracing]);
 
   // Auto zoom to initialGeo bounds if provided
   useEffect(() => {
@@ -58,6 +77,16 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
 
     // @ts-ignore
     if (!L.Routing) return;
+
+    if (!isTracing) {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        setRoutingControl(null);
+        setCurrentRoute(null);
+        setWaypoints([]);
+      }
+      return;
+    }
 
     // Silenciar el console.warn temporalmente para evitar que el usuario vea el mensaje de OSRM demo server
     const originalWarn = console.warn;
@@ -152,26 +181,29 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       map.off('click', onMapClick);
       try { map.removeControl(control); } catch(err) {}
     };
-  }, [map]);
+  }, [map, isTracing]);
 
-  const confirmRoute = async () => {
+  const confirmCurrentTrace = async () => {
     if (!currentRoute) {
-      alert("Hacé clic en el mapa para marcar el recorrido antes de confirmar.");
+      alert("Hacé clic en el mapa para marcar el recorrido antes de guardar el trazo.");
       return;
     }
     
     const coordinates = currentRoute.coordinates.map((c: any) => [c.lng, c.lat]);
-    
     const streets = (currentRoute.instructions || [])
       .map((inst: any) => inst.road)
       .filter((road: string) => road && road.trim().length > 0);
-    
     const uniqueStreets = Array.from(new Set(streets)) as string[];
     
-    const geojson = {
+    const colors = ['#29B6F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4'];
+    const color = colors[savedFeatures.length % colors.length];
+
+    const newFeature = {
       type: 'Feature',
       properties: {
+        name: routeName,
         streets: uniqueStreets.join(' - '),
+        color: color,
         waypoints: waypoints
       },
       geometry: {
@@ -180,13 +212,34 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       }
     };
 
-    onComplete(geojson, uniqueStreets, waypoints);
+    setSavedFeatures([...savedFeatures, newFeature]);
+    setIsTracing(false);
+    setRouteName(`Recorrido ${savedFeatures.length + 2}`);
   };
 
-  const confirmInitialRoute = () => {
-    if (initialGeo) {
-      onComplete(initialGeo, [], waypoints);
+  const cancelTrace = () => {
+    setIsTracing(false);
+  };
+
+  const deleteFeature = (idx: number) => {
+    const updated = [...savedFeatures];
+    updated.splice(idx, 1);
+    setSavedFeatures(updated);
+  };
+
+  const finishAll = () => {
+    if (savedFeatures.length === 0) {
+      alert("Debes tener al menos un recorrido guardado para continuar.");
+      return;
     }
+
+    const allStreets = savedFeatures.map(f => f.properties.streets).join(' | ');
+    const geojson = {
+      type: 'FeatureCollection',
+      features: savedFeatures
+    };
+    
+    onComplete(geojson, [allStreets], []);
   };
 
   const undoLastWaypoint = () => {
@@ -229,55 +282,98 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
         </div>
       )}
 
-      {currentRoute ? (
-        <div ref={buttonsRef} style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={undoLastWaypoint}
-            style={{ 
-              background: '#F59E0B', color: 'white', border: 'none', padding: '12px 20px', 
-              borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer',
-              boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)'
-            }}
-          >
-            ↩️ Deshacer Último Punto
-          </button>
-          <button 
-            onClick={confirmRoute}
-            style={{ 
-              background: '#10B981', color: 'white', border: 'none', padding: '12px 24px', 
-              borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer',
-              boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)'
-            }}
-          >
-            Confirmar Nuevo Recorrido
-          </button>
+      {/* Panel Superior Derecho: Mesa de Trabajo Multiruta */}
+      <div ref={overlayRef} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '280px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1e293b', borderBottom: '2px solid #f1f5f9', paddingBottom: '8px' }}>
+          Mesa de Trabajo Multiruta
+        </h3>
+
+        {/* Lista de Trazos Guardados */}
+        <div style={{ flex: 1, overflowY: 'auto', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {savedFeatures.length === 0 ? (
+            <p style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', margin: 0 }}>No hay recorridos guardados.</p>
+          ) : (
+            savedFeatures.map((f, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px', background: '#f8fafc', borderRadius: '6px', border: `1px solid ${f.properties.color || '#e2e8f0'}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: f.properties.color || '#333' }}></span>
+                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155' }}>{f.properties.name || `Recorrido ${i+1}`}</span>
+                </div>
+                <button onClick={() => deleteFeature(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px' }} title="Eliminar recorrido">🗑️</button>
+              </div>
+            ))
+          )}
         </div>
-      ) : (
-        initialGeo && (
-          <div ref={buttonsRef} style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+
+        {/* Formulario de Nuevo Trazo */}
+        {isTracing ? (
+          <div style={{ background: '#f0f9ff', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#0369a1', fontWeight: 'bold' }}>Trazando: {routeName}</p>
+            <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#0c4a6e' }}>Hacé clics en el mapa para dibujar la ruta.</p>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={cancelTrace} style={{ flex: 1, padding: '6px', fontSize: '11px', background: '#e2e8f0', color: '#475569', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+              <button onClick={confirmCurrentTrace} style={{ flex: 2, padding: '6px', fontSize: '11px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar Trazo</button>
+            </div>
+            {currentRoute && currentRoute.summary && (
+              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#0369a1', textAlign: 'center' }}>
+                📏 {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km | ⏱️ {Math.round(currentRoute.summary.totalTime / 60)} min
+              </p>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input 
+              type="text" 
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+              placeholder="Ej: Ida, Vuelta, Recorrido A"
+              style={{ padding: '8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            />
             <button 
-              onClick={undoLastWaypoint}
-              style={{ 
-                background: '#F59E0B', color: 'white', border: 'none', padding: '12px 20px', 
-                borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)'
-              }}
+              onClick={() => setIsTracing(true)}
+              style={{ background: '#10B981', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              ↩️ Deshacer Último Punto
-            </button>
-            <button 
-              onClick={confirmInitialRoute}
-              style={{ 
-                background: '#8B5CF6', color: 'white', border: 'none', padding: '12px 24px', 
-                borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer',
-                boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)'
-              }}
-            >
-              Confirmar Trazado
+              <span>➕</span> Iniciar Nuevo Trazado
             </button>
           </div>
-        )
-      )}
+        )}
+
+        <button 
+          onClick={finishAll}
+          style={{ marginTop: '15px', background: '#6366f1', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+        >
+          Terminar y Enviar Todo
+        </button>
+      </div>
+
+      {/* Renderizar trazos guardados */}
+      {savedFeatures.map((f, i) => (
+        <GeoJSON 
+          key={`saved-${i}`}
+          data={f} 
+          style={() => ({
+            color: f.properties.color || '#333',
+            weight: 6,
+            opacity: 0.8,
+            lineCap: 'round',
+            lineJoin: 'round'
+          })}
+          onEachFeature={(feature, layer) => {
+            if (feature.properties && feature.properties.name) {
+              layer.bindPopup(`
+                <div style="font-family: sans-serif; padding: 5px; min-width: 150px;">
+                  <strong style="color: ${feature.properties.color || '#8B5CF6'}; font-size: 14px; display: block; margin-bottom: 4px;">
+                    ${feature.properties.name}
+                  </strong>
+                  <span style="font-size: 12px; color: #475569; line-height: 1.4; display: block;">
+                    ${feature.properties.streets || ''}
+                  </span>
+                </div>
+              `);
+            }
+          }}
+        />
+      ))}
     </>
   );
 }
@@ -311,32 +407,7 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints }: 
           url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
           maxZoom={19}
         />
-        {initialGeo && (
-          <GeoJSON 
-            data={initialGeo} 
-            style={(feature) => ({
-              color: feature?.properties?.color || '#29B6F6',
-              weight: 6,
-              opacity: 0.8,
-              lineCap: 'round',
-              lineJoin: 'round'
-            })} 
-            onEachFeature={(feature, layer) => {
-              if (feature.properties && feature.properties.name) {
-                layer.bindPopup(`
-                  <div style="font-family: sans-serif; padding: 5px; min-width: 150px;">
-                    <strong style="color: ${feature.properties.color || '#8B5CF6'}; font-size: 14px; display: block; margin-bottom: 4px;">
-                      ${feature.properties.name}
-                    </strong>
-                    <span style="font-size: 12px; color: #475569; line-height: 1.4; display: block;">
-                      ${feature.properties.streets || ''}
-                    </span>
-                  </div>
-                `);
-              }
-            }}
-          />
-        )}
+
         <MapSearch />
         <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} />
       </MapContainer>
