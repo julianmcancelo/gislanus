@@ -106,8 +106,9 @@ model SesionQR {
 model RutaTransporte {
   id                String   @id @default(cuid())
   // Identificación de la solicitud
-  numeroSolicitud   String
+  numeroSolicitud   String?
   idSolicitudWeb    String?
+  enlaceDocumento   String?
   fechaCreacion     String?
   // Solicitante
   nombreSolicitante String

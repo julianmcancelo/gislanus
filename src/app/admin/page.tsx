@@ -9,7 +9,7 @@ import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa } from '@/lib/rtdb';
-import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2 } from 'lucide-react';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -62,7 +62,7 @@ export default function AdminPage() {
   const [rutas, setRutas] = useState<any[]>([]);
   const [rutasSearchTerm, setRutasSearchTerm] = useState('');
   const [rutasFilterStatus, setRutasFilterStatus] = useState('TODAS');
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState<string | null>(null);
+  const [errorLineas, setErrorLineas] = useState<string | null>(null);
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
@@ -808,103 +808,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleDownloadPDF = async (ruta: any) => {
-    setIsGeneratingPDF(ruta.id);
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const primaryColor = [21, 101, 192];
-      const textColor = [51, 65, 85];
-      
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('MUNICIPIO DE LANÚS', 105, 18, { align: 'center' });
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'normal');
-      doc.text('PERMISO OFICIAL DE TRÁNSITO PESADO', 105, 28, { align: 'center' });
-
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.setFontSize(10);
-      
-      let y = 55;
-      const leftMargin = 20;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Solicitud N°: ${ruta.numeroSolicitud || '-'}`, leftMargin, y);
-      doc.text(`Estado: APROBADA`, 130, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.text('DATOS DEL SOLICITANTE', leftMargin, y);
-      doc.setDrawColor(200, 200, 200);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Nombre/Empresa: ${ruta.empresaSolicitante || ruta.nombreSolicitante || '-'}`, leftMargin, y);
-      doc.text(`CUIL/CUIT: ${ruta.cuilCuit || '-'}`, 130, y);
-      y += 8;
-      doc.text(`Contacto: ${ruta.emailSolicitante || '-'} / ${ruta.telefonoSolicitante || '-'}`, leftMargin, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('DATOS DEL VEHÍCULO', leftMargin, y);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Patente: ${ruta.patente || '-'}`, leftMargin, y);
-      doc.text(`Tipo: ${ruta.tipoVehiculo || '-'}`, 130, y);
-      y += 8;
-      doc.text(`Carga: ${ruta.pesoToneladas ? ruta.pesoToneladas + ' tons' : '-'} - ${ruta.tipoCarga || '-'}`, leftMargin, y);
-      doc.text(`Seguro: ${ruta.aseguradora || '-'} (${ruta.nroSeguro || '-'})`, 130, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('RECORRIDO AUTORIZADO', leftMargin, y);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Origen: ${ruta.origenDireccion || '-'}, ${ruta.origenLocalidad || '-'}`, leftMargin, y);
-      y += 8;
-      doc.text(`Destino: ${ruta.destinoDireccion || '-'}, ${ruta.destinoLocalidad || '-'}`, leftMargin, y);
-      y += 8;
-      
-      const formatSafeDate = (d: string) => {
-        if (!d) return '-';
-        try { return new Date(d).toLocaleDateString('es-AR'); } catch { return d; }
-      };
-      
-      doc.text(`Vigencia: ${formatSafeDate(ruta.vigenciaDesde)} hasta ${formatSafeDate(ruta.vigenciaHasta)}`, leftMargin, y);
-      
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text('Este documento es un comprobante oficial generado por el Sistema GIS del Municipio de Lanús.', 105, 280, { align: 'center' });
-      doc.text(`Generado el: ${new Date().toLocaleString('es-AR')}`, 105, 285, { align: 'center' });
-
-      doc.save(`Permiso_TransitoPesado_${ruta.numeroSolicitud || ruta.patente || 'Lanus'}.pdf`);
-      
-    } catch (error) {
-      console.error('Error al generar PDF:', error);
-      toast.error('Hubo un problema al generar el PDF.');
-    } finally {
-      setIsGeneratingPDF(null);
-    }
-  };
 
   const COLOR_MAP: Record<string, string> = {
     red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
@@ -1985,15 +1888,16 @@ export default function AdminPage() {
                             {ruta.estado !== 'PENDIENTE' && (
                               <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
                                 <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
-                                {ruta.estado === 'APROBADA' && (
-                                  <button 
-                                    onClick={() => handleDownloadPDF(ruta)}
-                                    disabled={isGeneratingPDF === ruta.id}
-                                    style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                {ruta.enlaceDocumento && (
+                                  <a 
+                                    href={ruta.enlaceDocumento}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
+                                    title="Ver Documento Original"
                                   >
-                                    {isGeneratingPDF === ruta.id ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} 
-                                    PDF
-                                  </button>
+                                    <FileText size={12} /> PDF
+                                  </a>
                                 )}
                               </div>
                             )}

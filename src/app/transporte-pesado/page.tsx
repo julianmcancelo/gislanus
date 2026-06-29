@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText } from 'lucide-react';
+
 
 // Dynamic import for Leaflet component to avoid SSR errors
 const WizardMap = dynamic(() => import('../../components/WizardMap'), {
@@ -30,10 +29,10 @@ export default function TransportePesadoWizard() {
   const [loadingRutas, setLoadingRutas] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('TODAS');
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
+  const [enlaceDocumento, setEnlaceDocumento] = useState('');
   const [fechaCreacion, setFechaCreacion] = useState('');
   const [nombreSolicitante, setNombreSolicitante] = useState('');
   const [empresaSolicitante, setEmpresaSolicitante] = useState('');
@@ -100,7 +99,7 @@ export default function TransportePesadoWizard() {
         setMagicUrls(urls);
         setShowImport(true);
         window.history.replaceState(null, '', window.location.pathname);
-        handleImport(textToParse, pdfUrl, qrUrl);
+        handleImport(textToParse);
       }
     }
   }, []);
@@ -114,6 +113,7 @@ export default function TransportePesadoWizard() {
           const data = await res.json();
           setNumeroSolicitud(data.numeroSolicitud || '');
           setIdSolicitudWeb(data.idSolicitudWeb || '');
+          setEnlaceDocumento(data.enlaceDocumento || '');
           setFechaCreacion(data.fechaCreacion || '');
           setNombreSolicitante(data.nombreSolicitante || '');
           setEmpresaSolicitante(data.empresaSolicitante || '');
@@ -170,7 +170,7 @@ export default function TransportePesadoWizard() {
       fetchEditData();
     } else {
       // Reset form if no editId
-      setNumeroSolicitud(''); setIdSolicitudWeb(''); setFechaCreacion(''); setNombreSolicitante('');
+      setNumeroSolicitud(''); setIdSolicitudWeb(''); setEnlaceDocumento(''); setFechaCreacion(''); setNombreSolicitante('');
       setEmpresaSolicitante(''); setCuilCuit(''); setEmailSolicitante(''); setTelefonoSolicitante('');
       setPatente(''); setTipoVehiculo(''); setPesoToneladas(''); setCargaPeligrosa(false);
       setTipoCarga(''); setLargoVehiculo(''); setAnchoVehiculo(''); setAlturaVehiculo('');
@@ -232,7 +232,7 @@ export default function TransportePesadoWizard() {
   useEffect(() => {
     if (viewMode === 'wizard' && !editId && !isSubmitting && step === 1) {
       const draft = {
-        numeroSolicitud, nombreSolicitante, empresaSolicitante, cuilCuit,
+        numeroSolicitud, idSolicitudWeb, enlaceDocumento, nombreSolicitante, empresaSolicitante, cuilCuit,
         emailSolicitante, telefonoSolicitante, patente, tipoVehiculo, pesoToneladas,
         cargaPeligrosa, tipoCarga, largoVehiculo, anchoVehiculo, alturaVehiculo,
         cantidadEjes, aseguradora, nroSeguro, origenDireccion, origenLocalidad,
@@ -305,7 +305,7 @@ export default function TransportePesadoWizard() {
     }
   };
 
-  const handleImport = async (textToImport?: string, pdfUrl?: string | null, qrUrl?: string | null) => {
+  const handleImport = async (textToImport?: string) => {
     // Si viene por argumento (del useEffect) lo usamos, sino usamos el state
     const text = typeof textToImport === 'string' ? textToImport : importText;
     if (!text.trim()) return;
@@ -314,7 +314,7 @@ export default function TransportePesadoWizard() {
       const res = await fetch('/api/parse-solicitud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, pdfUrl: pdfUrl ?? null, qrUrl: qrUrl ?? null })
+        body: JSON.stringify({ text })
       });
       const data = await res.json();
       console.log('[parse-solicitud response]', JSON.stringify(data, null, 2));
@@ -322,6 +322,7 @@ export default function TransportePesadoWizard() {
 
       setNumeroSolicitud(data.numeroSolicitud || '');
       setIdSolicitudWeb(data.idSolicitudWeb || '');
+      setEnlaceDocumento(data.enlaceDocumento || '');
       setFechaCreacion(data.fechaCreacion || '');
       setNombreSolicitante(data.nombreSolicitante || '');
       setEmpresaSolicitante(data.empresaSolicitante || '');
@@ -395,6 +396,7 @@ export default function TransportePesadoWizard() {
       const payload: any = {
         numeroSolicitud,
         idSolicitudWeb,
+        enlaceDocumento,
         fechaCreacion,
         nombreSolicitante,
         empresaSolicitante,
@@ -501,104 +503,6 @@ export default function TransportePesadoWizard() {
       alert('Error al finalizar la solicitud. Por favor, intente nuevamente.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDownloadPDF = async (ruta: any) => {
-    setIsGeneratingPDF(ruta.id);
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const primaryColor = [21, 101, 192];
-      const textColor = [51, 65, 85];
-      
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('MUNICIPIO DE LANÚS', 105, 18, { align: 'center' });
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'normal');
-      doc.text('PERMISO OFICIAL DE TRÁNSITO PESADO', 105, 28, { align: 'center' });
-
-      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-      doc.setFontSize(10);
-      
-      let y = 55;
-      const leftMargin = 20;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text(`Solicitud N°: ${ruta.numeroSolicitud || '-'}`, leftMargin, y);
-      doc.text(`Estado: APROBADA`, 130, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.text('DATOS DEL SOLICITANTE', leftMargin, y);
-      doc.setDrawColor(200, 200, 200);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Nombre/Empresa: ${ruta.empresaSolicitante || ruta.nombreSolicitante || '-'}`, leftMargin, y);
-      doc.text(`CUIL/CUIT: ${ruta.cuilCuit || '-'}`, 130, y);
-      y += 8;
-      doc.text(`Contacto: ${ruta.emailSolicitante || '-'} / ${ruta.telefonoSolicitante || '-'}`, leftMargin, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('DATOS DEL VEHÍCULO', leftMargin, y);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Patente: ${ruta.patente || '-'}`, leftMargin, y);
-      doc.text(`Tipo: ${ruta.tipoVehiculo || '-'}`, 130, y);
-      y += 8;
-      doc.text(`Carga: ${ruta.pesoToneladas ? ruta.pesoToneladas + ' tons' : '-'} - ${ruta.tipoCarga || '-'}`, leftMargin, y);
-      doc.text(`Seguro: ${ruta.aseguradora || '-'} (${ruta.nroSeguro || '-'})`, 130, y);
-      y += 15;
-
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('RECORRIDO AUTORIZADO', leftMargin, y);
-      doc.line(leftMargin, y + 2, 190, y + 2);
-      y += 10;
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Origen: ${ruta.origenDireccion || '-'}, ${ruta.origenLocalidad || '-'}`, leftMargin, y);
-      y += 8;
-      doc.text(`Destino: ${ruta.destinoDireccion || '-'}, ${ruta.destinoLocalidad || '-'}`, leftMargin, y);
-      y += 8;
-      
-      const formatSafeDate = (d: string) => {
-        if (!d) return '-';
-        try { return new Date(d).toLocaleDateString('es-AR'); } catch { return d; }
-      };
-      
-      doc.text(`Vigencia: ${formatSafeDate(ruta.vigenciaDesde)} hasta ${formatSafeDate(ruta.vigenciaHasta)}`, leftMargin, y);
-      
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text('Este documento es un comprobante oficial generado por el Sistema GIS del Municipio de Lanús.', 105, 280, { align: 'center' });
-      doc.text(`Generado el: ${new Date().toLocaleString('es-AR')}`, 105, 285, { align: 'center' });
-
-      doc.save(`Permiso_TransitoPesado_${ruta.numeroSolicitud || ruta.patente || 'Lanus'}.pdf`);
-      
-    } catch (error) {
-      console.error('Error al generar PDF:', error);
-      alert('Hubo un problema al generar el PDF.');
-    } finally {
-      setIsGeneratingPDF(null);
     }
   };
 
@@ -927,17 +831,16 @@ export default function TransportePesadoWizard() {
                           </span>
                         </td>
                         <td style={{ padding: '15px 20px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                          {ruta.estado === 'APROBADA' && (
-                            <button 
-                              onClick={() => handleDownloadPDF(ruta)}
-                              disabled={isGeneratingPDF === ruta.id}
-                              style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                          {ruta.enlaceDocumento && (
+                            <a 
+                              href={ruta.enlaceDocumento}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                              title="Ver Documento Original"
                             >
-                              {isGeneratingPDF === ruta.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} 
-                              PDF
-                            </button>
+                              <FileText size={14} /> PDF
+                            </a>
                           )}
                           <button 
                             onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}

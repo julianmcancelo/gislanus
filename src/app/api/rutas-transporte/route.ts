@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       frecuencia, horario, observaciones,
       vigenciaDesde, vigenciaHasta,
       datosGeo, calles,
-      creadoPorId, creadoPorNombre
+      creadoPorId, creadoPorNombre, enlaceDocumento
     } = body;
 
     if (!numeroSolicitud || !nombreSolicitante || !datosGeo) {
@@ -91,6 +91,7 @@ export async function POST(req: Request) {
         estado: 'BORRADOR',
         creadoPorId: creadoPorId || null,
         creadoPorNombre: creadoPorNombre || null,
+        enlaceDocumento: enlaceDocumento || null,
       },
     });
 
