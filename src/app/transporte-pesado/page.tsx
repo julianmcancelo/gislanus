@@ -56,6 +56,7 @@ export default function TransportePesadoWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [tracedStreets, setTracedStreets] = useState<string[]>([]);
+  const [savedWaypoints, setSavedWaypoints] = useState<any[]>([]);
   const [importText, setImportText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -192,9 +193,12 @@ export default function TransportePesadoWizard() {
     }
   };
 
-  const handleMapComplete = (data: any, detectedStreets: string[]) => {
+  const handleMapComplete = (data: any, detectedStreets: string[], currentWaypoints?: any[]) => {
     setDatosGeo(data);
     setTracedStreets(detectedStreets);
+    if (currentWaypoints) {
+      setSavedWaypoints(currentWaypoints);
+    }
     setStep(3);
   };
 
@@ -270,6 +274,14 @@ export default function TransportePesadoWizard() {
     setNroSeguro('');
     setDatosGeo(null);
     setParsedInfo(null);
+    setSavedWaypoints([]);
+    setStep(1);
+  };
+
+  const handleAddAnotherRouteSameVehicle = () => {
+    setDatosGeo(null);
+    setTracedStreets([]);
+    setSavedWaypoints([]);
     setStep(1);
   };
 
@@ -315,17 +327,24 @@ export default function TransportePesadoWizard() {
             Los recorridos se han guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', width: '100%' }}>
               <button 
-                onClick={handleAddAnotherRoute} 
-                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1 }}
+                onClick={handleAddAnotherRouteSameVehicle} 
+                style={{ ...btnStyle, backgroundColor: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe', flex: 1, fontSize: '14px', padding: '10px' }}
                 disabled={isSubmitting}
               >
-                Agregar Otro Vehículo
+                ➕ Nuevo Recorrido (Mismo Camión)
+              </button>
+              <button 
+                onClick={handleAddAnotherRoute} 
+                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1, fontSize: '14px', padding: '10px' }}
+                disabled={isSubmitting}
+              >
+                🚚 Nuevo Camión
               </button>
               <button 
                 onClick={handleFinishRequest} 
-                style={{ ...btnStyle, flex: 1 }}
+                style={{ ...btnStyle, flex: 1, fontSize: '14px', padding: '10px' }}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Finalizando...' : 'Finalizar Solicitud'}
@@ -647,6 +666,7 @@ export default function TransportePesadoWizard() {
                 <WizardMap 
                   onComplete={handleMapComplete} 
                   initialGeo={datosGeo}
+                  initialWaypoints={savedWaypoints}
                 />
               </div>
             </div>

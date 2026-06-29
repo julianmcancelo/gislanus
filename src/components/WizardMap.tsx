@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-function WizardMapController({ onComplete, initialGeo }: any) {
+function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) {
   const map = useMap();
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
@@ -88,6 +88,10 @@ function WizardMapController({ onComplete, initialGeo }: any) {
         return L.marker(wp.latLng, { draggable: true });
       }
     } as any).addTo(map);
+
+    if (initialWaypoints && initialWaypoints.length > 0) {
+      control.setWaypoints(initialWaypoints);
+    }
 
     // Restaurar console.warn después de inicializar
     setTimeout(() => {
@@ -175,12 +179,12 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       }
     };
 
-    onComplete(geojson, uniqueStreets);
+    onComplete(geojson, uniqueStreets, waypoints);
   };
 
   const confirmInitialRoute = () => {
     if (initialGeo) {
-      onComplete(initialGeo, []);
+      onComplete(initialGeo, [], waypoints);
     }
   };
 
@@ -277,7 +281,13 @@ function WizardMapController({ onComplete, initialGeo }: any) {
   );
 }
 
-export default function WizardMap({ onComplete, initialGeo }: { onComplete: (data: any, streets: string[]) => void, initialGeo?: any }) {
+interface WizardMapProps {
+  onComplete: (geoJson: any, streets: string[], waypoints: any[]) => void;
+  initialGeo?: any;
+  initialWaypoints?: any[];
+}
+
+export default function WizardMap({ onComplete, initialGeo, initialWaypoints }: WizardMapProps) {
   // Use a stable JSON key to force re-render when geocoded data changes
   const geoJsonKey = initialGeo ? JSON.stringify(initialGeo).substring(0, 100) : 'empty';
 
@@ -327,7 +337,7 @@ export default function WizardMap({ onComplete, initialGeo }: { onComplete: (dat
           />
         )}
         <MapSearch />
-        <WizardMapController onComplete={onComplete} initialGeo={initialGeo} />
+        <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} />
       </MapContainer>
     </div>
   );

@@ -10,6 +10,14 @@ export default function MapSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const markerRef = useRef<L.Marker | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      L.DomEvent.disableClickPropagation(containerRef.current);
+      L.DomEvent.disableScrollPropagation(containerRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     if (!query) {
@@ -73,7 +81,7 @@ export default function MapSearch() {
   };
 
   return (
-    <div className="leaflet-top leaflet-right" style={{ pointerEvents: 'auto', marginTop: '10px', marginRight: '10px', zIndex: 1000 }}>
+    <div ref={containerRef} className="leaflet-top leaflet-right" style={{ pointerEvents: 'auto', marginTop: '10px', marginRight: '10px', zIndex: 1000 }}>
       <div style={{ position: 'relative', width: '280px' }}>
         <div style={{ 
           display: 'flex', 
