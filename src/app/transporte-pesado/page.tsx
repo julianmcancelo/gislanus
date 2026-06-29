@@ -850,7 +850,7 @@ export default function TransportePesadoWizard() {
                         return acc;
                       }, {} as Record<string, any[]>);
                       
-                      return Object.entries(groups).map(([groupKey, groupRoutes]) => (
+                      return Object.entries(groups).map(([groupKey, groupRoutes]: [string, any[]]) => (
                         <React.Fragment key={groupKey}>
                           {groupRoutes.length > 1 && (
                             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', borderTop: '2px solid #e2e8f0' }}>

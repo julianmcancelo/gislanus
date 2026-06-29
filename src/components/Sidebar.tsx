@@ -63,7 +63,7 @@ function Toggle({ active, color, onChange }: { active: boolean; color: string; o
 function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
   return (
     <div className={styles.capaRow} onClick={onToggle} title={capa.nombre}>
-      <div className={styles.capaColorBar} style={{ background: capa.color, opacity: capa.active ? 1 : 0.3 }} />
+      <div className={styles.capaColorBar} style={{ background: capa.color, opacity: capa.active ? 1 : 0.25 }} />
       <span className={`${styles.capaName} ${capa.active ? styles.capaNameActive : ''}`}>
         {capa.nombre}
       </span>
@@ -77,18 +77,16 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
   const cfg = getEstado(capa.estado);
   const route = [capa.origenNombre, capa.destinoNombre].filter(Boolean).join(' → ');
   return (
-    <div>
-      <div className={styles.solicitudRow} onClick={onToggle}
-        title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
-        style={{ opacity: capa.active ? 1 : 0.6 }}>
-        <div className={styles.estadoDot} style={{ background: cfg.dot }} />
-        <span className={styles.solicitudNum}>#{capa.numeroSolicitud}</span>
-        <span className={styles.solicitudRoute}>{route || capa.tipoCarga || '—'}</span>
-        <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot }}>
-          {cfg.short}
-        </span>
-        <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
-      </div>
+    <div className={styles.solicitudRow} onClick={onToggle}
+      title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
+      style={{ opacity: capa.active ? 1 : 0.55 }}>
+      <div className={styles.estadoDot} style={{ background: cfg.dot }} />
+      <span className={styles.solicitudNum}>#{capa.numeroSolicitud}</span>
+      <span className={styles.solicitudRoute}>{route || capa.tipoCarga || '—'}</span>
+      <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot }}>
+        {cfg.short}
+      </span>
+      <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
     </div>
   );
 }
@@ -115,18 +113,18 @@ function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
         const isOpen = expandedSols[owner] !== false;
         const activeCount = items.filter(c => c.active).length;
         return (
-          <div key={owner} style={{ marginBottom: multi ? 4 : 1 }}>
+          <div key={owner} style={{ marginBottom: multi ? 3 : 1 }}>
             {multi ? (
               <>
                 <div className={styles.ownerHeader} onClick={() => toggleSol(owner)}>
                   {isOpen
-                    ? <ChevronDown size={11} color="#94a3b8" />
-                    : <ChevronRight size={11} color="#94a3b8" />}
+                    ? <ChevronDown size={10} color="#94a3b8" />
+                    : <ChevronRight size={10} color="#94a3b8" />}
                   <span className={styles.ownerName}>{owner}</span>
                   <span className={`${styles.badge} ${styles.badgeGray}`}>{activeCount}/{items.length}</span>
                 </div>
                 {isOpen && (
-                  <div style={{ paddingLeft: 10 }}>
+                  <div style={{ paddingLeft: 8 }}>
                     {items.map(c => <SolicitudRow key={c.id} capa={c} onToggle={() => onToggle(c.id)} />)}
                   </div>
                 )}
@@ -191,9 +189,9 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
   const toggleSubAll    = (gn: string, sn: string, v: boolean) => flattenSubGroup(gn, sn).forEach(c => { if (c.active !== v) alternarCapa(c.id); });
   const toggleSubSubAll = (gn: string, sn: string, ssn: string, v: boolean) => grupos[gn].subgrupos[sn].subsubgrupos[ssn].forEach(c => { if (c.active !== v) alternarCapa(c.id); });
 
-  const isSuperAdmin         = dbUser?.rol === 'SUPER_ADMIN';
-  const canAccessTransporte  = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
-  const canAccessAdmin       = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
+  const isSuperAdmin        = dbUser?.rol === 'SUPER_ADMIN';
+  const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canAccessAdmin      = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
 
   return (
     <div className={styles.sidebarContainer}>
@@ -202,11 +200,11 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
       <div className={styles.navStrip}>
         <div className={`${styles.navIcon} ${activeTab === 'layers' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab(activeTab === 'layers' ? null : 'layers')} title="Capas">
-          <Layers size={17} />
+          <Layers size={16} />
         </div>
         <div className={`${styles.navIcon} ${activeTab === 'info' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} title="Información">
-          <Info size={17} />
+          <Info size={16} />
         </div>
 
         <div style={{ flex: 1 }} />
@@ -214,12 +212,12 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
         {canAccessTransporte && (
           <div className={styles.navIcon} onClick={() => router.push('/transporte-pesado')} title="Transporte Pesado">
-            <Truck size={17} />
+            <Truck size={16} />
           </div>
         )}
         {canAccessAdmin && (
           <div className={styles.navIcon} onClick={() => router.push('/admin')} title="Panel de Control">
-            <Settings size={17} />
+            <Settings size={16} />
           </div>
         )}
 
@@ -228,31 +226,52 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
         <div className={styles.navIcon}
           onClick={() => user ? setConfirmLogout(true) : router.push('/login')}
           title={user ? 'Cerrar Sesión' : 'Iniciar Sesión'}>
-          {user ? <LogOut size={17} color="#f87171" /> : <LogIn size={17} />}
+          {user ? <LogOut size={16} color="#f87171" /> : <LogIn size={16} />}
         </div>
       </div>
 
       {/* ── Modal logout ── */}
       {confirmLogout && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setConfirmLogout(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: 300, boxShadow: '0 24px 64px rgba(0,0,0,0.2)', overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', padding: '22px 22px 18px' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                <LogOut size={17} color="#f87171" />
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(10,16,28,0.55)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }} onClick={() => setConfirmLogout(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#fff', borderRadius: 18, width: 296,
+            boxShadow: '0 32px 72px rgba(0,0,0,0.22)', overflow: 'hidden',
+            fontFamily: 'Inter, system-ui, sans-serif'
+          }}>
+            <div style={{ background: 'linear-gradient(135deg,#0c1220,#1a2540)', padding: '20px 20px 16px' }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 9,
+                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.18)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10
+              }}>
+                <LogOut size={16} color="#f87171" />
               </div>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Cerrar sesión</p>
-              <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: '#64748b' }}>{dbUser?.nombre || user?.email}</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.92rem', color: '#f1f5f9' }}>Cerrar sesión</p>
+              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#64748b' }}>{dbUser?.nombre || user?.email}</p>
             </div>
-            <div style={{ padding: '18px 22px 22px' }}>
-              <p style={{ margin: '0 0 18px', fontSize: '0.82rem', color: '#475569', lineHeight: 1.6 }}>
+            <div style={{ padding: '16px 20px 20px' }}>
+              <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: '#475569', lineHeight: 1.6 }}>
                 ¿Estás seguro que querés salir de la plataforma?
               </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setConfirmLogout(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <div style={{ display: 'flex', gap: 7 }}>
+                <button onClick={() => setConfirmLogout(false)} style={{
+                  flex: 1, padding: '9px 0', borderRadius: 8,
+                  border: '1px solid #e2e8f0', background: '#f8fafc',
+                  color: '#475569', fontWeight: 600, fontSize: '0.8rem',
+                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s'
+                }}>
                   Cancelar
                 </button>
-                <button onClick={() => { logout(); setConfirmLogout(false); }} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#dc2626,#b91c1c)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', fontFamily: 'inherit' }}>
+                <button onClick={() => { logout(); setConfirmLogout(false); }} style={{
+                  flex: 1, padding: '9px 0', borderRadius: 8, border: 'none',
+                  background: 'linear-gradient(135deg,#dc2626,#b91c1c)', color: '#fff',
+                  fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(220,38,38,0.2)', fontFamily: 'inherit'
+                }}>
                   Cerrar sesión
                 </button>
               </div>
@@ -269,7 +288,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           <div className={styles.panelContent}>
             <div className={styles.panelHeader}>
               <div className={styles.panelHeaderIcon}>
-                <Layers size={15} color="#475569" />
+                <Layers size={14} color="#64748b" />
               </div>
               <h3 className={styles.panelTitle}>Capas</h3>
               <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
@@ -288,7 +307,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                   <div key={gName} className={styles.layerGroup}>
                     <div className={styles.groupHeader} onClick={() => toggleNode(gName)}>
                       <span className={styles.groupChevron}>
-                        {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                        {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                       </span>
                       {!isTransporte && (
                         <input type="checkbox" className={styles.groupCheckbox}
@@ -310,19 +329,19 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                         ) : (
                           <>
                             {Object.entries(gData.subgrupos).map(([sgName, sgData]) => {
-                              const sgKey      = `${gName}|${sgName}`;
-                              const sgOpen     = expandedNodes[sgKey];
-                              const sgCapas    = flattenSubGroup(gName, sgName);
+                              const sgKey       = `${gName}|${sgName}`;
+                              const sgOpen      = expandedNodes[sgKey];
+                              const sgCapas     = flattenSubGroup(gName, sgName);
                               const sgAllActive = sgCapas.every(l => l.active);
-                              const sgSome     = sgCapas.some(l => l.active) && !sgAllActive;
-                              const hasSsg     = Object.keys(sgData.subsubgrupos).length > 0;
+                              const sgSome      = sgCapas.some(l => l.active) && !sgAllActive;
+                              const hasSsg      = Object.keys(sgData.subsubgrupos).length > 0;
 
                               return (
                                 <div key={sgKey} className={styles.subGroup}>
                                   <div className={styles.subGroupHeader} onClick={() => toggleNode(sgKey)}>
                                     {sgOpen
-                                      ? <ChevronDown size={11} color="#94a3b8" />
-                                      : <ChevronRight size={11} color="#94a3b8" />}
+                                      ? <ChevronDown size={10} color="#b0bec5" />
+                                      : <ChevronRight size={10} color="#b0bec5" />}
                                     <input type="checkbox" className={styles.groupCheckbox}
                                       checked={sgAllActive}
                                       ref={el => { if (el) el.indeterminate = sgSome; }}
@@ -333,19 +352,19 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                                   </div>
 
                                   {sgOpen && (
-                                    <div style={{ paddingLeft: 10 }}>
+                                    <div style={{ paddingLeft: 9 }}>
                                       {hasSsg ? (
                                         Object.entries(sgData.subsubgrupos).map(([ssgName, ssgCapas]) => {
-                                          const ssgKey      = `${sgKey}|${ssgName}`;
-                                          const ssgOpen     = expandedNodes[ssgKey] !== false;
+                                          const ssgKey       = `${sgKey}|${ssgName}`;
+                                          const ssgOpen      = expandedNodes[ssgKey] !== false;
                                           const ssgAllActive = ssgCapas.every(l => l.active);
-                                          const ssgSome     = ssgCapas.some(l => l.active) && !ssgAllActive;
+                                          const ssgSome      = ssgCapas.some(l => l.active) && !ssgAllActive;
                                           return (
                                             <div key={ssgKey} style={{ marginBottom: 2 }}>
                                               <div className={styles.ramalHeader} onClick={() => toggleNode(ssgKey)}>
                                                 {ssgOpen
-                                                  ? <ChevronDown size={10} color="#94a3b8" />
-                                                  : <ChevronRight size={10} color="#94a3b8" />}
+                                                  ? <ChevronDown size={9} color="#b0bec5" />
+                                                  : <ChevronRight size={9} color="#b0bec5" />}
                                                 <input type="checkbox" className={styles.groupCheckbox}
                                                   checked={ssgAllActive}
                                                   ref={el => { if (el) el.indeterminate = ssgSome; }}
@@ -355,7 +374,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                                                 <span className={`${styles.badge} ${styles.badgeGray}`}>{ssgCapas.length}</span>
                                               </div>
                                               {ssgOpen && (
-                                                <div style={{ paddingLeft: 8 }}>
+                                                <div style={{ paddingLeft: 7 }}>
                                                   {ssgCapas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
                                                 </div>
                                               )}
@@ -383,7 +402,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                 <div className={styles.layerGroup}>
                   <div className={styles.groupHeader} onClick={() => toggleNode('__general')}>
                     <span className={styles.groupChevron}>
-                      {expandedNodes['__general'] !== false ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      {expandedNodes['__general'] !== false ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                     </span>
                     <span className={styles.groupName}>Otras capas</span>
                     <span className={`${styles.badge} ${styles.badgeGray}`}>{general.length}</span>
@@ -397,7 +416,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               )}
 
               {capas.length === 0 && (
-                <p style={{ color: '#94a3b8', textAlign: 'center', marginTop: 24, fontSize: '0.8rem' }}>
+                <p style={{ color: '#94a3b8', textAlign: 'center', marginTop: 24, fontSize: '0.78rem' }}>
                   No hay capas disponibles.
                 </p>
               )}
@@ -410,45 +429,58 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           <div className={styles.panelContent}>
             <div className={styles.panelHeader}>
               <div className={styles.panelHeaderIcon}>
-                <Info size={15} color="#475569" />
+                <Info size={14} color="#64748b" />
               </div>
               <h3 className={styles.panelTitle}>Sistema GIS</h3>
             </div>
 
             <div className={styles.panelBody}>
               {/* Card institucional */}
-              <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e3a5f)', borderRadius: 10, padding: '14px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', top: -16, right: -16, width: 70, height: 70, borderRadius: '50%', background: 'rgba(56,189,248,0.07)' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <MapPin size={14} color="#38bdf8" />
+              <div style={{
+                background: 'linear-gradient(135deg,#0c1220 0%,#1a2d50 100%)',
+                borderRadius: 10, padding: '13px', position: 'relative', overflow: 'hidden'
+              }}>
+                <div style={{ position: 'absolute', top: -20, right: -20, width: 80, height: 80, borderRadius: '50%', background: 'rgba(56,189,248,0.05)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 7 }}>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 7,
+                    background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.18)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                  }}>
+                    <MapPin size={13} color="#7dd3fc" />
                   </div>
                   <div>
-                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#f1f5f9' }}>GIS Lanús</p>
-                    <p style={{ margin: 0, fontSize: '0.67rem', color: '#64748b' }}>Sistema de Información Geográfica</p>
+                    <p style={{ margin: 0, fontSize: '0.77rem', fontWeight: 800, color: '#f1f5f9' }}>GIS Lanús</p>
+                    <p style={{ margin: 0, fontSize: '0.65rem', color: '#475569' }}>Sistema de Información Geográfica</p>
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', lineHeight: 1.6 }}>
-                  Plataforma del <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Municipio de Lanús</span> para la gestión de datos geoespaciales.
+                <p style={{ margin: 0, fontSize: '0.68rem', color: '#64748b', lineHeight: 1.6 }}>
+                  Plataforma del <span style={{ color: '#94a3b8', fontWeight: 600 }}>Municipio de Lanús</span> para la gestión de datos geoespaciales.
                 </p>
               </div>
 
               {/* Sesión */}
               {user && (
-                <div style={{ border: '1px solid #e8edf3', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <User size={12} color="#94a3b8" />
-                    <span style={{ fontSize: '0.63rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sesión activa</span>
+                <div style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+                  <div style={{
+                    padding: '7px 11px', background: '#fafbfc',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)',
+                    display: 'flex', alignItems: 'center', gap: 5
+                  }}>
+                    <User size={11} color="#b0bec5" />
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: '#b0bec5', textTransform: 'uppercase', letterSpacing: '0.09em' }}>Sesión activa</span>
                   </div>
-                  <div style={{ padding: '10px 12px' }}>
-                    <p style={{ margin: '0 0 2px', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>
+                  <div style={{ padding: '9px 11px' }}>
+                    <p style={{ margin: '0 0 2px', fontSize: '0.78rem', fontWeight: 700, color: '#1e293b' }}>
                       {dbUser?.nombre || user.email?.split('@')[0]}
                     </p>
-                    <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: '#94a3b8' }}>{user.email}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <Shield size={10} color="#0ea5e9" />
-                      <span style={{ fontSize: '0.63rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
-                        color: dbUser?.rol === 'SUPER_ADMIN' ? '#7c3aed' : dbUser?.rol === 'ADMINISTRADOR' ? '#0ea5e9' : '#16a34a' }}>
+                    <p style={{ margin: '0 0 7px', fontSize: '0.67rem', color: '#94a3b8' }}>{user.email}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Shield size={9} color="#0ea5e9" />
+                      <span style={{
+                        fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em',
+                        color: dbUser?.rol === 'SUPER_ADMIN' ? '#7c3aed' : dbUser?.rol === 'ADMINISTRADOR' ? '#0ea5e9' : '#16a34a'
+                      }}>
                         {dbUser?.rol === 'SUPER_ADMIN' ? 'Super Admin' : dbUser?.rol === 'ADMINISTRADOR' ? 'Administrador' : dbUser?.rol === 'USUARIO' ? 'Usuario' : dbUser?.rol}
                       </span>
                     </div>
@@ -458,42 +490,54 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
               {/* Accesos rápidos */}
               {(canAccessTransporte || canAccessAdmin) && (
-                <div style={{ border: '1px solid #e8edf3', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', fontSize: '0.63rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+                  <div style={{
+                    padding: '7px 11px', background: '#fafbfc',
+                    borderBottom: '1px solid rgba(0,0,0,0.05)',
+                    fontSize: '0.6rem', fontWeight: 700, color: '#b0bec5',
+                    textTransform: 'uppercase', letterSpacing: '0.09em'
+                  }}>
                     Accesos rápidos
                   </div>
                   {canAccessTransporte && (
-                    <a href="/transporte-pesado" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: canAccessAdmin ? '1px solid #f1f5f9' : 'none', textDecoration: 'none', background: 'transparent', transition: 'background 0.12s' }}
+                    <a href="/transporte-pesado" style={{
+                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
+                      borderBottom: canAccessAdmin ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                      textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
+                    }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                      <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(124,58,237,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Truck size={13} color="#7c3aed" />
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(124,58,237,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Truck size={12} color="#7c3aed" />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>Transporte Pesado</p>
-                        <p style={{ margin: 0, fontSize: '0.67rem', color: '#94a3b8' }}>Permisos de circulación</p>
+                        <p style={{ margin: 0, fontSize: '0.73rem', fontWeight: 600, color: '#1e293b' }}>Transporte Pesado</p>
+                        <p style={{ margin: 0, fontSize: '0.64rem', color: '#94a3b8' }}>Permisos de circulación</p>
                       </div>
-                      <ExternalLink size={11} color="#cbd5e1" />
+                      <ExternalLink size={10} color="#d1d5db" />
                     </a>
                   )}
                   {canAccessAdmin && (
-                    <a href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', textDecoration: 'none', background: 'transparent', transition: 'background 0.12s' }}
+                    <a href="/admin" style={{
+                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
+                      textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
+                    }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
                       onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                      <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(2,132,199,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Settings size={13} color="#0284c7" />
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(2,132,199,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={12} color="#0284c7" />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>Panel de Control</p>
-                        <p style={{ margin: 0, fontSize: '0.67rem', color: '#94a3b8' }}>Capas, usuarios y permisos</p>
+                        <p style={{ margin: 0, fontSize: '0.73rem', fontWeight: 600, color: '#1e293b' }}>Panel de Control</p>
+                        <p style={{ margin: 0, fontSize: '0.64rem', color: '#94a3b8' }}>Capas, usuarios y permisos</p>
                       </div>
-                      <ExternalLink size={11} color="#cbd5e1" />
+                      <ExternalLink size={10} color="#d1d5db" />
                     </a>
                   )}
                 </div>
               )}
 
-              <p style={{ fontSize: '0.62rem', color: '#cbd5e1', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.6 }}>
+              <p style={{ fontSize: '0.6rem', color: '#d1d5db', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.7 }}>
                 Municipio de Lanús · Secretaría de Obras Públicas
               </p>
             </div>
