@@ -20,8 +20,11 @@ export default function LoginPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [qrEstado, setQrEstado] = useState<'cargando' | 'listo' | 'escaneado' | 'aprobado' | 'rechazado' | 'expirado'>('cargando');
 
-  if (user) { router.push('/bienvenida'); return null; }
-
+  useEffect(() => {
+    if (user) {
+      router.push('/bienvenida');
+    }
+  }, [user, router]);
   const crearSesion = useCallback(async () => {
     setQrEstado('cargando');
     try {
