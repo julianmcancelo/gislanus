@@ -101,6 +101,7 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
   const cfg = getEstado(capa.estado);
   const route = [capa.origenNombre, capa.destinoNombre].filter(Boolean).join(' → ');
 
+  return (
     <div>
       <div
         onClick={onToggle}
