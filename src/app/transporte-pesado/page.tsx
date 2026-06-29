@@ -498,10 +498,11 @@ export default function TransportePesadoWizard() {
         body: JSON.stringify({ numeroSolicitud })
       });
       if (!response.ok) throw new Error('Error finalizando la solicitud');
-      setIsSuccess(true);
       if (typeof window !== 'undefined') {
         localStorage.removeItem('lanus-transporte-draft');
       }
+      setIsSuccess(true);
+      setStep(1);
     } catch (err) {
       alert('Error al finalizar la solicitud. Por favor, intente nuevamente.');
     } finally {
@@ -536,13 +537,14 @@ export default function TransportePesadoWizard() {
                 setHorario(''); setObservaciones(''); setVigenciaDesde(''); setVigenciaHasta('');
                 setDatosGeo(null);
                 setStep(1);
-              }} 
+                setViewMode('wizard');
+              }}
               style={{ ...btnStyle, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
             >
               <Plus size={18} /> Cargar un nuevo trámite
             </button>
-            <button 
-              onClick={() => { setIsSuccess(false); setViewMode('list'); fetchRutasList(); }} 
+            <button
+              onClick={() => { setIsSuccess(false); setStep(1); setViewMode('list'); fetchRutasList(); }}
               style={{ ...btnStyle, width: '100%', backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
             >
               <List size={18} /> Ver panel de solicitudes
@@ -1219,7 +1221,9 @@ export default function TransportePesadoWizard() {
               <button 
                 type="button" 
                 onClick={() => {
-                  setDatosGeo(parsedInfo.datosGeo);
+                  if (parsedInfo?.datosGeo) {
+                    setDatosGeo(parsedInfo.datosGeo);
+                  }
                   setStep(2);
                 }}
                 style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
@@ -1253,7 +1257,7 @@ export default function TransportePesadoWizard() {
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               <span style={stepBadgeStyle}>Paso 3 de 3</span>
               <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Confirmar Traza</h2>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Frecuencia:</strong> {parsedInfo?.frecuencia || 'No especificada'}</p>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Frecuencia:</strong> {frecuencia || 'No especificada'}</p>
                 
               {tracedStreets.length > 0 && (
                 <div style={{ marginTop: '15px', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
