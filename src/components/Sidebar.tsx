@@ -1,6 +1,9 @@
 'use client';
 import React, { useState, useMemo } from 'react';
-import { Layers, Info, LogIn, LogOut, Truck, Settings, MapPin, Shield, User, ExternalLink } from 'lucide-react';
+import {
+  Layers, Info, LogIn, LogOut, Truck, Settings, MapPin,
+  Shield, User, ExternalLink, ChevronDown, ChevronRight,
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import styles from './Sidebar.module.css';
@@ -31,15 +34,8 @@ interface SidebarProps {
   setActiveTab: (tab: 'layers' | 'info' | null) => void;
 }
 
-type SubgrupoData = {
-  capasDirectas: Capa[];
-  subsubgrupos: Record<string, Capa[]>;
-};
-
-type GroupedData = {
-  capasDirectas: Capa[];
-  subgrupos: Record<string, SubgrupoData>;
-};
+type SubgrupoData = { capasDirectas: Capa[]; subsubgrupos: Record<string, Capa[]> };
+type GroupedData  = { capasDirectas: Capa[]; subgrupos: Record<string, SubgrupoData> };
 
 const ESTADO_CONFIG: Record<string, { bg: string; dot: string; label: string; short: string }> = {
   PENDIENTE: { bg: '#fef9c3', dot: '#ca8a04', label: 'Pendiente', short: 'PEND' },
@@ -48,125 +44,59 @@ const ESTADO_CONFIG: Record<string, { bg: string; dot: string; label: string; sh
   BORRADOR:  { bg: '#f1f5f9', dot: '#94a3b8', label: 'Borrador',  short: 'BORR' },
   VENCIDO:   { bg: '#ffedd5', dot: '#ea580c', label: 'Vencido',   short: 'VENC' },
 };
-
-function getEstado(estado?: string) {
-  const key = (estado ?? '').toUpperCase();
-  return ESTADO_CONFIG[key] ?? { bg: '#f1f5f9', dot: '#94a3b8', label: estado || '—', short: '—' };
+function getEstado(e?: string) {
+  const k = (e ?? '').toUpperCase();
+  return ESTADO_CONFIG[k] ?? { bg: '#f1f5f9', dot: '#94a3b8', label: e || '—', short: '—' };
 }
 
-/* ── Fila compacta para capas genéricas ── */
+/* ── Toggle switch ── */
+function Toggle({ active, color, onChange }: { active: boolean; color: string; onChange: () => void }) {
+  return (
+    <label className={styles.toggle} onClick={e => e.stopPropagation()}>
+      <input type="checkbox" className={styles.toggleInput} checked={active} onChange={onChange} />
+      <span className={styles.toggleSlider} style={active ? { background: color } : {}} />
+    </label>
+  );
+}
+
+/* ── Capa row ── */
 function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
   return (
-    <div
-      onClick={onToggle}
-      title={capa.nombre}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '7px',
-        padding: '5px 10px',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        borderLeft: `3px solid ${capa.active ? capa.color : '#e2e8f0'}`,
-        marginBottom: '2px',
-        background: capa.active ? 'rgba(248,250,252,0.9)' : 'transparent',
-        opacity: capa.active ? 1 : 0.55,
-        transition: 'all 0.12s',
-      }}
-    >
-      <span style={{
-        width: 9, height: 9, borderRadius: '3px',
-        background: capa.color, flexShrink: 0,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-      }} />
-      <span style={{
-        fontSize: '0.78rem', color: '#334155', fontWeight: 500,
-        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-      }}>
+    <div className={styles.capaRow} onClick={onToggle} title={capa.nombre}>
+      <div className={styles.capaColorBar} style={{ background: capa.color, opacity: capa.active ? 1 : 0.3 }} />
+      <span className={`${styles.capaName} ${capa.active ? styles.capaNameActive : ''}`}>
         {capa.nombre}
       </span>
-      <span style={{
-        width: 14, height: 14, borderRadius: '3px', flexShrink: 0,
-        border: `2px solid ${capa.active ? capa.color : '#cbd5e1'}`,
-        background: capa.active ? capa.color : 'transparent',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {capa.active && <span style={{ width: 6, height: 6, background: '#fff', borderRadius: '1px', display: 'block' }} />}
-      </span>
+      <Toggle active={capa.active} color={capa.color} onChange={onToggle} />
     </div>
   );
 }
 
-/* ── Fila compacta para solicitudes de transporte ── */
+/* ── Solicitud row ── */
 function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
   const cfg = getEstado(capa.estado);
   const route = [capa.origenNombre, capa.destinoNombre].filter(Boolean).join(' → ');
-
   return (
     <div>
-      <div
-        onClick={onToggle}
+      <div className={styles.solicitudRow} onClick={onToggle}
         title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
-        style={{
-          display: 'flex', alignItems: 'center', gap: '6px',
-          padding: '5px 8px', borderRadius: '6px', cursor: 'pointer',
-          background: capa.active ? '#fff' : 'transparent',
-          borderLeft: `3px solid ${capa.color}`,
-          marginBottom: '3px',
-          opacity: capa.active ? 1 : 0.5,
-          transition: 'background 0.12s, opacity 0.12s',
-        }}
-      >
-        <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
-        <span style={{ fontWeight: 700, fontSize: '0.74rem', color: '#1e293b', flexShrink: 0 }}>
-          #{capa.numeroSolicitud}
-        </span>
-        <span style={{
-          fontSize: '0.69rem', color: '#64748b',
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0,
-        }}>
-          {route || capa.tipoCarga || ''}
-        </span>
-        <span style={{
-          background: cfg.bg, color: cfg.dot,
-          borderRadius: '4px', padding: '0 5px',
-          fontSize: '0.58rem', fontWeight: 800, letterSpacing: '0.05em', flexShrink: 0,
-        }}>
+        style={{ opacity: capa.active ? 1 : 0.6 }}>
+        <div className={styles.estadoDot} style={{ background: cfg.dot }} />
+        <span className={styles.solicitudNum}>#{capa.numeroSolicitud}</span>
+        <span className={styles.solicitudRoute}>{route || capa.tipoCarga || '—'}</span>
+        <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot }}>
           {cfg.short}
         </span>
+        <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
       </div>
-      
-      {capa.active && (() => {
-        let geo = capa.datosGeo;
-        if (typeof geo === 'string') {
-          try { geo = JSON.parse(geo); } catch(e) {}
-        }
-        if (geo?.type === 'FeatureCollection' && geo.features?.length > 1) {
-          return (
-            <div style={{ paddingLeft: '14px', marginBottom: '8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-              {geo.features.map((f: any, idx: number) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.properties?.color || '#29B6F6', flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.65rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {f.properties?.name || `Recorrido ${idx + 1}`}
-                  </span>
-                </div>
-              ))}
-            </div>
-          );
-        }
-        return null;
-      })()}
     </div>
   );
 }
 
-/* ── Grupo agrupado por solicitante/empresa ── */
+/* ── Transporte group (por empresa/solicitante) ── */
 function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
-  capas: Capa[];
-  onToggle: (id: string) => void;
-  expandedSols: Record<string, boolean>;
-  toggleSol: (key: string) => void;
+  capas: Capa[]; onToggle: (id: string) => void;
+  expandedSols: Record<string, boolean>; toggleSol: (k: string) => void;
 }) {
   const byOwner = useMemo(() => {
     const map: Record<string, Capa[]> = {};
@@ -184,35 +114,19 @@ function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
         const multi = items.length > 1;
         const isOpen = expandedSols[owner] !== false;
         const activeCount = items.filter(c => c.active).length;
-
         return (
-          <div key={owner} style={{ marginBottom: multi ? '5px' : '2px' }}>
+          <div key={owner} style={{ marginBottom: multi ? 4 : 1 }}>
             {multi ? (
               <>
-                <div
-                  onClick={() => toggleSol(owner)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    padding: '4px 8px', cursor: 'pointer',
-                    borderRadius: '5px', background: '#f1f5f9', marginBottom: '3px',
-                  }}
-                >
-                  <span style={{ fontSize: '0.58rem', color: '#94a3b8' }}>{isOpen ? '▼' : '▶'}</span>
-                  <span style={{
-                    fontSize: '0.71rem', fontWeight: 700, color: '#334155',
-                    flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>
-                    {owner}
-                  </span>
-                  <span style={{
-                    fontSize: '0.61rem', background: '#e2e8f0', color: '#475569',
-                    borderRadius: '999px', padding: '0 6px', fontWeight: 700, flexShrink: 0,
-                  }}>
-                    {activeCount}/{items.length}
-                  </span>
+                <div className={styles.ownerHeader} onClick={() => toggleSol(owner)}>
+                  {isOpen
+                    ? <ChevronDown size={11} color="#94a3b8" />
+                    : <ChevronRight size={11} color="#94a3b8" />}
+                  <span className={styles.ownerName}>{owner}</span>
+                  <span className={`${styles.badge} ${styles.badgeGray}`}>{activeCount}/{items.length}</span>
                 </div>
                 {isOpen && (
-                  <div style={{ paddingLeft: '10px' }}>
+                  <div style={{ paddingLeft: 10 }}>
                     {items.map(c => <SolicitudRow key={c.id} capa={c} onToggle={() => onToggle(c.id)} />)}
                   </div>
                 )}
@@ -234,27 +148,29 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({ 'Solicitudes Transporte Pesado': true });
   const [expandedSols, setExpandedSols] = useState<Record<string, boolean>>({});
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const toggleSol = (key: string) => setExpandedSols(prev => ({ ...prev, [key]: prev[key] === false }));
+
+  const toggleSol  = (k: string) => setExpandedSols(p => ({ ...p, [k]: p[k] === false }));
+  const toggleNode = (k: string) => setExpandedNodes(p => ({ ...p, [k]: !p[k] }));
 
   const { grupos, general } = useMemo(() => {
     const groups: Record<string, GroupedData> = {};
     const generalCapas: Capa[] = [];
     capas.forEach(capa => {
       if (capa.grupo?.nombre) {
-        const gName = capa.grupo.nombre;
-        if (!groups[gName]) groups[gName] = { capasDirectas: [], subgrupos: {} };
+        const gn = capa.grupo.nombre;
+        if (!groups[gn]) groups[gn] = { capasDirectas: [], subgrupos: {} };
         if (capa.subGrupo?.nombre) {
-          const sgName = capa.subGrupo.nombre;
-          if (!groups[gName].subgrupos[sgName]) groups[gName].subgrupos[sgName] = { capasDirectas: [], subsubgrupos: {} };
+          const sn = capa.subGrupo.nombre;
+          if (!groups[gn].subgrupos[sn]) groups[gn].subgrupos[sn] = { capasDirectas: [], subsubgrupos: {} };
           if (capa.subSubGrupo?.nombre) {
-            const ssgName = capa.subSubGrupo.nombre;
-            if (!groups[gName].subgrupos[sgName].subsubgrupos[ssgName]) groups[gName].subgrupos[sgName].subsubgrupos[ssgName] = [];
-            groups[gName].subgrupos[sgName].subsubgrupos[ssgName].push(capa);
+            const ssn = capa.subSubGrupo.nombre;
+            if (!groups[gn].subgrupos[sn].subsubgrupos[ssn]) groups[gn].subgrupos[sn].subsubgrupos[ssn] = [];
+            groups[gn].subgrupos[sn].subsubgrupos[ssn].push(capa);
           } else {
-            groups[gName].subgrupos[sgName].capasDirectas.push(capa);
+            groups[gn].subgrupos[sn].capasDirectas.push(capa);
           }
         } else {
-          groups[gName].capasDirectas.push(capa);
+          groups[gn].capasDirectas.push(capa);
         }
       } else {
         generalCapas.push(capa);
@@ -263,147 +179,80 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
     return { grupos: groups, general: generalCapas };
   }, [capas]);
 
-  const toggleNode = (key: string) => setExpandedNodes(prev => ({ ...prev, [key]: !prev[key] }));
-
-  const flattenGroup = (gName: string): Capa[] => {
-    const data = grupos[gName];
-    return [
-      ...data.capasDirectas,
-      ...Object.values(data.subgrupos).flatMap(sg => [
-        ...sg.capasDirectas,
-        ...Object.values(sg.subsubgrupos).flat(),
-      ]),
-    ];
+  const flattenGroup    = (gn: string) => {
+    const d = grupos[gn];
+    return [...d.capasDirectas, ...Object.values(d.subgrupos).flatMap(sg => [...sg.capasDirectas, ...Object.values(sg.subsubgrupos).flat()])];
   };
-
-  const flattenSubGroup = (gName: string, sgName: string): Capa[] => {
-    const sg = grupos[gName].subgrupos[sgName];
+  const flattenSubGroup = (gn: string, sn: string) => {
+    const sg = grupos[gn].subgrupos[sn];
     return [...sg.capasDirectas, ...Object.values(sg.subsubgrupos).flat()];
   };
+  const toggleAll       = (gn: string, v: boolean) => flattenGroup(gn).forEach(c => { if (c.active !== v) alternarCapa(c.id); });
+  const toggleSubAll    = (gn: string, sn: string, v: boolean) => flattenSubGroup(gn, sn).forEach(c => { if (c.active !== v) alternarCapa(c.id); });
+  const toggleSubSubAll = (gn: string, sn: string, ssn: string, v: boolean) => grupos[gn].subgrupos[sn].subsubgrupos[ssn].forEach(c => { if (c.active !== v) alternarCapa(c.id); });
 
-  const toggleAll = (gName: string, active: boolean) => {
-    flattenGroup(gName).forEach(c => { if (c.active !== active) alternarCapa(c.id); });
-  };
-
-  const toggleSubAll = (gName: string, sgName: string, active: boolean) => {
-    flattenSubGroup(gName, sgName).forEach(c => { if (c.active !== active) alternarCapa(c.id); });
-  };
-
-  const toggleSubSubAll = (gName: string, sgName: string, ssgName: string, active: boolean) => {
-    grupos[gName].subgrupos[sgName].subsubgrupos[ssgName].forEach(c => { if (c.active !== active) alternarCapa(c.id); });
-  };
-
-  // Usar los nuevos permisos dinámicos (o fallback a super_admin por las dudas)
-  const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
-  const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
-  const canAccessAdmin = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
+  const isSuperAdmin         = dbUser?.rol === 'SUPER_ADMIN';
+  const canAccessTransporte  = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canAccessAdmin       = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
 
   return (
     <div className={styles.sidebarContainer}>
-      {/* Franja vertical de iconos */}
+
+      {/* ── Nav strip ── */}
       <div className={styles.navStrip}>
         <div className={`${styles.navIcon} ${activeTab === 'layers' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab(activeTab === 'layers' ? null : 'layers')} title="Capas">
-          <Layers size={18} />
+          <Layers size={17} />
         </div>
         <div className={`${styles.navIcon} ${activeTab === 'info' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} title="Información">
-          <Info size={18} />
+          <Info size={17} />
         </div>
 
         <div style={{ flex: 1 }} />
+        <div className={styles.navDivider} />
 
         {canAccessTransporte && (
           <div className={styles.navIcon} onClick={() => router.push('/transporte-pesado')} title="Transporte Pesado">
-            <Truck size={18} />
+            <Truck size={17} />
           </div>
         )}
         {canAccessAdmin && (
           <div className={styles.navIcon} onClick={() => router.push('/admin')} title="Panel de Control">
-            <Settings size={18} />
+            <Settings size={17} />
           </div>
         )}
+
+        <div className={styles.navDivider} />
+
         <div className={styles.navIcon}
           onClick={() => user ? setConfirmLogout(true) : router.push('/login')}
           title={user ? 'Cerrar Sesión' : 'Iniciar Sesión'}>
-          {user ? <LogOut size={18} color="#f87171" /> : <LogIn size={18} />}
+          {user ? <LogOut size={17} color="#f87171" /> : <LogIn size={17} />}
         </div>
       </div>
 
-      {/* Confirmación de cierre de sesión */}
+      {/* ── Modal logout ── */}
       {confirmLogout && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(6px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            pointerEvents: 'auto',
-          }}
-          onClick={() => setConfirmLogout(false)}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#fff',
-              borderRadius: '16px',
-              width: '300px',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)',
-              overflow: 'hidden',
-              fontFamily: 'Inter, system-ui, sans-serif',
-            }}
-          >
-            {/* Franja superior */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-              padding: '24px 24px 20px',
-            }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: '10px',
-                background: 'rgba(239,68,68,0.15)',
-                border: '1px solid rgba(239,68,68,0.25)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: '14px',
-              }}>
-                <LogOut size={18} color="#f87171" />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setConfirmLogout(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: 300, boxShadow: '0 24px 64px rgba(0,0,0,0.2)', overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e293b)', padding: '22px 22px 18px' }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <LogOut size={17} color="#f87171" />
               </div>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: '#f8fafc', letterSpacing: '-0.01em' }}>
-                Cerrar sesión
-              </p>
-              <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>
-                {dbUser?.nombre || user?.email}
-              </p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#f8fafc' }}>Cerrar sesión</p>
+              <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: '#64748b' }}>{dbUser?.nombre || user?.email}</p>
             </div>
-
-            {/* Cuerpo */}
-            <div style={{ padding: '20px 24px 24px' }}>
-              <p style={{ margin: '0 0 20px', fontSize: '0.84rem', color: '#475569', lineHeight: 1.6 }}>
+            <div style={{ padding: '18px 22px 22px' }}>
+              <p style={{ margin: '0 0 18px', fontSize: '0.82rem', color: '#475569', lineHeight: 1.6 }}>
                 ¿Estás seguro que querés salir de la plataforma?
               </p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => setConfirmLogout(false)}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: '8px',
-                    border: '1px solid #e2e8f0', background: '#f8fafc',
-                    color: '#475569', fontWeight: 600, fontSize: '0.84rem',
-                    cursor: 'pointer', transition: 'background 0.15s',
-                    fontFamily: 'inherit',
-                  }}
-                >
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setConfirmLogout(false)} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer', fontFamily: 'inherit' }}>
                   Cancelar
                 </button>
-                <button
-                  onClick={() => { logout(); setConfirmLogout(false); }}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: '8px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                    color: '#fff', fontWeight: 700, fontSize: '0.84rem',
-                    cursor: 'pointer', transition: 'opacity 0.15s',
-                    boxShadow: '0 4px 12px rgba(220,38,38,0.3)',
-                    fontFamily: 'inherit',
-                  }}
-                >
+                <button onClick={() => { logout(); setConfirmLogout(false); }} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#dc2626,#b91c1c)', color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', fontFamily: 'inherit' }}>
                   Cerrar sesión
                 </button>
               </div>
@@ -412,36 +261,44 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
         </div>
       )}
 
-      {/* Panel expandible */}
+      {/* ── Panel expandible ── */}
       <div className={`${styles.panel} ${activeTab ? styles.panelOpen : ''}`}>
 
-        {/* ── Panel Capas ── */}
+        {/* ── Capas ── */}
         {activeTab === 'layers' && (
           <div className={styles.panelContent}>
-            <h3 className={styles.panelTitle}>Capas</h3>
+            <div className={styles.panelHeader}>
+              <div className={styles.panelHeaderIcon}>
+                <Layers size={15} color="#475569" />
+              </div>
+              <h3 className={styles.panelTitle}>Capas</h3>
+              <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
+            </div>
 
-            <div className={styles.layersList}>
+            <div className={styles.panelBody}>
               {Object.entries(grupos).map(([gName, gData]) => {
-                const isOpen = expandedNodes[gName];
-                const allCapas = flattenGroup(gName);
-                const allActive = allCapas.length > 0 && allCapas.every(l => l.active);
-                const someActive = allCapas.some(l => l.active) && !allActive;
+                const isOpen      = expandedNodes[gName];
+                const allCapas    = flattenGroup(gName);
+                const allActive   = allCapas.length > 0 && allCapas.every(l => l.active);
+                const someActive  = allCapas.some(l => l.active) && !allActive;
                 const isTransporte = gName === 'Solicitudes Transporte Pesado';
                 const activeCount = allCapas.filter(c => c.active).length;
 
                 return (
                   <div key={gName} className={styles.layerGroup}>
-                    {/* Level 1: Grupo header */}
                     <div className={styles.groupHeader} onClick={() => toggleNode(gName)}>
-                      <span className={styles.expandChevron}>{isOpen ? '▾' : '▸'}</span>
+                      <span className={styles.groupChevron}>
+                        {isOpen ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                      </span>
                       {!isTransporte && (
-                        <input type="checkbox" checked={allActive}
+                        <input type="checkbox" className={styles.groupCheckbox}
+                          checked={allActive}
                           ref={el => { if (el) el.indeterminate = someActive; }}
                           onChange={e => { e.stopPropagation(); toggleAll(gName, e.target.checked); }}
-                          onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
+                          onClick={e => e.stopPropagation()} />
                       )}
                       <span className={styles.groupName}>{gName}</span>
-                      <span className={isTransporte ? styles.badgeBlue : styles.badgeGray}>
+                      <span className={`${styles.badge} ${isTransporte ? styles.badgeBlue : styles.badgeGray}`}>
                         {isTransporte ? `${activeCount}/${allCapas.length}` : allCapas.length}
                       </span>
                     </div>
@@ -453,76 +310,67 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                         ) : (
                           <>
                             {Object.entries(gData.subgrupos).map(([sgName, sgData]) => {
-                              const sgKey = `${gName}|${sgName}`;
-                              const sgOpen = expandedNodes[sgKey];
-                              const sgCapas = flattenSubGroup(gName, sgName);
+                              const sgKey      = `${gName}|${sgName}`;
+                              const sgOpen     = expandedNodes[sgKey];
+                              const sgCapas    = flattenSubGroup(gName, sgName);
                               const sgAllActive = sgCapas.every(l => l.active);
-                              const sgSome = sgCapas.some(l => l.active) && !sgAllActive;
-                              const hasSsg = Object.keys(sgData.subsubgrupos).length > 0;
+                              const sgSome     = sgCapas.some(l => l.active) && !sgAllActive;
+                              const hasSsg     = Object.keys(sgData.subsubgrupos).length > 0;
 
                               return (
                                 <div key={sgKey} className={styles.subGroup}>
-                                  {/* Level 2: Subgrupo header (línea) */}
                                   <div className={styles.subGroupHeader} onClick={() => toggleNode(sgKey)}>
-                                    <span className={styles.expandChevron} style={{ fontSize: '0.6rem' }}>{sgOpen ? '▾' : '▸'}</span>
-                                    <input type="checkbox" checked={sgAllActive}
+                                    {sgOpen
+                                      ? <ChevronDown size={11} color="#94a3b8" />
+                                      : <ChevronRight size={11} color="#94a3b8" />}
+                                    <input type="checkbox" className={styles.groupCheckbox}
+                                      checked={sgAllActive}
                                       ref={el => { if (el) el.indeterminate = sgSome; }}
                                       onChange={e => { e.stopPropagation(); toggleSubAll(gName, sgName, e.target.checked); }}
-                                      onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
+                                      onClick={e => e.stopPropagation()} />
                                     <span className={styles.subGroupName}>{sgName}</span>
-                                    <span className={styles.badgeGray}>{sgCapas.length}</span>
+                                    <span className={`${styles.badge} ${styles.badgeGray}`}>{sgCapas.length}</span>
                                   </div>
 
                                   {sgOpen && (
-                                    <div style={{ paddingLeft: '8px' }}>
+                                    <div style={{ paddingLeft: 10 }}>
                                       {hasSsg ? (
                                         Object.entries(sgData.subsubgrupos).map(([ssgName, ssgCapas]) => {
-                                          const ssgKey = `${sgKey}|${ssgName}`;
-                                          const ssgOpen = expandedNodes[ssgKey] !== false;
+                                          const ssgKey      = `${sgKey}|${ssgName}`;
+                                          const ssgOpen     = expandedNodes[ssgKey] !== false;
                                           const ssgAllActive = ssgCapas.every(l => l.active);
-                                          const ssgSome = ssgCapas.some(l => l.active) && !ssgAllActive;
-
+                                          const ssgSome     = ssgCapas.some(l => l.active) && !ssgAllActive;
                                           return (
-                                            <div key={ssgKey} style={{ marginBottom: '2px' }}>
-                                              {/* Level 3: Sub-subgrupo header (ramal) */}
-                                              <div
-                                                onClick={() => toggleNode(ssgKey)}
-                                                style={{
-                                                  display: 'flex', alignItems: 'center', gap: '4px',
-                                                  padding: '3px 6px', borderRadius: '4px', cursor: 'pointer',
-                                                  background: '#f1f5f9', marginBottom: '2px',
-                                                }}>
-                                                <span style={{ fontSize: '0.55rem', color: '#94a3b8' }}>{ssgOpen ? '▾' : '▸'}</span>
-                                                <input type="checkbox" checked={ssgAllActive}
+                                            <div key={ssgKey} style={{ marginBottom: 2 }}>
+                                              <div className={styles.ramalHeader} onClick={() => toggleNode(ssgKey)}>
+                                                {ssgOpen
+                                                  ? <ChevronDown size={10} color="#94a3b8" />
+                                                  : <ChevronRight size={10} color="#94a3b8" />}
+                                                <input type="checkbox" className={styles.groupCheckbox}
+                                                  checked={ssgAllActive}
                                                   ref={el => { if (el) el.indeterminate = ssgSome; }}
                                                   onChange={e => { e.stopPropagation(); toggleSubSubAll(gName, sgName, ssgName, e.target.checked); }}
-                                                  onClick={e => e.stopPropagation()} className={styles.groupCheckbox} />
-                                                <span style={{ fontSize: '0.69rem', fontWeight: 600, color: '#475569', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ssgName}</span>
-                                                <span className={styles.badgeGray}>{ssgCapas.length}</span>
+                                                  onClick={e => e.stopPropagation()} />
+                                                <span className={styles.ramalName}>{ssgName}</span>
+                                                <span className={`${styles.badge} ${styles.badgeGray}`}>{ssgCapas.length}</span>
                                               </div>
                                               {ssgOpen && (
-                                                <div style={{ paddingLeft: '8px' }}>
-                                                  {ssgCapas.map(capa => (
-                                                    <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
-                                                  ))}
+                                                <div style={{ paddingLeft: 8 }}>
+                                                  {ssgCapas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
                                                 </div>
                                               )}
                                             </div>
                                           );
                                         })
                                       ) : (
-                                        sgData.capasDirectas.map(capa => (
-                                          <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
-                                        ))
+                                        sgData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)
                                       )}
                                     </div>
                                   )}
                                 </div>
                               );
                             })}
-                            {gData.capasDirectas.map(capa => (
-                              <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
-                            ))}
+                            {gData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
                           </>
                         )}
                       </div>
@@ -531,26 +379,25 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                 );
               })}
 
-              {/* Capas generales sin grupo */}
               {general.length > 0 && (
                 <div className={styles.layerGroup}>
                   <div className={styles.groupHeader} onClick={() => toggleNode('__general')}>
-                    <span className={styles.expandChevron}>{expandedNodes['__general'] !== false ? '▾' : '▸'}</span>
+                    <span className={styles.groupChevron}>
+                      {expandedNodes['__general'] !== false ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+                    </span>
                     <span className={styles.groupName}>Otras capas</span>
-                    <span className={styles.badgeGray}>{general.length}</span>
+                    <span className={`${styles.badge} ${styles.badgeGray}`}>{general.length}</span>
                   </div>
                   {expandedNodes['__general'] !== false && (
                     <div className={styles.groupItems}>
-                      {general.map(capa => (
-                        <CapaRow key={capa.id} capa={capa} onToggle={() => alternarCapa(capa.id)} />
-                      ))}
+                      {general.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
                     </div>
                   )}
                 </div>
               )}
 
               {capas.length === 0 && (
-                <p style={{ color: '#94a3b8', textAlign: 'center', marginTop: '24px', fontSize: '0.82rem' }}>
+                <p style={{ color: '#94a3b8', textAlign: 'center', marginTop: 24, fontSize: '0.8rem' }}>
                   No hay capas disponibles.
                 </p>
               )}
@@ -558,176 +405,98 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           </div>
         )}
 
-        {/* ── Panel Info ── */}
+        {/* ── Info ── */}
         {activeTab === 'info' && (
           <div className={styles.panelContent}>
-            <h3 className={styles.panelTitle}>Sistema GIS</h3>
-
-            {/* Encabezado institucional */}
-            <div style={{
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)',
-              borderRadius: '10px',
-              padding: '16px',
-              marginBottom: '14px',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', top: -20, right: -20,
-                width: 80, height: 80, borderRadius: '50%',
-                background: 'rgba(56,189,248,0.08)',
-              }} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '8px',
-                  background: 'rgba(56,189,248,0.15)',
-                  border: '1px solid rgba(56,189,248,0.25)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <MapPin size={16} color="#38bdf8" />
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 800, color: '#f1f5f9', letterSpacing: '0.02em' }}>
-                    GIS Lanús
-                  </p>
-                  <p style={{ margin: 0, fontSize: '0.68rem', color: '#64748b' }}>
-                    Sistema de Información Geográfica
-                  </p>
-                </div>
+            <div className={styles.panelHeader}>
+              <div className={styles.panelHeaderIcon}>
+                <Info size={15} color="#475569" />
               </div>
-              <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.6 }}>
-                Plataforma municipal del <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Municipio de Lanús</span> para
-                la gestión y visualización de datos geoespaciales.
+              <h3 className={styles.panelTitle}>Sistema GIS</h3>
+            </div>
+
+            <div className={styles.panelBody}>
+              {/* Card institucional */}
+              <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e3a5f)', borderRadius: 10, padding: '14px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: -16, right: -16, width: 70, height: 70, borderRadius: '50%', background: 'rgba(56,189,248,0.07)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <MapPin size={14} color="#38bdf8" />
+                  </div>
+                  <div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#f1f5f9' }}>GIS Lanús</p>
+                    <p style={{ margin: 0, fontSize: '0.67rem', color: '#64748b' }}>Sistema de Información Geográfica</p>
+                  </div>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', lineHeight: 1.6 }}>
+                  Plataforma del <span style={{ color: '#cbd5e1', fontWeight: 600 }}>Municipio de Lanús</span> para la gestión de datos geoespaciales.
+                </p>
+              </div>
+
+              {/* Sesión */}
+              {user && (
+                <div style={{ border: '1px solid #e8edf3', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <User size={12} color="#94a3b8" />
+                    <span style={{ fontSize: '0.63rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Sesión activa</span>
+                  </div>
+                  <div style={{ padding: '10px 12px' }}>
+                    <p style={{ margin: '0 0 2px', fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>
+                      {dbUser?.nombre || user.email?.split('@')[0]}
+                    </p>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.7rem', color: '#94a3b8' }}>{user.email}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <Shield size={10} color="#0ea5e9" />
+                      <span style={{ fontSize: '0.63rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+                        color: dbUser?.rol === 'SUPER_ADMIN' ? '#7c3aed' : dbUser?.rol === 'ADMINISTRADOR' ? '#0ea5e9' : '#16a34a' }}>
+                        {dbUser?.rol === 'SUPER_ADMIN' ? 'Super Admin' : dbUser?.rol === 'ADMINISTRADOR' ? 'Administrador' : dbUser?.rol === 'USUARIO' ? 'Usuario' : dbUser?.rol}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Accesos rápidos */}
+              {(canAccessTransporte || canAccessAdmin) && (
+                <div style={{ border: '1px solid #e8edf3', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', fontSize: '0.63rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Accesos rápidos
+                  </div>
+                  {canAccessTransporte && (
+                    <a href="/transporte-pesado" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: canAccessAdmin ? '1px solid #f1f5f9' : 'none', textDecoration: 'none', background: 'transparent', transition: 'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(124,58,237,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Truck size={13} color="#7c3aed" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>Transporte Pesado</p>
+                        <p style={{ margin: 0, fontSize: '0.67rem', color: '#94a3b8' }}>Permisos de circulación</p>
+                      </div>
+                      <ExternalLink size={11} color="#cbd5e1" />
+                    </a>
+                  )}
+                  {canAccessAdmin && (
+                    <a href="/admin" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', textDecoration: 'none', background: 'transparent', transition: 'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(2,132,199,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={13} color="#0284c7" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>Panel de Control</p>
+                        <p style={{ margin: 0, fontSize: '0.67rem', color: '#94a3b8' }}>Capas, usuarios y permisos</p>
+                      </div>
+                      <ExternalLink size={11} color="#cbd5e1" />
+                    </a>
+                  )}
+                </div>
+              )}
+
+              <p style={{ fontSize: '0.62rem', color: '#cbd5e1', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.6 }}>
+                Municipio de Lanús · Secretaría de Obras Públicas
               </p>
             </div>
-
-            {/* Sesión activa */}
-            {user && (
-              <div style={{
-                border: '1px solid #e8edf3',
-                borderRadius: '10px',
-                overflow: 'hidden',
-                marginBottom: '14px',
-              }}>
-                <div style={{
-                  padding: '10px 12px',
-                  background: '#f8fafc',
-                  borderBottom: '1px solid #f1f5f9',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                }}>
-                  <User size={13} color="#64748b" />
-                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Sesión activa
-                  </span>
-                </div>
-                <div style={{ padding: '12px' }}>
-                  <p style={{ margin: '0 0 4px', fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
-                    {dbUser?.nombre || user.email?.split('@')[0]}
-                  </p>
-                  <p style={{ margin: '0 0 8px', fontSize: '0.72rem', color: '#64748b' }}>
-                    {user.email}
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Shield size={11} color="#0ea5e9" />
-                    <span style={{
-                      fontSize: '0.65rem', fontWeight: 700,
-                      color: dbUser?.rol === 'SUPER_ADMIN' ? '#7c3aed' :
-                             dbUser?.rol === 'ADMINISTRADOR' ? '#0ea5e9' : '#16a34a',
-                      textTransform: 'uppercase', letterSpacing: '0.06em',
-                    }}>
-                      {dbUser?.rol === 'SUPER_ADMIN' ? 'Super Administrador' :
-                       dbUser?.rol === 'ADMINISTRADOR' ? 'Administrador' :
-                       dbUser?.rol === 'OPERADOR' ? 'Operador' :
-                       dbUser?.rol === 'USUARIO' ? 'Usuario' : dbUser?.rol}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Atajos rápidos */}
-            <div style={{
-              border: '1px solid #e8edf3',
-              borderRadius: '10px',
-              overflow: 'hidden',
-              marginBottom: '14px',
-            }}>
-              <div style={{
-                padding: '10px 12px',
-                background: '#f8fafc',
-                borderBottom: '1px solid #f1f5f9',
-                fontSize: '0.68rem', fontWeight: 700, color: '#64748b',
-                textTransform: 'uppercase', letterSpacing: '0.08em',
-              }}>
-                Accesos rápidos
-              </div>
-              {canAccessTransporte && (
-                <a href="/transporte-pesado" style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px',
-                  borderBottom: canAccessAdmin ? '1px solid #f1f5f9' : 'none',
-                  textDecoration: 'none',
-                  transition: 'background 0.12s',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '7px',
-                    background: 'rgba(139,92,246,0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <Truck size={14} color="#7c3aed" />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#1e293b' }}>
-                      Transporte Pesado
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.68rem', color: '#94a3b8' }}>
-                      Asistente de permisos de circulación
-                    </p>
-                  </div>
-                  <ExternalLink size={12} color="#cbd5e1" />
-                </a>
-              )}
-              {canAccessAdmin && (
-                <a href="/admin" style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  padding: '10px 12px',
-                  textDecoration: 'none',
-                  transition: 'background 0.12s',
-                  cursor: 'pointer',
-                  background: 'transparent',
-                }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{
-                    width: 28, height: 28, borderRadius: '7px',
-                    background: 'rgba(2,132,199,0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <Settings size={14} color="#0284c7" />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#1e293b' }}>
-                      Panel de Control
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.68rem', color: '#94a3b8' }}>
-                      Gestión de capas, usuarios y permisos
-                    </p>
-                  </div>
-                  <ExternalLink size={12} color="#cbd5e1" />
-                </a>
-              )}
-            </div>
-
-            {/* Pie */}
-            <p style={{ fontSize: '0.65rem', color: '#cbd5e1', textAlign: 'center', marginTop: 'auto', paddingTop: '8px', lineHeight: 1.6 }}>
-              Municipio de Lanús · Secretaría de Obras Públicas
-            </p>
           </div>
         )}
       </div>
