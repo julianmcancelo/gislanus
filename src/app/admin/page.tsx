@@ -1782,6 +1782,7 @@ export default function AdminPage() {
                       <option value="PENDIENTE">Pendientes</option>
                       <option value="APROBADA">Aprobadas</option>
                       <option value="RECHAZADA">Rechazadas</option>
+                      <option value="BORRADOR">Borradores</option>
                     </select>
                   </div>
                 </div>
@@ -1873,11 +1874,25 @@ export default function AdminPage() {
                           <td>
                             <div className={styles.mapPreviewWrapper}>
                               <div style={{ cursor: 'pointer', position: 'relative' }} onClick={() => {
-                                let geo = ruta.datosGeo;
-                                if (typeof geo === 'string') {
-                                  try { geo = JSON.parse(geo); } catch { geo = null; }
-                                }
-                                if (geo) setPreviewRutaGeo({ geo, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
+                                const relatedRutas = ruta.numeroSolicitud ? rutas.filter(r => r.numeroSolicitud === ruta.numeroSolicitud) : [ruta];
+                                const features: any[] = [];
+                                relatedRutas.forEach(r => {
+                                  let g = r.datosGeo;
+                                  if (typeof g === 'string') {
+                                    try { g = JSON.parse(g); } catch { g = null; }
+                                  }
+                                  if (g) {
+                                    if (g.type === 'FeatureCollection') {
+                                      g.features.forEach((f: any) => features.push({ ...f, properties: { ...f.properties, patente: r.patente, destino: r.destinoDireccion } }));
+                                    } else if (g.type === 'Feature') {
+                                      features.push({ ...g, properties: { ...g.properties, patente: r.patente, destino: r.destinoDireccion } });
+                                    } else {
+                                      features.push({ type: 'Feature', geometry: g, properties: { patente: r.patente, destino: r.destinoDireccion } });
+                                    }
+                                  }
+                                });
+                                const combinedGeo = { type: 'FeatureCollection', features };
+                                setPreviewRutaGeo({ geo: combinedGeo, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
                               }}>
                                 <StaticMapPreview geoData={
                                   typeof ruta.datosGeo === 'string' ?
