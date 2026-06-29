@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info } from 'lucide-react';
 
 // Dynamic import for Leaflet component to avoid SSR errors
 const WizardMap = dynamic(() => import('../../components/WizardMap'), {
@@ -22,7 +22,7 @@ export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
   const urlEditId = searchParams.get('editId');
   const { dbUser, loading } = useAuth();
-  const [viewMode, setViewMode] = useState<'list' | 'wizard'>(urlEditId ? 'wizard' : 'list');
+  const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
   const [loadingRutas, setLoadingRutas] = useState(false);
@@ -459,17 +459,17 @@ export default function TransportePesadoWizard() {
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', width: '100%' }}>
               <button 
                 onClick={handleAddAnotherRouteSameVehicle} 
-                style={{ ...btnStyle, backgroundColor: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe', flex: 1, fontSize: '14px', padding: '10px' }}
+                style={{ ...btnStyle, backgroundColor: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe', flex: 1, fontSize: '14px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 disabled={isSubmitting}
               >
-                ➕ Nuevo Recorrido (Mismo Camión)
+                <Plus size={16} /> Nuevo Recorrido (Mismo Camión)
               </button>
               <button 
                 onClick={handleAddAnotherRoute} 
-                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1, fontSize: '14px', padding: '10px' }}
+                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1, fontSize: '14px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 disabled={isSubmitting}
               >
-                🚚 Nuevo Camión
+                <Truck size={16} /> Nuevo Camión
               </button>
               <button 
                 onClick={handleFinishRequest} 
@@ -488,35 +488,183 @@ export default function TransportePesadoWizard() {
   const stepLabels = ['Datos', 'Trazado', 'Confirmar'];
   const currentStepNum = step === 1 ? 1 : step === 1.5 ? 1 : step === 2 ? 2 : 3;
 
+  if (viewMode === 'home') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', backgroundColor: '#f8fafc' }}>
+        {/* Modern Header */}
+        <header style={{
+          height: '70px',
+          background: 'white',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 32px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
+              <Truck size={24} color="white" />
+            </div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Transporte Pesado</h1>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Municipio de Lanús</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{dbUser?.nombre || dbUser?.email}</div>
+              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{dbUser?.rol}</div>
+            </div>
+            <div style={{ background: '#f1f5f9', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+              <User size={20} color="#64748b" />
+            </div>
+          </div>
+        </header>
+
+        {/* Hero Section */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '48px', maxWidth: '600px' }}>
+            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#0f172a', marginBottom: '16px', letterSpacing: '-0.5px' }}>
+              Hola, {dbUser?.nombre?.split(' ')[0] || 'Usuario'}
+            </h2>
+            <p style={{ fontSize: '16px', color: '#475569', lineHeight: '1.6' }}>
+              Bienvenido al portal de Transporte Pesado. Seleccioná qué acción deseás realizar para continuar.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', maxWidth: '800px' }}>
+            
+            {/* Card Nueva Solicitud */}
+            <div 
+              onClick={() => { setEditId(null); setViewMode('wizard'); }}
+              style={{
+                background: 'white',
+                borderRadius: '24px',
+                padding: '40px 32px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
+                e.currentTarget.style.borderColor = '#93c5fd';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}></div>
+              <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Plus size={32} color="#2563eb" />
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 12px 0' }}>Nueva Solicitud</h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+                Crear una nueva solicitud de tránsito pesado. Vas a poder registrar los datos del vehículo y dibujar el recorrido.
+              </p>
+              <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', color: '#2563eb', fontWeight: '600', fontSize: '14px', gap: '6px' }}>
+                Comenzar ahora <ArrowRight size={16} />
+              </div>
+            </div>
+
+            {/* Card Gestionar */}
+            <div 
+              onClick={() => setViewMode('list')}
+              style={{
+                background: 'white',
+                borderRadius: '24px',
+                padding: '40px 32px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
+                e.currentTarget.style.borderColor = '#c4b5fd';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            >
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)' }}></div>
+              <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <List size={32} color="#7c3aed" />
+              </div>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 12px 0' }}>Gestionar Solicitudes</h3>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+                Visualizá el listado completo de solicitudes cargadas. Podés ver estados y editar recorridos existentes.
+              </p>
+              <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', color: '#7c3aed', fontWeight: '600', fontSize: '14px', gap: '6px' }}>
+                Ver listado <ArrowRight size={16} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (viewMode === 'list') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
         <header style={{
-          height: '64px',
-          background: 'linear-gradient(135deg, #1a237e 0%, #283593 60%, #1565C0 100%)',
-          color: 'white',
+          height: '70px',
+          background: 'white',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+          padding: '0 32px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          position: 'sticky',
+          top: 0,
           zIndex: 10
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '7px', display: 'flex' }}>
-              <Truck size={24} color="#90CAF9" />
+            <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
+              <Truck size={24} color="white" />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '17px', fontWeight: '700', letterSpacing: '0.2px' }}>Transporte Pesado</h1>
-              <p style={{ margin: 0, fontSize: '11px', color: '#90CAF9', letterSpacing: '0.3px' }}>Panel de Solicitudes</p>
+              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Transporte Pesado</h1>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Panel de Solicitudes</p>
             </div>
           </div>
-          <button 
-            onClick={() => { setEditId(null); setViewMode('wizard'); }} 
-            style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#10b981', borderColor: '#059669', fontSize: '14px' }}
-          >
-            ➕ Nueva Solicitud
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button 
+              onClick={() => { setViewMode('home'); }} 
+              style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderColor: '#e2e8f0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}
+            >
+              <ArrowLeft size={16} /> Volver
+            </button>
+            <button 
+              onClick={() => { setEditId(null); setViewMode('wizard'); }} 
+              style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#2563eb', borderColor: '#1d4ed8', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'white' }}
+            >
+              <Plus size={16} /> Nueva Solicitud
+            </button>
+          </div>
         </header>
 
         <div style={{ flex: 1, padding: '30px', overflowY: 'auto' }}>
@@ -566,11 +714,11 @@ export default function TransportePesadoWizard() {
                         <td style={{ padding: '15px 20px', textAlign: 'right' }}>
                           <button 
                             onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
-                            style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s' }}
+                            style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
                           >
-                            ✏️ Editar
+                            <Edit2 size={14} /> Editar
                           </button>
                         </td>
                       </tr>
@@ -594,26 +742,26 @@ export default function TransportePesadoWizard() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f8fafc' }}>
       {/* Wizard Header */}
       <header style={{
-        height: '64px',
-        background: 'linear-gradient(135deg, #1a237e 0%, #283593 60%, #1565C0 100%)',
-        color: 'white',
+        height: '70px',
+        background: 'white',
+        borderBottom: '1px solid #e2e8f0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 24px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+        padding: '0 32px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
         zIndex: 10
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '7px', display: 'flex' }}>
-            <Truck size={24} color="#90CAF9" />
+          <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
+            <Truck size={24} color="white" />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '17px', fontWeight: '700', letterSpacing: '0.2px' }}>Viabilidad de Transporte Pesado</h1>
-            <p style={{ margin: 0, fontSize: '11px', color: '#90CAF9', letterSpacing: '0.3px' }}>Municipio de Lanús · Asistente de Registro</p>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Viabilidad de Transporte Pesado</h1>
+            <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Municipio de Lanús · Asistente de Registro</p>
           </div>
         </div>
         {/* Progress Steps */}
@@ -624,21 +772,21 @@ export default function TransportePesadoWizard() {
             const isDone = num < currentStepNum;
             return (
               <div key={num} style={{ display: 'flex', alignItems: 'center' }}>
-                {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#90CAF9' : 'rgba(255,255,255,0.25)', margin: '0 4px' }} />}
+                {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#3b82f6' : '#e2e8f0', margin: '0 4px', transition: 'background-color 0.3s' }} />}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
                   <div style={{
                     width: '28px', height: '28px', borderRadius: '50%',
-                    backgroundColor: isActive ? '#29B6F6' : isDone ? '#90CAF9' : 'rgba(255,255,255,0.2)',
-                    color: 'white',
+                    backgroundColor: isActive ? '#3b82f6' : isDone ? '#eff6ff' : '#f1f5f9',
+                    color: isActive ? 'white' : isDone ? '#3b82f6' : '#94a3b8',
+                    border: isDone || isActive ? 'none' : '1px solid #cbd5e1',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '13px', fontWeight: 'bold',
-                    border: isActive ? '2px solid white' : '2px solid transparent',
-                    boxShadow: isActive ? '0 0 0 3px rgba(41,182,246,0.4)' : 'none',
+                    fontWeight: 'bold', fontSize: '12px',
+                    boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.1)' : 'none',
                     transition: 'all 0.3s'
                   }}>
-                    {isDone ? '✓' : num}
+                    {isDone ? <CheckCircle size={14} /> : num}
                   </div>
-                  <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '400', color: isActive ? 'white' : isDone ? '#90CAF9' : 'rgba(255,255,255,0.6)' }}>
+                  <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '500', color: isActive ? '#0f172a' : isDone ? '#3b82f6' : '#94a3b8' }}>
                     {label}
                   </div>
                 </div>
@@ -653,7 +801,7 @@ export default function TransportePesadoWizard() {
         
         {step !== 2 && (
           <button 
-            onClick={() => { setViewMode('list'); setEditId(null); fetchRutasList(); }}
+            onClick={() => { setViewMode('home'); setEditId(null); fetchRutasList(); }}
             style={{ 
               position: 'absolute', top: '20px', left: '20px', 
               background: 'white', border: '1px solid #e5e7eb', color: '#4b5563', 
@@ -662,7 +810,7 @@ export default function TransportePesadoWizard() {
               boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
             }}
           >
-            <span>⬅️</span> Volver al listado
+            <ArrowLeft size={16} /> Volver al Inicio
           </button>
         )}
 
@@ -670,7 +818,7 @@ export default function TransportePesadoWizard() {
           <form onSubmit={handleNextStep1} style={cardStyle}>
             {editId && (
               <div style={{ width: '100%', marginBottom: '18px', background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '10px', padding: '12px 16px', display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: '18px', marginRight: '10px' }}>✏️</span>
+                <Edit2 size={20} color="#D97706" style={{ marginRight: '10px' }} />
                 <div>
                   <div style={{ fontWeight: '700', fontSize: '13px', color: '#92400E' }}>Modo Edición</div>
                   <div style={{ fontSize: '12px', color: '#B45309' }}>Estás editando un recorrido existente. Los cambios sobreescribirán la traza anterior.</div>
