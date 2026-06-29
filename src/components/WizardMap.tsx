@@ -4,7 +4,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
-import LanusMask from './LanusMask';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -192,7 +191,6 @@ export default function WizardMap({ onComplete, initialGeo }: { onComplete: (dat
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           maxZoom={19}
         />
-        <LanusMask />
         {initialGeo && (
           <GeoJSON 
             data={initialGeo} 
