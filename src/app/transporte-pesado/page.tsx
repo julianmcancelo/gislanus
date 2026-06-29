@@ -508,20 +508,47 @@ export default function TransportePesadoWizard() {
 
   if (isSuccess) {
     return (
-      <div style={containerStyle}>
-        <div style={cardStyle}>
-          <CheckCircle size={64} color="#10B981" style={{ marginBottom: '20px' }} />
-          <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Solicitud Registrada!</h2>
-          <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            La solicitud <strong>#{numeroSolicitud}</strong> y todos sus vehículos han sido guardados correctamente. Nuestro equipo los verificará.
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+        <div style={{ ...cardStyle, maxWidth: '500px', textAlign: 'center', padding: '40px' }}>
+          <div style={{ width: '80px', height: '80px', background: '#dcfce3', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <CheckCircle size={40} color="#10B981" />
+          </div>
+          <h2 style={{ margin: '0 0 10px 0', color: '#111827', fontSize: '1.5rem' }}>¡Trámite Finalizado!</h2>
+          <p style={{ color: '#4b5563', marginBottom: '30px', fontSize: '1rem', lineHeight: '1.5' }}>
+            La solicitud <strong>#{numeroSolicitud}</strong> ha sido enviada exitosamente a revisión. 
+            El equipo evaluará la ruta y los datos técnicos.
           </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <button onClick={() => window.location.reload()} style={btnStyle}>Registrar Otra Solicitud</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button 
+              onClick={() => {
+                setIsSuccess(false);
+                setEditId(null);
+                setNumeroSolicitud(''); setIdSolicitudWeb(''); setEnlaceDocumento(''); setFechaCreacion(''); setNombreSolicitante('');
+                setEmpresaSolicitante(''); setCuilCuit(''); setEmailSolicitante(''); setTelefonoSolicitante('');
+                setPatente(''); setTipoVehiculo(''); setPesoToneladas(''); setCargaPeligrosa(false);
+                setTipoCarga(''); setLargoVehiculo(''); setAnchoVehiculo(''); setAlturaVehiculo('');
+                setCantidadEjes(''); setAseguradora(''); setNroSeguro(''); setOrigenDireccion('');
+                setOrigenLocalidad(''); setOrigenPartido('Lanus'); setOrigenNombre(''); setDestinoDireccion('');
+                setDestinoLocalidad(''); setDestinoPartido('Lanus'); setDestinoNombre(''); setFrecuencia('');
+                setHorario(''); setObservaciones(''); setVigenciaDesde(''); setVigenciaHasta('');
+                setDatosGeo(null);
+                setStep(1);
+              }} 
+              style={{ ...btnStyle, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+            >
+              <Plus size={18} /> Cargar un nuevo trámite
+            </button>
             <button 
               onClick={() => { setIsSuccess(false); setViewMode('list'); fetchRutasList(); }} 
-              style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db' }}
+              style={{ ...btnStyle, width: '100%', backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
             >
-              Ir al Dashboard
+              <List size={18} /> Ver panel de solicitudes
+            </button>
+            <button 
+              onClick={() => window.location.href = '/'} 
+              style={{ ...btnStyle, width: '100%', backgroundColor: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+            >
+              <MapPin size={18} /> Ir al Mapa Principal
             </button>
           </div>
         </div>
