@@ -1884,29 +1884,22 @@ export default function AdminPage() {
                               )}
                             />
                           </td>
-                          <td>
-                            <strong>#{ruta.numeroSolicitud}</strong>
-                            {ruta.idSolicitudWeb && <div style={{ fontSize: '0.8rem', color: '#888' }}>ID Web: {ruta.idSolicitudWeb}</div>}
-                            <br/><small style={{color:'#646970'}}>{new Date(ruta.creadoEn).toLocaleDateString()}</small>
-                            <div style={{ fontSize: '0.8rem', color: '#646970', marginTop: '4px' }}>
-                              {ruta.vigenciaDesde && <span>Vigencia: {ruta.vigenciaDesde} - {ruta.vigenciaHasta || '?'}</span>}
-                            </div>
+                          <td style={{ padding: '6px 8px' }}>
+                            <div style={{ fontSize: '0.85rem' }}><strong>#{ruta.numeroSolicitud}</strong></div>
+                            {ruta.idSolicitudWeb && <div style={{ fontSize: '0.7rem', color: '#64748b' }}>ID Web: {ruta.idSolicitudWeb}</div>}
+                            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>{new Date(ruta.creadoEn).toLocaleDateString()}</div>
                           </td>
-                          <td>{ruta.nombreSolicitante}</td>
-                          <td>
-                            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-                              <div><strong>Patente:</strong> {ruta.patente || '-'}</div>
-                              <div><strong>Vehículo:</strong> {ruta.tipoVehiculo || '-'}</div>
-                              <div><strong>Peso:</strong> {ruta.pesoToneladas ? `${ruta.pesoToneladas} Tn` : '-'}</div>
-                              {ruta.aseguradora && <div><strong>Seguro:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(${ruta.nroSeguro})` : ''}</div>}
-                              {ruta.cargaPeligrosa && <div style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '4px' }}>Carga Peligrosa</div>}
-                            </div>
-                            {dbUser?.rol === 'SUPER_ADMIN' && (ruta.creadoPorNombre || ruta.editadoPorNombre) && (
-                              <div style={{ marginTop: '6px', padding: '4px', background: '#f3f4f6', borderRadius: '4px', fontSize: '0.75rem', color: '#6b7280' }}>
-                                {ruta.creadoPorNombre && <div><strong>Cargó:</strong> {ruta.creadoPorNombre}</div>}
-                                {ruta.editadoPorNombre && <div><strong>Editó:</strong> {ruta.editadoPorNombre}</div>}
+                          <td style={{ padding: '6px 8px', fontSize: '0.8rem', fontWeight: 500, color: '#334155' }}>{ruta.nombreSolicitante}</td>
+                          <td style={{ padding: '6px 8px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}><strong>Pat:</strong> {ruta.patente || '-'}</span>
+                                <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}><strong>Veh:</strong> {ruta.tipoVehiculo || '-'}</span>
+                                <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}><strong>Peso:</strong> {ruta.pesoToneladas ? `${ruta.pesoToneladas} Tn` : '-'}</span>
                               </div>
-                            )}
+                              {ruta.aseguradora && <span style={{ fontSize: '0.7rem' }}><strong>Seg:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(${ruta.nroSeguro})` : ''}</span>}
+                              {ruta.cargaPeligrosa && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px' }}><Shield size={10} /> Carga Peligrosa</span>}
+                            </div>
                           </td>
                           <td>
                             <span className={`${styles.badge} ${
@@ -1970,38 +1963,30 @@ export default function AdminPage() {
                               </div>
                             </div>
                           </td>
-                          <td>
-                            {ruta.estado === 'PENDIENTE' && (
-                              <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
-                                <button className={styles.approveBtn} onClick={() => handleEstadoRuta(ruta.id, 'APROBADA')}>Aprobar</button>
-                                <button className={styles.rejectBtn} onClick={() => handleEstadoRuta(ruta.id, 'RECHAZADA')}>Rechazar</button>
-                              </div>
-                            )}
-                            {ruta.estado !== 'PENDIENTE' && (
-                              <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
-                                <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
-                                {ruta.enlaceDocumento && (
-                                  <a 
-                                    href={ruta.enlaceDocumento}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none' }}
-                                    title="Ver Documento Original"
-                                  >
-                                    <FileText size={12} /> PDF
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                            <div style={{ display: 'flex', gap: '5px' }}>
-                              <button 
-                                className={styles.submitBtn} 
-                                style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#8b5cf6', borderColor: '#7c3aed' }} 
-                                onClick={() => window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank')}
-                              >
-                                ✏️ Editar
+                          <td style={{ padding: '6px 8px' }}>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {ruta.estado === 'PENDIENTE' && (
+                                <>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'APROBADA')}>Aprobar</button>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'RECHAZADA')}>Rechazar</button>
+                                </>
+                              )}
+                              {ruta.estado !== 'PENDIENTE' && (
+                                <>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
+                                  {ruta.enlaceDocumento && (
+                                    <a href={ruta.enlaceDocumento} target="_blank" rel="noreferrer" style={{ padding: '4px 8px', fontSize: '0.7rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 600 }} title="Ver Documento Original">
+                                      <FileText size={10} /> PDF
+                                    </a>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank')}>
+                                Editar
                               </button>
-                              <button className={styles.deleteBtn} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
+                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
                             </div>
                           </td>
                         </tr>
