@@ -809,6 +809,25 @@ export default function AdminPage() {
     }
   };
 
+  const handleBulkStatusRutas = async (nuevoEstado: string) => {
+    if (selectedRutas.length === 0) return;
+    setRutas(prev => prev.map(r => selectedRutas.includes(r.id) ? { ...r, estado: nuevoEstado } : r));
+    try {
+      const res = await authFetch('/api/rutas-transporte', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedRutas, estado: nuevoEstado }),
+      });
+      if (!res.ok) throw new Error();
+      emitirCambioMapa('rutas');
+      setSelectedRutas([]);
+      toast.success('Estados actualizados');
+    } catch {
+      toast.error('Error al actualizar estados.');
+      fetchData();
+    }
+  };
+
 
   const COLOR_MAP: Record<string, string> = {
     red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
@@ -1749,8 +1768,19 @@ export default function AdminPage() {
                     <button
                       onClick={() => handleBulkToggleRutas(false)}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #fca5a5', background: '#fef2f2', color: '#b91c1c', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                      Ocultar del mapa
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 6.5C1 6.5 3 2 6.5 2S12 6.5 12 6.5 10 11 6.5 11 1 6.5 1 6.5z" stroke="currentColor" strokeWidth="1.5"/><path d="M2 2l9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      Ocultar en mapa
+                    </button>
+                    <div style={{ width: '1px', height: '20px', background: '#e5e7eb', margin: '0 4px' }} />
+                    <button
+                      onClick={() => handleBulkStatusRutas('APROBADA')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #60a5fa', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      Aprobar
+                    </button>
+                    <button
+                      onClick={() => handleBulkStatusRutas('RECHAZADA')}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #f87171', background: '#fef2f2', color: '#b91c1c', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      Rechazar
                     </button>
                     <button
                       onClick={() => setSelectedRutas([])}
@@ -1808,8 +1838,43 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredRutas.map(ruta => (
-                        <tr key={ruta.id} style={{ opacity: ruta.activo === false ? 0.5 : 1 }}>
+                      {(() => {
+                        const groups = filteredRutas.reduce((acc, ruta) => {
+                          const key = ruta.numeroSolicitud || ruta.id;
+                          if (!acc[key]) acc[key] = [];
+                          acc[key].push(ruta);
+                          return acc;
+                        }, {} as Record<string, any[]>);
+                        return Object.entries(groups).map(([groupKey, groupRoutesRaw]) => {
+                          const groupRoutes = groupRoutesRaw as any[];
+                          return (
+                          <React.Fragment key={groupKey}>
+                            {groupRoutes.length > 1 && (
+                              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', borderTop: '2px solid #e2e8f0' }}>
+                                <td colSpan={8} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <strong style={{ color: '#0f172a' }}>Solicitud: #{groupKey}</strong>
+                                    <span style={{ background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, color: '#475569' }}>{groupRoutes.length} recorridos</span>
+                                    <button 
+                                      onClick={() => {
+                                        const ids = groupRoutes.map(r => r.id);
+                                        const allSelected = ids.every(id => selectedRutas.includes(id));
+                                        if (allSelected) {
+                                          setSelectedRutas(prev => prev.filter(id => !ids.includes(id)));
+                                        } else {
+                                          setSelectedRutas(prev => Array.from(new Set([...prev, ...ids])));
+                                        }
+                                      }}
+                                      style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#334155', fontWeight: 500 }}
+                                    >
+                                      {groupRoutes.every(r => selectedRutas.includes(r.id)) ? 'Deseleccionar grupo' : 'Seleccionar grupo'}
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                            {groupRoutes.map(ruta => (
+                              <tr key={ruta.id} style={{ opacity: ruta.activo === false ? 0.5 : 1 }}>
                           <td>
                             <input
                               type="checkbox"
@@ -1941,6 +2006,10 @@ export default function AdminPage() {
                           </td>
                         </tr>
                       ))}
+                          </React.Fragment>
+                          );
+                        });
+                      })()}
                       {rutas.length === 0 && (
                         <tr><td colSpan={8} style={{ textAlign: 'center' }}>No hay solicitudes de transporte.</td></tr>
                       )}

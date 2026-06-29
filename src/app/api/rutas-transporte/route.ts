@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         vigenciaHasta: vigenciaHasta || null,
         datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
         calles: calles || null,
-        estado: 'BORRADOR',
+        estado: 'PENDIENTE',
         creadoPorId: creadoPorId || null,
         creadoPorNombre: creadoPorNombre || null,
         enlaceDocumento: enlaceDocumento || null,
@@ -118,13 +118,18 @@ export async function GET() {
 // Bulk PATCH: { ids: string[], activo: boolean }
 export async function PATCH(req: Request) {
   try {
-    const { ids, activo } = await req.json();
-    if (!Array.isArray(ids) || ids.length === 0 || typeof activo !== 'boolean') {
+    const { ids, activo, estado } = await req.json();
+    if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
+    
+    const dataToUpdate: any = {};
+    if (typeof activo === 'boolean') dataToUpdate.activo = activo;
+    if (typeof estado === 'string') dataToUpdate.estado = estado;
+
     await prisma.rutaTransporte.updateMany({
       where: { id: { in: ids } },
-      data: { activo },
+      data: dataToUpdate,
     });
     return NextResponse.json({ updated: ids.length });
   } catch (error: any) {
