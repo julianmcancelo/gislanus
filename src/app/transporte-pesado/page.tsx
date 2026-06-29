@@ -361,11 +361,7 @@ export default function TransportePesadoWizard() {
       setParsedInfo(data);
 
       if (data.datosGeo && data.datosGeo.features && data.datosGeo.features.length > 0) {
-        const firstFeature = data.datosGeo.features.find((f: any) => f.properties.originalIndex === 0) || data.datosGeo.features[0];
-        setDatosGeo({
-          type: "FeatureCollection",
-          features: [firstFeature]
-        });
+        setDatosGeo(data.datosGeo);
       } else {
         setDatosGeo(null);
       }
