@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
@@ -20,6 +20,18 @@ function WizardMapController({ onComplete, initialGeo }: any) {
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [waypoints, setWaypoints] = useState<any[]>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const buttonsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (panelRef.current) {
+      L.DomEvent.disableClickPropagation(panelRef.current);
+      L.DomEvent.disableScrollPropagation(panelRef.current);
+    }
+    if (buttonsRef.current) {
+      L.DomEvent.disableClickPropagation(buttonsRef.current);
+    }
+  }, [waypoints.length, currentRoute]);
 
   // Auto zoom to initialGeo bounds if provided
   useEffect(() => {
@@ -89,14 +101,37 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       }
     });
 
-    control.on('waypointschanged', function(e: any) {
+    control.on('waypointschanged', async function(e: any) {
       const validWps = e.waypoints ? e.waypoints.filter((w:any) => w.latLng) : control.getWaypoints().filter((w:any) => w.latLng);
+      
+      // Update state immediately with default names
       setWaypoints([...validWps]);
+
+      // Reverse geocode to get street names for waypoints that don't have one
+      const enhancedWps = await Promise.all(validWps.map(async (wp: any) => {
+        if (!wp.name && wp.latLng) {
+          try {
+            const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${wp.latLng.lng},${wp.latLng.lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,poi`);
+            const data = await res.json();
+            if (data.features && data.features.length > 0) {
+              return { ...wp, name: data.features[0].text };
+            }
+          } catch(err) {}
+        }
+        return wp;
+      }));
+      setWaypoints(enhancedWps);
     });
 
     setRoutingControl(control);
 
+    let lastClickTime = 0;
     const onMapClick = (e: any) => {
+      // Prevent double clicks or rapid clicks from adding multiple waypoints
+      const now = Date.now();
+      if (now - lastClickTime < 400) return;
+      lastClickTime = now;
+
       const wps = control.getWaypoints().filter((w: any) => w.latLng);
       if (wps.length === 0) {
         control.spliceWaypoints(0, 1, e.latlng);
@@ -161,13 +196,14 @@ function WizardMapController({ onComplete, initialGeo }: any) {
   return (
     <>
       {waypoints.length > 0 && (
-        <div style={{ position: 'absolute', top: '80px', left: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '250px', maxHeight: '400px', overflowY: 'auto' }}>
+        <div ref={panelRef} style={{ position: 'absolute', top: '80px', left: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '250px', maxHeight: '400px', overflowY: 'auto' }}>
           <h4 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '14px' }}>Puntos del Recorrido</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {waypoints.map((wp, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>
-                  {i === 0 ? '📍 Inicio' : i === waypoints.length - 1 ? '🏁 Destino' : `🛑 Parada ${i}`}
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px' }} title={wp.name || ''}>
+                  {i === 0 ? '📍 ' : i === waypoints.length - 1 ? '🏁 ' : `🛑 `}
+                  {wp.name ? wp.name : (i === 0 ? 'Inicio' : i === waypoints.length - 1 ? 'Destino' : `Parada ${i}`)}
                 </span>
                 <button 
                   onClick={(e) => { e.stopPropagation(); routingControl.spliceWaypoints(i, 1); }}
@@ -189,7 +225,7 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       )}
 
       {currentRoute ? (
-        <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+        <div ref={buttonsRef} style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
           <button 
             onClick={undoLastWaypoint}
             style={{ 
@@ -213,7 +249,7 @@ function WizardMapController({ onComplete, initialGeo }: any) {
         </div>
       ) : (
         initialGeo && (
-          <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+          <div ref={buttonsRef} style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
             <button 
               onClick={undoLastWaypoint}
               style={{ 
