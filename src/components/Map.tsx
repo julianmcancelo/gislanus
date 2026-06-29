@@ -420,6 +420,7 @@ export default function MapComponent() {
           if (l.visibilidad === 'PRIVATE') {
             if (!user || !dbUser) return false;
             if (dbUser.rol === 'SUPER_ADMIN') return true; // Super Admin siempre ve todo
+            if (dbUser.permisos?.verCapas) return true; // TODO: Tal vez afinar según `rolesPermitidos` si quieren granuralidad, pero por ahora verCapas permite ver las privadas
             if (l.rolesPermitidos && l.rolesPermitidos.length > 0) {
               return l.rolesPermitidos.includes(dbUser.rol);
             }
@@ -659,7 +660,7 @@ export default function MapComponent() {
           maxZoom={19}
         />
 
-        <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
+        <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
 
         {baseLayer && (
           <GeoJSON 
@@ -854,7 +855,7 @@ export default function MapComponent() {
           />
         )}
         <TrackingLayer markers={trackingMarkers} />
-        <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN'} />
+        <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
       </MapContainer>
         </div>
       </div>

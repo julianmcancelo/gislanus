@@ -95,7 +95,10 @@ export default function TransportePesadoWizard() {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
   }
 
-  if (!dbUser || (dbUser.rol !== 'SUPER_ADMIN' && dbUser.rol !== 'ADMINISTRADOR' && dbUser.rol !== 'USUARIO')) {
+  const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
+  const hasAccess = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+
+  if (!dbUser || !hasAccess) {
     return (
       <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f7fa', padding: '20px', textAlign: 'center' }}>
         <Truck size={64} color="#ccc" style={{ marginBottom: '20px' }} />
