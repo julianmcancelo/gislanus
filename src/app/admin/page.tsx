@@ -8,6 +8,7 @@ import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa } from '@/lib/rtdb';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -1102,7 +1103,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.total}`}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel}>Total Solicitudes</span>
-                      <span className={styles.statIcon}>📋</span>
+                      <span className={styles.statIcon}><ClipboardList size={20} /></span>
                     </div>
                     <div className={styles.statValue}>{rutas.length}</div>
                   </div>
@@ -1110,7 +1111,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.nuevos}`}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel}>Rutas Pendientes</span>
-                      <span className={styles.statIcon}>⏳</span>
+                      <span className={styles.statIcon}><Clock size={20} /></span>
                     </div>
                     <div className={styles.statValue}>{rutas.filter(r => r.estado === 'PENDIENTE').length}</div>
                   </div>
@@ -1118,7 +1119,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.proceso}`}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel}>Capas Activas</span>
-                      <span className={styles.statIcon}>🗺️</span>
+                      <span className={styles.statIcon}><MapIcon size={20} /></span>
                     </div>
                     <div className={styles.statValue}>{capas.length}</div>
                   </div>
@@ -1126,7 +1127,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.resueltos}`}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel}>Usuarios Activos</span>
-                      <span className={styles.statIcon}>👥</span>
+                      <span className={styles.statIcon}><Users size={20} /></span>
                     </div>
                     <div className={styles.statValue}>{usuarios.filter(u => u.rol !== 'PENDIENTE').length}</div>
                   </div>
@@ -1140,7 +1141,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.alert}`} style={{ background: '#fef2f2', borderColor: '#fecaca' }}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel} style={{ color: '#991b1b' }}>Usuarios Pendientes (Sin Acceso)</span>
-                      <span className={styles.statIcon}>⚠️</span>
+                      <span className={styles.statIcon}><AlertTriangle size={20} color="#991b1b" /></span>
                     </div>
                     <div className={styles.statValue} style={{ color: '#991b1b' }}>{usuarios.filter(u => u.rol === 'PENDIENTE').length}</div>
                   </div>
@@ -1148,7 +1149,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.purple}`} style={{ background: '#faf5ff', borderColor: '#e9d5ff' }}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel} style={{ color: '#6b21a8' }}>Líneas de Transporte</span>
-                      <span className={styles.statIcon}>🚌</span>
+                      <span className={styles.statIcon}><Bus size={20} color="#6b21a8" /></span>
                     </div>
                     <div className={styles.statValue} style={{ color: '#6b21a8' }}>{lineas.length}</div>
                   </div>
@@ -1156,7 +1157,7 @@ export default function AdminPage() {
                   <div className={`${styles.statCard} ${styles.proceso}`} style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
                     <div className={styles.statHeader}>
                       <span className={styles.statLabel} style={{ color: '#92400e' }}>Accesos QR (Histórico)</span>
-                      <span className={styles.statIcon}>📱</span>
+                      <span className={styles.statIcon}><Smartphone size={20} color="#92400e" /></span>
                     </div>
                     <div className={styles.statValue} style={{ color: '#92400e' }}>{solicitudesQr.length}</div>
                   </div>
