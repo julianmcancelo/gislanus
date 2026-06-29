@@ -24,6 +24,8 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
   const [savedFeatures, setSavedFeatures] = useState<any[]>([]);
   const [isTracing, setIsTracing] = useState(false);
   const [routeName, setRouteName] = useState('Recorrido 1');
+  const [aiText, setAiText] = useState('');
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonsRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       L.DomEvent.disableClickPropagation(overlayRef.current);
       L.DomEvent.disableScrollPropagation(overlayRef.current);
     }
-  }, [waypoints.length, currentRoute, savedFeatures.length, isTracing]);
+  }, [waypoints.length, currentRoute, savedFeatures.length, isTracing, aiText, isGeneratingAI]);
 
   // Auto zoom to initialGeo bounds if provided
   useEffect(() => {
@@ -183,6 +185,31 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       try { map.removeControl(control); } catch(err) {}
     };
   }, [map, isTracing]);
+
+  const handleAITrace = async () => {
+    if (!aiText.trim()) return;
+    setIsGeneratingAI(true);
+    try {
+      const res = await fetch('/api/parse-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiText, index: savedFeatures.length, description: routeName })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error trazando con IA');
+      
+      setSavedFeatures(prev => [...prev, data.feature]);
+      setRouteName(`Recorrido ${savedFeatures.length + 2}`);
+      setAiText('');
+      
+      const layer = L.geoJSON(data.feature);
+      map.fitBounds(layer.getBounds(), { padding: [50, 50] });
+    } catch (err: any) {
+      alert(err.message || 'Error al procesar el recorrido con IA.');
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   const confirmCurrentTrace = async () => {
     if (!currentRoute) {
@@ -339,8 +366,26 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
               onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.35)'; }}
               onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)'; }}
             >
-              <Plus size={16} strokeWidth={3} /> Iniciar Nuevo Trazado
+              <Plus size={16} strokeWidth={3} /> Dibujar Manualmente
             </button>
+            <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(255,255,255,0.7)', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '14px' }}>✨</span> Trazado Inteligente (IA)
+              </p>
+              <textarea 
+                value={aiText}
+                onChange={(e) => setAiText(e.target.value)}
+                placeholder="Pegá las calles o escribilas acá. Ej: Yrigoyen, 25 de mayo, y salir por Lanus Este..."
+                style={{ width: '100%', height: '60px', padding: '8px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'none', outline: 'none', backgroundColor: 'rgba(255,255,255,0.9)' }}
+              />
+              <button 
+                onClick={handleAITrace}
+                disabled={isGeneratingAI || !aiText.trim()}
+                style={{ background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)', color: 'white', border: 'none', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: isGeneratingAI || !aiText.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.2s', opacity: isGeneratingAI || !aiText.trim() ? 0.6 : 1 }}
+              >
+                {isGeneratingAI ? 'Procesando...' : 'Dibujar con IA'}
+              </button>
+            </div>
           </div>
         )}
 
