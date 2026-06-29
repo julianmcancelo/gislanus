@@ -15,9 +15,10 @@ export default function LanusMask() {
     fetch('/lanus-base.geojson')
       .then(res => res.json())
       .then(data => {
-        // Find the full municipality polygon (not the point)
+        // Find the full municipality polygon ('Partido de Lanús')
         const polyFeature = data.features.find((f: any) => 
-          f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon') && 
+          f.properties?.name === 'Partido de Lanús'
         );
 
         if (polyFeature) {
