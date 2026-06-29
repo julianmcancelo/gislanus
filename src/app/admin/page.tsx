@@ -4,11 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import dynamic from 'next/dynamic';
 import JSZip from 'jszip';
+import jsPDF from 'jspdf';
 import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa } from '@/lib/rtdb';
-import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone } from 'lucide-react';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2 } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -59,6 +60,9 @@ export default function AdminPage() {
   const [grupos, setGrupos] = useState<any[]>([]);
   const [subgrupos, setSubgrupos] = useState<any[]>([]);
   const [rutas, setRutas] = useState<any[]>([]);
+  const [rutasSearchTerm, setRutasSearchTerm] = useState('');
+  const [rutasFilterStatus, setRutasFilterStatus] = useState('TODAS');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<string | null>(null);
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
@@ -804,6 +808,104 @@ export default function AdminPage() {
     }
   };
 
+  const handleDownloadPDF = async (ruta: any) => {
+    setIsGeneratingPDF(ruta.id);
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const primaryColor = [21, 101, 192];
+      const textColor = [51, 65, 85];
+      
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MUNICIPIO DE LANÚS', 105, 18, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PERMISO OFICIAL DE TRÁNSITO PESADO', 105, 28, { align: 'center' });
+
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(10);
+      
+      let y = 55;
+      const leftMargin = 20;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Solicitud N°: ${ruta.numeroSolicitud || '-'}`, leftMargin, y);
+      doc.text(`Estado: APROBADA`, 130, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.text('DATOS DEL SOLICITANTE', leftMargin, y);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Nombre/Empresa: ${ruta.empresaSolicitante || ruta.nombreSolicitante || '-'}`, leftMargin, y);
+      doc.text(`CUIL/CUIT: ${ruta.cuilCuit || '-'}`, 130, y);
+      y += 8;
+      doc.text(`Contacto: ${ruta.emailSolicitante || '-'} / ${ruta.telefonoSolicitante || '-'}`, leftMargin, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DATOS DEL VEHÍCULO', leftMargin, y);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Patente: ${ruta.patente || '-'}`, leftMargin, y);
+      doc.text(`Tipo: ${ruta.tipoVehiculo || '-'}`, 130, y);
+      y += 8;
+      doc.text(`Carga: ${ruta.pesoToneladas ? ruta.pesoToneladas + ' tons' : '-'} - ${ruta.tipoCarga || '-'}`, leftMargin, y);
+      doc.text(`Seguro: ${ruta.aseguradora || '-'} (${ruta.nroSeguro || '-'})`, 130, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('RECORRIDO AUTORIZADO', leftMargin, y);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Origen: ${ruta.origenDireccion || '-'}, ${ruta.origenLocalidad || '-'}`, leftMargin, y);
+      y += 8;
+      doc.text(`Destino: ${ruta.destinoDireccion || '-'}, ${ruta.destinoLocalidad || '-'}`, leftMargin, y);
+      y += 8;
+      
+      const formatSafeDate = (d: string) => {
+        if (!d) return '-';
+        try { return new Date(d).toLocaleDateString('es-AR'); } catch { return d; }
+      };
+      
+      doc.text(`Vigencia: ${formatSafeDate(ruta.vigenciaDesde)} hasta ${formatSafeDate(ruta.vigenciaHasta)}`, leftMargin, y);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Este documento es un comprobante oficial generado por el Sistema GIS del Municipio de Lanús.', 105, 280, { align: 'center' });
+      doc.text(`Generado el: ${new Date().toLocaleString('es-AR')}`, 105, 285, { align: 'center' });
+
+      doc.save(`Permiso_TransitoPesado_${ruta.numeroSolicitud || ruta.patente || 'Lanus'}.pdf`);
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      toast.error('Hubo un problema al generar el PDF.');
+    } finally {
+      setIsGeneratingPDF(null);
+    }
+  };
+
   const COLOR_MAP: Record<string, string> = {
     red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
     orange: '#f97316', purple: '#a855f7', black: '#1f2937', brown: '#92400e',
@@ -1082,6 +1184,17 @@ export default function AdminPage() {
       }
     }
   };
+
+  const filteredRutas = rutas.filter(ruta => {
+    const term = rutasSearchTerm.toLowerCase();
+    const matchesSearch = !term || 
+      (ruta.patente && ruta.patente.toLowerCase().includes(term)) ||
+      (ruta.numeroSolicitud && ruta.numeroSolicitud.toString().includes(term));
+    
+    const matchesStatus = rutasFilterStatus === 'TODAS' || ruta.estado === rutasFilterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className={styles.adminLayout}>
@@ -1742,7 +1855,36 @@ export default function AdminPage() {
                     </button>
                   </>
                 )}
-                <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: '0.82rem' }}>{rutas.length} solicitudes en total</span>
+                
+                <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={14} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '9px' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Buscar patente o N°..."
+                      value={rutasSearchTerm}
+                      onChange={(e) => setRutasSearchTerm(e.target.value)}
+                      style={{ padding: '6px 12px 6px 30px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.85rem', outline: 'none', width: '160px' }}
+                    />
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Filter size={14} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '9px' }} />
+                    <select
+                      value={rutasFilterStatus}
+                      onChange={(e) => setRutasFilterStatus(e.target.value)}
+                      style={{ padding: '6px 10px 6px 30px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.85rem', outline: 'none', backgroundColor: 'white', cursor: 'pointer' }}
+                    >
+                      <option value="TODAS">Todos los estados</option>
+                      <option value="PENDIENTE">Pendientes</option>
+                      <option value="APROBADA">Aprobadas</option>
+                      <option value="RECHAZADA">Rechazadas</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '16px', fontSize: '0.85rem', color: '#6b7280' }}>
+                Mostrando {filteredRutas.length} de {rutas.length} solicitudes
               </div>
 
               {loading ? <p>Cargando solicitudes...</p> : (
@@ -1761,7 +1903,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rutas.map(ruta => (
+                      {filteredRutas.map(ruta => (
                         <tr key={ruta.id} style={{ opacity: ruta.activo === false ? 0.5 : 1 }}>
                           <td>
                             <input
@@ -1843,6 +1985,16 @@ export default function AdminPage() {
                             {ruta.estado !== 'PENDIENTE' && (
                               <div style={{ display: 'flex', gap: '5px', marginBottom: '5px' }}>
                                 <button className={styles.submitBtn} style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
+                                {ruta.estado === 'APROBADA' && (
+                                  <button 
+                                    onClick={() => handleDownloadPDF(ruta)}
+                                    disabled={isGeneratingPDF === ruta.id}
+                                    style={{ padding: '6px 12px', fontSize: '0.8rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                  >
+                                    {isGeneratingPDF === ruta.id ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />} 
+                                    PDF
+                                  </button>
+                                )}
                               </div>
                             )}
                             <div style={{ display: 'flex', gap: '5px' }}>

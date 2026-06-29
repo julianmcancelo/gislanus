@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Dynamic import for Leaflet component to avoid SSR errors
 const WizardMap = dynamic(() => import('../../components/WizardMap'), {
@@ -26,6 +28,9 @@ export default function TransportePesadoWizard() {
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
   const [loadingRutas, setLoadingRutas] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('TODAS');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
@@ -174,8 +179,81 @@ export default function TransportePesadoWizard() {
       setDestinoLocalidad(''); setDestinoPartido(''); setDestinoNombre(''); setFrecuencia('');
       setHorario(''); setObservaciones(''); setVigenciaDesde(''); setVigenciaHasta('');
       setDatosGeo(null); setSavedWaypoints([]); setTracedStreets([]);
+
+      // Intentar cargar borrador si no hay editId y estamos en modo wizard
+      if (typeof window !== 'undefined' && viewMode === 'wizard') {
+        const draft = localStorage.getItem('lanus-transporte-draft');
+        if (draft) {
+          if (window.confirm('Tenés una solicitud a medio cargar guardada en borrador. ¿Querés restaurarla?')) {
+            try {
+              const parsed = JSON.parse(draft);
+              if (parsed.numeroSolicitud) setNumeroSolicitud(parsed.numeroSolicitud);
+              if (parsed.nombreSolicitante) setNombreSolicitante(parsed.nombreSolicitante);
+              if (parsed.empresaSolicitante) setEmpresaSolicitante(parsed.empresaSolicitante);
+              if (parsed.cuilCuit) setCuilCuit(parsed.cuilCuit);
+              if (parsed.emailSolicitante) setEmailSolicitante(parsed.emailSolicitante);
+              if (parsed.telefonoSolicitante) setTelefonoSolicitante(parsed.telefonoSolicitante);
+              if (parsed.patente) setPatente(parsed.patente);
+              if (parsed.tipoVehiculo) setTipoVehiculo(parsed.tipoVehiculo);
+              if (parsed.pesoToneladas) setPesoToneladas(parsed.pesoToneladas);
+              if (parsed.cargaPeligrosa) setCargaPeligrosa(parsed.cargaPeligrosa);
+              if (parsed.tipoCarga) setTipoCarga(parsed.tipoCarga);
+              if (parsed.largoVehiculo) setLargoVehiculo(parsed.largoVehiculo);
+              if (parsed.anchoVehiculo) setAnchoVehiculo(parsed.anchoVehiculo);
+              if (parsed.alturaVehiculo) setAlturaVehiculo(parsed.alturaVehiculo);
+              if (parsed.cantidadEjes) setCantidadEjes(parsed.cantidadEjes);
+              if (parsed.aseguradora) setAseguradora(parsed.aseguradora);
+              if (parsed.nroSeguro) setNroSeguro(parsed.nroSeguro);
+              if (parsed.origenDireccion) setOrigenDireccion(parsed.origenDireccion);
+              if (parsed.origenLocalidad) setOrigenLocalidad(parsed.origenLocalidad);
+              if (parsed.origenPartido) setOrigenPartido(parsed.origenPartido);
+              if (parsed.origenNombre) setOrigenNombre(parsed.origenNombre);
+              if (parsed.destinoDireccion) setDestinoDireccion(parsed.destinoDireccion);
+              if (parsed.destinoLocalidad) setDestinoLocalidad(parsed.destinoLocalidad);
+              if (parsed.destinoPartido) setDestinoPartido(parsed.destinoPartido);
+              if (parsed.destinoNombre) setDestinoNombre(parsed.destinoNombre);
+              if (parsed.frecuencia) setFrecuencia(parsed.frecuencia);
+              if (parsed.horario) setHorario(parsed.horario);
+              if (parsed.observaciones) setObservaciones(parsed.observaciones);
+              if (parsed.vigenciaDesde) setVigenciaDesde(parsed.vigenciaDesde);
+              if (parsed.vigenciaHasta) setVigenciaHasta(parsed.vigenciaHasta);
+            } catch (e) {
+              console.error('Error loading draft', e);
+            }
+          } else {
+            localStorage.removeItem('lanus-transporte-draft');
+          }
+        }
+      }
     }
-  }, [editId]);
+  }, [editId, viewMode]);
+
+  // Autoguardado de borrador
+  useEffect(() => {
+    if (viewMode === 'wizard' && !editId && !isSubmitting && step === 1) {
+      const draft = {
+        numeroSolicitud, nombreSolicitante, empresaSolicitante, cuilCuit,
+        emailSolicitante, telefonoSolicitante, patente, tipoVehiculo, pesoToneladas,
+        cargaPeligrosa, tipoCarga, largoVehiculo, anchoVehiculo, alturaVehiculo,
+        cantidadEjes, aseguradora, nroSeguro, origenDireccion, origenLocalidad,
+        origenPartido, origenNombre, destinoDireccion, destinoLocalidad,
+        destinoPartido, destinoNombre, frecuencia, horario, observaciones,
+        vigenciaDesde, vigenciaHasta
+      };
+      // Solo guardar si hay datos relevantes cargados
+      if (patente || nombreSolicitante || empresaSolicitante || numeroSolicitud) {
+        localStorage.setItem('lanus-transporte-draft', JSON.stringify(draft));
+      }
+    }
+  }, [
+    numeroSolicitud, nombreSolicitante, empresaSolicitante, cuilCuit,
+    emailSolicitante, telefonoSolicitante, patente, tipoVehiculo, pesoToneladas,
+    cargaPeligrosa, tipoCarga, largoVehiculo, anchoVehiculo, alturaVehiculo,
+    cantidadEjes, aseguradora, nroSeguro, origenDireccion, origenLocalidad,
+    origenPartido, origenNombre, destinoDireccion, destinoLocalidad,
+    destinoPartido, destinoNombre, frecuencia, horario, observaciones,
+    vigenciaDesde, vigenciaHasta, viewMode, editId, isSubmitting, step
+  ]);
 
   const fetchRutasList = async () => {
     setLoadingRutas(true);
@@ -416,10 +494,111 @@ export default function TransportePesadoWizard() {
       });
       if (!response.ok) throw new Error('Error finalizando la solicitud');
       setIsSuccess(true);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('lanus-transporte-draft');
+      }
     } catch (err) {
       alert('Error al finalizar la solicitud. Por favor, intente nuevamente.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadPDF = async (ruta: any) => {
+    setIsGeneratingPDF(ruta.id);
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const primaryColor = [21, 101, 192];
+      const textColor = [51, 65, 85];
+      
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('MUNICIPIO DE LANÚS', 105, 18, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PERMISO OFICIAL DE TRÁNSITO PESADO', 105, 28, { align: 'center' });
+
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+      doc.setFontSize(10);
+      
+      let y = 55;
+      const leftMargin = 20;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Solicitud N°: ${ruta.numeroSolicitud || '-'}`, leftMargin, y);
+      doc.text(`Estado: APROBADA`, 130, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.text('DATOS DEL SOLICITANTE', leftMargin, y);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Nombre/Empresa: ${ruta.empresaSolicitante || ruta.nombreSolicitante || '-'}`, leftMargin, y);
+      doc.text(`CUIL/CUIT: ${ruta.cuilCuit || '-'}`, 130, y);
+      y += 8;
+      doc.text(`Contacto: ${ruta.emailSolicitante || '-'} / ${ruta.telefonoSolicitante || '-'}`, leftMargin, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DATOS DEL VEHÍCULO', leftMargin, y);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Patente: ${ruta.patente || '-'}`, leftMargin, y);
+      doc.text(`Tipo: ${ruta.tipoVehiculo || '-'}`, 130, y);
+      y += 8;
+      doc.text(`Carga: ${ruta.pesoToneladas ? ruta.pesoToneladas + ' tons' : '-'} - ${ruta.tipoCarga || '-'}`, leftMargin, y);
+      doc.text(`Seguro: ${ruta.aseguradora || '-'} (${ruta.nroSeguro || '-'})`, 130, y);
+      y += 15;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('RECORRIDO AUTORIZADO', leftMargin, y);
+      doc.line(leftMargin, y + 2, 190, y + 2);
+      y += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Origen: ${ruta.origenDireccion || '-'}, ${ruta.origenLocalidad || '-'}`, leftMargin, y);
+      y += 8;
+      doc.text(`Destino: ${ruta.destinoDireccion || '-'}, ${ruta.destinoLocalidad || '-'}`, leftMargin, y);
+      y += 8;
+      
+      const formatSafeDate = (d: string) => {
+        if (!d) return '-';
+        try { return new Date(d).toLocaleDateString('es-AR'); } catch { return d; }
+      };
+      
+      doc.text(`Vigencia: ${formatSafeDate(ruta.vigenciaDesde)} hasta ${formatSafeDate(ruta.vigenciaHasta)}`, leftMargin, y);
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Este documento es un comprobante oficial generado por el Sistema GIS del Municipio de Lanús.', 105, 280, { align: 'center' });
+      doc.text(`Generado el: ${new Date().toLocaleString('es-AR')}`, 105, 285, { align: 'center' });
+
+      doc.save(`Permiso_TransitoPesado_${ruta.numeroSolicitud || ruta.patente || 'Lanus'}.pdf`);
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Hubo un problema al generar el PDF.');
+    } finally {
+      setIsGeneratingPDF(null);
     }
   };
 
@@ -487,6 +666,17 @@ export default function TransportePesadoWizard() {
 
   const stepLabels = ['Datos', 'Trazado', 'Confirmar'];
   const currentStepNum = step === 1 ? 1 : step === 1.5 ? 1 : step === 2 ? 2 : 3;
+
+  const filteredRutas = rutasList.filter(ruta => {
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = !term || 
+      (ruta.patente && ruta.patente.toLowerCase().includes(term)) ||
+      (ruta.numeroSolicitud && ruta.numeroSolicitud.toString().includes(term));
+    
+    const matchesStatus = filterStatus === 'TODAS' || ruta.estado === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   if (viewMode === 'home') {
     return (
@@ -669,8 +859,33 @@ export default function TransportePesadoWizard() {
 
         <div style={{ flex: 1, padding: '30px', overflowY: 'auto' }}>
           <div style={{ ...cardStyle, maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0', overflow: 'hidden' }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <h2 style={{ margin: 0, color: '#374151', fontSize: '1.2rem' }}>Listado de Recorridos</h2>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative' }}>
+                  <Search size={16} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar patente o N°..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ padding: '8px 12px 8px 32px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem', outline: 'none', width: '200px' }}
+                  />
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <Filter size={16} color="#9ca3af" style={{ position: 'absolute', left: '10px', top: '10px' }} />
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    style={{ padding: '8px 12px 8px 32px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.9rem', outline: 'none', backgroundColor: 'white', cursor: 'pointer' }}
+                  >
+                    <option value="TODAS">Todos los estados</option>
+                    <option value="PENDIENTE">Pendientes</option>
+                    <option value="APROBADA">Aprobadas</option>
+                    <option value="RECHAZADA">Rechazadas</option>
+                  </select>
+                </div>
+              </div>
             </div>
             
             {loadingRutas ? (
@@ -688,7 +903,7 @@ export default function TransportePesadoWizard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rutasList.map(ruta => (
+                    {filteredRutas.map(ruta => (
                       <tr key={ruta.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s' }}>
                         <td style={{ padding: '15px 20px' }}>
                           <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '1rem' }}>#{ruta.numeroSolicitud}</div>
@@ -711,7 +926,19 @@ export default function TransportePesadoWizard() {
                             {ruta.estado}
                           </span>
                         </td>
-                        <td style={{ padding: '15px 20px', textAlign: 'right' }}>
+                        <td style={{ padding: '15px 20px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                          {ruta.estado === 'APROBADA' && (
+                            <button 
+                              onClick={() => handleDownloadPDF(ruta)}
+                              disabled={isGeneratingPDF === ruta.id}
+                              style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                            >
+                              {isGeneratingPDF === ruta.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} 
+                              PDF
+                            </button>
+                          )}
                           <button 
                             onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
                             style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
@@ -723,11 +950,11 @@ export default function TransportePesadoWizard() {
                         </td>
                       </tr>
                     ))}
-                    {rutasList.length === 0 && (
+                    {filteredRutas.length === 0 && (
                       <tr>
                         <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7280' }}>
                           <div style={{ marginBottom: '10px' }}><Truck size={48} color="#d1d5db" style={{ margin: '0 auto' }}/></div>
-                          No hay solicitudes registradas en el sistema.
+                          No se encontraron solicitudes que coincidan con la búsqueda.
                         </td>
                       </tr>
                     )}
