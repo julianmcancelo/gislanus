@@ -13,6 +13,7 @@ import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
+import LanusMask from './LanusMask';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
