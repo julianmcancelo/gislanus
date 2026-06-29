@@ -2,97 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { clipGeometryToLanus } from '@/utils/geo';
 
-async function queryUrl(url: string) {
-  const res = await fetch(url, { headers: { 'User-Agent': 'LanusGIS/1.0' } });
-  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-  return res.json();
-}
-
-async function geocodeIntersection(streetA: string, streetB: string) {
-  // 1. Try USIG (CABA & AMBA specialized normalizer)
-  const usigUrl = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(streetA + ' y ' + streetB + ', Lanus')}&geocodificar=true`;
-  try {
-    const data = await queryUrl(usigUrl);
-    if (data.direccionesNormalizadas && data.direccionesNormalizadas.length > 0) {
-      const match = data.direccionesNormalizadas[0];
-      if (match.coordenadas && match.coordenadas.x && match.coordenadas.y) {
-        return { lat: match.coordenadas.y, lng: match.coordenadas.x };
-      }
-    }
-  } catch (e) {
-    // Ignore USIG errors to try other sources
-  }
-
-  // 2. Try Georef Argentina (National addresses API)
-  const georefUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(streetA + ' y ' + streetB)}&departamento=Lanus`;
-  try {
-    const data = await queryUrl(georefUrl);
-    if (data.direcciones && data.direcciones.length > 0) {
-      const match = data.direcciones[0];
-      if (match.ubicacion && match.ubicacion.lat && match.ubicacion.lon) {
-        return { lat: match.ubicacion.lat, lng: match.ubicacion.lon };
-      }
-    }
-  } catch (e) {
-    // Ignore Georef errors to try other sources
-  }
-
-  // 3. Try Nominatim (OpenStreetMap)
-  const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(streetA + ' & ' + streetB + ', Lanus, Buenos Aires, Argentina')}&format=json&limit=1`;
-  try {
-    const data = await queryUrl(nominatimUrl);
-    if (Array.isArray(data) && data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-    }
-  } catch (e) {
-    // Ignore Nominatim errors
-  }
-
-  return null;
-}
-
-async function buildRouteForStreets(streets: string[], index: number, description?: string) {
-  const waypoints: { lat: number; lng: number }[] = [];
-  
-  // Geocode all consecutive intersections
-  for (let i = 0; i < streets.length - 1; i++) {
-    const streetA = streets[i].trim();
-    const streetB = streets[i+1].trim();
-    if (!streetA || !streetB) continue;
-    const coords = await geocodeIntersection(streetA, streetB);
-    if (coords) {
-      waypoints.push(coords);
-    }
-    // Tiny delay to respect API rate limits
-    await new Promise(r => setTimeout(r, 100));
-  }
-
-  if (waypoints.length < 2) return null;
-
-  // Retrieve routing geometry from OSRM
-  const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${waypoints.map(w => `${w.lng},${w.lat}`).join(';')}?overview=full&geometries=geojson`;
-  try {
-    const routeData = await queryUrl(osrmUrl);
-    if (routeData.routes && routeData.routes.length > 0) {
-      const colors = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4'];
-      const color = colors[index % colors.length];
-      
-      return {
-        type: "Feature",
-        properties: {
-          name: description || `Recorrido ${index + 1}`,
-          streets: streets.join(' - '),
-          color: color,
-          originalIndex: index
-        },
-        geometry: clipGeometryToLanus(routeData.routes[0].geometry)
-      };
-    }
-  } catch (e) {
-    // Ignore OSRM errors
-  }
-  return null;
-}
+// Autotracing logic removed, user will trace manually
 
 export async function POST(req: Request) {
   try {
@@ -283,30 +193,7 @@ ${finalSelectionText}
       extractedData.numeroSolicitud = exp;
     }
 
-    // Geocode and build routes
-    const routeFeatures = [];
-    if (extractedData.recorridos && Array.isArray(extractedData.recorridos)) {
-      for (let i = 0; i < extractedData.recorridos.length; i++) {
-        const item = extractedData.recorridos[i];
-        const streets = item ? item.calles : null;
-        const description = item ? item.descripcion : null;
-        if (Array.isArray(streets) && streets.length >= 2) {
-          try {
-            const routeFeature = await buildRouteForStreets(streets, i, description);
-            if (routeFeature) {
-              routeFeatures.push(routeFeature);
-            }
-          } catch (e) {
-            console.error(`Error building route for recorrido ${i}:`, e);
-          }
-        }
-      }
-    }
-
-    const datosGeo = routeFeatures.length > 0 ? {
-      type: "FeatureCollection",
-      features: routeFeatures
-    } : null;
+    const datosGeo = null;
     
     return NextResponse.json({
       // Identificación

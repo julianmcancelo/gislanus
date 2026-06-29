@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import MapSearch from './MapSearch';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -65,9 +66,12 @@ function WizardMapController({ onComplete, initialGeo }: any) {
       },
       // @ts-ignore
       router: L.Routing.osrmv1({
-        serviceUrl: 'https://router.project-osrm.org/route/v1',
-        profile: 'driving'
-      }),
+        serviceUrl: 'https://api.mapbox.com/directions/v5/mapbox',
+        profile: 'driving',
+        urlParameters: {
+          access_token: process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+        }
+      } as any),
       show: false, // Ocultar el panel de instrucciones para mantener limpio el UI
       addWaypoints: true,
       createMarker: function(i: number, wp: any, nWps: number) {
@@ -115,16 +119,25 @@ function WizardMapController({ onComplete, initialGeo }: any) {
     }
     
     const coordinates = currentRoute.coordinates.map((c: any) => [c.lng, c.lat]);
+    
+    const streets = (currentRoute.instructions || [])
+      .map((inst: any) => inst.road)
+      .filter((road: string) => road && road.trim().length > 0);
+    
+    const uniqueStreets = Array.from(new Set(streets)) as string[];
+    
     const geojson = {
       type: 'Feature',
-      properties: {},
+      properties: {
+        streets: uniqueStreets.join(' - ')
+      },
       geometry: {
         type: 'LineString',
         coordinates: coordinates
       }
     };
 
-    onComplete(geojson, []);
+    onComplete(geojson, uniqueStreets);
   };
 
   const confirmInitialRoute = () => {
@@ -133,10 +146,29 @@ function WizardMapController({ onComplete, initialGeo }: any) {
     }
   };
 
+  const undoLastWaypoint = () => {
+    if (routingControl) {
+      const wps = routingControl.getWaypoints().filter((w: any) => w.latLng);
+      if (wps.length > 0) {
+        routingControl.spliceWaypoints(wps.length - 1, 1);
+      }
+    }
+  };
+
   return (
     <>
       {currentRoute ? (
-        <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000 }}>
+        <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+          <button 
+            onClick={undoLastWaypoint}
+            style={{ 
+              background: '#F59E0B', color: 'white', border: 'none', padding: '12px 20px', 
+              borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer',
+              boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)'
+            }}
+          >
+            ↩️ Deshacer Último Punto
+          </button>
           <button 
             onClick={confirmRoute}
             style={{ 
@@ -150,7 +182,17 @@ function WizardMapController({ onComplete, initialGeo }: any) {
         </div>
       ) : (
         initialGeo && (
-          <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000 }}>
+          <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={undoLastWaypoint}
+              style={{ 
+                background: '#F59E0B', color: 'white', border: 'none', padding: '12px 20px', 
+                borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer',
+                boxShadow: '0 4px 10px rgba(245, 158, 11, 0.3)'
+              }}
+            >
+              ↩️ Deshacer Último Punto
+            </button>
             <button 
               onClick={confirmInitialRoute}
               style={{ 
@@ -159,7 +201,7 @@ function WizardMapController({ onComplete, initialGeo }: any) {
                 boxShadow: '0 4px 10px rgba(139, 92, 246, 0.3)'
               }}
             >
-              Confirmar Recorrido IA ✨
+              Confirmar Trazado
             </button>
           </div>
         )
@@ -187,8 +229,8 @@ export default function WizardMap({ onComplete, initialGeo }: { onComplete: (dat
         zoomControl={true}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
           maxZoom={19}
         />
         {initialGeo && (
@@ -217,6 +259,7 @@ export default function WizardMap({ onComplete, initialGeo }: { onComplete: (dat
             }}
           />
         )}
+        <MapSearch />
         <WizardMapController onComplete={onComplete} initialGeo={initialGeo} />
       </MapContainer>
     </div>

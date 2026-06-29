@@ -55,6 +55,7 @@ export default function TransportePesadoWizard() {
   const [datosGeo, setDatosGeo] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [tracedStreets, setTracedStreets] = useState<string[]>([]);
   const [importText, setImportText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -191,55 +192,18 @@ export default function TransportePesadoWizard() {
     }
   };
 
-  const handleSelectRoute = (idx: number) => {
-    setSelectedRouteIndex(idx);
-    if (parsedInfo && parsedInfo.datosGeo && parsedInfo.datosGeo.features) {
-      const feature = parsedInfo.datosGeo.features.find((f: any) => f.properties.originalIndex === idx);
-      if (feature) {
-        setDatosGeo({
-          type: "FeatureCollection",
-          features: [feature]
-        });
-      } else {
-        setDatosGeo(null);
-      }
-    } else {
-      setDatosGeo(null);
-    }
-  };
-
-  const handleNextRouteProcess = () => {
-    const nextIdx = selectedRouteIndex + 1;
-    setSelectedRouteIndex(nextIdx);
-    
-    if (parsedInfo && parsedInfo.datosGeo && parsedInfo.datosGeo.features) {
-      const feature = parsedInfo.datosGeo.features.find((f: any) => f.properties.originalIndex === nextIdx);
-      if (feature) {
-        setDatosGeo({
-          type: "FeatureCollection",
-          features: [feature]
-        });
-      } else {
-        setDatosGeo(null);
-      }
-    } else {
-      setDatosGeo(null);
-    }
-    
-    setStep(1.5);
-  };
-
   const handleMapComplete = (data: any, detectedStreets: string[]) => {
     setDatosGeo(data);
+    setTracedStreets(detectedStreets);
     setStep(3);
   };
 
   const handleSubmitFinal = async () => {
     setIsSubmitting(true);
     try {
-      const routeText = parsedInfo && parsedInfo.recorridosDetalle && parsedInfo.recorridosDetalle[selectedRouteIndex]
-        ? parsedInfo.recorridosDetalle[selectedRouteIndex].calles.join(' - ')
-        : "";
+      const routeText = tracedStreets.length > 0 
+        ? tracedStreets.join(' - ')
+        : (parsedInfo && parsedInfo.calles ? parsedInfo.calles : "");
 
       const response = await fetch('/api/rutas-transporte', {
         method: 'POST',
@@ -306,7 +270,6 @@ export default function TransportePesadoWizard() {
     setNroSeguro('');
     setDatosGeo(null);
     setParsedInfo(null);
-    setSelectedRouteIndex(0);
     setStep(1);
   };
 
@@ -343,31 +306,15 @@ export default function TransportePesadoWizard() {
   }
 
   if (step === 2.5) {
-    const hasNextRoute = parsedInfo && parsedInfo.recorridosDetalle && selectedRouteIndex < parsedInfo.recorridosDetalle.length - 1;
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
           <CheckCircle size={48} color="#29B6F6" style={{ marginBottom: '20px' }} />
-          <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Recorrido Guardado!</h2>
+          <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Recorridos Guardados!</h2>
           <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            El recorrido se ha guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
-            {hasNextRoute && (
-              <>
-                <br/><br/>
-                Esta solicitud contiene múltiples recorridos importados. Quedan <strong>{parsedInfo.recorridosDetalle.length - (selectedRouteIndex + 1)}</strong> recorrido(s) por procesar.
-              </>
-            )}
+            Los recorridos se han guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
-            {hasNextRoute && (
-              <button 
-                onClick={handleNextRouteProcess} 
-                style={{ ...btnStyle, backgroundColor: '#8B5CF6', color: 'white', boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)' }}
-                disabled={isSubmitting}
-              >
-                Procesar Siguiente Recorrido ({selectedRouteIndex + 2} de {parsedInfo.recorridosDetalle.length})
-              </button>
-            )}
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', width: '100%' }}>
               <button 
                 onClick={handleAddAnotherRoute} 
@@ -639,34 +586,24 @@ export default function TransportePesadoWizard() {
                   <span>🛣️</span> Múltiples recorridos detectados
                 </h3>
                 <p style={{ fontSize: '12px', color: '#7e22ce', margin: '0 0 12px 0' }}>
-                  Seleccione el recorrido que desea procesar y guardar en este paso (se importará 1 por 1):
+                  Todos los recorridos siguientes se agruparán y guardarán en esta misma solicitud.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {parsedInfo.recorridosDetalle.map((r: any, idx: number) => {
                     const hasGeo = parsedInfo.datosGeo && parsedInfo.datosGeo.features && parsedInfo.datosGeo.features.some((f: any) => f.properties.originalIndex === idx);
-                    const isSelected = selectedRouteIndex === idx;
                     return (
-                      <label key={idx} style={{
+                      <div key={idx} style={{
                         display: 'flex',
                         alignItems: 'flex-start',
                         padding: '12px',
                         borderRadius: '8px',
-                        border: isSelected ? '2px solid #a855f7' : '1px solid #e2e8f0',
-                        backgroundColor: isSelected ? '#f3e8ff' : '#fff',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        boxShadow: isSelected ? '0 2px 8px rgba(168, 85, 247, 0.15)' : 'none'
+                        border: '1px solid #e2e8f0',
+                        backgroundColor: '#fff',
+                        boxShadow: 'none'
                       }}>
-                        <input 
-                          type="radio" 
-                          name="selectedRoute" 
-                          checked={isSelected} 
-                          onChange={() => handleSelectRoute(idx)}
-                          style={{ marginTop: '4px', marginRight: '10px', accentColor: '#7e22ce', width: '16px', height: '16px' }}
-                        />
                         <div style={{ flex: 1 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: isSelected ? '#6b21a8' : '#333' }}>{r.descripcion}</span>
+                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#333' }}>{r.descripcion}</span>
                             {hasGeo ? (
                               <span style={{ fontSize: '10px', padding: '2px 8px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '12px', fontWeight: 'bold' }}>Trazado IA Listo</span>
                             ) : (
@@ -677,7 +614,7 @@ export default function TransportePesadoWizard() {
                             {r.calles.join(' ➔ ')}
                           </div>
                         </div>
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
@@ -687,7 +624,10 @@ export default function TransportePesadoWizard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
               <button 
                 type="button" 
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setDatosGeo(parsedInfo.datosGeo);
+                  setStep(2);
+                }}
                 style={{ ...btnStyle, display: 'flex', justifyContent: 'center' }}>
                 Continuar al Mapa para Dibujar la Ruta <ArrowRight size={18} style={{ marginLeft: '8px' }} />
               </button>
@@ -718,6 +658,20 @@ export default function TransportePesadoWizard() {
             <div style={{ marginBottom: '20px', textAlign: 'center' }}>
               <span style={stepBadgeStyle}>Paso 3 de 3</span>
               <h2 style={{ margin: '15px 0 5px 0', color: '#333' }}>Confirmar Traza</h2>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Frecuencia:</strong> {parsedInfo?.frecuencia || 'No especificada'}</p>
+                
+              {tracedStreets.length > 0 && (
+                <div style={{ marginTop: '15px', backgroundColor: '#e0f2fe', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 'bold', color: '#0369a1' }}>🛣️ Calles Trazadas (Generado automáticamente):</p>
+                  <div style={{ fontSize: '12px', color: '#0c4a6e', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {tracedStreets.map((street, idx) => (
+                      <span key={idx} style={{ backgroundColor: 'white', padding: '2px 8px', borderRadius: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', fontWeight: 500 }}>
+                        {street}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left', width: '100%' }}>
