@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/authGuard';
+import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -31,7 +32,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (body.sentido !== undefined) data.sentido = body.sentido;
     if (body.activo !== undefined) data.activo = body.activo;
     if (body.datosGeo !== undefined) {
-      data.datosGeo = typeof body.datosGeo === 'string' ? body.datosGeo : JSON.stringify(body.datosGeo);
+      let parsedGeo = typeof body.datosGeo === 'string' ? JSON.parse(body.datosGeo) : body.datosGeo;
+      if (parsedGeo.type === 'FeatureCollection') {
+        parsedGeo.features = parsedGeo.features.map((f: any) => ({
+          ...f,
+          geometry: clipGeometryToLanus(f.geometry)
+        }));
+      } else if (parsedGeo.type === 'Feature') {
+        parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
+      } else if (parsedGeo.type === 'LineString' || parsedGeo.type === 'MultiLineString') {
+        parsedGeo = clipGeometryToLanus(parsedGeo);
+      }
+      data.datosGeo = JSON.stringify(parsedGeo);
     }
 
     const linea = await prisma.lineaTransporte.update({ where: { id }, data });

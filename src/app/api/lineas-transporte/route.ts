@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/authGuard';
+import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function GET() {
   try {
@@ -47,6 +48,17 @@ export async function POST(req: Request) {
 
     if (!['Feature', 'FeatureCollection', 'LineString', 'MultiLineString'].includes(parsedGeo.type)) {
       return NextResponse.json({ error: 'GeoJSON debe ser LineString, MultiLineString, Feature o FeatureCollection' }, { status: 400 });
+    }
+
+    if (parsedGeo.type === 'FeatureCollection') {
+      parsedGeo.features = parsedGeo.features.map((f: any) => ({
+        ...f,
+        geometry: clipGeometryToLanus(f.geometry)
+      }));
+    } else if (parsedGeo.type === 'Feature') {
+      parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
+    } else if (parsedGeo.type === 'LineString' || parsedGeo.type === 'MultiLineString') {
+      parsedGeo = clipGeometryToLanus(parsedGeo);
     }
 
     const linea = await prisma.lineaTransporte.create({
