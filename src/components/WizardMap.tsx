@@ -5,6 +5,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import MapSearch from './MapSearch';
+import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus } from 'lucide-react';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -233,13 +234,13 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       return;
     }
 
-    const allStreets = savedFeatures.map(f => f.properties.streets).join(' | ');
+    const allStreets = savedFeatures.map(f => f.properties.streets || '');
     const geojson = {
       type: 'FeatureCollection',
       features: savedFeatures
     };
     
-    onComplete(geojson, [allStreets], []);
+    onComplete(geojson, allStreets, []);
   };
 
   const undoLastWaypoint = () => {
@@ -254,37 +255,37 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
   return (
     <>
       {waypoints.length > 0 && (
-        <div ref={panelRef} style={{ position: 'absolute', top: '80px', left: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '250px', maxHeight: '400px', overflowY: 'auto' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '14px' }}>Puntos del Recorrido</h4>
+        <div ref={panelRef} style={{ position: 'absolute', top: '80px', left: '10px', zIndex: 1000, background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(10px)', padding: '16px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05)', border: '1px solid rgba(255, 255, 255, 0.4)', width: '250px', maxHeight: '400px', overflowY: 'auto', transition: 'all 0.3s ease' }}>
+          <h4 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '14px', fontWeight: '800' }}>Puntos del Recorrido</h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {waypoints.map((wp, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px' }} title={wp.name || ''}>
-                  {i === 0 ? '📍 ' : i === waypoints.length - 1 ? '🏁 ' : `🛑 `}
+                <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '170px', display: 'flex', alignItems: 'center', gap: '4px' }} title={wp.name || ''}>
+                  {i === 0 ? <MapPin size={14} color="#10b981" /> : i === waypoints.length - 1 ? <Flag size={14} color="#3b82f6" /> : <Octagon size={14} color="#f59e0b" />}
                   {wp.name ? wp.name : (i === 0 ? 'Inicio' : i === waypoints.length - 1 ? 'Destino' : `Parada ${i}`)}
                 </span>
                 <button 
                   onClick={(e) => { e.stopPropagation(); routingControl.spliceWaypoints(i, 1); }}
-                  style={{ background: '#fee2e2', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}
+                  style={{ background: '#fee2e2', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   title="Eliminar punto"
                 >
-                  ✕
+                  <X size={14} strokeWidth={3} />
                 </button>
               </div>
             ))}
           </div>
           {currentRoute && currentRoute.summary && (
             <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #e2e8f0', fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
-              <span>📏 {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km</span>
-              <span>⏱️ {Math.round(currentRoute.summary.totalTime / 60)} min</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Ruler size={14} /> {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> {Math.round(currentRoute.summary.totalTime / 60)} min</span>
             </div>
           )}
         </div>
       )}
 
       {/* Panel Superior Derecho: Mesa de Trabajo Multiruta */}
-      <div ref={overlayRef} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', width: '280px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1e293b', borderBottom: '2px solid #f1f5f9', paddingBottom: '8px' }}>
+      <div ref={overlayRef} style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(12px)', padding: '18px', borderRadius: '14px', boxShadow: '0 10px 30px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.05)', border: '1px solid rgba(255,255,255,0.6)', width: '290px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease' }}>
+        <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: '#0f172a', borderBottom: '2px solid rgba(226, 232, 240, 0.6)', paddingBottom: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
           Mesa de Trabajo Multiruta
         </h3>
 
@@ -299,7 +300,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
                   <span style={{ width: 12, height: 12, borderRadius: '50%', background: f.properties.color || '#333' }}></span>
                   <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#334155' }}>{f.properties.name || `Recorrido ${i+1}`}</span>
                 </div>
-                <button onClick={() => deleteFeature(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px' }} title="Eliminar recorrido">🗑️</button>
+                <button onClick={() => deleteFeature(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Eliminar recorrido"><Trash2 size={16} /></button>
               </div>
             ))
           )}
@@ -315,8 +316,9 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
               <button onClick={confirmCurrentTrace} style={{ flex: 2, padding: '6px', fontSize: '11px', background: '#0284c7', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Guardar Trazo</button>
             </div>
             {currentRoute && currentRoute.summary && (
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#0369a1', textAlign: 'center' }}>
-                📏 {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km | ⏱️ {Math.round(currentRoute.summary.totalTime / 60)} min
+              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#0369a1', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Ruler size={12} /> {(currentRoute.summary.totalDistance / 1000).toFixed(1)} km</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Clock size={12} /> {Math.round(currentRoute.summary.totalTime / 60)} min</span>
               </p>
             )}
           </div>
@@ -333,14 +335,16 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
               onClick={() => setIsTracing(true)}
               style={{ background: '#10B981', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
             >
-              <span>➕</span> Iniciar Nuevo Trazado
+              <Plus size={16} strokeWidth={3} /> Iniciar Nuevo Trazado
             </button>
           </div>
         )}
 
         <button 
           onClick={finishAll}
-          style={{ marginTop: '15px', background: '#6366f1', color: 'white', border: 'none', padding: '12px', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{ marginTop: '15px', background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.4)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'; }}
         >
           Terminar y Enviar Todo
         </button>

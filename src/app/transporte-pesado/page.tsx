@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation } from 'lucide-react';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -161,6 +161,9 @@ export default function TransportePesadoWizard() {
                 ]);
               }
             }
+          }
+          if (data.calles) {
+            setTracedStreets(data.calles.split(' | '));
           }
         } catch (err) {
           console.error(err);
@@ -390,7 +393,7 @@ export default function TransportePesadoWizard() {
     setIsSubmitting(true);
     try {
       const routeText = tracedStreets.length > 0 
-        ? tracedStreets.join(' - ')
+        ? tracedStreets.join(' | ')
         : (parsedInfo && parsedInfo.calles ? parsedInfo.calles : "");
       
       const payload: any = {
@@ -559,36 +562,43 @@ export default function TransportePesadoWizard() {
   if (step === 2.5) {
     return (
       <div style={containerStyle}>
-        <div style={cardStyle}>
-          <CheckCircle size={48} color="#29B6F6" style={{ marginBottom: '20px' }} />
-          <h2 style={{ margin: '0 0 10px 0', color: '#333' }}>¡Recorridos Guardados!</h2>
-          <p style={{ color: '#666', textAlign: 'center', marginBottom: '30px' }}>
-            Los recorridos se han guardado en la solicitud <strong>#{numeroSolicitud}</strong> como borrador.
+        <div style={{...cardStyle, textAlign: 'center', padding: '40px', maxWidth: '550px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+          <div style={{ width: '80px', height: '80px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', boxShadow: '0 4px 14px rgba(34, 197, 94, 0.2)' }}>
+            <CheckCircle size={40} color="#16a34a" />
+          </div>
+          <h2 style={{ margin: '0 0 12px 0', color: '#1e293b', fontSize: '24px', fontWeight: '800', letterSpacing: '-0.5px' }}>¡Recorridos Guardados!</h2>
+          <p style={{ color: '#64748b', fontSize: '15px', lineHeight: '1.6', marginBottom: '35px' }}>
+            Los recorridos se han procesado y guardado correctamente en la solicitud <strong style={{ color: '#334155' }}>#{numeroSolicitud}</strong> como borrador.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', width: '100%' }}>
-              <button 
-                onClick={handleAddAnotherRouteSameVehicle} 
-                style={{ ...btnStyle, backgroundColor: '#e0e7ff', color: '#4338ca', border: '1px solid #c7d2fe', flex: 1, fontSize: '14px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                disabled={isSubmitting}
-              >
-                <Plus size={16} /> Nuevo Recorrido (Mismo Camión)
-              </button>
-              <button 
-                onClick={handleAddAnotherRoute} 
-                style={{ ...btnStyle, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', flex: 1, fontSize: '14px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                disabled={isSubmitting}
-              >
-                <Truck size={16} /> Nuevo Camión
-              </button>
-              <button 
-                onClick={handleFinishRequest} 
-                style={{ ...btnStyle, flex: 1, fontSize: '14px', padding: '10px' }}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Finalizando...' : 'Finalizar Solicitud'}
-              </button>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            <button 
+              onClick={handleAddAnotherRouteSameVehicle} 
+              style={{ ...btnStyle, backgroundColor: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', width: '100%', fontSize: '15px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', fontWeight: 'bold' }}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#dcfce7'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              disabled={isSubmitting}
+            >
+              <Plus size={18} /> Agregar Recorrido (Mismo Camión)
+            </button>
+            <button 
+              onClick={handleAddAnotherRoute} 
+              style={{ ...btnStyle, backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', width: '100%', fontSize: '15px', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s', fontWeight: 'bold' }}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#dbeafe'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              disabled={isSubmitting}
+            >
+              <Truck size={18} /> Cargar Nuevo Camión
+            </button>
+            <button 
+              onClick={handleFinishRequest} 
+              style={{ ...btnStyle, background: 'linear-gradient(135deg, #0f172a 0%, #334155 100%)', color: 'white', border: 'none', width: '100%', fontSize: '15px', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)', transition: 'all 0.2s', fontWeight: 'bold' }}
+              onMouseOver={(e) => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(15, 23, 42, 0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.boxShadow = '0 4px 14px rgba(15, 23, 42, 0.2)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <MapPin size={18} />} 
+              {isSubmitting ? 'Finalizando...' : 'Finalizar y Volver al Panel'}
+            </button>
           </div>
         </div>
       </div>
@@ -932,16 +942,16 @@ export default function TransportePesadoWizard() {
                 {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#3b82f6' : '#e2e8f0', margin: '0 4px', transition: 'background-color 0.3s' }} />}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
                   <div style={{
-                    width: '28px', height: '28px', borderRadius: '50%',
-                    backgroundColor: isActive ? '#3b82f6' : isDone ? '#eff6ff' : '#f1f5f9',
+                    width: '30px', height: '30px', borderRadius: '50%',
+                    background: isActive ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : isDone ? '#eff6ff' : '#f8fafc',
                     color: isActive ? 'white' : isDone ? '#3b82f6' : '#94a3b8',
                     border: isDone || isActive ? 'none' : '1px solid #cbd5e1',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 'bold', fontSize: '12px',
-                    boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.1)' : 'none',
-                    transition: 'all 0.3s'
+                    fontWeight: '800', fontSize: '13px',
+                    boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 10px rgba(37, 99, 235, 0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}>
-                    {isDone ? <CheckCircle size={14} /> : num}
+                    {isDone ? <CheckCircle size={15} /> : num}
                   </div>
                   <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '500', color: isActive ? '#0f172a' : isDone ? '#3b82f6' : '#94a3b8' }}>
                     {label}
@@ -1246,15 +1256,40 @@ export default function TransportePesadoWizard() {
               <p style={{ margin: '0 0 10px 0', fontSize: '13px' }}><strong>Frecuencia:</strong> {parsedInfo?.frecuencia || 'No especificada'}</p>
                 
               {tracedStreets.length > 0 && (
-                <div style={{ marginTop: '15px', backgroundColor: '#e0f2fe', padding: '12px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: 'bold', color: '#0369a1' }}>🛣️ Calles Trazadas (Generado automáticamente):</p>
-                  <div style={{ fontSize: '12px', color: '#0c4a6e', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {tracedStreets.map((street, idx) => (
-                      <span key={idx} style={{ backgroundColor: 'white', padding: '2px 8px', borderRadius: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', fontWeight: 500 }}>
-                        {street}
-                      </span>
-                    ))}
-                  </div>
+                <div style={{ marginTop: '15px', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Navigation size={16} color="#3b82f6" /> Calles Trazadas
+                  </p>
+                  
+                  {tracedStreets.map((routeStreets, idx) => {
+                    const isMultiple = tracedStreets.length > 1;
+                    const title = isMultiple ? `Recorrido ${idx + 1}` : 'Recorrido Confirmado';
+                    const colors = ['#3b82f6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#06B6D4'];
+                    const dotColor = isMultiple ? colors[idx % colors.length] : '#3b82f6';
+                    
+                    // If it has multiple streets joined by " - ", let's display them nicely
+                    const streetList = routeStreets.split(' - ').filter(s => s.trim() !== '');
+
+                    return (
+                      <div key={idx} style={{ background: 'white', borderRadius: '6px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                        <div style={{ padding: '8px 12px', background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ width: 10, height: 10, borderRadius: '50%', background: dotColor }}></span>
+                          <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>{title}</span>
+                        </div>
+                        <div style={{ padding: '10px 12px', fontSize: '12px', color: '#0c4a6e', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {streetList.length > 0 ? (
+                            streetList.map((street, sIdx) => (
+                              <span key={sIdx} style={{ backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.02)', fontWeight: 500 }}>
+                                {street}
+                              </span>
+                            ))
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Sin calles detectadas</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1288,72 +1323,84 @@ const containerStyle: React.CSSProperties = {
   justifyContent: 'center',
   alignItems: 'center',
   minHeight: '100vh',
-  backgroundColor: '#f0f4f8',
+  backgroundColor: '#f8fafc',
+  backgroundImage: 'radial-gradient(circle at top right, rgba(41, 182, 246, 0.08) 0%, transparent 40%), radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.08) 0%, transparent 40%)',
 };
 
 const cardStyle: React.CSSProperties = {
-  backgroundColor: 'white',
-  padding: '24px 28px',
-  borderRadius: '14px',
-  boxShadow: '0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+  backgroundColor: 'rgba(255, 255, 255, 0.85)',
+  backdropFilter: 'blur(12px)',
+  padding: '32px',
+  borderRadius: '20px',
+  boxShadow: '0 10px 40px -10px rgba(15, 23, 42, 0.1), 0 1px 3px rgba(15, 23, 42, 0.05)',
+  border: '1px solid rgba(255, 255, 255, 0.7)',
   width: '100%',
-  maxWidth: '780px',
+  maxWidth: '820px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  margin: '20px 16px',
+  margin: '24px 16px',
   maxHeight: 'calc(100vh - 64px - 40px)',
   overflowY: 'auto',
+  transition: 'all 0.3s ease',
 };
 
 const stepBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#EEF2FF',
-  color: '#3730a3',
-  padding: '4px 14px',
+  backgroundColor: '#f1f5f9',
+  color: '#334155',
+  padding: '6px 16px',
   borderRadius: '20px',
   fontSize: '11px',
-  fontWeight: '700',
+  fontWeight: '800',
   textTransform: 'uppercase',
   letterSpacing: '1px',
+  border: '1px solid #e2e8f0',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
 };
 
 const sectionStyle: React.CSSProperties = {
   width: '100%',
-  marginBottom: '8px',
-  backgroundColor: '#f8fafc',
-  borderRadius: '10px',
-  padding: '16px 18px',
-  border: '1px solid #e8edf2',
+  marginBottom: '12px',
+  backgroundColor: '#ffffff',
+  borderRadius: '12px',
+  padding: '20px 22px',
+  border: '1px solid #e2e8f0',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
 };
 
 const sectionLabelStyle: React.CSSProperties = {
-  fontSize: '12px',
-  fontWeight: '700',
-  color: '#475569',
+  fontSize: '13px',
+  fontWeight: '800',
+  color: '#0f172a',
   textTransform: 'uppercase',
-  letterSpacing: '0.8px',
-  marginBottom: '14px',
+  letterSpacing: '1px',
+  marginBottom: '18px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
 };
 
 const fieldsetStyle: React.CSSProperties = {
   width: '100%',
-  border: '1.5px solid #e2e8f0',
-  borderRadius: '10px',
-  padding: '14px 16px 6px',
-  marginBottom: '12px',
-  backgroundColor: '#fafbfc',
+  border: '1px solid #cbd5e1',
+  borderRadius: '12px',
+  padding: '16px 18px 8px',
+  marginBottom: '16px',
+  backgroundColor: '#f8fafc',
+  transition: 'all 0.2s ease',
 };
 
 const legendStyle: React.CSSProperties = {
   fontSize: '11px',
-  fontWeight: '700',
-  color: '#1e3a5f',
+  fontWeight: '800',
+  color: '#334155',
   textTransform: 'uppercase',
-  letterSpacing: '0.9px',
-  padding: '0 8px',
-  backgroundColor: 'white',
-  border: '1px solid #e2e8f0',
-  borderRadius: '4px',
+  letterSpacing: '1px',
+  padding: '4px 12px',
+  backgroundColor: '#ffffff',
+  border: '1px solid #cbd5e1',
+  borderRadius: '6px',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
 };
 
 const inputGroupStyle: React.CSSProperties = {
@@ -1371,26 +1418,18 @@ const labelStyle: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '10px 13px',
-  border: '1.5px solid #d1d5db',
-  borderRadius: '7px',
-  fontSize: '14px',
+  padding: '11px 14px',
+  fontSize: '13px',
+  border: '1px solid #cbd5e1',
+  borderRadius: '8px',
+  color: '#334155',
+  backgroundColor: '#ffffff',
+  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
+  transition: 'all 0.2s',
   outline: 'none',
-  transition: 'border-color 0.2s',
-  backgroundColor: 'white',
-  color: '#1f2937',
-  boxSizing: 'border-box',
 };
 
 const btnStyle: React.CSSProperties = {
-  width: '100%',
-  padding: '13px',
-  backgroundColor: '#374151',
-  color: 'white',
-  border: 'none',
-  borderRadius: '8px',
-  fontSize: '15px',
-  fontWeight: '600',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
