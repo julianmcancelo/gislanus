@@ -237,46 +237,95 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
       {/* ── Modal logout ── */}
       {confirmLogout && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'rgba(10,16,28,0.55)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }} onClick={() => setConfirmLogout(false)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: '#fff', borderRadius: 18, width: 296,
-            boxShadow: '0 32px 72px rgba(0,0,0,0.22)', overflow: 'hidden',
-            fontFamily: 'Inter, system-ui, sans-serif'
-          }}>
-            <div style={{ background: 'linear-gradient(135deg,#0c1220,#1a2540)', padding: '20px 20px 16px' }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 9,
-                background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10
-              }}>
-                <LogOut size={16} color="#f87171" />
+        <div
+          onClick={() => setConfirmLogout(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(5,10,20,0.6)', backdropFilter: 'blur(10px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'fadeIn 0.15s ease',
+          }}
+        >
+          <style>{`
+            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(12px) scale(0.97) } to { opacity: 1; transform: translateY(0) scale(1) } }
+            .logout-cancel:hover { background: #f1f5f9 !important; }
+            .logout-confirm:hover { background: #b91c1c !important; }
+          `}</style>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: 20, width: 340,
+              boxShadow: '0 40px 80px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.05)',
+              overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif',
+              animation: 'slideUp 0.18s ease',
+            }}
+          >
+            {/* Header */}
+            <div style={{ background: 'linear-gradient(145deg, #0c1525 0%, #1a2d50 100%)', padding: '28px 24px 22px', position: 'relative' }}>
+              {/* Close X */}
+              <button
+                onClick={() => setConfirmLogout(false)}
+                style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 16, lineHeight: 1 }}
+              >✕</button>
+
+              {/* Icon */}
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                <LogOut size={22} color="#f87171" />
               </div>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: '0.92rem', color: '#f1f5f9' }}>Cerrar sesión</p>
-              <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#64748b' }}>{dbUser?.nombre || user?.email}</p>
+
+              <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: '1.05rem', color: '#f1f5f9', letterSpacing: '-0.01em' }}>Cerrar sesión</p>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>GIS Lanús — Sistema de Información Geográfica</p>
             </div>
-            <div style={{ padding: '16px 20px 20px' }}>
-              <p style={{ margin: '0 0 16px', fontSize: '0.8rem', color: '#475569', lineHeight: 1.6 }}>
-                ¿Estás seguro que querés salir de la plataforma?
+
+            {/* User info chip */}
+            <div style={{ margin: '20px 24px 0', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fff' }}>
+                  {(dbUser?.nombre || user?.email || '?')[0].toUpperCase()}
+                </span>
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {dbUser?.nombre || 'Usuario'}
+                </p>
+                <p style={{ margin: 0, fontSize: '0.71rem', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '16px 24px 24px' }}>
+              <p style={{ margin: '0 0 20px', fontSize: '0.83rem', color: '#64748b', lineHeight: 1.65 }}>
+                ¿Estás seguro que querés salir? Tendrás que volver a iniciar sesión para acceder a la plataforma.
               </p>
-              <div style={{ display: 'flex', gap: 7 }}>
-                <button onClick={() => setConfirmLogout(false)} style={{
-                  flex: 1, padding: '9px 0', borderRadius: 8,
-                  border: '1px solid #e2e8f0', background: '#f8fafc',
-                  color: '#475569', fontWeight: 600, fontSize: '0.8rem',
-                  cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s'
-                }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  className="logout-cancel"
+                  onClick={() => setConfirmLogout(false)}
+                  style={{
+                    flex: 1, padding: '11px 0', borderRadius: 10,
+                    border: '1px solid #e2e8f0', background: '#f8fafc',
+                    color: '#475569', fontWeight: 600, fontSize: '0.83rem',
+                    cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
+                  }}
+                >
                   Cancelar
                 </button>
-                <button onClick={() => { logout(); setConfirmLogout(false); }} style={{
-                  flex: 1, padding: '9px 0', borderRadius: 8, border: 'none',
-                  background: 'linear-gradient(135deg,#dc2626,#b91c1c)', color: '#fff',
-                  fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(220,38,38,0.2)', fontFamily: 'inherit'
-                }}>
+                <button
+                  className="logout-confirm"
+                  onClick={() => { logout(); setConfirmLogout(false); }}
+                  style={{
+                    flex: 1.4, padding: '11px 0', borderRadius: 10, border: 'none',
+                    background: '#dc2626', color: '#fff',
+                    fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer',
+                    fontFamily: 'inherit', transition: 'background 0.12s',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    boxShadow: '0 4px 16px rgba(220,38,38,0.25)',
+                  }}
+                >
+                  <LogOut size={14} />
                   Cerrar sesión
                 </button>
               </div>
