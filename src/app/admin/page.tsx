@@ -1191,6 +1191,7 @@ export default function AdminPage() {
       {/* MAIN CONTENT AREA */}
       <main className={styles.contentArea}>
         <h1 className={styles.pageTitle}>Panel de Control</h1>
+        <p className={styles.breadcrumb}>GIS Lanús · {activeTab === 'dashboard' ? 'Vista general' : activeTab === 'grupos' ? 'Gestión de Grupos' : activeTab === 'capas' ? 'Capas GIS' : activeTab === 'solicitudes' ? 'Transporte Pesado' : activeTab === 'lineas' ? 'Líneas de Colectivo' : activeTab === 'usuarios' ? 'Gestión de Usuarios' : activeTab === 'roles' ? 'Roles y Permisos' : 'Acceso QR'}</p>
         <div className={styles.mainContent}>
         
         {/* DASHBOARD TAB */}
@@ -1736,7 +1737,10 @@ export default function AdminPage() {
                             </tr>
                           ))}
                           {capas.length === 0 && (
-                            <tr><td colSpan={6} style={{ textAlign: 'center' }}>No hay capas registradas.</td></tr>
+                            <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontSize: 13 }}>
+                              <Layers size={28} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.35 }} />
+                              No hay capas registradas.
+                            </td></tr>
                           )}
                         </tbody>
                       </table>
