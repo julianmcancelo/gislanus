@@ -388,8 +388,23 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            <p style={{ margin: '0 0 6px', fontSize: 11, color: '#6b7280' }}>
-              Para dibujar la traza de un ramal, hacé clic en el ícono del recorrido en la lista de arriba.
+            {/* Nombre del nuevo recorrido */}
+            <input
+              type="text"
+              value={routeName}
+              onChange={e => setRouteName(e.target.value)}
+              placeholder="Nombre del recorrido (Ej: Ida, Vuelta)"
+              style={{ padding: '8px 10px', fontSize: 12, borderRadius: 7, border: '1px solid #d1d5db', outline: 'none', color: '#111827' }}
+              onFocus={e => (e.target.style.borderColor = '#2563eb')}
+              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
+            />
+            {/* Dibujar manualmente */}
+            <button onClick={() => setIsTracing(true)}
+              style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: '#fff', border: 'none', padding: '9px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 3px 10px rgba(37,99,235,0.35)' }}>
+              <Plus size={14} strokeWidth={2.5} /> Dibujar en el mapa
+            </button>
+            <p style={{ margin: '4px 0 0', fontSize: 10, color: '#9ca3af', textAlign: 'center' }}>
+              También podés editar los trazos haciendo clic en el lápiz de la lista.
             </p>
           </div>
         )}
