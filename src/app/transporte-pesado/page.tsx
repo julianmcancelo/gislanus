@@ -273,15 +273,21 @@ export default function TransportePesadoWizard() {
   };
 
   const handleImport = async (textToImport?: string) => {
-    // Si viene por argumento (del useEffect) lo usamos, sino usamos el state
     const text = typeof textToImport === 'string' ? textToImport : importText;
     if (!text.trim()) return;
     setIsImporting(true);
     try {
+      // Si el texto es solo una URL de tramitesweb, enviarlo como qrUrl
+      const trimmed = text.trim();
+      const isTramitesUrl = /^https?:\/\/tramitesweb\.lanus\.gob\.ar\//i.test(trimmed);
+      const body = isTramitesUrl
+        ? { text: `Solicitud importada desde: ${trimmed}`, qrUrl: trimmed }
+        : { text: trimmed };
+
       const res = await fetch('/api/parse-solicitud', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify(body)
       });
       const data = await res.json();
       console.log('[parse-solicitud response]', JSON.stringify(data, null, 2));
@@ -1088,33 +1094,65 @@ export default function TransportePesadoWizard() {
               </div>
             )}
 
-            {/* Importar desde GDEBA */}
-            <div style={{ width: '100%', marginBottom: '16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-              <div>
-                <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>Importar desde GDEBA</div>
-                <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '1px' }}>Pegá el texto de la solicitud y completamos los campos automáticamente</div>
-              </div>
-              <div style={{ display: 'flex', gap: '7px', flexShrink: 0 }}>
-                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                  {showImport ? 'Cerrar' : 'Importar'}
+            {/* Importar desde Tramites Web Lanús */}
+            <div style={{ width: '100%', marginBottom: '16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', overflow: 'hidden' }}>
+              <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>⚡ Importar desde Tramites Web Lanús</div>
+                  <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '1px' }}>Pegá el link QR o el texto completo — la IA completa todo automáticamente</div>
+                </div>
+                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: showImport ? '#e0e7ff' : '#2563eb', color: showImport ? '#1e40af' : 'white', border: 'none', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {showImport ? '▲ Cerrar' : '▼ Abrir'}
                 </button>
-                <a href="/instalar-asistente" target="_blank" style={{ backgroundColor: 'white', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                  Instalar extensión
-                </a>
               </div>
-            </div>
 
-            {showImport && (
-              <div style={{ width: '100%', background: '#faf5ff', padding: '14px 16px', borderRadius: '10px', marginBottom: '16px', border: '1px solid #e9d5ff' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#6b21a8', fontSize: '13px' }}>
-                  Pegá el texto completo de la solicitud:
-                </label>
-                <textarea rows={5} value={importText} onChange={e => setImportText(e.target.value)} placeholder="Ejemplo: ID: #61433... Nombre: MONTI OMAR... Patente: AH313BV..." style={{ ...inputStyle, resize: 'vertical', borderColor: '#d8b4fe', marginBottom: '10px' }} />
-                <button type="button" onClick={() => handleImport()} disabled={isImporting || !importText.trim()} style={{ ...primaryBtnStyle, background: isImporting ? '#a78bfa' : 'linear-gradient(135deg, #7c3aed, #5b21b6)', boxShadow: 'none' }}>
-                  {isImporting ? <><Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />Analizando con IA...</> : 'Procesar automáticamente'}
-                </button>
-              </div>
-            )}
+              {showImport && (
+                <div style={{ background: '#faf5ff', padding: '14px 16px', borderTop: '1px solid #e9d5ff' }}>
+                  {/* Input URL rápido */}
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '700', color: '#6b21a8', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Opción 1 — Link QR (tramitesweb.lanus.gob.ar/qr/…)
+                  </label>
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+                    <input
+                      type="url"
+                      placeholder="https://tramitesweb.lanus.gob.ar/qr/57786/322454"
+                      value={/^https?:\/\/tramitesweb/i.test(importText) ? importText : ''}
+                      onChange={e => setImportText(e.target.value)}
+                      style={{ ...inputStyle, flex: 1, borderColor: '#d8b4fe', fontSize: '12px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleImport()}
+                      disabled={isImporting || !/^https?:\/\/tramitesweb/i.test(importText)}
+                      style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 14px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap', opacity: !/^https?:\/\/tramitesweb/i.test(importText) ? 0.4 : 1 }}
+                    >
+                      Capturar
+                    </button>
+                  </div>
+
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: '700', color: '#6b21a8', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Opción 2 — Pegá el texto completo de la solicitud
+                  </label>
+                  <textarea
+                    rows={5}
+                    value={/^https?:\/\/tramitesweb/i.test(importText) ? '' : importText}
+                    onChange={e => setImportText(e.target.value)}
+                    placeholder={'Copiá y pegá todo el contenido de la página de tramitesweb...\n\nEjemplo:\nDetalle de la solicitud #57786\nApellido Solicitante: AMIANO\nNombre Solicitante: LUCAS HORACIO\nPatente: EWZ046\n...'}
+                    style={{ ...inputStyle, resize: 'vertical', borderColor: '#d8b4fe', marginBottom: '10px', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleImport()}
+                    disabled={isImporting || !importText.trim() || /^https?:\/\/tramitesweb/i.test(importText)}
+                    style={{ ...primaryBtnStyle, background: isImporting ? '#a78bfa' : 'linear-gradient(135deg, #7c3aed, #5b21b6)', boxShadow: 'none' }}
+                  >
+                    {isImporting
+                      ? <><Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />Analizando con IA…</>
+                      : '🤖 Procesar con IA'}
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* ── FILA 1: Expediente + ID Web + Vigencias ── */}
             <fieldset style={fieldsetStyle}>

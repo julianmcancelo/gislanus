@@ -113,16 +113,32 @@ export async function POST(req: Request) {
 
     if (resolvedQrUrl) {
       try {
-        const fetchRes = await fetch(resolvedQrUrl, { headers: { 'User-Agent': 'LanusGIS-Scraper/1.0' } });
+        const fetchRes = await fetch(resolvedQrUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'es-AR,es;q=0.9',
+          }
+        });
         if (fetchRes.ok) {
           const html = await fetchRes.text();
+          // Extract text content preserving label-value structure
           const qrText = html
             .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
             .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-          finalSelectionText = finalSelectionText + "\n\n=== CONTENIDO DETECTADO Y SCRAPEADO DEL LINK QR ===\n" + qrText;
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/(?:p|div|td|th|li|tr|h[1-6]|label|span)>/gi, '\n')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#\d+;/g, ' ')
+            .split('\n')
+            .map((l: string) => l.trim())
+            .filter((l: string) => l.length > 0)
+            .join('\n');
+          finalSelectionText = finalSelectionText + "\n\n=== CONTENIDO SCRAPEADO DEL LINK QR (tramitesweb.lanus.gob.ar) ===\n" + qrText;
         }
       } catch (e: any) {
         console.error("Error scraping TramitesWeb QR:", e.message);
