@@ -9,7 +9,7 @@ import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa, emitirCambioEstado } from '@/lib/rtdb';
-import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield } from 'lucide-react';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield, LayoutDashboard, Layers, Truck, Train, UserCog, KeyRound, QrCode, FolderTree, ArrowLeft } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -1134,52 +1134,58 @@ export default function AdminPage() {
       {/* SIDEBAR */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <h1>Administración GIS</h1>
+          <img src="/logo-lanus.png" alt="Lanús" style={{ width: 30, height: 30, objectFit: 'contain', flexShrink: 0 }} />
+          <div>
+            <h1>Administración GIS</h1>
+            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500, marginTop: 1 }}>Lanús · Panel de Control</div>
+          </div>
         </div>
         <nav className={styles.sidebarMenu}>
           <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
-            Dashboard
+            <LayoutDashboard size={14} /> Dashboard
           </button>
           {dbUser?.permisos?.gestionarGrupos && (
             <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
-              Grupos
+              <FolderTree size={14} /> Grupos
             </button>
           )}
           {dbUser?.permisos?.verCapas && (
             <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
-              Capas
+              <Layers size={14} /> Capas
             </button>
           )}
           {dbUser?.permisos?.verRutas && (
             <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
-              Transporte Pesado
+              <Truck size={14} /> Transporte Pesado
             </button>
           )}
           {dbUser?.permisos?.verLineas && (
             <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
-              Líneas de Colectivo
+              <Train size={14} /> Líneas de Colectivo
             </button>
           )}
           {dbUser?.permisos?.gestionarUsuarios && (
             <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
-              Usuarios
+              <Users size={14} /> Usuarios
             </button>
           )}
           {dbUser?.permisos?.gestionarUsuarios && (
             <button className={`${styles.menuItem} ${activeTab === 'roles' ? styles.active : ''}`} onClick={() => setActiveTab('roles')}>
-              Roles y Permisos
+              <KeyRound size={14} /> Roles y Permisos
             </button>
           )}
           {dbUser?.permisos?.accesoAdmin && (
             <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }}>
-              Acceso QR
+              <QrCode size={14} /> Acceso QR
               {solicitudesQrPendientes > 0 && (
-                <span style={{ marginLeft: 6, background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{solicitudesQrPendientes}</span>
+                <span style={{ marginLeft: 'auto', background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{solicitudesQrPendientes}</span>
               )}
             </button>
           )}
         </nav>
-        <a href="/" className={styles.backButton}>← Volver al Mapa</a>
+        <a href="/" className={styles.backButton} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderTop: '1px solid #f1f5f9' }}>
+          <ArrowLeft size={13} /> Volver al Mapa
+        </a>
       </aside>
 
       {/* MAIN CONTENT AREA */}

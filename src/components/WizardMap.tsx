@@ -251,11 +251,12 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       {waypoints.length > 0 && (
         <div ref={panelRef} style={{
           position: 'absolute', top: 60, left: 10, zIndex: 1000,
-          background: '#fff', border: '1px solid #e5e7eb',
-          borderRadius: 10, padding: '12px', width: 230,
-          maxHeight: 360, overflowY: 'auto',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(226,232,240,0.9)',
+          borderRadius: 12, padding: '12px', width: 220,
+          maxHeight: 340, overflowY: 'auto',
+          boxShadow: '0 8px 28px rgba(15,23,42,0.1), 0 2px 6px rgba(15,23,42,0.05)',
+          fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         }}>
           <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Puntos del recorrido
@@ -290,18 +291,21 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       {/* ── Panel derecho: mesa de trabajo ── */}
       <div ref={overlayRef} style={{
         position: 'absolute', top: 10, right: 10, zIndex: 1000,
-        background: '#fff', border: '1px solid #e5e7eb',
-        borderRadius: 10, padding: '14px', width: 270,
+        background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(226,232,240,0.9)',
+        borderRadius: 14, padding: '14px', width: 270,
         maxHeight: '85vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        boxShadow: '0 8px 32px rgba(15,23,42,0.12), 0 2px 6px rgba(15,23,42,0.06)',
+        fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid #f3f4f6' }}>
-          <Route size={15} color="#2563eb" />
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Recorridos</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Route size={14} color="#fff" />
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.1px' }}>Recorridos</span>
           {savedFeatures.length > 0 && (
-            <span style={{ marginLeft: 'auto', background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 9999, border: '1px solid #bfdbfe' }}>
+            <span style={{ marginLeft: 'auto', background: '#eff6ff', color: '#2563eb', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, border: '1px solid #bfdbfe' }}>
               {savedFeatures.length}
             </span>
           )}
@@ -371,7 +375,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
             />
             {/* Dibujar manualmente */}
             <button onClick={() => setIsTracing(true)}
-              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '9px 12px', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: '#fff', border: 'none', padding: '9px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 3px 10px rgba(37,99,235,0.35)' }}>
               <Plus size={14} strokeWidth={2.5} /> Dibujar en el mapa
             </button>
 
@@ -404,7 +408,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
         {/* Botón confirmar todo */}
         <button
           onClick={finishAll}
-          style={{ marginTop: 12, background: savedFeatures.length === 0 ? '#f3f4f6' : '#111827', color: savedFeatures.length === 0 ? '#9ca3af' : '#fff', border: 'none', padding: '10px', borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: savedFeatures.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          style={{ marginTop: 12, background: savedFeatures.length === 0 ? '#f1f5f9' : 'linear-gradient(135deg,#0f172a,#1e293b)', color: savedFeatures.length === 0 ? '#94a3b8' : '#fff', border: 'none', padding: '11px', borderRadius: 9, fontSize: 13, fontWeight: 700, cursor: savedFeatures.length === 0 ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: savedFeatures.length === 0 ? 'none' : '0 3px 12px rgba(15,23,42,0.3)', transition: 'all 0.2s' }}>
           Confirmar recorridos <ChevronRight size={15} />
         </button>
       </div>

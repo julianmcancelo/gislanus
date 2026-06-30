@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock, Zap, ChevronUp, ChevronDown, Bot, AlertTriangle } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import NotificacionToast from '@/components/NotificacionToast';
 
@@ -809,132 +809,105 @@ export default function TransportePesadoWizard() {
 
   if (viewMode === 'list') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8' }}>
-        <header style={{
-          height: '70px',
-          background: 'white',
-          borderBottom: '1px solid #e2e8f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
-              <Truck size={24} color="white" />
-            </div>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8', fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+        {/* ── Header compacto ── */}
+        <header style={{ height: 52, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo-lanus.png" alt="Lanús" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <div>
-              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Transporte Pesado</h1>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Panel de Solicitudes</p>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }}>Transporte Pesado</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Panel de Solicitudes · Lanús</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <button 
-              onClick={() => { setViewMode('home'); }} 
-              style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#f1f5f9', color: '#334155', borderColor: '#e2e8f0', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => setViewMode('home')}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
             >
-              <ArrowLeft size={16} /> Volver
+              <ArrowLeft size={13} /> Inicio
             </button>
             {canEdit && (
               <button
                 onClick={() => { setEditId(null); setViewMode('wizard'); }}
-                style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#2563eb', borderColor: '#1d4ed8', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'white' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', border: 'none', borderRadius: 8, padding: '5px 14px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}
               >
-                <Plus size={16} /> Nueva Solicitud
+                <Plus size={13} /> Nueva Solicitud
               </button>
             )}
           </div>
         </header>
 
-        <div style={{ flex: 1, padding: '30px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Dashboard Stats */}
+        <div style={{ flex: 1, padding: '24px 24px 40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1240, width: '100%', margin: '0 auto', alignSelf: 'center', boxSizing: 'border-box' }}>
+
+          {/* Stats */}
           {!loadingRutas && rutasList.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
-              <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ClipboardList size={24} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+              {[
+                { icon: <ClipboardList size={20} />, label: 'Total Solicitudes', value: rutasList.length, bg: '#eff6ff', color: '#2563eb' },
+                { icon: <Clock size={20} />, label: 'Pendientes', value: rutasList.filter(r => r.estado === 'PENDIENTE').length, bg: '#fef9c3', color: '#ca8a04' },
+                { icon: <CheckCircle size={20} />, label: 'Aprobadas', value: rutasList.filter(r => r.estado === 'APROBADA').length, bg: '#dcfce7', color: '#16a34a' },
+              ].map(({ icon, label, value, bg, color }) => (
+                <div key={label} style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 1px 4px rgba(15,23,42,0.05)' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{icon}</div>
+                  <div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+                    <div style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{value}</div>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Total Solicitudes</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.length}</h3>
-                </div>
-              </div>
-              <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Clock size={24} />
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Pendientes</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.filter(r => r.estado === 'PENDIENTE').length}</h3>
-                </div>
-              </div>
-              <div style={{ ...cardStyle, padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(145deg, #ffffff, #f8fafc)', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CheckCircle size={24} />
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Aprobadas</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>{rutasList.filter(r => r.estado === 'APROBADA').length}</h3>
-                </div>
-              </div>
+              ))}
             </div>
           )}
 
-          <div style={{ ...cardStyle, maxWidth: '1200px', width: '100%', margin: '0 auto', padding: '0', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02)' }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#f9fafb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-              <h2 style={{ margin: 0, color: '#374151', fontSize: '1.2rem' }}>Listado de Recorridos</h2>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Tabla */}
+          <div style={{ background: '#fff', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(15,23,42,0.06)' }}>
+            {/* Barra superior filtros */}
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fafbfd' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Listado de Recorridos</div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '12px' }} />
-                  <input 
-                    type="text" 
+                  <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
+                  <input
+                    type="text"
                     placeholder="Buscar patente, empresa, N°..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={{ padding: '10px 12px 10px 36px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', width: '240px', transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
+                    style={{ padding: '7px 10px 7px 30px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 12, outline: 'none', width: 220, background: '#fff', color: '#0f172a' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
                   />
                 </div>
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <Filter size={18} color="#94a3b8" style={{ position: 'absolute', left: '12px', pointerEvents: 'none' }} />
+                  <Filter size={14} color="#94a3b8" style={{ position: 'absolute', left: 10, pointerEvents: 'none' }} />
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    style={{ padding: '10px 32px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', backgroundColor: 'white', cursor: 'pointer', appearance: 'none', transition: 'all 0.2s', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)' }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)'; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
+                    style={{ padding: '7px 30px 7px 28px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 12, outline: 'none', background: '#fff', cursor: 'pointer', appearance: 'none', color: '#374151' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
                   >
                     <option value="TODAS">Todos los estados</option>
                     <option value="PENDIENTE">Pendientes</option>
                     <option value="APROBADA">Aprobadas</option>
                     <option value="RECHAZADA">Rechazadas</option>
                   </select>
-                  <div style={{ position: 'absolute', right: '12px', pointerEvents: 'none' }}>
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
+                  <svg style={{ position: 'absolute', right: 10, pointerEvents: 'none' }} width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
               </div>
             </div>
-            
+
             {loadingRutas ? (
-              <div style={{ padding: '60px', textAlign: 'center' }}><Loader2 className="animate-spin" size={36} color="#29B6F6" style={{ margin: '0 auto' }}/></div>
+              <div style={{ padding: 60, textAlign: 'center' }}><Loader2 className="animate-spin" size={32} color="#2563eb" style={{ margin: '0 auto' }}/></div>
             ) : (
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e5e7eb', backgroundColor: '#f3f4f6', textAlign: 'left', color: '#4b5563' }}>
-                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Solicitud</th>
-                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Empresa / Solicitante</th>
-                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Vehículo</th>
-                      <th style={{ padding: '15px 20px', fontWeight: '600' }}>Estado</th>
-                      <th style={{ padding: '15px 20px', fontWeight: '600', textAlign: 'right' }}>Acciones</th>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#fafbfd', textAlign: 'left' }}>
+                      <th style={{ padding: '11px 18px', fontWeight: 700, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Solicitud</th>
+                      <th style={{ padding: '11px 18px', fontWeight: 700, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Empresa / Solicitante</th>
+                      <th style={{ padding: '11px 18px', fontWeight: 700, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Vehículo</th>
+                      <th style={{ padding: '11px 18px', fontWeight: 700, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Estado</th>
+                      <th style={{ padding: '11px 18px', fontWeight: 700, fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', textAlign: 'right' }}>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -945,65 +918,72 @@ export default function TransportePesadoWizard() {
                         acc[key].push(ruta);
                         return acc;
                       }, {} as Record<string, any[]>);
-                      
+
                       return (Object.entries(groups) as [string, any[]][]).map(([groupKey, groupRoutes]) => (
                         <React.Fragment key={groupKey}>
                           {groupRoutes.length > 1 && (
-                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', borderTop: '2px solid #e2e8f0' }}>
-                              <td colSpan={5} style={{ padding: '10px 20px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <strong style={{ color: '#0f172a', fontSize: '0.95rem' }}>Solicitud: #{groupRoutes[0].numeroSolicitud}</strong>
-                                  <span style={{ fontSize: '0.85rem', color: '#475569', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>Patente: {groupRoutes[0].patente || 'N/A'}</span>
-                                  <span style={{ fontSize: '0.75rem', color: '#3b82f6', background: '#eff6ff', padding: '2px 8px', borderRadius: '12px', fontWeight: 600, border: '1px solid #bfdbfe' }}>{groupRoutes.length} recorridos</span>
+                            <tr style={{ background: '#f8faff', borderTop: '2px solid #e2e8f0', borderBottom: '1px solid #e9eef6' }}>
+                              <td colSpan={5} style={{ padding: '9px 18px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                  <strong style={{ color: '#0f172a', fontSize: 13 }}>Solicitud: #{groupRoutes[0].numeroSolicitud}</strong>
+                                  <span style={{ fontSize: 11, color: '#475569', background: '#e2e8f0', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Patente: {groupRoutes[0].patente || 'N/A'}</span>
+                                  <span style={{ fontSize: 11, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: 20, fontWeight: 600, border: '1px solid #bfdbfe' }}>{groupRoutes.length} recorridos</span>
                                 </div>
                               </td>
                             </tr>
                           )}
                           {groupRoutes.map(ruta => (
-                            <tr key={ruta.id} style={{ borderBottom: '1px solid #e5e7eb', transition: 'background-color 0.2s', backgroundColor: groupRoutes.length > 1 ? '#fafafa' : 'transparent' }}>
-                              <td style={{ padding: '15px 20px', paddingLeft: groupRoutes.length > 1 ? '40px' : '20px' }}>
-                                <div style={{ fontWeight: 'bold', color: '#111827', fontSize: '1rem' }}>
-                                  {groupRoutes.length > 1 ? <span style={{ fontSize: '0.85rem', color: '#64748b' }}>↳ Recorrido</span> : `#${ruta.numeroSolicitud}`}
+                            <tr
+                              key={ruta.id}
+                              style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: groupRoutes.length > 1 ? '#fafbfd' : '#fff', transition: 'background 0.15s' }}
+                              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f8faff')}
+                              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = groupRoutes.length > 1 ? '#fafbfd' : '#fff')}
+                            >
+                              <td style={{ padding: '13px 18px', paddingLeft: groupRoutes.length > 1 ? 38 : 18 }}>
+                                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 13 }}>
+                                  {groupRoutes.length > 1 ? <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>↳ Recorrido</span> : `#${ruta.numeroSolicitud}`}
                                 </div>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '4px' }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
+                                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
                               </td>
-                              <td style={{ padding: '15px 20px' }}>
-                                <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>
-                                {ruta.empresaSolicitante && <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.nombreSolicitante}</div>}
+                              <td style={{ padding: '13px 18px' }}>
+                                <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 13 }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>
+                                {ruta.empresaSolicitante && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{ruta.nombreSolicitante}</div>}
                               </td>
-                              <td style={{ padding: '15px 20px' }}>
-                                <div style={{ fontWeight: '500', color: '#374151' }}>{ruta.patente || '-'}</div>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '2px' }}>{ruta.tipoVehiculo || '-'}</div>
+                              <td style={{ padding: '13px 18px' }}>
+                                <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, fontFamily: 'monospace', letterSpacing: '0.04em' }}>{ruta.patente || '—'}</div>
+                                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{ruta.tipoVehiculo || '—'}</div>
                               </td>
-                              <td style={{ padding: '15px 20px' }}>
-                                <span style={{ 
-                                  padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.025em',
-                                  backgroundColor: ruta.estado === 'APROBADA' ? '#d1fae5' : ruta.estado === 'RECHAZADA' ? '#fee2e2' : '#fef3c7',
-                                  color: ruta.estado === 'APROBADA' ? '#065f46' : ruta.estado === 'RECHAZADA' ? '#991b1b' : '#92400e'
+                              <td style={{ padding: '13px 18px' }}>
+                                <span style={{
+                                  padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase',
+                                  backgroundColor: ruta.estado === 'APROBADA' ? '#dcfce7' : ruta.estado === 'RECHAZADA' ? '#fee2e2' : '#fef9c3',
+                                  color: ruta.estado === 'APROBADA' ? '#15803d' : ruta.estado === 'RECHAZADA' ? '#b91c1c' : '#a16207'
                                 }}>
                                   {ruta.estado}
                                 </span>
                               </td>
-                              <td style={{ padding: '15px 20px', textAlign: 'right', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                {ruta.enlaceDocumento && (
-                                  <a 
-                                    href={ruta.enlaceDocumento}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
-                                    title="Ver Documento Original"
+                              <td style={{ padding: '13px 18px', textAlign: 'right' }}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 7 }}>
+                                  {ruta.enlaceDocumento && (
+                                    <a
+                                      href={ruta.enlaceDocumento}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{ padding: '6px 11px', fontSize: 12, fontWeight: 600, backgroundColor: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, textDecoration: 'none' }}
+                                      title="Ver Documento Original"
+                                    >
+                                      <FileText size={13} /> PDF
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
+                                    style={{ padding: '6px 14px', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(109,40,217,0.3)' }}
+                                    onMouseOver={(e) => e.currentTarget.style.opacity = '0.88'}
+                                    onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                                   >
-                                    <FileText size={14} /> PDF
-                                  </a>
-                                )}
-                                <button 
-                                  onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
-                                  style={{ padding: '8px 16px', fontSize: '0.85rem', fontWeight: '500', backgroundColor: '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', transition: 'background-color 0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
-                                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
-                                >
-                                  <Edit2 size={14} /> Editar
-                                </button>
+                                    <Edit2 size={13} /> Editar
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -1012,9 +992,9 @@ export default function TransportePesadoWizard() {
                     })()}
                     {filteredRutas.length === 0 && (
                       <tr>
-                        <td colSpan={5} style={{ padding: '40px 20px', textAlign: 'center', color: '#6b7280' }}>
-                          <div style={{ marginBottom: '10px' }}><Truck size={48} color="#d1d5db" style={{ margin: '0 auto' }}/></div>
-                          No se encontraron solicitudes que coincidan con la búsqueda.
+                        <td colSpan={5} style={{ padding: '56px 20px', textAlign: 'center' }}>
+                          <Truck size={40} color="#d1d5db" style={{ margin: '0 auto 12px' }}/>
+                          <div style={{ fontSize: 14, color: '#94a3b8', fontWeight: 500 }}>No se encontraron solicitudes</div>
                         </td>
                       </tr>
                     )}
@@ -1029,64 +1009,49 @@ export default function TransportePesadoWizard() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f8fafc' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8', fontFamily: 'Inter, system-ui, sans-serif' }}>
       <NotificacionToast />
-      {/* Wizard Header */}
-      <header style={{
-        height: '70px',
-        background: 'white',
-        borderBottom: '1px solid #e2e8f0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 32px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        zIndex: 10
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ padding: '4px', display: 'flex', background: 'transparent' }}>
-            <img src="/logo-lanus.png" alt="Lanús Logo" style={{ width: '48px', height: 'auto', objectFit: 'contain' }} />
-          </div>
+
+      {/* ── Wizard Header compacto ── */}
+      <header style={{ height: 52, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0 }}>
+        {/* Logo + título */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img src="/logo-lanus.png" alt="Lanús" style={{ width: 32, height: 32, objectFit: 'contain' }} />
           <div>
-            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Viabilidad de Transporte Pesado</h1>
-            <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Asistente de registro</p>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }}>Transporte Pesado</div>
+            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Asistente de registro · Lanús</div>
           </div>
         </div>
-        {/* Progress Steps */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+
+        {/* Stepper centrado */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           {stepLabels.map((label, i) => {
             const num = i + 1;
             const isActive = num === currentStepNum;
             const isDone = num < currentStepNum;
             return (
               <div key={num} style={{ display: 'flex', alignItems: 'center' }}>
-                {i > 0 && <div style={{ width: '32px', height: '2px', backgroundColor: isDone ? '#3b82f6' : '#e2e8f0', margin: '0 4px', transition: 'background-color 0.3s' }} />}
-                <div 
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', cursor: isDone ? 'pointer' : 'default' }}
-                  onClick={() => {
-                    if (isDone) {
-                      setStep(num);
-                    }
-                  }}
-                  title={isDone ? `Volver al Paso ${num}` : ''}
+                {i > 0 && (
+                  <div style={{ width: 28, height: 2, background: isDone ? '#2563eb' : '#e2e8f0', margin: '0 6px', borderRadius: 2, transition: 'background 0.3s' }} />
+                )}
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: isDone ? 'pointer' : 'default' }}
+                  onClick={() => isDone && setStep(num)}
+                  title={isDone ? `Volver a ${label}` : ''}
                 >
                   <div style={{
-                    width: '30px', height: '30px', borderRadius: '50%',
-                    background: isActive ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : isDone ? '#eff6ff' : '#f8fafc',
-                    color: isActive ? 'white' : isDone ? '#3b82f6' : '#94a3b8',
-                    border: isDone || isActive ? 'none' : '1px solid #cbd5e1',
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: isActive ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : isDone ? '#eff6ff' : '#f1f5f9',
+                    color: isActive ? '#fff' : isDone ? '#2563eb' : '#94a3b8',
+                    border: isActive ? 'none' : isDone ? '1.5px solid #bfdbfe' : '1.5px solid #e2e8f0',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: '800', fontSize: '13px',
-                    boxShadow: isActive ? '0 0 0 4px rgba(59, 130, 246, 0.15), 0 4px 10px rgba(37, 99, 235, 0.2)' : '0 2px 4px rgba(0,0,0,0.02)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: isDone ? 'scale(1.05)' : 'scale(1)'
-                  }}
-                  onMouseOver={(e) => { if(isDone) e.currentTarget.style.transform = 'scale(1.1)'; }}
-                  onMouseOut={(e) => { if(isDone) e.currentTarget.style.transform = 'scale(1.05)'; }}
-                  >
-                    {isDone ? <CheckCircle size={15} /> : num}
+                    fontWeight: 800, fontSize: 11,
+                    boxShadow: isActive ? '0 0 0 3px rgba(37,99,235,0.18), 0 2px 8px rgba(37,99,235,0.25)' : 'none',
+                    transition: 'all 0.25s ease',
+                  }}>
+                    {isDone ? <CheckCircle size={13} strokeWidth={2.5} /> : num}
                   </div>
-                  <div style={{ fontSize: '11px', marginTop: '4px', fontWeight: isActive ? '600' : '500', color: isActive ? '#0f172a' : isDone ? '#3b82f6' : '#94a3b8' }}>
+                  <div style={{ fontSize: 10, fontWeight: isActive ? 700 : 500, color: isActive ? '#1d4ed8' : isDone ? '#3b82f6' : '#94a3b8', whiteSpace: 'nowrap' }}>
                     {label}
                   </div>
                 </div>
@@ -1094,25 +1059,18 @@ export default function TransportePesadoWizard() {
             );
           })}
         </div>
+
+        {/* Botón volver */}
+        <button
+          onClick={() => { setViewMode('home'); setEditId(null); fetchRutasList(); }}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+        >
+          <ArrowLeft size={13} /> Inicio
+        </button>
       </header>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: step === 2 ? 'stretch' : 'center', alignItems: step === 2 ? 'stretch' : 'center' }}>
-        
-        {step !== 2 && (
-          <button 
-            onClick={() => { setViewMode('home'); setEditId(null); fetchRutasList(); }}
-            style={{ 
-              position: 'absolute', top: '20px', left: '20px', 
-              background: 'white', border: '1px solid #e5e7eb', color: '#4b5563', 
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', 
-              padding: '8px 16px', borderRadius: '8px', fontWeight: '500', fontSize: '14px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          >
-            <ArrowLeft size={16} /> Volver al Inicio
-          </button>
-        )}
+      <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: step === 2 ? 'stretch' : 'flex-start', alignItems: step === 2 ? 'stretch' : 'center', overflowY: step === 2 ? 'hidden' : 'auto', padding: step === 2 ? 0 : '28px 24px 48px' }}>
 
         {step === 1 && (
           <form onSubmit={handleNextStep1} style={cardStyle}>
@@ -1129,12 +1087,17 @@ export default function TransportePesadoWizard() {
             {/* Importar desde Tramites Web Lanús */}
             <div style={{ width: '100%', marginBottom: '16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', overflow: 'hidden' }}>
               <div style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                <div>
-                  <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>⚡ Importar desde Tramites Web Lanús</div>
-                  <div style={{ fontSize: '12px', color: '#3b82f6', marginTop: '1px' }}>Pegá el link QR o el texto completo — la IA completa todo automáticamente</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(37,99,235,0.3)' }}>
+                    <Zap size={16} color="white" />
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>Importar desde Tramites Web Lanús</div>
+                    <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '1px' }}>Pegá el link QR o el texto completo — la IA completa todo automáticamente</div>
+                  </div>
                 </div>
-                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: showImport ? '#e0e7ff' : '#2563eb', color: showImport ? '#1e40af' : 'white', border: 'none', borderRadius: '6px', padding: '7px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {showImport ? '▲ Cerrar' : '▼ Abrir'}
+                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: showImport ? '#e0e7ff' : '#2563eb', color: showImport ? '#1e40af' : 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {showImport ? <><ChevronUp size={13}/> Cerrar</> : <><ChevronDown size={13}/> Abrir</>}
                 </button>
               </div>
 
@@ -1180,7 +1143,7 @@ export default function TransportePesadoWizard() {
                   >
                     {isImporting
                       ? <><Loader2 size={16} className="animate-spin" style={{ marginRight: '8px' }} />Analizando con IA…</>
-                      : '🤖 Procesar con IA'}
+                      : <><Bot size={15} style={{ marginRight: 6 }} />Procesar con IA</>}
                   </button>
                 </div>
               )}
@@ -1258,7 +1221,7 @@ export default function TransportePesadoWizard() {
                   }}>
                     <input type="checkbox" checked={cargaPeligrosa} onChange={e => setCargaPeligrosa(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#dc2626', flexShrink: 0 }} />
                     <span style={{ fontSize: '13px', color: cargaPeligrosa ? '#dc2626' : '#6b7280', fontWeight: cargaPeligrosa ? '600' : '400' }}>
-                      {cargaPeligrosa ? '⚠️ Sí' : 'No'}
+                      {cargaPeligrosa ? <><AlertTriangle size={13} style={{ marginRight: 3 }} />Sí</> : 'No'}
                     </span>
                   </label>
                 </div>
@@ -1353,7 +1316,7 @@ export default function TransportePesadoWizard() {
                 boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.02)'
               }}>
                 <h3 style={{ fontWeight: 'bold', color: '#6b21a8', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', margin: '0 0 5px 0' }}>
-                  <span>🛣️</span> Múltiples recorridos detectados
+                  <Route size={15} /> Múltiples recorridos detectados
                 </h3>
                 <p style={{ fontSize: '12px', color: '#7e22ce', margin: '0 0 12px 0' }}>
                   Todos los recorridos siguientes se agruparán y guardarán en esta misma solicitud.
@@ -1381,7 +1344,7 @@ export default function TransportePesadoWizard() {
                             )}
                           </div>
                           <div style={{ fontSize: '11px', color: '#555', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: '1.4' }}>
-                            {r.calles.join(' ➔ ')}
+                            {r.calles.join(' → ')}
                           </div>
                         </div>
                       </div>
@@ -1534,12 +1497,12 @@ const containerStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  padding: '28px 32px',
-  borderRadius: '12px',
-  boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
-  border: '1px solid #e5e7eb',
+  padding: '24px 28px 28px',
+  borderRadius: '16px',
+  boxShadow: '0 2px 16px rgba(15,23,42,0.07), 0 1px 3px rgba(15,23,42,0.04)',
+  border: '1px solid rgba(226,232,240,0.8)',
   width: '100%',
-  maxWidth: '820px',
+  maxWidth: '680px',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -1572,21 +1535,23 @@ const sectionLabelStyle: React.CSSProperties = {
 
 const fieldsetStyle: React.CSSProperties = {
   width: '100%',
-  border: '1px solid #e5e7eb',
-  borderRadius: '8px',
-  padding: '14px 16px 6px',
-  marginBottom: '14px',
-  backgroundColor: '#f9fafb',
+  border: 'none',
+  borderLeft: '3px solid #2563eb',
+  borderRadius: '0 10px 10px 0',
+  padding: '14px 18px 8px',
+  marginBottom: '16px',
+  backgroundColor: '#f8faff',
+  boxShadow: 'inset 0 1px 0 rgba(37,99,235,0.06)',
 };
 
 const legendStyle: React.CSSProperties = {
-  fontSize: '11px',
-  fontWeight: '700',
-  color: '#6b7280',
+  fontSize: '10px',
+  fontWeight: '800',
+  color: '#2563eb',
   textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  padding: '2px 8px',
-  backgroundColor: '#f9fafb',
+  letterSpacing: '0.08em',
+  padding: '0 0 10px',
+  backgroundColor: 'transparent',
 };
 
 const inputGroupStyle: React.CSSProperties = {
@@ -1596,22 +1561,24 @@ const inputGroupStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  marginBottom: '4px',
+  marginBottom: '5px',
   fontWeight: '600',
-  color: '#374151',
-  fontSize: '12px',
+  color: '#475569',
+  fontSize: '11.5px',
+  letterSpacing: '0.01em',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '8px 11px',
+  padding: '9px 12px',
   fontSize: '13px',
-  border: '1px solid #d1d5db',
-  borderRadius: '7px',
-  color: '#111827',
+  border: '1.5px solid #e2e8f0',
+  borderRadius: '8px',
+  color: '#0f172a',
   backgroundColor: '#ffffff',
   outline: 'none',
   boxSizing: 'border-box' as const,
+  transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
 };
 
 const btnStyle: React.CSSProperties = {
@@ -1623,18 +1590,21 @@ const btnStyle: React.CSSProperties = {
 
 const primaryBtnStyle: React.CSSProperties = {
   width: '100%',
-  padding: '11px',
-  background: '#2563eb',
+  padding: '13px',
+  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
   color: 'white',
   border: 'none',
-  borderRadius: '8px',
+  borderRadius: '10px',
   fontSize: '14px',
-  fontWeight: '600',
+  fontWeight: '700',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  marginTop: '8px',
+  gap: '8px',
+  marginTop: '10px',
+  boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+  letterSpacing: '0.01em',
 };
 
 const detailStyle: React.CSSProperties = {
