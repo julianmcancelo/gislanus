@@ -92,7 +92,7 @@ export async function POST(req: Request) {
         vigenciaHasta: vigenciaHasta || null,
         datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
         calles: calles || null,
-        estado: 'PENDIENTE',
+        estado: 'APROBADA',
         creadoPorId: creadoPorId || null,
         creadoPorNombre: creadoPorNombre || null,
         enlaceDocumento: enlaceDocumento || null,
