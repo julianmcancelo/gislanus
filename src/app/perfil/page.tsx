@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Shield, Check, X, Loader2, Save } from 'lucide-react';
@@ -48,6 +48,12 @@ export default function PerfilPage() {
     setSaving(false);
   };
 
+  useEffect(() => {
+    if (!loading && !dbUser) {
+      router.push('/login');
+    }
+  }, [loading, dbUser, router]);
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9' }}>
@@ -56,7 +62,8 @@ export default function PerfilPage() {
     );
   }
 
-  if (!dbUser) { router.push('/login'); return null; }
+  if (!dbUser) { return null; }
+
 
   const rolCfg = ROL_LABEL[dbUser.rol] ?? { label: dbUser.rol, color: '#64748b', bg: '#f1f5f9' };
 

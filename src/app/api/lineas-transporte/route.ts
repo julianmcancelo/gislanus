@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requirePermission } from '@/lib/authGuard';
 import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function GET() {
@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarLineas');
   if (guard.error) return guard.error;
 
   try {
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
 // Bulk DELETE: { ids: string[] }
 export async function DELETE(req: Request) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarLineas');
   if (guard.error) return guard.error;
 
   try {
@@ -99,7 +99,7 @@ export async function DELETE(req: Request) {
 
 // Bulk PATCH: { ids: string[], activo: boolean }
 export async function PATCH(req: Request) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarLineas');
   if (guard.error) return guard.error;
 
   try {

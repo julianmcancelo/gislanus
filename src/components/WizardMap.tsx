@@ -18,31 +18,72 @@ L.Icon.Default.mergeOptions({
 
 const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#db2777', '#0891b2'];
 
-function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) {
+function WizardMapController({ onComplete, initialGeo, initialFeatures, initialWaypoints, defaultRouteName }: any) {
   const map = useMap();
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [waypoints, setWaypoints] = useState<any[]>([]);
   const [savedFeatures, setSavedFeatures] = useState<any[]>([]);
   const [isTracing, setIsTracing] = useState(false);
-  const [routeName, setRouteName] = useState('Recorrido 1');
-  const [aiText, setAiText] = useState('');
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
+  const [routeName, setRouteName] = useState(defaultRouteName || 'Recorrido 1');
   const [editingFeatureIdx, setEditingFeatureIdx] = useState<number | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const pendingEditWaypointsRef = useRef<any[]>([]);
 
   useEffect(() => {
-    if (initialGeo?.features && savedFeatures.length === 0) {
+    if (initialFeatures && initialFeatures.length > 0) {
+      setSavedFeatures(prev => {
+        const next = [...prev];
+        for (let i = 0; i < initialFeatures.length; i++) {
+          if (!next[i]) {
+            next[i] = initialFeatures[i]; // Add new feature
+          } else {
+            // Update metadata but keep geometry if it was drawn in Step 3
+            next[i] = {
+              ...next[i],
+              properties: {
+                ...next[i].properties,
+                name: initialFeatures[i].properties.name,
+                description: initialFeatures[i].properties.description,
+                color: initialFeatures[i].properties.color,
+              }
+            };
+            // If the incoming feature HAS geometry (e.g. from AI) and ours DOES NOT, we adopt it.
+            if (!next[i].geometry && initialFeatures[i].geometry) {
+               next[i].geometry = initialFeatures[i].geometry;
+               next[i].properties.streets = initialFeatures[i].properties.streets;
+            }
+          }
+        }
+        // If they removed features in Step 2
+        if (next.length > initialFeatures.length) {
+          next.splice(initialFeatures.length);
+        }
+        return next;
+      });
+      
+      if (savedFeatures.length === 0) {
+        const featureCollection = { type: 'FeatureCollection', features: initialFeatures };
+        try {
+          const layer = L.geoJSON(featureCollection as any);
+          map.fitBounds(layer.getBounds(), { padding: [50, 50] });
+        } catch (e) {}
+      }
+    } else if (initialGeo?.features && savedFeatures.length === 0) {
       setSavedFeatures(initialGeo.features);
       setRouteName(`Recorrido ${initialGeo.features.length + 1}`);
     } else if (initialGeo?.type === 'Feature' && savedFeatures.length === 0) {
       setSavedFeatures([initialGeo]);
       setRouteName('Recorrido 2');
     }
-  }, [initialGeo]);
+  }, [initialFeatures, initialGeo, map]);
+
+  useEffect(() => {
+    if (defaultRouteName && savedFeatures.length === 0) {
+      setRouteName(defaultRouteName);
+    }
+  }, [defaultRouteName, savedFeatures.length]);
 
   useEffect(() => {
     [panelRef, overlayRef].forEach(r => {
@@ -51,7 +92,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
         L.DomEvent.disableScrollPropagation(r.current);
       }
     });
-  }, [waypoints.length, currentRoute, savedFeatures.length, isTracing, aiText, isGeneratingAI]);
+  }, [waypoints.length, currentRoute, savedFeatures.length, isTracing]);
 
   useEffect(() => {
     if (initialGeo) {
@@ -151,33 +192,10 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
     };
   }, [map, isTracing]);
 
-  const handleAITrace = async () => {
-    if (!aiText.trim()) return;
-    setIsGeneratingAI(true);
-    setAiError(null);
-    try {
-      const res = await fetch('/api/parse-route', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: aiText, index: savedFeatures.length, description: routeName }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al trazar con IA');
-      setSavedFeatures(prev => [...prev, data.feature]);
-      setRouteName(`Recorrido ${savedFeatures.length + 2}`);
-      setAiText('');
-      const layer = L.geoJSON(data.feature);
-      map.fitBounds(layer.getBounds(), { padding: [50, 50] });
-    } catch (err: any) {
-      setAiError(err.message || 'No se pudo trazar el recorrido.');
-    } finally {
-      setIsGeneratingAI(false);
-    }
-  };
-
   const confirmCurrentTrace = () => {
     if (!currentRoute) {
-      setAiError('Marcá al menos dos puntos en el mapa antes de guardar.');
+      // If there is no error state anymore, we can just return or use an alert
+      alert('Marcá al menos dos puntos en el mapa antes de guardar.');
       return;
     }
     const coordinates = currentRoute.coordinates.map((c: any) => [c.lng, c.lat]);
@@ -227,7 +245,7 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
       const unique = [...new Set(indices)];
       wps = unique.map(i => L.latLng(coords[i][1], coords[i][0]));
     }
-    if (wps.length < 2) return;
+    
     pendingEditWaypointsRef.current = wps;
     setEditingFeatureIdx(idx);
     setRouteName(feature.properties?.name || `Recorrido ${idx + 1}`);
@@ -236,7 +254,12 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
 
   const finishAll = () => {
     if (savedFeatures.length === 0) {
-      setAiError('Necesitás al menos un recorrido guardado para continuar.');
+      alert('Necesitás al menos un recorrido guardado para continuar.');
+      return;
+    }
+    const invalidFeatures = savedFeatures.filter(f => !f.geometry || !f.geometry.coordinates || f.geometry.coordinates.length < 2);
+    if (invalidFeatures.length > 0) {
+      alert(`Falta dibujar la traza en ${invalidFeatures.length} recorrido(s). Usá el ícono del lápiz en la lista para trazarlos en el mapa.`);
       return;
     }
     onComplete({ type: 'FeatureCollection', features: savedFeatures }, savedFeatures.map(f => f.properties.streets || ''), []);
@@ -318,23 +341,25 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
               Aún no hay recorridos guardados.
             </p>
           ) : savedFeatures.map((f, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', background: editingFeatureIdx === i ? '#eff6ff' : '#f9fafb', borderRadius: 7, border: editingFeatureIdx === i ? '1px solid #bfdbfe' : '1px solid #f3f4f6' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.properties.color || '#2563eb', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: editingFeatureIdx === i ? '#1e40af' : '#374151', flex: 1 }}>{f.properties.name || `Recorrido ${i + 1}`}</span>
-              {editingFeatureIdx !== i && (
-                <button onClick={() => startEditFeature(i)}
-                  style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex' }}
-                  title="Editar recorrido">
-                  <Pencil size={13} />
-                </button>
-              )}
-              {editingFeatureIdx !== i && (
-                <button onClick={() => deleteFeature(i)}
-                  style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex' }}
-                  title="Eliminar">
-                  <Trash2 size={13} />
-                </button>
-              )}
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '7px 10px', background: (editingFeatureIdx === i) ? '#eff6ff' : '#f9fafb', borderRadius: 7, border: (editingFeatureIdx === i) ? '1px solid #bfdbfe' : '1px solid #f3f4f6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: f.properties.color || '#2563eb', flexShrink: 0 }} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: (editingFeatureIdx === i) ? '#1e40af' : '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.properties.name || `Recorrido ${i + 1}`}</span>
+                {editingFeatureIdx !== i && (
+                  <>
+                    <button onClick={() => startEditFeature(i)}
+                      style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex' }}
+                      title="Editar Trazo">
+                      <Route size={13} />
+                    </button>
+                    <button onClick={() => deleteFeature(i)}
+                      style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex' }}
+                      title="Eliminar">
+                      <Trash2 size={13} />
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -363,45 +388,9 @@ function WizardMapController({ onComplete, initialGeo, initialWaypoints }: any) 
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {/* Nombre del nuevo recorrido */}
-            <input
-              type="text"
-              value={routeName}
-              onChange={e => setRouteName(e.target.value)}
-              placeholder="Nombre del recorrido (Ej: Ida, Vuelta)"
-              style={{ padding: '8px 10px', fontSize: 12, borderRadius: 7, border: '1px solid #d1d5db', outline: 'none', color: '#111827' }}
-              onFocus={e => (e.target.style.borderColor = '#2563eb')}
-              onBlur={e => (e.target.style.borderColor = '#d1d5db')}
-            />
-            {/* Dibujar manualmente */}
-            <button onClick={() => setIsTracing(true)}
-              style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: '#fff', border: 'none', padding: '9px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 3px 10px rgba(37,99,235,0.35)' }}>
-              <Plus size={14} strokeWidth={2.5} /> Dibujar en el mapa
-            </button>
-
-            {/* IA */}
-            <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 8 }}>
-              <p style={{ margin: '0 0 6px', fontSize: 11, fontWeight: 700, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Wand2 size={12} color="#7c3aed" /> Trazar con IA
-              </p>
-              <textarea
-                value={aiText}
-                onChange={e => { setAiText(e.target.value); if (aiError) setAiError(null); }}
-                placeholder="Escribí las calles del recorrido. Ej: Yrigoyen, 25 de Mayo, salida por Lanús Este..."
-                style={{ width: '100%', height: 58, padding: '7px 9px', fontSize: 11, borderRadius: 6, border: '1px solid #d1d5db', resize: 'none', outline: 'none', color: '#374151', boxSizing: 'border-box' as const }}
-              />
-              <button
-                onClick={handleAITrace}
-                disabled={isGeneratingAI || !aiText.trim()}
-                style={{ width: '100%', marginTop: 5, padding: '8px', fontSize: 12, fontWeight: 600, background: isGeneratingAI || !aiText.trim() ? '#e5e7eb' : '#7c3aed', color: isGeneratingAI || !aiText.trim() ? '#9ca3af' : '#fff', border: 'none', borderRadius: 6, cursor: isGeneratingAI || !aiText.trim() ? 'not-allowed' : 'pointer' }}>
-                {isGeneratingAI ? 'Procesando...' : 'Trazar automáticamente'}
-              </button>
-              {aiError && (
-                <div style={{ marginTop: 6, padding: '7px 9px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, fontSize: 11, color: '#b91c1c', lineHeight: 1.4 }}>
-                  {aiError}
-                </div>
-              )}
-            </div>
+            <p style={{ margin: '0 0 6px', fontSize: 11, color: '#6b7280' }}>
+              Para dibujar la traza de un ramal, hacé clic en el ícono del recorrido en la lista de arriba.
+            </p>
           </div>
         )}
 
@@ -439,9 +428,11 @@ interface WizardMapProps {
   onComplete: (geoJson: any, streets: string[], waypoints: any[]) => void;
   initialGeo?: any;
   initialWaypoints?: any[];
+  initialFeatures?: any[];
+  defaultRouteName?: string;
 }
 
-export default function WizardMap({ onComplete, initialGeo, initialWaypoints }: WizardMapProps) {
+export default function WizardMap({ onComplete, initialGeo, initialWaypoints, initialFeatures, defaultRouteName }: WizardMapProps) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <MapContainer
@@ -458,7 +449,7 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints }: 
           maxZoom={19}
         />
         <MapSearch />
-        <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} />
+        <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} initialFeatures={initialFeatures} defaultRouteName={defaultRouteName} />
       </MapContainer>
     </div>
   );

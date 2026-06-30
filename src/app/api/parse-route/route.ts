@@ -9,7 +9,8 @@ async function queryUrl(url: string) {
 }
 
 async function geocodeIntersection(streetA: string, streetB: string) {
-  const usigUrl = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(streetA + ' y ' + streetB + ', Lanus')}&geocodificar=true`;
+  // AMBA search instead of just Lanus to support interjurisdictional routes
+  const usigUrl = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(streetA + ' y ' + streetB)}&geocodificar=true`;
   try {
     const data = await queryUrl(usigUrl);
     if (data.direccionesNormalizadas && data.direccionesNormalizadas.length > 0) {
@@ -20,7 +21,7 @@ async function geocodeIntersection(streetA: string, streetB: string) {
     }
   } catch (e) {}
 
-  const georefUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(streetA + ' y ' + streetB)}&departamento=Lanus`;
+  const georefUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(streetA + ' y ' + streetB)}&provincia=06`;
   try {
     const data = await queryUrl(georefUrl);
     if (data.direcciones && data.direcciones.length > 0) {
@@ -31,7 +32,7 @@ async function geocodeIntersection(streetA: string, streetB: string) {
     }
   } catch (e) {}
 
-  const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(streetA + ' & ' + streetB + ', Lanus, Buenos Aires, Argentina')}&format=json&limit=1`;
+  const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(streetA + ' & ' + streetB + ', AMBA, Buenos Aires, Argentina')}&format=json&limit=1`;
   try {
     const data = await queryUrl(nominatimUrl);
     if (Array.isArray(data) && data.length > 0) {
@@ -42,7 +43,7 @@ async function geocodeIntersection(streetA: string, streetB: string) {
   return null;
 }
 
-async function buildRouteForStreets(streets: string[], index: number, description?: string) {
+async function buildRouteForStreets(streets: string[], index: number, name?: string, description?: string) {
   const waypoints: { lat: number; lng: number }[] = [];
   
   for (let i = 0; i < streets.length - 1; i++) {
@@ -66,7 +67,8 @@ async function buildRouteForStreets(streets: string[], index: number, descriptio
       return {
         type: "Feature",
         properties: {
-          name: description || `Recorrido ${index + 1}`,
+          name: name || `Recorrido ${index + 1}`,
+          description: description || '',
           streets: streets.join(' - '),
           color: color,
           originalIndex: index
@@ -80,7 +82,7 @@ async function buildRouteForStreets(streets: string[], index: number, descriptio
 
 export async function POST(req: Request) {
   try {
-    const { text, index, description } = await req.json();
+    const { text, index } = await req.json();
 
     if (!text) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 });
@@ -93,30 +95,41 @@ export async function POST(req: Request) {
     const openai = new OpenAI({ apiKey });
     
     const prompt = `
-Eres un asistente experto en logística en Lanús, Argentina.
-Tengo el siguiente texto que describe un recorrido de calles.
-Tu tarea es devolver ÚNICAMENTE un objeto JSON con la clave "calles" que contenga un array de strings, donde cada string es el nombre de una calle del recorrido en orden secuencial.
+Eres un asistente experto en logística y transporte público en el AMBA, Argentina.
+Tengo el siguiente texto que describe uno o múltiples recorridos de calles (puede ser una resolución oficial de la CNRT, un anexo, o un texto simple).
+Tu tarea es devolver ÚNICAMENTE un objeto JSON con la clave "recorridos".
+Esta clave debe contener un array de objetos. Cada objeto representa un trazo específico (por ejemplo, el tramo de "Ida" de un ramal específico).
 
-Ejemplo de texto: "Ingresa por Yrigoyen, dobla en 25 de mayo, y sale por Lanus Este por San Martin"
-Salida esperada:
+Estructura requerida:
 {
-  "calles": ["Av. Hipólito Yrigoyen", "25 de Mayo", "Av. San Martín"]
+  "recorridos": [
+    {
+      "nombre": "Nombre descriptivo del recorrido (ej. Recorrido A - Ida a Villa Caraza)",
+      "descripcion": "Descripción detallada del recorrido basada en el texto (ej: Servicios Comunes Básicos, por José María Moreno). Debe resumir los detalles importantes de este tramo.",
+      "calles": ["Calle 1", "Calle 2", "Calle 3"]
+    }
+  ]
 }
 
 Reglas:
-- Limpiar y corregir ortografía (ej: "Hypolito Yrigoyen" -> "Av. Hipólito Yrigoyen").
+- Identifica cuántos recorridos distintos hay (separando Ida y Regreso/Vuelta si existen).
+- El "nombre" debe ser lo más descriptivo posible basándose en el texto (ej: "Recorrido A - Regreso a Terminal").
+- La "descripcion" debe contener detalles extras importantes del texto para este ramal (tipo de servicio, puntos clave de paso).
+- Limpiar y corregir ortografía en las calles (ej: "Hypolito Yrigoyen" -> "Av. Hipólito Yrigoyen").
 - No incluir números de altura, solo el nombre de la calle.
 - Incluir TODAS las calles en el orden en que se transitan.
+- Si el texto menciona "Sobre la traza del Recorrido A", debes inferir las calles o generar el recorrido independiente.
+- Si es un texto corto o de un solo recorrido, genera un solo objeto en el array.
 
 Texto de entrada:
 ${text}
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: "Devuelve únicamente JSON con el array de calles." },
+        { role: "system", content: "Devuelve únicamente JSON con el array de recorridos." },
         { role: "user", content: prompt }
       ]
     });
@@ -125,17 +138,39 @@ ${text}
     if (!resultString) throw new Error('OpenAI returned empty response');
     const extractedData = JSON.parse(resultString);
     
-    if (!extractedData.calles || !Array.isArray(extractedData.calles) || extractedData.calles.length < 2) {
-      return NextResponse.json({ error: 'No se detectaron suficientes calles. Intentá escribir al menos dos calles del recorrido.' }, { status: 400 });
+    if (!extractedData.recorridos || !Array.isArray(extractedData.recorridos) || extractedData.recorridos.length === 0) {
+      // Fallback a formato anterior por las dudas
+      if (extractedData.calles && Array.isArray(extractedData.calles)) {
+        extractedData.recorridos = [{ nombre: 'Recorrido IA', calles: extractedData.calles }];
+      } else {
+        return NextResponse.json({ error: 'No se detectaron recorridos. Intentá escribir de forma más clara.' }, { status: 400 });
+      }
     }
 
-    const feature = await buildRouteForStreets(extractedData.calles, index || 0, description || 'Recorrido IA');
+    const startIndex = index || 0;
+    const allFeatures = [];
+    
+    const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#db2777', '#0891b2'];
 
-    if (!feature) {
-      return NextResponse.json({ error: `No se pudieron ubicar las calles en el mapa (${extractedData.calles.slice(0,3).join(', ')}…). Verificá los nombres e intentá de nuevo.` }, { status: 400 });
+    // Devolver los ramales sin traza (solo metadata) para que el usuario las trace a mano
+    for (let i = 0; i < extractedData.recorridos.length; i++) {
+      const rec = extractedData.recorridos[i];
+      const color = ROUTE_COLORS[(startIndex + i) % ROUTE_COLORS.length];
+      
+      const feature = {
+        type: 'Feature',
+        properties: {
+          name: rec.nombre || `Recorrido ${startIndex + i + 1}`,
+          description: rec.descripcion || '',
+          streets: rec.calles ? rec.calles.join(' - ') : '',
+          color: color
+        }
+        // Sin geometry, para que se deba trazar manual en el Paso 3
+      };
+      allFeatures.push(feature);
     }
 
-    return NextResponse.json({ feature });
+    return NextResponse.json({ features: allFeatures });
   } catch (error: any) {
     console.error('Error in parse-route:', error);
     return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });

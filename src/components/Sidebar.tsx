@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Layers, Info, LogIn, LogOut, Truck, Settings, MapPin,
+  Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin,
   Shield, User, ExternalLink, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -192,6 +192,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
   const isSuperAdmin        = dbUser?.rol === 'SUPER_ADMIN';
   const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canAccessLineas     = isSuperAdmin || (dbUser?.permisos?.editarLineas ?? false);
   const canAccessAdmin      = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
 
   return (
@@ -214,6 +215,11 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
         {canAccessTransporte && (
           <div className={styles.navIcon} onClick={() => router.push('/transporte-pesado')} title="Transporte Pesado">
             <Truck size={16} />
+          </div>
+        )}
+        {canAccessLineas && (
+          <div className={styles.navIcon} onClick={() => router.push('/transporte-publico')} title="Transporte Público">
+            <Bus size={16} />
           </div>
         )}
         {canAccessAdmin && (
@@ -531,7 +537,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               )}
 
               {/* Accesos rápidos */}
-              {(canAccessTransporte || canAccessAdmin) && (
+              {(canAccessTransporte || canAccessAdmin || canAccessLineas) && (
                 <div style={{ border: '1px solid rgba(0,0,0,0.07)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
                   <div style={{
                     padding: '7px 11px', background: '#fafbfc',
@@ -544,7 +550,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                   {canAccessTransporte && (
                     <a href="/transporte-pesado" style={{
                       display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
-                      borderBottom: canAccessAdmin ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                      borderBottom: (canAccessAdmin || canAccessLineas) ? '1px solid rgba(0,0,0,0.05)' : 'none',
                       textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
                     }}
                       onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
@@ -555,6 +561,24 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                       <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontSize: '0.73rem', fontWeight: 600, color: '#1e293b' }}>Transporte Pesado</p>
                         <p style={{ margin: 0, fontSize: '0.64rem', color: '#94a3b8' }}>Permisos de circulación</p>
+                      </div>
+                      <ExternalLink size={10} color="#d1d5db" />
+                    </a>
+                  )}
+                  {canAccessLineas && (
+                    <a href="/transporte-publico" style={{
+                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
+                      borderBottom: canAccessAdmin ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                      textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(34,197,94,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Bus size={12} color="#16a34a" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '0.73rem', fontWeight: 600, color: '#1e293b' }}>Transporte Público</p>
+                        <p style={{ margin: 0, fontSize: '0.64rem', color: '#94a3b8' }}>Carga de ramales</p>
                       </div>
                       <ExternalLink size={10} color="#d1d5db" />
                     </a>
