@@ -228,62 +228,58 @@ export default function TransportePublicoWizard() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: "'Inter', sans-serif" }}>
-      {/* SIDEBAR PANEL - LIGHT THEME */}
-      <div style={{ width: '420px', background: '#ffffff', display: 'flex', flexDirection: 'column', color: '#0f172a', zIndex: 10, boxShadow: '4px 0 24px rgba(0,0,0,0.05)', position: 'relative', borderRight: '1px solid #e2e8f0' }}>
-        <div style={{ padding: '28px 32px 24px', borderBottom: '1px solid #f1f5f9', background: '#fafbfd' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-            <div style={{ background: '#eff6ff', padding: '10px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
-              <Navigation size={22} color="#2563eb" />
+      {/* SIDEBAR PANEL */}
+      <div style={{ width: '420px', background: '#ffffff', display: 'flex', flexDirection: 'column', color: '#0f172a', zIndex: 10, boxShadow: '4px 0 24px rgba(15,23,42,0.06)', position: 'relative', borderRight: '1px solid rgba(226,232,240,0.8)' }}>
+        <div style={{ height: 52, borderBottom: '1px solid #f1f5f9', background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <img src="/logo-lanus.png" alt="Lanús" style={{ width: 30, height: 30, objectFit: 'contain' }} />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }}>Transporte Público</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Asistente de registro · Lanús</div>
             </div>
-            <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>
-              Transporte Público
-            </h1>
           </div>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, paddingLeft: '44px' }}>
-            Asistente para digitalización de líneas y ramales.
-          </p>
+          <button onClick={() => router.push('/')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            <ArrowLeft size={13} /> Inicio
+          </button>
         </div>
 
-        {/* PROGRESS BAR */}
-        <div style={{ padding: '0 32px', marginTop: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', position: 'relative' }}>
-            {[1, 2, 3].map(s => (
-              <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', zIndex: 1 }}>
-                <div style={{
-                  width: '28px', height: '28px', borderRadius: '50%',
-                  background: step >= s ? '#2563eb' : '#f8fafc',
-                  border: step >= s ? 'none' : '2px solid #e2e8f0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: step >= s ? '#fff' : '#64748b', fontWeight: 700, fontSize: '0.8rem',
-                  boxShadow: step === s ? '0 0 0 4px rgba(37, 99, 235, 0.2)' : 'none',
-                  transition: 'all 0.3s ease'
-                }}>
-                  {step > s ? <CheckCircle size={14} color="#fff" /> : s}
+        {/* STEPPER */}
+        <div style={{ padding: '16px 24px 14px', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+            {[{ n: 1, label: 'Datos' }, { n: 2, label: 'Ramal' }, { n: 3, label: 'Traza' }].map(({ n, label }, idx) => (
+              <React.Fragment key={n}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div style={{
+                    width: 26, height: 26, borderRadius: '50%',
+                    background: step > n ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : step === n ? 'linear-gradient(135deg,#2563eb,#1d4ed8)' : '#f1f5f9',
+                    border: step >= n ? 'none' : '1.5px solid #e2e8f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: step >= n ? '#fff' : '#94a3b8', fontWeight: 700, fontSize: 11,
+                    boxShadow: step === n ? '0 0 0 3px rgba(37,99,235,0.18)' : 'none',
+                    transition: 'all 0.25s ease', flexShrink: 0
+                  }}>
+                    {step > n ? <CheckCircle size={13} color="#fff" strokeWidth={3} /> : n}
+                  </div>
+                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: step >= n ? '#2563eb' : '#94a3b8' }}>{label}</span>
                 </div>
-              </div>
+                {idx < 2 && (
+                  <div style={{ flex: 1, height: 2, background: step > n ? '#2563eb' : '#e2e8f0', margin: '0 4px', marginBottom: 16, transition: 'background 0.3s' }} />
+                )}
+              </React.Fragment>
             ))}
-            <div style={{ position: 'absolute', top: '13px', left: '20px', right: '20px', height: '2px', background: '#e2e8f0', zIndex: 0 }}>
-              <div style={{ height: '100%', background: '#2563eb', width: `${(step - 1) * 50}%`, transition: 'width 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-            <span style={{ fontSize: '0.7rem', color: step >= 1 ? '#0f172a' : '#64748b', fontWeight: step >= 1 ? 700 : 500 }}>Datos</span>
-            <span style={{ fontSize: '0.7rem', color: step >= 2 ? '#0f172a' : '#64748b', fontWeight: step >= 2 ? 700 : 500 }}>Ramal</span>
-            <span style={{ fontSize: '0.7rem', color: step >= 3 ? '#0f172a' : '#64748b', fontWeight: step >= 3 ? 700 : 500 }}>Traza</span>
           </div>
         </div>
 
         {/* FORM STEPS */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', background: '#f8fafc' }}>
           
           {step === 1 && (
             <div className="fade-in">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={18} color="#2563eb" /> Información Base
-              </h3>
-              
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Nombre de la Línea *</label>
+              <div style={{ border: 'none', borderLeft: '3px solid #2563eb', borderRadius: '0 10px 10px 0', padding: '12px 16px 8px', marginBottom: '18px', background: '#f8faff' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Información Base</div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Nombre de la Línea *</label>
                 <input 
                   value={nombre} onChange={e => setNombre(e.target.value)}
                   placeholder="ej: Línea 271"
@@ -293,9 +289,9 @@ export default function TransportePublicoWizard() {
                 />
               </div>
 
-              <div style={{ marginBottom: '16px', display: 'flex', gap: '12px' }}>
+              <div style={{ marginBottom: '14px', display: 'flex', gap: '12px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Número</label>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Número</label>
                   <input 
                     value={numero} onChange={e => setNumero(e.target.value)}
                     placeholder="ej: 271"
@@ -305,7 +301,7 @@ export default function TransportePublicoWizard() {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Color (Hex)</label>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Color</label>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <input 
                       type="color" value={color} onChange={e => setColor(e.target.value)}
@@ -321,8 +317,8 @@ export default function TransportePublicoWizard() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>Jurisdicción / Categoría *</label>
+              <div style={{ marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#475569', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Jurisdicción / Categoría *</label>
                 <select 
                   value={categoria} onChange={e => setCategoria(e.target.value)}
                   style={{ width: '100%', padding: '12px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '10px', color: '#0f172a', fontSize: '0.95rem', outline: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}
@@ -334,32 +330,33 @@ export default function TransportePublicoWizard() {
                   <option value="NACIONAL">Nacional</option>
                 </select>
               </div>
+              </div>{/* end fieldset */}
             </div>
           )}
 
           {step === 2 && (
             <div className="fade-in">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Route size={18} color="#7c3aed" /> Gestión de Ramales
-              </h3>
-              <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '20px', lineHeight: 1.5 }}>
-                Pegá el texto de la resolución (CNRT, etc.) para extraer automáticamente los ramales y sus descripciones, o cargalos a mano.
-              </p>
-              
-              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
-                <p style={{ margin: '0 0 8px', fontSize: '0.85rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Wand2 size={14} color="#7c3aed" /> Procesamiento Automático
+              <div style={{ border: 'none', borderLeft: '3px solid #2563eb', borderRadius: '0 10px 10px 0', padding: '12px 16px 14px', marginBottom: '18px', background: '#f8faff' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Gestión de Ramales</div>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
+                  Pegá el texto de la resolución (CNRT, etc.) para extraer automáticamente los ramales, o cargalos a mano.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8faff', padding: '14px', borderRadius: '10px', border: '1px solid #e0e7ff', marginBottom: '16px' }}>
+                <p style={{ margin: '0 0 8px', fontSize: '0.72rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Bot size={13} color="#2563eb" /> Procesamiento con IA
                 </p>
                 <textarea
                   value={aiText}
                   onChange={e => { setAiText(e.target.value); if (aiError) setAiError(null); }}
                   placeholder="Escribí o pegá la resolución acá..."
-                  style={{ width: '100%', height: 80, padding: '10px', fontSize: '0.9rem', borderRadius: '8px', border: '1px solid #d1d5db', resize: 'vertical', outline: 'none', color: '#374151', boxSizing: 'border-box' }}
+                  style={{ width: '100%', height: 80, padding: '10px', fontSize: '0.85rem', borderRadius: '8px', border: '1.5px solid #e2e8f0', resize: 'vertical', outline: 'none', color: '#0f172a', boxSizing: 'border-box', background: '#fff' }}
                 />
                 <button
                   onClick={handleAITrace}
                   disabled={isGeneratingAI || !aiText.trim()}
-                  style={{ width: '100%', marginTop: 8, padding: '10px', fontSize: '0.9rem', fontWeight: 700, background: isGeneratingAI || !aiText.trim() ? '#e5e7eb' : '#7c3aed', color: isGeneratingAI || !aiText.trim() ? '#9ca3af' : '#fff', border: 'none', borderRadius: '8px', cursor: isGeneratingAI || !aiText.trim() ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+                  style={{ width: '100%', marginTop: 8, padding: '10px', fontSize: '0.85rem', fontWeight: 700, background: isGeneratingAI || !aiText.trim() ? '#e5e7eb' : 'linear-gradient(135deg,#2563eb,#1d4ed8)', color: isGeneratingAI || !aiText.trim() ? '#9ca3af' : '#fff', border: 'none', borderRadius: '8px', cursor: isGeneratingAI || !aiText.trim() ? 'not-allowed' : 'pointer', boxShadow: isGeneratingAI || !aiText.trim() ? 'none' : '0 2px 8px rgba(37,99,235,0.3)', transition: 'all 0.2s' }}>
                   {isGeneratingAI ? <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Loader2 size={16} className="animate-spin" /> Procesando e interpretando...</span> : 'Extraer Ramales'}
                 </button>
                 {aiError && (
@@ -381,10 +378,10 @@ export default function TransportePublicoWizard() {
               {/* Lista de Ramales Extraídos */}
               {preTracedFeatures.length > 0 && (
                 <div>
-                  <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', marginBottom: '12px' }}>Ramales detectados ({preTracedFeatures.length})</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>Ramales detectados ({preTracedFeatures.length})</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {preTracedFeatures.map((f, i) => (
-                      <div key={i} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                      <div key={i} style={{ background: '#f8faff', border: '1px solid #e9eef6', borderLeft: `3px solid ${f.properties?.color || '#2563eb'}`, borderRadius: '0 10px 10px 0', padding: '11px 14px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)', transition: 'box-shadow 0.15s' }}>
                         
                         {editingMetadataIdx === i ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -442,18 +439,14 @@ export default function TransportePublicoWizard() {
 
           {step === 3 && (
             <div className="fade-in">
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={18} color="#16a34a" /> Trazado Geográfico
-              </h3>
-              
-              <div style={{ padding: '16px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', marginBottom: '20px' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#16a34a', lineHeight: 1.5, display: 'flex', gap: '10px' }}>
-                  <Info size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  Utilizá el panel de mapa a la derecha para dibujar la traza exacta de este ramal.
-                </p>
+              <div style={{ border: 'none', borderLeft: '3px solid #16a34a', borderRadius: '0 10px 10px 0', padding: '10px 16px 12px', marginBottom: '18px', background: '#f0fdf4' }}>
+                <div style={{ fontSize: '10px', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <MapPin size={11} /> Trazado Geográfico
+                </div>
+                <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>Dibujá la traza exacta de este ramal en el mapa.</p>
               </div>
-
-              <div style={{ padding: '16px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+              
+              <div style={{ padding: '14px 16px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 4px rgba(15,23,42,0.04)' }}>
                 <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>Estado del trazado:</span>
                 {datosGeo ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.85rem', fontWeight: 700, background: '#dcfce7', padding: '4px 10px', borderRadius: '20px' }}>
