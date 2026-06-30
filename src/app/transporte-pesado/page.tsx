@@ -404,10 +404,14 @@ export default function TransportePesadoWizard() {
 
       const method = editId ? 'PUT' : 'POST';
       const url = editId ? `/api/rutas-transporte/${editId}` : '/api/rutas-transporte';
+      const submitToken = await user?.getIdToken();
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(submitToken ? { Authorization: `Bearer ${submitToken}` } : {}),
+        },
         body: JSON.stringify(payload)
       });
 

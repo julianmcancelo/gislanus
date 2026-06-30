@@ -126,22 +126,22 @@ async function resolveUserWithPermisos(req: Request) {
 export async function GET(req: Request) {
   const user = await resolveUserWithPermisos(req);
   const isAdmin = user && ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(user.rol);
-  const hasVerRutas = isAdmin || user?.rol === 'SUPER_ADMIN' || (user?.rolPermisos?.verRutas === true);
+  const hasVerRutas = isAdmin || (user?.rolPermisos?.verRutas === true);
 
   try {
-    if (!hasVerRutas) {
-      // Unauthenticated or no verRutas: only return APROBADAS for the map
-      const rutas = await prisma.rutaTransporte.findMany({
-        where: { estado: 'APROBADA', activo: true },
-        orderBy: { creadoEn: 'desc' },
-      });
-      return NextResponse.json(rutas);
+    let where: any;
+
+    if (!user) {
+      // Sin auth: solo APROBADAS activas (para el mapa público)
+      where = { estado: 'APROBADA', activo: true };
+    } else if (isAdmin || hasVerRutas) {
+      // Admin: todo. Con verRutas: propias + todas las APROBADAS
+      where = isAdmin ? undefined : { OR: [{ estado: 'APROBADA' as const }, { creadoPorId: user.id }] };
+    } else {
+      // Autenticado sin verRutas: solo sus propias solicitudes + APROBADAS
+      where = { OR: [{ creadoPorId: user.id }, { estado: 'APROBADA', activo: true }] };
     }
 
-    // Authenticated with verRutas: return all (admins) or own + APROBADAS (others)
-    const where = isAdmin
-      ? undefined
-      : { OR: [{ estado: 'APROBADA' as const }, ...(user ? [{ creadoPorId: user.id }] : [])] };
     const rutas = await prisma.rutaTransporte.findMany({
       where,
       orderBy: { creadoEn: 'desc' },
