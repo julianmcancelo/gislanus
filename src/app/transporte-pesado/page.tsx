@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
@@ -23,6 +23,7 @@ import { emitirNuevaSolicitud } from '@/lib/rtdb';
 
 export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const urlEditId = searchParams.get('editId');
   const { user, dbUser, loading } = useAuth();
   const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
@@ -248,7 +249,7 @@ export default function TransportePesadoWizard() {
   };
 
   useEffect(() => {
-    if (viewMode === 'list') {
+    if (viewMode === 'list' || viewMode === 'home') {
       fetchRutasList();
     }
   }, [viewMode]);
@@ -635,141 +636,152 @@ export default function TransportePesadoWizard() {
   });
 
   if (viewMode === 'home') {
+    const pendientes = rutasList.filter((r: any) => r.estado === 'PENDIENTE').length;
+    const aprobadas  = rutasList.filter((r: any) => r.estado === 'APROBADA').length;
+    const rechazadas = rutasList.filter((r: any) => r.estado === 'RECHAZADA').length;
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', backgroundColor: '#f8fafc' }}>
-        {/* Modern Header */}
-        <header style={{
-          height: '70px',
-          background: 'white',
-          borderBottom: '1px solid #e2e8f0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '12px', padding: '8px', display: 'flex', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)' }}>
-              <Truck size={24} color="white" />
+      <div style={{ minHeight: '100vh', width: '100%', background: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+        {/* ── Header ── */}
+        <header style={{ background: 'linear-gradient(135deg, #0c1525 0%, #1a2d50 100%)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: 'rgba(59,130,246,0.18)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: 12, padding: 9, display: 'flex' }}>
+              <Truck size={22} color="#60a5fa" />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Transporte Pesado</h1>
-              <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Gestión de permisos</p>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.3px' }}>Transporte Pesado</div>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>Municipio de Lanús</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => router.push('/')}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 9, padding: '7px 14px', color: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+            >
+              <ArrowLeft size={14} /> Volver al mapa
+            </button>
+            <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#334155' }}>{dbUser?.nombre || dbUser?.email}</div>
-              <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{dbUser?.rol}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#e2e8f0' }}>{dbUser?.nombre || dbUser?.email?.split('@')[0]}</div>
+              <div style={{ fontSize: 10, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{dbUser?.rol?.replace('_', ' ')}</div>
             </div>
-            <div style={{ background: '#f1f5f9', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-              <User size={20} color="#64748b" />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#fff', fontSize: 14 }}>
+              {(dbUser?.nombre || dbUser?.email || '?')[0].toUpperCase()}
             </div>
           </div>
         </header>
 
-        {/* Hero Section */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 24px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '48px', maxWidth: '600px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#0f172a', marginBottom: '16px', letterSpacing: '-0.5px' }}>
-              Hola, {dbUser?.nombre?.split(' ')[0] || 'Usuario'}
-            </h2>
-            <p style={{ fontSize: '16px', color: '#475569', lineHeight: '1.6' }}>
-              Bienvenido al portal de Transporte Pesado. Seleccioná qué acción deseás realizar para continuar.
+        {/* ── Hero ── */}
+        <div style={{ background: 'linear-gradient(160deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%)', padding: '52px 32px 64px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          {/* decoración de fondo */}
+          <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 999, padding: '5px 14px', marginBottom: 20 }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 6px #3b82f6' }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#93c5fd', letterSpacing: '0.04em' }}>SISTEMA DE GESTIÓN</span>
+            </div>
+            <h1 style={{ margin: '0 0 12px', fontSize: 36, fontWeight: 900, color: '#f8fafc', letterSpacing: '-0.8px', lineHeight: 1.1 }}>
+              Hola, {dbUser?.nombre?.split(' ')[0] || 'bienvenido'}
+            </h1>
+            <p style={{ margin: 0, fontSize: 16, color: '#64748b', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.6 }}>
+              Portal de permisos para circulación de vehículos de carga. Seleccioná qué querés hacer.
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', maxWidth: '800px' }}>
-            
-            {/* Card Nueva Solicitud — solo para roles con editarRutas */}
-            {canEdit && <>
-            <div 
+          {/* Stats strip */}
+          {rutasList.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 36, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Total', value: rutasList.length, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)' },
+                { label: 'Pendientes', value: pendientes, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
+                { label: 'Aprobadas', value: aprobadas, color: '#34d399', bg: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
+                { label: 'Rechazadas', value: rechazadas, color: '#f87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.2)' },
+              ].map(s => (
+                <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 12, padding: '10px 20px', textAlign: 'center', minWidth: 90 }}>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: s.color, lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Cards ── */}
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: '40px 24px 60px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+
+          {canEdit && (
+            <div
               onClick={() => { setEditId(null); setViewMode('wizard'); }}
-              style={{
-                background: 'white',
-                borderRadius: '24px',
-                padding: '40px 32px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
-                e.currentTarget.style.borderColor = '#93c5fd';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
+              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(37,99,235,0.15)'; }}
+              onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+              style={{ background: '#fff', borderRadius: 20, padding: '32px 28px', cursor: 'pointer', border: '1px solid #e2e8f0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.22s ease', position: 'relative', overflow: 'hidden' }}
             >
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)' }}></div>
-              <div style={{ background: '#eff6ff', padding: '16px', borderRadius: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Plus size={32} color="#2563eb" />
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#2563eb,#60a5fa)' }} />
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: '#eff6ff', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                <Plus size={26} color="#2563eb" />
               </div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 12px 0' }}>Nueva Solicitud</h3>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
-                Crear una nueva solicitud de tránsito pesado. Vas a poder registrar los datos del vehículo y dibujar el recorrido.
+              <h3 style={{ margin: '0 0 8px', fontSize: 19, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Nueva Solicitud</h3>
+              <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>
+                Registrá los datos del vehículo, el recorrido y la carga. Podés importar directamente desde Tramites Web.
               </p>
-              <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', color: '#2563eb', fontWeight: '600', fontSize: '14px', gap: '6px' }}>
-                Comenzar ahora <ArrowRight size={16} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#2563eb', fontWeight: 700, fontSize: 13 }}>
+                Comenzar <ArrowRight size={15} />
               </div>
             </div>
+          )}
 
-            </>}
-
-            {/* Card Gestionar */}
-            <div 
-              onClick={() => setViewMode('list')}
-              style={{
-                background: 'white',
-                borderRadius: '24px',
-                padding: '40px 32px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)';
-                e.currentTarget.style.borderColor = '#c4b5fd';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)' }}></div>
-              <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '16px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <List size={32} color="#7c3aed" />
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 12px 0' }}>Gestionar Solicitudes</h3>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
-                Visualizá el listado completo de solicitudes cargadas. Podés ver estados y editar recorridos existentes.
-              </p>
-              <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', color: '#7c3aed', fontWeight: '600', fontSize: '14px', gap: '6px' }}>
-                Ver listado <ArrowRight size={16} />
-              </div>
+          <div
+            onClick={() => setViewMode('list')}
+            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(124,58,237,0.12)'; }}
+            onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+            style={{ background: '#fff', borderRadius: 20, padding: '32px 28px', cursor: 'pointer', border: '1px solid #e2e8f0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.22s ease', position: 'relative', overflow: 'hidden' }}
+          >
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#7c3aed,#a78bfa)' }} />
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#f5f3ff', border: '1px solid #ddd6fe', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <List size={26} color="#7c3aed" />
             </div>
-
+            <h3 style={{ margin: '0 0 8px', fontSize: 19, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Mis Solicitudes</h3>
+            <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>
+              Ver el historial completo de solicitudes, estados de aprobación y editar recorridos existentes.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#7c3aed', fontWeight: 700, fontSize: 13 }}>
+                Ver listado <ArrowRight size={15} />
+              </div>
+              {pendientes > 0 && (
+                <span style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, fontWeight: 800, padding: '3px 9px', borderRadius: 999, border: '1px solid #fde68a' }}>
+                  {pendientes} pendiente{pendientes !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
+
+          {/* Card Volver al mapa */}
+          <div
+            onClick={() => router.push('/')}
+            onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)'; }}
+            onMouseOut={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'; }}
+            style={{ background: '#fff', borderRadius: 20, padding: '32px 28px', cursor: 'pointer', border: '1px solid #e2e8f0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', transition: 'all 0.22s ease', position: 'relative', overflow: 'hidden' }}
+          >
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#0f172a,#334155)' }} />
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+              <MapPin size={26} color="#334155" />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: 19, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>Volver al Mapa</h3>
+            <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>
+              Regresá al GIS principal para visualizar capas, rutas aprobadas y el mapa interactivo de Lanús.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#334155', fontWeight: 700, fontSize: 13 }}>
+              Ir al mapa <ArrowRight size={15} />
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{ textAlign: 'center', padding: '0 0 32px', color: '#94a3b8', fontSize: 12, fontWeight: 500 }}>
+          GIS Lanús · Sistema de Información Geográfica · Municipio de Lanús
         </div>
       </div>
     );
