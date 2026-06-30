@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { clipGeometryToLanus } from '@/utils/geo';
+import * as pdfParseModule from 'pdf-parse';
+const pdfParse: (buf: Buffer) => Promise<{ text: string }> = (pdfParseModule as any).default ?? pdfParseModule;
 
 async function queryUrl(url: string) {
   const res = await fetch(url, { headers: { 'User-Agent': 'LanusGIS/1.0' } });
@@ -89,16 +91,36 @@ export async function POST(req: Request) {
 
     let finalSelectionText = text;
 
-    // El PDF de devolución es binario y no se puede leer sin librerías nativas.
-    // Los recorridos aprobados también están en el link QR (texto plano), que se procesa abajo.
-    // Solo registramos la URL del PDF en el contexto para que la IA sepa que existe.
+    // --- PDF DE DEVOLUCIÓN ---
     const resolvedPdfUrl: string | null = directPdfUrl || (() => {
-      const pdfFilenameRegex = /Archivo\s+devoluci[oó]n\s*:\s*(\d+_[\w]+\.pdf)/i;
+      const pdfFilenameRegex = /Archivo\s+devoluci[oó]n\s*:\s*([\w\-]+\.pdf)/i;
       const m = pdfFilenameRegex.exec(text);
       return m?.[1] ? `https://tramitesweb.lanus.gob.ar/storage/contenido/formularios/devoluciones/${m[1]}` : null;
     })();
+
     if (resolvedPdfUrl) {
-      finalSelectionText = text + `\n\n[PDF de devolución disponible en: ${resolvedPdfUrl}]`;
+      try {
+        const pdfRes = await fetch(resolvedPdfUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+          }
+        });
+        if (pdfRes.ok) {
+          const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
+          const parsed = await pdfParse(pdfBuffer);
+          const pdfText = parsed.text
+            .split('\n')
+            .map((l: string) => l.trim())
+            .filter((l: string) => l.length > 0)
+            .join('\n');
+          finalSelectionText = finalSelectionText + `\n\n=== CONTENIDO EXTRAÍDO DEL PDF DE DEVOLUCIÓN (${resolvedPdfUrl}) ===\n${pdfText}`;
+        } else {
+          finalSelectionText = finalSelectionText + `\n\n[PDF de devolución disponible en: ${resolvedPdfUrl} — no accesible públicamente]`;
+        }
+      } catch (e: any) {
+        console.error('Error parsing PDF:', e.message);
+        finalSelectionText = finalSelectionText + `\n\n[PDF de devolución: ${resolvedPdfUrl} — error al leer]`;
+      }
     }
 
     // --- LINK QR ---
