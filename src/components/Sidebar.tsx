@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Settings, MapPin,
   Shield, User, ExternalLink, ChevronDown, ChevronRight,
@@ -235,45 +236,33 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
         </div>
       </div>
 
-      {/* ── Modal logout ── */}
-      {confirmLogout && (
+      {/* ── Modal logout (Portal → document.body) ── */}
+      {confirmLogout && typeof document !== 'undefined' && createPortal(
         <div
           onClick={() => setConfirmLogout(false)}
           style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
+            position: 'fixed', inset: 0, zIndex: 99999,
             background: 'rgba(5,10,20,0.6)', backdropFilter: 'blur(10px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            animation: 'fadeIn 0.15s ease',
           }}
         >
-          <style>{`
-            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-            @keyframes slideUp { from { opacity: 0; transform: translateY(12px) scale(0.97) } to { opacity: 1; transform: translateY(0) scale(1) } }
-            .logout-cancel:hover { background: #f1f5f9 !important; }
-            .logout-confirm:hover { background: #b91c1c !important; }
-          `}</style>
           <div
             onClick={e => e.stopPropagation()}
             style={{
               background: '#fff', borderRadius: 20, width: 340,
-              boxShadow: '0 40px 80px rgba(0,0,0,0.32), 0 0 0 1px rgba(255,255,255,0.05)',
+              boxShadow: '0 40px 80px rgba(0,0,0,0.32)',
               overflow: 'hidden', fontFamily: 'Inter, system-ui, sans-serif',
-              animation: 'slideUp 0.18s ease',
             }}
           >
             {/* Header */}
             <div style={{ background: 'linear-gradient(145deg, #0c1525 0%, #1a2d50 100%)', padding: '28px 24px 22px', position: 'relative' }}>
-              {/* Close X */}
               <button
                 onClick={() => setConfirmLogout(false)}
-                style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 16, lineHeight: 1 }}
+                style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}
               >✕</button>
-
-              {/* Icon */}
               <div style={{ width: 48, height: 48, borderRadius: 14, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
                 <LogOut size={22} color="#f87171" />
               </div>
-
               <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: '1.05rem', color: '#f1f5f9', letterSpacing: '-0.01em' }}>Cerrar sesión</p>
               <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>GIS Lanús — Sistema de Información Geográfica</p>
             </div>
@@ -302,25 +291,23 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  className="logout-cancel"
                   onClick={() => setConfirmLogout(false)}
                   style={{
                     flex: 1, padding: '11px 0', borderRadius: 10,
                     border: '1px solid #e2e8f0', background: '#f8fafc',
                     color: '#475569', fontWeight: 600, fontSize: '0.83rem',
-                    cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
+                    cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
                   Cancelar
                 </button>
                 <button
-                  className="logout-confirm"
                   onClick={() => { logout(); setConfirmLogout(false); }}
                   style={{
                     flex: 1.4, padding: '11px 0', borderRadius: 10, border: 'none',
                     background: '#dc2626', color: '#fff',
                     fontWeight: 700, fontSize: '0.83rem', cursor: 'pointer',
-                    fontFamily: 'inherit', transition: 'background 0.12s',
+                    fontFamily: 'inherit',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     boxShadow: '0 4px 16px rgba(220,38,38,0.25)',
                   }}
@@ -331,7 +318,8 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Panel expandible ── */}
