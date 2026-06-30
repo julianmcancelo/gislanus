@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/authGuard';
 import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function POST(req: Request) {
+  const guard = await requirePermission(req, 'editarRutas');
+  if (guard.error) return guard.error;
+
   try {
     const body = await req.json();
     const {
@@ -102,7 +106,10 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const guard = await requirePermission(req, 'verRutas');
+  if (guard.error) return guard.error;
+
   try {
     const rutas = await prisma.rutaTransporte.findMany({
       orderBy: {
@@ -117,6 +124,9 @@ export async function GET() {
 
 // Bulk PATCH: { ids: string[], activo: boolean }
 export async function PATCH(req: Request) {
+  const guard = await requirePermission(req, 'editarRutas');
+  if (guard.error) return guard.error;
+
   try {
     const { ids, activo, estado } = await req.json();
     if (!Array.isArray(ids) || ids.length === 0) {

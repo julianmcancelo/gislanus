@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/authGuard';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  if (guard.error) return guard.error;
+
   try {
     const roles = await prisma.rolPermisos.findMany({
       orderBy: { rol: 'asc' }
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
+  const guard = await requireRole(req, ['SUPER_ADMIN']);
+  if (guard.error) return guard.error;
+
   try {
     const data = await req.json();
     const { id, rol, ...permisos } = data;

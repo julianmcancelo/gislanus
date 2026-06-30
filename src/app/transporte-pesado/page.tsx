@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock } from 'lucide-react';
+import AccessDenied from '@/components/AccessDenied';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -254,21 +255,11 @@ export default function TransportePesadoWizard() {
   }
 
   const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
-  const hasAccess = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canView = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canEdit = isSuperAdmin || (dbUser?.permisos?.editarRutas ?? false);
 
-  if (!dbUser || !hasAccess) {
-    return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f7fa', padding: '20px', textAlign: 'center' }}>
-        <Truck size={64} color="#ccc" style={{ marginBottom: '20px' }} />
-        <h2 style={{ color: '#333' }}>Acceso Restringido</h2>
-        <p style={{ color: '#666', maxWidth: '400px', lineHeight: '1.6' }}>
-          No tenés permisos para acceder al Asistente de Transporte Pesado. Por favor, iniciá sesión con una cuenta autorizada o contactá a un administrador.
-        </p>
-        <a href="/" style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#29B6F6', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: 'bold' }}>
-          Volver al Mapa
-        </a>
-      </div>
-    );
+  if (!dbUser || !canView) {
+    return <AccessDenied mensaje="No tenés permisos para acceder al módulo de Transporte Pesado." />;
   }
 
   const handleNextStep1 = (e: React.FormEvent) => {
@@ -680,7 +671,8 @@ export default function TransportePesadoWizard() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', width: '100%', maxWidth: '800px' }}>
             
-            {/* Card Nueva Solicitud */}
+            {/* Card Nueva Solicitud — solo para roles con editarRutas */}
+            {canEdit && <>
             <div 
               onClick={() => { setEditId(null); setViewMode('wizard'); }}
               style={{
@@ -720,6 +712,8 @@ export default function TransportePesadoWizard() {
                 Comenzar ahora <ArrowRight size={16} />
               </div>
             </div>
+
+            </>}
 
             {/* Card Gestionar */}
             <div 
@@ -800,12 +794,14 @@ export default function TransportePesadoWizard() {
             >
               <ArrowLeft size={16} /> Volver
             </button>
-            <button 
-              onClick={() => { setEditId(null); setViewMode('wizard'); }} 
-              style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#2563eb', borderColor: '#1d4ed8', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'white' }}
-            >
-              <Plus size={16} /> Nueva Solicitud
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => { setEditId(null); setViewMode('wizard'); }}
+                style={{ ...btnStyle, margin: 0, width: 'auto', padding: '8px 16px', backgroundColor: '#2563eb', borderColor: '#1d4ed8', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: 'white' }}
+              >
+                <Plus size={16} /> Nueva Solicitud
+              </button>
+            )}
           </div>
         </header>
 

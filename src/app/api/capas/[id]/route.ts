@@ -1,17 +1,30 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requirePermission, requireRole } from '@/lib/authGuard';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requirePermission(req, 'verCapas');
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     const capa = await prisma.capa.findUnique({
       where: { id },
-      select: { datosGeo: true }
+      select: { datosGeo: true, visibilidad: true, rolesPermitidos: true }
     });
 
     if (!capa) {
       return NextResponse.json({ error: 'Capa no encontrada' }, { status: 404 });
+    }
+
+    const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
+    if (!isAdmin) {
+      if (capa.visibilidad === 'PRIVATE') {
+        return NextResponse.json({ error: 'Sin permisos para acceder a esta capa' }, { status: 403 });
+      }
+      if (capa.visibilidad === 'RESTRICTED' && !(Array.isArray(capa.rolesPermitidos) && capa.rolesPermitidos.includes(guard.user.rol))) {
+        return NextResponse.json({ error: 'Sin permisos para acceder a esta capa' }, { status: 403 });
+      }
     }
 
     return NextResponse.json({ datosGeo: capa.datosGeo });

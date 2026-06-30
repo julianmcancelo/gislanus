@@ -2,11 +2,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { publicarPosicion, detenerTracking } from '@/lib/rtdb';
 import { useAuth } from '@/context/AuthContext';
+import AccessDenied from '@/components/AccessDenied';
+import { Loader2 } from 'lucide-react';
 
 const INTERVAL_MS = 5000; // publicar cada 5 segundos
 
+const ROLES_RASTREO = ['SUPER_ADMIN', 'ADMINISTRADOR', 'OPERADOR', 'CHOFER'];
+
 export default function RastreoPage() {
-  const { user, dbUser } = useAuth();
+  const { user, dbUser, loading } = useAuth();
   const [activo, setActivo] = useState(false);
   const [nombre, setNombre] = useState('');
   const [vehiculoId, setVehiculoId] = useState('');
@@ -50,6 +54,18 @@ export default function RastreoPage() {
   };
 
   useEffect(() => () => { clearInterval(intervalRef.current); }, []);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a' }}>
+        <Loader2 className="animate-spin" size={40} color="#60a5fa" />
+      </div>
+    );
+  }
+
+  if (!dbUser || !ROLES_RASTREO.includes(dbUser.rol)) {
+    return <AccessDenied mensaje="Solo choferes y operadores pueden usar el módulo de rastreo GPS." rolRequerido="CHOFER / OPERADOR" />;
+  }
 
   return (
     <div style={{

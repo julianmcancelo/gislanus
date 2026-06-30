@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requirePermission, requireRole } from '@/lib/authGuard';
 
 // Allow large GeoJSON uploads (up to 50MB)
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const guard = await requirePermission(req, 'verCapas');
+  if (guard.error) return guard.error;
+
+  const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
+
   try {
     const capas = await prisma.capa.findMany({
       orderBy: { creadoEn: 'desc' },
@@ -26,7 +31,18 @@ export async function GET() {
         subGrupo: true
       }
     });
-    return NextResponse.json(capas);
+
+    // Filtrar según visibilidad y rolesPermitidos
+    const filtradas = isAdmin
+      ? capas
+      : capas.filter(c => {
+          if (c.visibilidad === 'PUBLIC') return true;
+          if (c.visibilidad === 'PRIVATE') return false;
+          // RESTRICTED: verificar si el rol del usuario está en rolesPermitidos
+          return Array.isArray(c.rolesPermitidos) && c.rolesPermitidos.includes(guard.user.rol);
+        });
+
+    return NextResponse.json(filtradas);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

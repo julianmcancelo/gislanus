@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requireRole, requirePermission } from '@/lib/authGuard';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
@@ -43,16 +43,25 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 }
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requirePermission(req, 'verRutas');
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
     const ruta = await prisma.rutaTransporte.findUnique({
       where: { id }
     });
-    
+
     if (!ruta) {
       return NextResponse.json({ error: 'Ruta no encontrada' }, { status: 404 });
     }
-    
+
+    // Solo ADMIN/SUPER_ADMIN pueden ver rutas de otros usuarios
+    const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
+    if (!isAdmin && ruta.creadoPorId && ruta.creadoPorId !== guard.user.id) {
+      return NextResponse.json({ error: 'Sin permisos para ver esta solicitud' }, { status: 403 });
+    }
+
     return NextResponse.json(ruta);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -60,8 +69,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const guard = await requirePermission(req, 'editarRutas');
+  if (guard.error) return guard.error;
+
   try {
     const { id } = await params;
+
+    // Verificar que el usuario solo edite sus propias rutas (salvo ADMIN)
+    const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
+    if (!isAdmin) {
+      const existing = await prisma.rutaTransporte.findUnique({ where: { id }, select: { creadoPorId: true } });
+      if (existing?.creadoPorId && existing.creadoPorId !== guard.user.id) {
+        return NextResponse.json({ error: 'Sin permisos para editar esta solicitud' }, { status: 403 });
+      }
+    }
     const body = await req.json();
     const {
       numeroSolicitud, idSolicitudWeb, fechaCreacion,
