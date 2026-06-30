@@ -1319,30 +1319,31 @@ export default function AdminPage() {
               {grupos.map(g => {
                 const sgs = subgrupos.filter(sg => sg.grupoId === g.id);
                 return (
-                  <div key={g.id} style={{ marginBottom: '20px', background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div key={g.id} className={styles.grupoCard} style={{ borderLeftColor: g.color || '#2563eb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: sgs.length > 0 ? 12 : 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         {editingGrupo === g.id ? (
-                          <input type="color" value={grupoColor} onChange={e => setGrupoColor(e.target.value)} style={{ width: '30px', height: '30px', border: 'none', padding: 0, cursor: 'pointer' }} />
+                          <input type="color" value={grupoColor} onChange={e => setGrupoColor(e.target.value)} style={{ width: 28, height: 28, border: 'none', padding: 0, cursor: 'pointer', borderRadius: 6 }} />
                         ) : (
-                          <span className={styles.colorDot} style={{ backgroundColor: g.color }}></span>
+                          <span className={styles.colorDot} style={{ backgroundColor: g.color, width: 20, height: 20 }}></span>
                         )}
                         {editingGrupo === g.id ? (
-                          <input type="text" value={grupoNombre} onChange={e => setGrupoNombre(e.target.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontSize: '1rem' }} />
+                          <input type="text" value={grupoNombre} onChange={e => setGrupoNombre(e.target.value)} style={{ padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 13, fontFamily: 'inherit' }} />
                         ) : (
-                          <strong style={{ fontSize: '1.2rem', color: '#334155' }}>{g.nombre}</strong>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{g.nombre}</span>
                         )}
+                        <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{sgs.length} subgrupos</span>
                       </div>
                       <div>
                         {editingGrupo === g.id ? (
-                          <div style={{ display: 'flex', gap: '5px' }}>
+                          <div style={{ display: 'flex', gap: 5 }}>
                             <button className={styles.approveBtn} onClick={() => saveEditGrupo(g.id)}>Guardar</button>
                             <button className={styles.rejectBtn} onClick={() => setEditingGrupo(null)}>Cancelar</button>
                           </div>
                         ) : (
-                          <div style={{ display: 'flex', gap: '5px' }}>
-                            <button className={styles.submitBtn} onClick={() => startEditingGrupo(g)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Editar</button>
-                            <button className={styles.deleteBtn} onClick={() => handleDeleteGrupo(g.id)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Eliminar</button>
+                          <div style={{ display: 'flex', gap: 5 }}>
+                            <button className={styles.submitBtn} onClick={() => startEditingGrupo(g)} style={{ padding: '4px 10px', fontSize: '0.75rem', boxShadow: 'none' }}>Editar</button>
+                            <button className={styles.deleteBtn} onClick={() => handleDeleteGrupo(g.id)} style={{ padding: '4px 10px', fontSize: '0.75rem' }}>Eliminar</button>
                           </div>
                         )}
                       </div>
@@ -1350,49 +1351,44 @@ export default function AdminPage() {
 
                     {/* Subgrupos */}
                     {sgs.length > 0 && (
-                      <div style={{ paddingLeft: '40px' }}>
-                        <table className={styles.table} style={{ marginTop: '10px' }}>
-                          <tbody>
-                            {sgs.map(sg => (
-                              <tr key={sg.id}>
-                                <td style={{ width: '40px' }}>
-                                  {editingSubGrupo === sg.id ? (
-                                    <input type="color" value={subGrupoColor} onChange={e => setSubGrupoColor(e.target.value)} style={{ width: '25px', height: '25px', border: 'none', padding: 0 }} />
-                                  ) : (
-                                    <span className={styles.colorDot} style={{ backgroundColor: sg.color, width: '15px', height: '15px' }}></span>
-                                  )}
-                                </td>
-                                <td>
-                                  {editingSubGrupo === sg.id ? (
-                                    <input type="text" value={subGrupoNombre} onChange={e => setSubGrupoNombre(e.target.value)} style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155' }} />
-                                  ) : (
-                                    <span style={{ color: '#475569', fontWeight: 500 }}>{sg.nombre}</span>
-                                  )}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                  {editingSubGrupo === sg.id ? (
-                                    <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-                                      <button className={styles.approveBtn} onClick={() => saveEditSubGrupo(sg.id)}>Guardar</button>
-                                      <button className={styles.rejectBtn} onClick={() => setEditingSubGrupo(null)}>Cancelar</button>
-                                    </div>
-                                  ) : (
-                                    <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end' }}>
-                                      <button className={styles.submitBtn} onClick={() => startEditingSubGrupo(sg)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Editar</button>
-                                      <button className={styles.deleteBtn} onClick={() => handleDeleteSubGrupo(sg.id)} style={{ padding: '4px 8px', fontSize: '0.8rem' }}>Eliminar</button>
-                                    </div>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingLeft: 28 }}>
+                        {sgs.map(sg => (
+                          <div key={sg.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #f1f5f9', borderRadius: 8, padding: '7px 12px' }}>
+                            {editingSubGrupo === sg.id ? (
+                              <input type="color" value={subGrupoColor} onChange={e => setSubGrupoColor(e.target.value)} style={{ width: 22, height: 22, border: 'none', padding: 0, borderRadius: 4, cursor: 'pointer' }} />
+                            ) : (
+                              <span className={styles.colorDot} style={{ backgroundColor: sg.color, width: 14, height: 14 }}></span>
+                            )}
+                            <div style={{ flex: 1 }}>
+                              {editingSubGrupo === sg.id ? (
+                                <input type="text" value={subGrupoNombre} onChange={e => setSubGrupoNombre(e.target.value)} style={{ padding: '4px 8px', borderRadius: 6, border: '1.5px solid #e2e8f0', background: '#fff', color: '#0f172a', fontSize: 12, width: '100%', fontFamily: 'inherit' }} />
+                              ) : (
+                                <span style={{ color: '#475569', fontWeight: 600, fontSize: 12 }}>{sg.nombre}</span>
+                              )}
+                            </div>
+                            {editingSubGrupo === sg.id ? (
+                              <div style={{ display: 'flex', gap: 5 }}>
+                                <button className={styles.approveBtn} onClick={() => saveEditSubGrupo(sg.id)} style={{ padding: '3px 8px', fontSize: '0.72rem' }}>Guardar</button>
+                                <button className={styles.rejectBtn} onClick={() => setEditingSubGrupo(null)} style={{ padding: '3px 8px', fontSize: '0.72rem' }}>Cancelar</button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: 5 }}>
+                                <button className={styles.submitBtn} onClick={() => startEditingSubGrupo(sg)} style={{ padding: '3px 8px', fontSize: '0.72rem', boxShadow: 'none' }}>Editar</button>
+                                <button className={styles.deleteBtn} onClick={() => handleDeleteSubGrupo(sg.id)} style={{ padding: '3px 8px', fontSize: '0.72rem' }}>Eliminar</button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
                 );
               })}
               {grupos.length === 0 && (
-                <p style={{ textAlign: 'center', color: '#64748b' }}>No hay grupos creados todavía.</p>
+                <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8' }}>
+                  <FolderTree size={32} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.4 }} />
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 500 }}>No hay grupos creados todavía.</p>
+                </div>
               )}
             </section>
           </div>
@@ -1509,10 +1505,10 @@ export default function AdminPage() {
                           />
                         </td>
                         <td>
-                          <select 
-                            value={capa.subGrupoId || ''} 
+                          <select
+                            value={capa.subGrupoId || ''}
                             onChange={(e) => handlePreviewSubGrupoChange(idx, e.target.value)}
-                            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', background: '#333', color: 'white' }}
+                            style={{ padding: '8px', borderRadius: '7px', border: '1.5px solid #e2e8f0', background: '#fff', color: '#0f172a', fontFamily: 'inherit', fontSize: '0.82rem' }}
                           >
                             <option value="">- N/A -</option>
                             {subgrupos.filter(sg => sg.grupoId === capa.grupoId).map(sg => (
