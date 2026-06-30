@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
-import { escucharNotificaciones, emitirCambioMapa } from '@/lib/rtdb';
+import { escucharNotificaciones, emitirCambioMapa, emitirCambioEstado } from '@/lib/rtdb';
 import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
@@ -751,6 +751,15 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado: nuevoEstado })
       });
+      // Notificar al solicitante en tiempo real si tiene userId
+      const ruta = rutas.find((r: any) => r.id === id);
+      if (ruta?.creadoPorId && (nuevoEstado === 'APROBADA' || nuevoEstado === 'RECHAZADA')) {
+        emitirCambioEstado(ruta.creadoPorId, {
+          solicitudId: id,
+          numeroSolicitud: ruta.numeroSolicitud || id,
+          nuevoEstado,
+        });
+      }
       fetchData();
     } catch (e) {
       toast.error('Error al actualizar el estado.');

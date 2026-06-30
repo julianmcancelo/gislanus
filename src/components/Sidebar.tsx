@@ -223,6 +223,11 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
 
         <div className={styles.navDivider} />
 
+        {user && (
+          <div className={styles.navIcon} onClick={() => router.push('/perfil')} title="Mi perfil">
+            <User size={16} />
+          </div>
+        )}
         <div className={styles.navIcon}
           onClick={() => user ? setConfirmLogout(true) : router.push('/login')}
           title={user ? 'Cerrar Sesión' : 'Iniciar Sesión'}>

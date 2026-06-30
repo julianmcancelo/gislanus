@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
+import NotificacionToast from '@/components/NotificacionToast';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -985,6 +986,7 @@ export default function TransportePesadoWizard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f8fafc' }}>
+      <NotificacionToast />
       {/* Wizard Header */}
       <header style={{
         height: '70px',

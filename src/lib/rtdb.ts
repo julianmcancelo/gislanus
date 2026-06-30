@@ -11,9 +11,39 @@ export type NotificacionSolicitud = {
   timestamp: object;
 };
 
+export type NotificacionEstado = {
+  tipo: 'cambio_estado';
+  solicitudId: string;
+  numeroSolicitud: string;
+  nuevoEstado: string;
+  timestamp: object;
+};
+
 export function emitirNuevaSolicitud(data: Omit<NotificacionSolicitud, 'tipo' | 'timestamp'>) {
   const r = ref(rtdb, 'notifications/solicitudes');
   return push(r, { ...data, tipo: 'nueva_solicitud', timestamp: serverTimestamp() });
+}
+
+export function emitirCambioEstado(
+  targetUserId: string,
+  data: Omit<NotificacionEstado, 'tipo' | 'timestamp'>
+) {
+  const r = ref(rtdb, `notifications/estado/${targetUserId}`);
+  return push(r, { ...data, tipo: 'cambio_estado', timestamp: serverTimestamp() });
+}
+
+export function escucharCambiosEstado(
+  userId: string,
+  callback: (notif: NotificacionEstado & { key: string }) => void
+) {
+  const r = ref(rtdb, `notifications/estado/${userId}`);
+  let firstLoad = true;
+  const unsub = onChildAdded(r, (child: any) => {
+    if (firstLoad) return;
+    callback({ key: child.key, ...child.val() });
+  });
+  setTimeout(() => { firstLoad = false; }, 500);
+  return () => off(r, 'child_added', unsub as any);
 }
 
 export function escucharNotificaciones(
