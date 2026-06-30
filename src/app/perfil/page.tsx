@@ -13,7 +13,7 @@ const ROL_LABEL: Record<string, { label: string; color: string; bg: string }> = 
   PENDIENTE:     { label: 'Pendiente',     color: '#9ca3af', bg: '#f9fafb' },
 };
 
-const PERMISOS_LABELS: { key: keyof NonNullable<ReturnType<typeof useAuth>['dbUser']>['permisos']; label: string; desc: string }[] = [
+const PERMISOS_LABELS: { key: string; label: string; desc: string }[] = [
   { key: 'accesoAdmin',      label: 'Panel de administración',  desc: 'Ver y gestionar el panel de control' },
   { key: 'verCapas',         label: 'Ver capas GIS',            desc: 'Acceder a las capas del mapa' },
   { key: 'editarCapas',      label: 'Editar capas GIS',         desc: 'Crear, modificar y eliminar capas' },
@@ -150,7 +150,7 @@ export default function PerfilPage() {
           </div>
           <div style={{ padding: '8px 0' }}>
             {PERMISOS_LABELS.map(({ key, label, desc }) => {
-              const tiene = dbUser.rol === 'SUPER_ADMIN' || !!(dbUser.permisos?.[key]);
+              const tiene = dbUser.rol === 'SUPER_ADMIN' || !!((dbUser.permisos as any)?.[key]);
               return (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 22px', borderBottom: '1px solid #f9fafb' }}>
                   <div style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tiene ? '#dcfce7' : '#f3f4f6' }}>

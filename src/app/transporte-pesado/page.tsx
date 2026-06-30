@@ -24,7 +24,7 @@ import { emitirNuevaSolicitud } from '@/lib/rtdb';
 export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
   const urlEditId = searchParams.get('editId');
-  const { dbUser, loading } = useAuth();
+  const { user, dbUser, loading } = useAuth();
   const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
@@ -233,7 +233,9 @@ export default function TransportePesadoWizard() {
   const fetchRutasList = async () => {
     setLoadingRutas(true);
     try {
-      const res = await fetch('/api/rutas-transporte');
+      const token = await user?.getIdToken();
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+      const res = await fetch('/api/rutas-transporte', { headers });
       if (res.ok) {
         const data = await res.json();
         setRutasList(data);

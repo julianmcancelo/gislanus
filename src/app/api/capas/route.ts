@@ -1,16 +1,28 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requirePermission, requireRole } from '@/lib/authGuard';
+import { requireRole } from '@/lib/authGuard';
 
 // Allow large GeoJSON uploads (up to 50MB)
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request) {
-  const guard = await requirePermission(req, 'verCapas');
-  if (guard.error) return guard.error;
+async function resolveUser(req: Request) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    const { verifyIdToken } = await import('@/lib/firebaseAdmin');
+    const decoded = await verifyIdToken(authHeader.slice(7));
+    if (!decoded) return null;
+    return prisma.usuario.findUnique({
+      where: { firebaseUid: decoded.uid },
+      select: { id: true, rol: true, email: true },
+    });
+  } catch { return null; }
+}
 
-  const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
+export async function GET(req: Request) {
+  const user = await resolveUser(req);
+  const isAdmin = user && ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(user.rol);
 
   try {
     const capas = await prisma.capa.findMany({
@@ -32,14 +44,13 @@ export async function GET(req: Request) {
       }
     });
 
-    // Filtrar según visibilidad y rolesPermitidos
     const filtradas = isAdmin
       ? capas
       : capas.filter(c => {
-          if (c.visibilidad === 'PUBLIC') return true;
           if (c.visibilidad === 'PRIVATE') return false;
-          // RESTRICTED: verificar si el rol del usuario está en rolesPermitidos
-          return Array.isArray(c.rolesPermitidos) && c.rolesPermitidos.includes(guard.user.rol);
+          if (c.visibilidad === 'PUBLIC') return true;
+          // RESTRICTED: solo si el usuario tiene el rol permitido
+          return user != null && Array.isArray(c.rolesPermitidos) && c.rolesPermitidos.includes(user.rol);
         });
 
     return NextResponse.json(filtradas);

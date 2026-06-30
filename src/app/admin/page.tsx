@@ -261,10 +261,10 @@ export default function AdminPage() {
   const fetchData = async () => {
     try {
       const [resCapas, resGrupos, resSubGrupos, resRutas, resUsuarios, resLineas] = await Promise.all([
-        fetch('/api/capas'),
+        authFetch('/api/capas'),
         fetch('/api/grupos'),
         fetch('/api/subgrupos'),
-        fetch('/api/rutas-transporte'),
+        authFetch('/api/rutas-transporte'),
         authFetch('/api/usuarios'),
         fetch('/api/lineas-transporte'),
       ]);

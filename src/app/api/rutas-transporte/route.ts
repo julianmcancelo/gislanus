@@ -106,15 +106,45 @@ export async function POST(req: Request) {
   }
 }
 
+async function resolveUserWithPermisos(req: Request) {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  try {
+    const { verifyIdToken } = await import('@/lib/firebaseAdmin');
+    const decoded = await verifyIdToken(authHeader.slice(7));
+    if (!decoded) return null;
+    const u = await prisma.usuario.findUnique({
+      where: { firebaseUid: decoded.uid },
+      select: { id: true, rol: true, email: true },
+    });
+    if (!u) return null;
+    const rolPermisos = await prisma.rolPermisos.findUnique({ where: { rol: u.rol } });
+    return { ...u, rolPermisos };
+  } catch { return null; }
+}
+
 export async function GET(req: Request) {
-  const guard = await requirePermission(req, 'verRutas');
-  if (guard.error) return guard.error;
+  const user = await resolveUserWithPermisos(req);
+  const isAdmin = user && ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(user.rol);
+  const hasVerRutas = isAdmin || user?.rol === 'SUPER_ADMIN' || (user?.rolPermisos?.verRutas === true);
 
   try {
+    if (!hasVerRutas) {
+      // Unauthenticated or no verRutas: only return APROBADAS for the map
+      const rutas = await prisma.rutaTransporte.findMany({
+        where: { estado: 'APROBADA', activo: true },
+        orderBy: { creadoEn: 'desc' },
+      });
+      return NextResponse.json(rutas);
+    }
+
+    // Authenticated with verRutas: return all (admins) or own + APROBADAS (others)
+    const where = isAdmin
+      ? undefined
+      : { OR: [{ estado: 'APROBADA' as const }, ...(user ? [{ creadoPorId: user.id }] : [])] };
     const rutas = await prisma.rutaTransporte.findMany({
-      orderBy: {
-        creadoEn: 'desc'
-      }
+      where,
+      orderBy: { creadoEn: 'desc' },
     });
     return NextResponse.json(rutas);
   } catch (error: any) {
