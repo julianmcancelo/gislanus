@@ -642,190 +642,166 @@ export default function TransportePesadoWizard() {
     const firstName  = (dbUser?.nombre || dbUser?.email || 'bienvenido').split(' ')[0];
 
     return (
-      <div style={{ minHeight: '100vh', width: '100%', background: '#05091a', fontFamily: '"Inter", system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ minHeight: '100vh', width: '100%', background: '#f0f4f8', fontFamily: '"Inter", system-ui, sans-serif', position: 'relative', overflow: 'hidden' }}>
 
-        {/* ── Estilos de animación ── */}
+        {/* ── Estilos ── */}
         <style>{`
-          @keyframes tp-orb1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.08)} }
-          @keyframes tp-orb2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-30px,40px) scale(0.92)} }
-          @keyframes tp-orb3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,25px)} }
+          @keyframes tp-orb1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-20px)} }
+          @keyframes tp-orb2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,30px)} }
           @keyframes tp-dash { to { stroke-dashoffset: -200 } }
-          @keyframes tp-fadein { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-          @keyframes tp-glow { 0%,100%{box-shadow:0 0 20px rgba(37,99,235,0.3)} 50%{box-shadow:0 0 40px rgba(37,99,235,0.6)} }
-          .tp-card { transition: transform 0.25s ease, box-shadow 0.25s ease !important; }
-          .tp-card:hover { transform: translateY(-5px) !important; }
-          .tp-card-blue:hover { box-shadow: 0 24px 48px rgba(37,99,235,0.22) !important; }
-          .tp-card-violet:hover { box-shadow: 0 24px 48px rgba(124,58,237,0.18) !important; }
-          .tp-card-slate:hover { box-shadow: 0 24px 48px rgba(0,0,0,0.3) !important; }
-          .tp-arrow { transition: transform 0.2s ease; }
-          .tp-card:hover .tp-arrow { transform: translateX(5px); }
-          .tp-back:hover { background: rgba(255,255,255,0.12) !important; color: #e2e8f0 !important; }
-          .tp-stat { transition: transform 0.2s ease; }
-          .tp-stat:hover { transform: scale(1.06); }
+          @keyframes tp-fadein { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+          .tp-card { transition: transform 0.22s ease, box-shadow 0.22s ease !important; }
+          .tp-card:hover { transform: translateY(-4px) !important; }
+          .tp-card-blue:hover  { box-shadow: 0 20px 40px rgba(37,99,235,0.14) !important; }
+          .tp-card-violet:hover{ box-shadow: 0 20px 40px rgba(124,58,237,0.12) !important; }
+          .tp-card-slate:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.09) !important; }
+          .tp-arrow { transition: transform 0.18s ease; display:inline-flex; }
+          .tp-card:hover .tp-arrow { transform: translateX(4px); }
+          .tp-back:hover { background: #e2e8f0 !important; }
+          .tp-stat { transition: transform 0.18s ease; cursor:default; }
+          .tp-stat:hover { transform: scale(1.04); }
         `}</style>
 
-        {/* ── Fondo: orbs animados ── */}
+        {/* ── Fondo suave ── */}
         <div style={{ position:'absolute', inset:0, pointerEvents:'none', zIndex:0 }}>
-          <div style={{ position:'absolute', top:'-10%', left:'-5%', width:700, height:700, borderRadius:'50%', background:'radial-gradient(circle, rgba(37,99,235,0.13) 0%, transparent 65%)', animation:'tp-orb1 12s ease-in-out infinite' }} />
-          <div style={{ position:'absolute', bottom:'-15%', right:'-8%', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle, rgba(124,58,237,0.10) 0%, transparent 65%)', animation:'tp-orb2 14s ease-in-out infinite' }} />
-          <div style={{ position:'absolute', top:'50%', left:'50%', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(15,23,42,0) 0%, rgba(6,182,212,0.04) 100%)', transform:'translate(-50%,-50%)', animation:'tp-orb3 9s ease-in-out infinite' }} />
-          {/* Grid de puntos */}
-          <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize:'36px 36px' }} />
+          <div style={{ position:'absolute', top:'-5%', left:'-10%', width:600, height:600, borderRadius:'50%', background:'radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 65%)', animation:'tp-orb1 14s ease-in-out infinite' }} />
+          <div style={{ position:'absolute', bottom:'-10%', right:'-8%', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 65%)', animation:'tp-orb2 16s ease-in-out infinite' }} />
+          <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(37,99,235,0.04) 1px, transparent 1px)', backgroundSize:'40px 40px' }} />
         </div>
 
-        {/* ── SVG decorativo: ruta animada ── */}
-        <div style={{ position:'absolute', bottom:0, right:0, width:'45%', height:'100%', pointerEvents:'none', zIndex:0, opacity:0.07 }}>
+        {/* ── SVG decorativo ── */}
+        <div style={{ position:'absolute', bottom:0, right:0, width:'40%', height:'100%', pointerEvents:'none', zIndex:0, opacity:0.06 }}>
           <svg viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width:'100%', height:'100%' }}>
-            <path d="M50 600 L50 400 Q50 380 70 370 L200 310 Q230 296 230 270 L230 200 Q230 170 260 155 L350 110 L350 0" stroke="white" strokeWidth="2" strokeDasharray="12 8" style={{ animation:'tp-dash 3s linear infinite' }} />
-            <path d="M100 600 L100 420 Q100 400 120 388 L220 335 Q250 320 250 290 L250 210 Q250 178 285 162 L380 115 L380 0" stroke="white" strokeWidth="1" strokeDasharray="6 14" style={{ animation:'tp-dash 4s linear infinite' }} />
-            <circle cx="230" cy="270" r="8" fill="white" opacity="0.5" />
-            <circle cx="50" cy="400" r="6" fill="white" opacity="0.4" />
-            <circle cx="350" cy="110" r="10" fill="white" opacity="0.6" />
+            <path d="M50 600 L50 400 Q50 380 70 370 L200 310 Q230 296 230 270 L230 200 Q230 170 260 155 L350 110 L350 0" stroke="#1e3a8a" strokeWidth="3" strokeDasharray="12 8" style={{ animation:'tp-dash 3s linear infinite' }} />
+            <path d="M100 600 L100 420 Q100 400 120 388 L220 335 Q250 320 250 290 L250 210 Q250 178 285 162 L380 115 L380 0" stroke="#1e3a8a" strokeWidth="1.5" strokeDasharray="6 14" style={{ animation:'tp-dash 4s linear infinite' }} />
+            <circle cx="230" cy="270" r="8" fill="#1e3a8a" />
+            <circle cx="50"  cy="400" r="5" fill="#1e3a8a" />
+            <circle cx="350" cy="110" r="9" fill="#1e3a8a" />
           </svg>
         </div>
 
-        {/* ── Header flotante ── */}
-        <header style={{ position:'relative', zIndex:10, padding:'22px 36px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <div style={{ width:42, height:42, borderRadius:13, background:'linear-gradient(135deg,#1d4ed8,#2563eb)', boxShadow:'0 0 0 1px rgba(255,255,255,0.1), 0 8px 24px rgba(37,99,235,0.4)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Truck size={20} color="#fff" />
+        {/* ── Header compacto ── */}
+        <header style={{ position:'relative', zIndex:10, padding:'10px 28px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(255,255,255,0.72)', backdropFilter:'blur(12px)', borderBottom:'1px solid #e5e7eb' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:9 }}>
+            <div style={{ width:30, height:30, borderRadius:9, background:'linear-gradient(135deg,#1d4ed8,#2563eb)', display:'flex', alignItems:'center', justifyContent:'center', boxShadow:'0 4px 10px rgba(37,99,235,0.3)' }}>
+              <Truck size={15} color="#fff" />
             </div>
             <div>
-              <div style={{ fontSize:14, fontWeight:800, color:'#f8fafc', letterSpacing:'-0.3px' }}>Transporte Pesado</div>
-              <div style={{ fontSize:10, color:'#475569', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.08em' }}>Municipio de Lanús</div>
+              <div style={{ fontSize:13, fontWeight:800, color:'#0f172a', letterSpacing:'-0.2px', lineHeight:1.2 }}>Transporte Pesado</div>
+              <div style={{ fontSize:9.5, color:'#94a3b8', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>Municipio de Lanús</div>
             </div>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <button
-              onClick={() => router.push('/')}
-              className="tp-back"
-              style={{ display:'flex', alignItems:'center', gap:7, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'8px 16px', color:'#94a3b8', fontSize:12, fontWeight:600, cursor:'pointer', transition:'all 0.2s' }}
-            >
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <button onClick={() => router.push('/')} className="tp-back"
+              style={{ display:'flex', alignItems:'center', gap:5, background:'#f1f5f9', border:'1px solid #e2e8f0', borderRadius:8, padding:'5px 12px', color:'#475569', fontSize:12, fontWeight:600, cursor:'pointer', transition:'background 0.15s' }}>
               <ArrowLeft size={13} /> Volver al mapa
             </button>
-            <div style={{ display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'8px 14px' }}>
-              <div style={{ width:32, height:32, borderRadius:9, background:'linear-gradient(135deg,#2563eb,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, color:'#fff', fontSize:13, boxShadow:'0 4px 12px rgba(37,99,235,0.4)' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7, background:'#f8fafc', border:'1px solid #e5e7eb', borderRadius:9, padding:'5px 10px' }}>
+              <div style={{ width:26, height:26, borderRadius:7, background:'linear-gradient(135deg,#2563eb,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, color:'#fff', fontSize:11 }}>
                 {firstName[0].toUpperCase()}
               </div>
               <div>
-                <div style={{ fontSize:12, fontWeight:700, color:'#e2e8f0' }}>{firstName}</div>
-                <div style={{ fontSize:10, color:'#475569', textTransform:'uppercase', letterSpacing:'0.06em' }}>{dbUser?.rol?.replace('_',' ')}</div>
+                <div style={{ fontSize:11, fontWeight:700, color:'#0f172a', lineHeight:1.2 }}>{firstName}</div>
+                <div style={{ fontSize:9, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.06em' }}>{dbUser?.rol?.replace('_',' ')}</div>
               </div>
             </div>
           </div>
         </header>
 
         {/* ── Hero ── */}
-        <div style={{ position:'relative', zIndex:5, textAlign:'center', padding:'48px 24px 0', animation:'tp-fadein 0.5s ease both' }}>
-          {/* Pill badge */}
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(37,99,235,0.12)', border:'1px solid rgba(37,99,235,0.28)', borderRadius:999, padding:'6px 16px', marginBottom:24 }}>
-            <span style={{ width:7, height:7, borderRadius:'50%', background:'#3b82f6', display:'inline-block', boxShadow:'0 0 8px #3b82f6', animation:'tp-glow 2s ease-in-out infinite' }} />
-            <span style={{ fontSize:11, fontWeight:700, color:'#93c5fd', letterSpacing:'0.08em', textTransform:'uppercase' }}>Portal de Permisos · Lanús</span>
+        <div style={{ position:'relative', zIndex:5, textAlign:'center', padding:'52px 24px 0', animation:'tp-fadein 0.45s ease both' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:999, padding:'5px 14px', marginBottom:20 }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:'#3b82f6', display:'inline-block' }} />
+            <span style={{ fontSize:11, fontWeight:700, color:'#1d4ed8', letterSpacing:'0.07em', textTransform:'uppercase' }}>Portal de Permisos · Lanús</span>
           </div>
-
-          <h1 style={{ margin:'0 0 14px', fontSize:'clamp(32px,5vw,52px)', fontWeight:900, color:'#f8fafc', letterSpacing:'-1.5px', lineHeight:1.05 }}>
+          <h1 style={{ margin:'0 0 12px', fontSize:'clamp(28px,4.5vw,46px)', fontWeight:900, color:'#0f172a', letterSpacing:'-1.2px', lineHeight:1.08 }}>
             Bienvenido,{' '}
-            <span style={{ background:'linear-gradient(135deg,#60a5fa,#a78bfa)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+            <span style={{ background:'linear-gradient(135deg,#2563eb,#7c3aed)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
               {firstName}
             </span>
           </h1>
-          <p style={{ margin:'0 auto', fontSize:15, color:'#475569', maxWidth:460, lineHeight:1.7, fontWeight:400 }}>
+          <p style={{ margin:'0 auto', fontSize:14.5, color:'#64748b', maxWidth:420, lineHeight:1.7 }}>
             Gestioná permisos de circulación para vehículos de carga pesada en el partido de Lanús.
           </p>
 
-          {/* ── Stats ── */}
-          <div style={{ display:'flex', justifyContent:'center', gap:10, marginTop:40, flexWrap:'wrap' }}>
+          {/* Stats */}
+          <div style={{ display:'flex', justifyContent:'center', gap:10, marginTop:36, flexWrap:'wrap' }}>
             {[
-              { n: rutasList.length, label:'Total', color:'#60a5fa',  glow:'rgba(96,165,250,0.35)',  bg:'rgba(96,165,250,0.08)',  br:'rgba(96,165,250,0.18)' },
-              { n: pendientes,       label:'Pendientes', color:'#fbbf24', glow:'rgba(251,191,36,0.35)', bg:'rgba(251,191,36,0.08)', br:'rgba(251,191,36,0.18)' },
-              { n: aprobadas,        label:'Aprobadas', color:'#34d399', glow:'rgba(52,211,153,0.35)', bg:'rgba(52,211,153,0.08)', br:'rgba(52,211,153,0.18)' },
-              { n: rechazadas,       label:'Rechazadas', color:'#f87171', glow:'rgba(248,113,113,0.35)',bg:'rgba(248,113,113,0.08)',br:'rgba(248,113,113,0.18)' },
+              { n: rutasList.length, label:'Total',      color:'#1d4ed8', bg:'#eff6ff', br:'#bfdbfe' },
+              { n: pendientes,       label:'Pendientes', color:'#92400e', bg:'#fffbeb', br:'#fde68a' },
+              { n: aprobadas,        label:'Aprobadas',  color:'#065f46', bg:'#ecfdf5', br:'#a7f3d0' },
+              { n: rechazadas,       label:'Rechazadas', color:'#991b1b', bg:'#fef2f2', br:'#fecaca' },
             ].map(s => (
-              <div key={s.label} className="tp-stat" style={{ background:s.bg, border:`1px solid ${s.br}`, borderRadius:14, padding:'12px 22px', minWidth:88, textAlign:'center', cursor:'default' }}>
-                <div style={{ fontSize:28, fontWeight:900, color:s.color, lineHeight:1, textShadow:`0 0 16px ${s.glow}` }}>{s.n}</div>
-                <div style={{ fontSize:10, color:'#475569', fontWeight:700, marginTop:4, textTransform:'uppercase', letterSpacing:'0.07em' }}>{s.label}</div>
+              <div key={s.label} className="tp-stat" style={{ background:s.bg, border:`1px solid ${s.br}`, borderRadius:14, padding:'11px 20px', minWidth:84, textAlign:'center' }}>
+                <div style={{ fontSize:26, fontWeight:900, color:s.color, lineHeight:1 }}>{s.n}</div>
+                <div style={{ fontSize:10, color:s.color, fontWeight:700, marginTop:3, textTransform:'uppercase', letterSpacing:'0.06em', opacity:0.75 }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── Acciones ── */}
-        <div style={{ position:'relative', zIndex:5, maxWidth:920, margin:'0 auto', padding:'44px 24px 56px', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(270px,1fr))', gap:18, animation:'tp-fadein 0.6s 0.1s ease both' }}>
+        {/* ── Cards ── */}
+        <div style={{ position:'relative', zIndex:5, maxWidth:900, margin:'0 auto', padding:'40px 24px 56px', display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:16, animation:'tp-fadein 0.5s 0.08s ease both' }}>
 
           {canEdit && (
-            <div
-              className="tp-card tp-card-blue"
-              onClick={() => { setEditId(null); setViewMode('wizard'); }}
-              style={{ background:'rgba(255,255,255,0.04)', backdropFilter:'blur(16px)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:22, padding:'32px 28px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 8px 32px rgba(0,0,0,0.3)' }}
-            >
-              {/* glow top accent */}
-              <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,transparent,#3b82f6,transparent)' }} />
-              <div style={{ position:'absolute', top:-40, left:-20, width:120, height:120, borderRadius:'50%', background:'rgba(37,99,235,0.12)', filter:'blur(24px)', pointerEvents:'none' }} />
-              <div style={{ width:52, height:52, borderRadius:15, background:'linear-gradient(135deg,rgba(37,99,235,0.3),rgba(59,130,246,0.15))', border:'1px solid rgba(59,130,246,0.3)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:22, boxShadow:'0 0 20px rgba(37,99,235,0.2)' }}>
-                <Plus size={24} color="#60a5fa" strokeWidth={2.5} />
+            <div className="tp-card tp-card-blue" onClick={() => { setEditId(null); setViewMode('wizard'); }}
+              style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:20, padding:'28px 24px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 2px 10px rgba(0,0,0,0.06)' }}>
+              <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#2563eb,#60a5fa)' }} />
+              <div style={{ width:48, height:48, borderRadius:13, background:'linear-gradient(135deg,#eff6ff,#dbeafe)', border:'1px solid #bfdbfe', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
+                <Plus size={22} color="#2563eb" strokeWidth={2.5} />
               </div>
-              <h3 style={{ margin:'0 0 10px', fontSize:18, fontWeight:800, color:'#f1f5f9', letterSpacing:'-0.4px' }}>Nueva Solicitud</h3>
-              <p style={{ margin:'0 0 28px', color:'#64748b', fontSize:13.5, lineHeight:1.65 }}>
-                Completá los datos del vehículo y trazá el recorrido en el mapa. Importá desde Tramites Web con un clic.
+              <h3 style={{ margin:'0 0 8px', fontSize:17, fontWeight:800, color:'#0f172a', letterSpacing:'-0.3px' }}>Nueva Solicitud</h3>
+              <p style={{ margin:'0 0 24px', color:'#64748b', fontSize:13, lineHeight:1.65 }}>
+                Registrá los datos del vehículo y trazá el recorrido. Podés importar desde Tramites Web con un clic.
               </p>
-              <div style={{ display:'flex', alignItems:'center', gap:6, color:'#60a5fa', fontWeight:700, fontSize:13 }}>
-                <span>Comenzar ahora</span>
-                <span className="tp-arrow"><ArrowRight size={15} /></span>
+              <div style={{ display:'flex', alignItems:'center', gap:5, color:'#2563eb', fontWeight:700, fontSize:13 }}>
+                <span>Comenzar</span><span className="tp-arrow"><ArrowRight size={14} /></span>
               </div>
             </div>
           )}
 
-          <div
-            className="tp-card tp-card-violet"
-            onClick={() => setViewMode('list')}
-            style={{ background:'rgba(255,255,255,0.04)', backdropFilter:'blur(16px)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:22, padding:'32px 28px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 8px 32px rgba(0,0,0,0.3)' }}
-          >
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,transparent,#8b5cf6,transparent)' }} />
-            <div style={{ position:'absolute', top:-40, right:-20, width:120, height:120, borderRadius:'50%', background:'rgba(124,58,237,0.12)', filter:'blur(24px)', pointerEvents:'none' }} />
-            <div style={{ width:52, height:52, borderRadius:15, background:'linear-gradient(135deg,rgba(124,58,237,0.3),rgba(139,92,246,0.15))', border:'1px solid rgba(139,92,246,0.3)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:22, boxShadow:'0 0 20px rgba(124,58,237,0.2)' }}>
-              <List size={24} color="#a78bfa" strokeWidth={2} />
+          <div className="tp-card tp-card-violet" onClick={() => setViewMode('list')}
+            style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:20, padding:'28px 24px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 2px 10px rgba(0,0,0,0.06)' }}>
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#7c3aed,#a78bfa)' }} />
+            <div style={{ width:48, height:48, borderRadius:13, background:'linear-gradient(135deg,#f5f3ff,#ede9fe)', border:'1px solid #ddd6fe', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
+              <List size={22} color="#7c3aed" strokeWidth={2} />
             </div>
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:10 }}>
-              <h3 style={{ margin:0, fontSize:18, fontWeight:800, color:'#f1f5f9', letterSpacing:'-0.4px' }}>Mis Solicitudes</h3>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+              <h3 style={{ margin:0, fontSize:17, fontWeight:800, color:'#0f172a', letterSpacing:'-0.3px' }}>Mis Solicitudes</h3>
               {pendientes > 0 && (
-                <span style={{ background:'rgba(251,191,36,0.15)', color:'#fbbf24', border:'1px solid rgba(251,191,36,0.3)', fontSize:11, fontWeight:800, padding:'3px 10px', borderRadius:999, flexShrink:0, boxShadow:'0 0 10px rgba(251,191,36,0.2)' }}>
-                  {pendientes} pendiente{pendientes !== 1 ? 's' : ''}
+                <span style={{ background:'#fef3c7', color:'#92400e', border:'1px solid #fde68a', fontSize:11, fontWeight:800, padding:'2px 9px', borderRadius:999 }}>
+                  {pendientes} pend.
                 </span>
               )}
             </div>
-            <p style={{ margin:'0 0 28px', color:'#64748b', fontSize:13.5, lineHeight:1.65 }}>
-              Historial completo de permisos, estados de aprobación y posibilidad de editar recorridos.
+            <p style={{ margin:'0 0 24px', color:'#64748b', fontSize:13, lineHeight:1.65 }}>
+              Historial completo de permisos, estados de aprobación y edición de recorridos.
             </p>
-            <div style={{ display:'flex', alignItems:'center', gap:6, color:'#a78bfa', fontWeight:700, fontSize:13 }}>
-              <span>Ver listado</span>
-              <span className="tp-arrow"><ArrowRight size={15} /></span>
+            <div style={{ display:'flex', alignItems:'center', gap:5, color:'#7c3aed', fontWeight:700, fontSize:13 }}>
+              <span>Ver listado</span><span className="tp-arrow"><ArrowRight size={14} /></span>
             </div>
           </div>
 
-          <div
-            className="tp-card tp-card-slate"
-            onClick={() => router.push('/')}
-            style={{ background:'rgba(255,255,255,0.03)', backdropFilter:'blur(16px)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:22, padding:'32px 28px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 8px 32px rgba(0,0,0,0.3)' }}
-          >
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,transparent,rgba(148,163,184,0.5),transparent)' }} />
-            <div style={{ width:52, height:52, borderRadius:15, background:'rgba(148,163,184,0.08)', border:'1px solid rgba(148,163,184,0.15)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:22 }}>
-              <MapPin size={24} color="#94a3b8" strokeWidth={2} />
+          <div className="tp-card tp-card-slate" onClick={() => router.push('/')}
+            style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:20, padding:'28px 24px', cursor:'pointer', position:'relative', overflow:'hidden', boxShadow:'0 2px 10px rgba(0,0,0,0.06)' }}>
+            <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#475569,#94a3b8)' }} />
+            <div style={{ width:48, height:48, borderRadius:13, background:'#f8fafc', border:'1px solid #e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18 }}>
+              <MapPin size={22} color="#475569" strokeWidth={2} />
             </div>
-            <h3 style={{ margin:'0 0 10px', fontSize:18, fontWeight:800, color:'#94a3b8', letterSpacing:'-0.4px' }}>Volver al Mapa</h3>
-            <p style={{ margin:'0 0 28px', color:'#334155', fontSize:13.5, lineHeight:1.65 }}>
+            <h3 style={{ margin:'0 0 8px', fontSize:17, fontWeight:800, color:'#0f172a', letterSpacing:'-0.3px' }}>Volver al Mapa</h3>
+            <p style={{ margin:'0 0 24px', color:'#64748b', fontSize:13, lineHeight:1.65 }}>
               Regresá al GIS interactivo de Lanús para ver capas, rutas aprobadas y el mapa en tiempo real.
             </p>
-            <div style={{ display:'flex', alignItems:'center', gap:6, color:'#64748b', fontWeight:700, fontSize:13 }}>
-              <span>Ir al mapa</span>
-              <span className="tp-arrow"><ArrowRight size={15} /></span>
+            <div style={{ display:'flex', alignItems:'center', gap:5, color:'#475569', fontWeight:700, fontSize:13 }}>
+              <span>Ir al mapa</span><span className="tp-arrow"><ArrowRight size={14} /></span>
             </div>
           </div>
 
         </div>
 
-        {/* ── Footer ── */}
-        <div style={{ position:'relative', zIndex:5, textAlign:'center', paddingBottom:32, color:'#1e293b', fontSize:11, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase' }}>
-          GIS Lanús &nbsp;·&nbsp; Sistema de Información Geográfica
+        {/* Footer */}
+        <div style={{ position:'relative', zIndex:5, textAlign:'center', paddingBottom:28, color:'#94a3b8', fontSize:11, fontWeight:500, letterSpacing:'0.05em' }}>
+          GIS Lanús · Sistema de Información Geográfica · Municipio de Lanús
         </div>
       </div>
     );
