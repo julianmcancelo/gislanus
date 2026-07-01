@@ -600,6 +600,23 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                       <ExternalLink size={10} color="#d1d5db" />
                     </a>
                   )}
+                  {canAccessHeavyTransport && (
+                    <a href="/instalar-asistente" style={{
+                      display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
+                      textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
+                    }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      <div style={{ width: 26, height: 26, borderRadius: 6, background: 'rgba(139,92,246,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Settings size={12} color="#8b5cf6" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0, fontSize: '0.73rem', fontWeight: 600, color: '#1e293b' }}>Asistente Mágico</p>
+                        <p style={{ margin: 0, fontSize: '0.64rem', color: '#94a3b8' }}>Instalar atajo inteligente</p>
+                      </div>
+                      <ExternalLink size={10} color="#d1d5db" />
+                    </a>
+                  )}
                 </div>
               )}
 
