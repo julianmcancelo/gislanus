@@ -13,7 +13,7 @@ import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartp
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
-const CloneRutaModal = dynamic(() => import('../../components/CloneRutaModal'), { ssr: false });
+import CloneRutaModal from '../../components/CloneRutaModal';
 
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
