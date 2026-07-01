@@ -55,9 +55,17 @@ export default function TransportePublicoWizard() {
     setIsGeneratingAI(true);
     setAiError(null);
     try {
+      let token = '';
+      if (user) {
+        token = await user.getIdToken();
+      }
+
       const res = await fetch('/api/parse-route', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
         body: JSON.stringify({ text: aiText, index: preTracedFeatures.length, description: '' }),
       });
       const data = await res.json();

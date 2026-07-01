@@ -285,9 +285,17 @@ export default function TransportePesadoWizard() {
         ? { text: `Solicitud importada desde: ${trimmed}`, qrUrl: trimmed }
         : { text: trimmed };
 
+      let token = '';
+      if (user) {
+        token = await user.getIdToken();
+      }
+
       const res = await fetch('/api/parse-solicitud', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
         body: JSON.stringify(body)
       });
       const data = await res.json();
