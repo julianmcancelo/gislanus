@@ -50,44 +50,35 @@ export default function LoginPage() {
         <span>LON: 58.3960° W</span>
       </div>
 
-      {/* ── Background Map of Lanús ── */}
+      {/* ── Background Map ── */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.35]"
-        style={{ backgroundImage: 'url(/lanus-bg.png)' }}
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.1]"
+        style={{ backgroundImage: 'linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px)', backgroundSize: '40px 40px' }}
       />
       <div className="absolute inset-0 z-0 bg-slate-100/40 backdrop-blur-[2px] pointer-events-none" />
 
       {/* ── Main Split Layout Container ── */}
       <div className="relative z-10 w-full flex flex-col md:flex-row items-center justify-center p-6 md:p-12 gap-8 md:gap-0">
         
-        {/* ── Left Side: Municipal Branding ── */}
+        {/* ── Left Side: Generic Branding ── */}
         <div className="w-full md:w-1/2 flex flex-col items-center justify-center text-center p-4">
-          <div className="relative mb-6 animate-float">
-            <div className="absolute inset-0 bg-sky-500/10 blur-[50px] rounded-full w-36 h-36 left-1/2 -translate-x-1/2" />
-            <img 
-              src="/logo-lanus.png" 
-              alt="Logo Lanús" 
-              className="relative z-10 w-28 h-28 object-contain drop-shadow-lg" 
-            />
-          </div>
-          
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-[#0ea5e9] text-[10px] font-extrabold uppercase tracking-wider mb-2">
-            Gobierno Local
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-600 text-[10px] font-extrabold uppercase tracking-wider mb-2">
+            Sistema Restringido
           </div>
           
           <h1 className="text-slate-800 text-3xl md:text-4xl font-black tracking-wider uppercase mb-2 drop-shadow-sm">
-            GIS <span className="text-[#0ea5e9]">Lanús</span>
+            Portal de <span className="text-[#0ea5e9]">Acceso</span>
           </h1>
           <p className="text-slate-500 text-xs md:text-sm tracking-[0.18em] font-bold uppercase max-w-sm leading-relaxed mb-6">
-            Sistema de Información Geográfica
+            Plataforma Geográfica y de Gestión
           </p>
           
           {/* Subtle capabilities pills */}
           <div className="hidden lg:flex flex-wrap justify-center gap-2 max-w-md opacity-75">
-            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Transporte Público</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Transporte Pesado</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Semáforos</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Capas GeoJSON</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Gestión de Rutas</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Módulos Logísticos</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Administración</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-200/50 border border-slate-300/30 text-slate-500 rounded-full">Mapas y Capas</span>
           </div>
           
           <div className="w-16 h-1 bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full mt-6 opacity-80" />
