@@ -73,7 +73,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
   return (
     <div style={{
       position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, backdropFilter: 'blur(4px)'
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)'
     }}>
       <div style={{
         background: 'white', borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
