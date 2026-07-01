@@ -581,17 +581,8 @@ export default function MapComponent() {
         bottom: 0,
         zIndex: 9999
       }}>
-        <img 
-          src="/logo-lanus.png" 
-          alt="Logo Lanús" 
-          style={{ 
-            height: '100px', 
-            objectFit: 'contain',
-            animation: 'pulse-logo 2s infinite ease-in-out',
-            marginBottom: '20px'
-          }} 
-        />
-        <h2 style={{ letterSpacing: '1px', fontWeight: '500', color: '#ccc' }}>Cargando GIS Lanús...</h2>
+        <div style={{ width: 120, height: 120, background: '#3b82f6', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '64px', margin: '0 auto 20px', boxShadow: '0 10px 25px rgba(59, 130, 246, 0.5)' }}>G</div>
+        <h2 style={{ letterSpacing: '1px', fontWeight: '500', color: '#ccc' }}>Cargando GIS...</h2>
       </div>
     );
   }
@@ -607,7 +598,7 @@ export default function MapComponent() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
-      {/* Header Institucional Lanús - Premium Glassmorphism */}
+      {/* Header Institucional - Premium Glassmorphism */}
       <header style={{ 
         height: '65px', 
         background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)', // Slate dark gradient
@@ -629,17 +620,16 @@ export default function MapComponent() {
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <img src="/logo-lanus.png" alt="Logo Lanús" style={{ height: '38px', objectFit: 'contain' }} />
-          </div>
-          <div style={{ lineHeight: '1.1' }}>
-            <strong style={{ fontSize: '19px', display: 'block', letterSpacing: '1.5px', fontWeight: 700, color: '#f8fafc' }}>LANÚS</strong>
-            <span style={{ fontSize: '11px', letterSpacing: '3px', color: '#94a3b8', fontWeight: 600 }}>MUNICIPIO</span>
+            <div style={{ width: 38, height: 38, background: '#3b82f6', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '20px' }}>G</div>
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <strong style={{ fontSize: '19px', display: 'block', letterSpacing: '1.5px', fontWeight: 700, color: '#f8fafc' }}>SISTEMA</strong>
+              <span style={{ fontSize: '11px', letterSpacing: '3px', color: '#94a3b8', fontWeight: 600 }}>GEOGRÁFICO</span>
           </div>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <div style={{ textAlign: 'right', lineHeight: '1.1' }}>
-            <strong style={{ fontSize: '20px', display: 'block', fontStyle: 'italic', fontWeight: 800, background: 'linear-gradient(to right, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>GIS LANÚS</strong>
+            <strong style={{ fontSize: '20px', display: 'block', fontStyle: 'italic', fontWeight: 800, background: 'linear-gradient(to right, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>GIS PORTAL</strong>
             <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.5px' }}>Sistema de Información Geográfica</span>
           </div>
           <div style={{ 

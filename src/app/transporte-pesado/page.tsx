@@ -755,7 +755,7 @@ export default function TransportePesadoWizard() {
             </div>
             <div>
               <div style={{ fontSize:13, fontWeight:800, color:'#0f172a', letterSpacing:'-0.2px', lineHeight:1.2 }}>Transporte Pesado</div>
-              <div style={{ fontSize:9.5, color:'#94a3b8', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>Municipio de Lanús</div>
+              <div style={{ fontSize:9.5, color:'#94a3b8', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.07em' }}>Sistema de Gestión</div>
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -779,7 +779,7 @@ export default function TransportePesadoWizard() {
         <div style={{ position:'relative', zIndex:5, textAlign:'center', padding:'52px 24px 0', animation:'tp-fadein 0.45s ease both' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#eff6ff', border:'1px solid #bfdbfe', borderRadius:999, padding:'5px 14px', marginBottom:20 }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'#3b82f6', display:'inline-block' }} />
-            <span style={{ fontSize:11, fontWeight:700, color:'#1d4ed8', letterSpacing:'0.07em', textTransform:'uppercase' }}>Portal de Permisos · Lanús</span>
+            <span style={{ fontSize:11, fontWeight:700, color:'#1d4ed8', letterSpacing:'0.07em', textTransform:'uppercase' }}>Portal de Permisos</span>
           </div>
           <h1 style={{ margin:'0 0 12px', fontSize:'clamp(28px,4.5vw,46px)', fontWeight:900, color:'#0f172a', letterSpacing:'-1.2px', lineHeight:1.08 }}>
             Bienvenido,{' '}
@@ -788,7 +788,7 @@ export default function TransportePesadoWizard() {
             </span>
           </h1>
           <p style={{ margin:'0 auto', fontSize:14.5, color:'#64748b', maxWidth:420, lineHeight:1.7 }}>
-            Gestioná permisos de circulación para vehículos de carga pesada en el partido de Lanús.
+            Gestioná permisos de circulación para vehículos de carga pesada.
           </p>
 
           {/* Stats */}
@@ -857,7 +857,7 @@ export default function TransportePesadoWizard() {
             </div>
             <h3 style={{ margin:'0 0 8px', fontSize:17, fontWeight:800, color:'#0f172a', letterSpacing:'-0.3px' }}>Volver al Mapa</h3>
             <p style={{ margin:'0 0 24px', color:'#64748b', fontSize:13, lineHeight:1.65 }}>
-              Regresá al GIS interactivo de Lanús para ver capas, rutas aprobadas y el mapa en tiempo real.
+              Regresá al GIS interactivo para ver capas, rutas aprobadas y el mapa en tiempo real.
             </p>
             <div style={{ display:'flex', alignItems:'center', gap:5, color:'#475569', fontWeight:700, fontSize:13 }}>
               <span>Ir al mapa</span><span className="tp-arrow"><ArrowRight size={14} /></span>
@@ -868,7 +868,7 @@ export default function TransportePesadoWizard() {
 
         {/* Footer */}
         <div style={{ position:'relative', zIndex:5, textAlign:'center', paddingBottom:28, color:'#94a3b8', fontSize:11, fontWeight:500, letterSpacing:'0.05em' }}>
-          GIS Lanús · Sistema de Información Geográfica · Municipio de Lanús
+          GIS · Sistema de Información Geográfica
         </div>
       </div>
     );
@@ -881,10 +881,10 @@ export default function TransportePesadoWizard() {
         {/* ── Header compacto ── */}
         <header style={{ height: 52, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <img src="/logo-lanus.png" alt="Lanús" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+            <div style={{ width: 32, height: 32, background: '#3b82f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>G</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }}>Transporte Pesado</div>
-              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Panel de Solicitudes · Lanús</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Panel de Solicitudes</div>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1137,10 +1137,10 @@ export default function TransportePesadoWizard() {
       <header style={{ height: 52, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0 }}>
         {/* Logo + título */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/logo-lanus.png" alt="Lanús" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+          <div style={{ width: 32, height: 32, background: '#3b82f6', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>G</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.2px', lineHeight: 1.2 }}>Transporte Pesado</div>
-            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Asistente de registro · Lanús</div>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#0f172a', letterSpacing: '-0.3px' }}>Viabilidad de Transporte Pesado</h1>
+            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Asistente de registro</div>
           </div>
         </div>
 
@@ -1213,7 +1213,7 @@ export default function TransportePesadoWizard() {
                     <Zap size={16} color="white" />
                   </div>
                   <div>
-                    <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>Importar desde Tramites Web Lanús</div>
+                    <div style={{ fontWeight: '700', fontSize: '13px', color: '#1e40af' }}>Importar desde Trámites Web</div>
                     <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '1px' }}>Pegá el link QR o el texto completo — la IA completa todo automáticamente</div>
                   </div>
                 </div>

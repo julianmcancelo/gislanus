@@ -380,7 +380,7 @@ export default function Sidebar({
                 <LogOut size={22} color="#f87171" />
               </div>
               <p style={{ margin: '0 0 4px', fontWeight: 800, fontSize: '1.05rem', color: '#f1f5f9', letterSpacing: '-0.01em' }}>Cerrar sesión</p>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>GIS Lanús — Sistema de Información Geográfica</p>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>GIS — Sistema de Información Geográfica</p>
             </div>
 
             {/* User info chip */}
@@ -608,7 +608,7 @@ export default function Sidebar({
                     <MapPin size={13} color="#7dd3fc" />
                   </div>
                   <div>
-                    <p style={{ margin: 0, fontSize: '0.77rem', fontWeight: 800, color: '#f1f5f9' }}>GIS Lanús</p>
+                    <p style={{ margin: 0, fontSize: '0.77rem', fontWeight: 800, color: '#f1f5f9' }}>GIS Portal</p>
                     <p style={{ margin: 0, fontSize: '0.65rem', color: '#475569' }}>Sistema de Información Geográfica</p>
                   </div>
                 </div>
@@ -731,7 +731,7 @@ export default function Sidebar({
               )}
 
               <p style={{ fontSize: '0.6rem', color: '#d1d5db', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.7 }}>
-                GIS Lanús · v2.0
+                GIS Portal · v2.0
               </p>
             </div>
           </div>

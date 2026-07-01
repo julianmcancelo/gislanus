@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GIS Lanús",
-  description: "Sistema de Información Geográfica del Municipio de Lanús",
+  title: "GIS Portal",
+  description: "Sistema de Información Geográfica",
   icons: {
     icon: "/favicon.ico",
   },

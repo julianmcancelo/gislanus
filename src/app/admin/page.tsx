@@ -1357,10 +1357,11 @@ export default function AdminPage() {
       {/* SIDEBAR */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <img src="/logo-lanus.png" alt="Lanús" style={{ width: 30, height: 30, objectFit: 'contain', flexShrink: 0 }} />
+          {/* Logo Placeholder */}
+          <div style={{ width: 30, height: 30, background: '#3b82f6', borderRadius: '8px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '14px' }}>G</div>
           <div>
             <h1>Administración GIS</h1>
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500, marginTop: 1 }}>Lanús · Panel de Control</div>
+            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500, marginTop: 1 }}>Panel de Control General</div>
           </div>
         </div>
         <nav className={styles.sidebarMenu}>
