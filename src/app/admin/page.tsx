@@ -77,6 +77,7 @@ export default function AdminPage() {
   const [rutasFilterStatus, setRutasFilterStatus] = useState('TODAS');
   const [errorLineas, setErrorLineas] = useState<string | null>(null);
   const [previewRutaGeo, setPreviewRutaGeo] = useState<{ geo: any; numero: string } | null>(null);
+  const [expandedRutaId, setExpandedRutaId] = useState<string | null>(null);
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
@@ -2091,7 +2092,8 @@ export default function AdminPage() {
                               </tr>
                             )}
                             {groupRoutes.map(ruta => (
-                              <tr key={ruta.id} style={{ opacity: ruta.activo === false ? 0.5 : 1 }}>
+                              <React.Fragment key={ruta.id}>
+                              <tr style={{ opacity: ruta.activo === false ? 0.5 : 1, cursor: 'pointer' }} onClick={() => setExpandedRutaId(expandedRutaId === ruta.id ? null : ruta.id)}>
                           <td>
                             <input
                               type="checkbox"
@@ -2099,14 +2101,19 @@ export default function AdminPage() {
                               onChange={e => setSelectedRutas(prev =>
                                 e.target.checked ? [...prev, ruta.id] : prev.filter(id => id !== ruta.id)
                               )}
+                              onClick={e => e.stopPropagation()}
                             />
                           </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: '0.85rem' }}><strong>#{ruta.numeroSolicitud}</strong></div>
                             {ruta.idSolicitudWeb && <div style={{ fontSize: '0.7rem', color: '#64748b' }}>ID Web: {ruta.idSolicitudWeb}</div>}
-                            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>{new Date(ruta.creadoEn).toLocaleDateString()}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>{ruta.fechaCreacion || new Date(ruta.creadoEn).toLocaleDateString()}</div>
                           </td>
-                          <td style={{ padding: '6px 8px', fontSize: '0.8rem', fontWeight: 500, color: '#334155' }}>{ruta.nombreSolicitante}</td>
+                          <td style={{ padding: '6px 8px' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{ruta.nombreSolicitante}</div>
+                            {ruta.empresaSolicitante && <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{ruta.empresaSolicitante}</div>}
+                            {ruta.cuilCuit && <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontFamily: 'monospace' }}>CUIT: {ruta.cuilCuit}</div>}
+                          </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: '0.75rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -2114,7 +2121,6 @@ export default function AdminPage() {
                                 <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}><strong>Veh:</strong> {ruta.tipoVehiculo || '-'}</span>
                                 <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px' }}><strong>Peso:</strong> {ruta.pesoToneladas ? `${ruta.pesoToneladas} Tn` : '-'}</span>
                               </div>
-                              {ruta.aseguradora && <span style={{ fontSize: '0.7rem' }}><strong>Seg:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(${ruta.nroSeguro})` : ''}</span>}
                               {ruta.cargaPeligrosa && <span style={{ color: '#ef4444', fontWeight: '600', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '3px' }}><Shield size={10} /> Carga Peligrosa</span>}
                             </div>
                           </td>
@@ -2125,11 +2131,23 @@ export default function AdminPage() {
                             }`}>
                               {ruta.estado}
                             </span>
+                            {/* Indicador de si tiene trazo dibujado */}
+                            {(() => {
+                              let geo = ruta.datosGeo;
+                              if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch { geo = null; } }
+                              const hasTrace = geo?.features?.length > 0;
+                              return (
+                                <div style={{ fontSize: '0.65rem', marginTop: '4px', color: hasTrace ? '#15803d' : '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: hasTrace ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
+                                  {hasTrace ? 'Con trazo' : 'Sin trazo'}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td style={{ textAlign: 'center' }}>
                             <button
-                              onClick={() => handleToggleRuta(ruta.id, ruta.activo === false)}
-                              title={ruta.activo !== false ? 'Visible — clic para ocultar del mapa' : 'Oculta — clic para mostrar en el mapa'}
+                              onClick={(e) => { e.stopPropagation(); handleToggleRuta(ruta.id, ruta.activo === false); }}
+                              title={ruta.activo !== false ? 'Visible' : 'Oculta'}
                               style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                                 padding: '4px 10px', borderRadius: '20px', cursor: 'pointer',
@@ -2143,31 +2161,25 @@ export default function AdminPage() {
                               ) : (
                                 <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M1 1l11 11M5.3 4.3A3.5 3.5 0 0110.7 8M2.3 4.5C1.5 5.2 1 6.5 1 6.5s2 4.5 5.5 4.5c1 0 2-.3 2.8-.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                               )}
-                              {ruta.activo !== false ? 'Visible' : 'Oculta'}
+                              {ruta.activo !== false ? 'Sí' : 'No'}
                             </button>
                           </td>
                           <td>
                             <div className={styles.mapPreviewWrapper}>
-                              <div style={{ cursor: 'pointer', position: 'relative' }} onClick={() => {
+                              <div style={{ cursor: 'pointer', position: 'relative' }} onClick={(e) => {
+                                e.stopPropagation();
                                 const relatedRutas = ruta.numeroSolicitud ? rutas.filter(r => r.numeroSolicitud === ruta.numeroSolicitud) : [ruta];
                                 const features: any[] = [];
                                 relatedRutas.forEach(r => {
                                   let g = r.datosGeo;
-                                  if (typeof g === 'string') {
-                                    try { g = JSON.parse(g); } catch { g = null; }
-                                  }
+                                  if (typeof g === 'string') { try { g = JSON.parse(g); } catch { g = null; } }
                                   if (g) {
-                                    if (g.type === 'FeatureCollection') {
-                                      g.features.forEach((f: any) => features.push({ ...f, properties: { ...f.properties, patente: r.patente, destino: r.destinoDireccion } }));
-                                    } else if (g.type === 'Feature') {
-                                      features.push({ ...g, properties: { ...g.properties, patente: r.patente, destino: r.destinoDireccion } });
-                                    } else {
-                                      features.push({ type: 'Feature', geometry: g, properties: { patente: r.patente, destino: r.destinoDireccion } });
-                                    }
+                                    if (g.type === 'FeatureCollection') g.features.forEach((f: any) => features.push({ ...f, properties: { ...f.properties, patente: r.patente } }));
+                                    else if (g.type === 'Feature') features.push({ ...g, properties: { ...g.properties, patente: r.patente } });
+                                    else features.push({ type: 'Feature', geometry: g, properties: { patente: r.patente } });
                                   }
                                 });
-                                const combinedGeo = { type: 'FeatureCollection', features };
-                                setPreviewRutaGeo({ geo: combinedGeo, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
+                                setPreviewRutaGeo({ geo: { type: 'FeatureCollection', features }, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
                               }}>
                                 <StaticMapPreview geoData={
                                   typeof ruta.datosGeo === 'string' ?
@@ -2175,24 +2187,34 @@ export default function AdminPage() {
                                     : ruta.datosGeo
                                 } />
                                 <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', pointerEvents: 'none', zIndex: 10, backdropFilter: 'blur(4px)' }}>
-                                  <MapIcon size={12} /> Ampliar Mapa
+                                  <MapIcon size={12} /> Ampliar
                                 </div>
                               </div>
                             </div>
                           </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {/* Botón Dibujar Ruta para solicitudes sin trazo */}
+                              {(() => {
+                                let geo = ruta.datosGeo;
+                                if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch { geo = null; } }
+                                return (!geo?.features?.length) ? (
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }} onClick={(e) => { e.stopPropagation(); window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank'); }}>
+                                    <MapIcon size={10} /> Dibujar Ruta
+                                  </button>
+                                ) : null;
+                              })()}
                               {ruta.estado === 'PENDIENTE' && (
                                 <>
-                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'APROBADA')}>Aprobar</button>
-                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'RECHAZADA')}>Rechazar</button>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); handleEstadoRuta(ruta.id, 'APROBADA'); }}>Aprobar</button>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); handleEstadoRuta(ruta.id, 'RECHAZADA'); }}>Rechazar</button>
                                 </>
                               )}
                               {ruta.estado !== 'PENDIENTE' && (
                                 <>
-                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleEstadoRuta(ruta.id, 'PENDIENTE')}>Reabrir</button>
+                                  <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); handleEstadoRuta(ruta.id, 'PENDIENTE'); }}>Reabrir</button>
                                   {ruta.enlaceDocumento && (
-                                    <a href={ruta.enlaceDocumento} target="_blank" rel="noreferrer" style={{ padding: '4px 8px', fontSize: '0.7rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 600 }} title="Ver Documento Original">
+                                    <a href={ruta.enlaceDocumento} target="_blank" rel="noreferrer" style={{ padding: '4px 8px', fontSize: '0.7rem', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', textDecoration: 'none', fontWeight: 600 }} onClick={e => e.stopPropagation()} title="Ver PDF">
                                       <FileText size={10} /> PDF
                                     </a>
                                   )}
@@ -2200,14 +2222,113 @@ export default function AdminPage() {
                               )}
                             </div>
                             <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank')}>
+                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank'); }}>
                                 Editar
                               </button>
-                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={() => handleDeleteRuta(ruta.id)}>Eliminar</button>
+                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: 'transparent', color: '#ef4444', border: '1px solid #fca5a5', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); handleDeleteRuta(ruta.id); }}>Eliminar</button>
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        {/* ── Fila expandible con TODOS los datos ── */}
+                        {expandedRutaId === ruta.id && (
+                          <tr key={`${ruta.id}-detail`} style={{ background: '#f8fafc' }}>
+                            <td colSpan={8} style={{ padding: '16px 24px', borderTop: 'none' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', fontSize: '0.8rem' }}>
+                                {/* Solicitante */}
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                                    <Users size={14} color="#6366f1" /> Solicitante
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#475569' }}>
+                                    <div><strong>Nombre:</strong> {ruta.nombreSolicitante}</div>
+                                    {ruta.empresaSolicitante && <div><strong>Empresa:</strong> {ruta.empresaSolicitante}</div>}
+                                    {ruta.cuilCuit && <div><strong>CUIT/CUIL:</strong> <span style={{ fontFamily: 'monospace' }}>{ruta.cuilCuit}</span></div>}
+                                    {ruta.emailSolicitante && <div><strong>Email:</strong> <a href={`mailto:${ruta.emailSolicitante}`} style={{ color: '#3b82f6' }}>{ruta.emailSolicitante}</a></div>}
+                                    {ruta.telefonoSolicitante && <div><strong>Teléfono:</strong> {ruta.telefonoSolicitante}</div>}
+                                  </div>
+                                </div>
+
+                                {/* Vehículo */}
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                                    <Truck size={14} color="#f59e0b" /> Vehículo
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#475569' }}>
+                                    {ruta.patente && <div><strong>Patente:</strong> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>{ruta.patente}</span></div>}
+                                    {ruta.tipoVehiculo && <div><strong>Tipo:</strong> {ruta.tipoVehiculo}</div>}
+                                    {ruta.pesoToneladas && <div><strong>Peso:</strong> {ruta.pesoToneladas} Tn</div>}
+                                    {ruta.tipoCarga && <div><strong>Carga:</strong> {ruta.tipoCarga}</div>}
+                                    {ruta.cargaPeligrosa && <div style={{ color: '#ef4444', fontWeight: 600 }}>⚠️ Carga Peligrosa</div>}
+                                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '0.75rem' }}>
+                                      {ruta.largoVehiculo && <span><strong>Largo:</strong> {ruta.largoVehiculo}</span>}
+                                      {ruta.anchoVehiculo && <span><strong>Ancho:</strong> {ruta.anchoVehiculo}</span>}
+                                      {ruta.alturaVehiculo && <span><strong>Alto:</strong> {ruta.alturaVehiculo}</span>}
+                                      {ruta.cantidadEjes && <span><strong>Ejes:</strong> {ruta.cantidadEjes}</span>}
+                                    </div>
+                                    {ruta.aseguradora && <div style={{ fontSize: '0.75rem' }}><strong>Seguro:</strong> {ruta.aseguradora} {ruta.nroSeguro ? `(N° ${ruta.nroSeguro})` : ''}</div>}
+                                  </div>
+                                </div>
+
+                                {/* Origen y Destino */}
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                                    <MapIcon size={14} color="#10b981" /> Origen y Destino
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#475569' }}>
+                                    <div>
+                                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase', marginBottom: '2px' }}>📍 Origen</div>
+                                      {ruta.origenNombre && <div><strong>{ruta.origenNombre}</strong></div>}
+                                      {ruta.origenDireccion && <div>{ruta.origenDireccion}</div>}
+                                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                        {[ruta.origenLocalidad, ruta.origenPartido].filter(Boolean).join(', ')}
+                                      </div>
+                                    </div>
+                                    <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '8px' }}>
+                                      <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', marginBottom: '2px' }}>📌 Destino</div>
+                                      {ruta.destinoNombre && <div><strong>{ruta.destinoNombre}</strong></div>}
+                                      {ruta.destinoDireccion && <div>{ruta.destinoDireccion}</div>}
+                                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                        {[ruta.destinoLocalidad, ruta.destinoPartido].filter(Boolean).join(', ')}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Circulación y Vigencia */}
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                                    <Clock size={14} color="#8b5cf6" /> Circulación y Vigencia
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#475569' }}>
+                                    {ruta.frecuencia && <div><strong>Frecuencia:</strong> {ruta.frecuencia}</div>}
+                                    {ruta.horario && <div><strong>Horario:</strong> {ruta.horario}</div>}
+                                    {(ruta.vigenciaDesde || ruta.vigenciaHasta) && (
+                                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                        {ruta.vigenciaDesde && <span style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem' }}><strong>Desde:</strong> {ruta.vigenciaDesde}</span>}
+                                        {ruta.vigenciaHasta && <span style={{ background: '#fef2f2', border: '1px solid #fecaca', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem' }}><strong>Hasta:</strong> {ruta.vigenciaHasta}</span>}
+                                      </div>
+                                    )}
+                                    {ruta.observaciones && <div style={{ marginTop: '4px', fontSize: '0.75rem', fontStyle: 'italic', color: '#64748b' }}><strong>Obs:</strong> {ruta.observaciones}</div>}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Calles / Recorrido */}
+                              {ruta.calles && (
+                                <div style={{ marginTop: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    🛣️ Calles del Recorrido
+                                  </h4>
+                                  <div style={{ fontSize: '0.8rem', color: '#475569', background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', fontFamily: 'monospace', lineHeight: 1.6, wordBreak: 'break-word' }}>
+                                    {ruta.calles}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                              </React.Fragment>
+                       ))}
                           </React.Fragment>
                           );
                         });
