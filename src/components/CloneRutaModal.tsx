@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Truck, Calendar, Users, MapPin, Copy } from 'lucide-react';
 
 interface CloneRutaModalProps {
@@ -14,24 +14,38 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
   const [changeVehicle, setChangeVehicle] = useState(true);
   const [changeVigencia, setChangeVigencia] = useState(false);
 
-  const [patente, setPatente] = useState(ruta?.patente || '');
-  const [tipoVehiculo, setTipoVehiculo] = useState(ruta?.tipoVehiculo || '');
-  const [pesoToneladas, setPesoToneladas] = useState(ruta?.pesoToneladas || '');
-  const [largoVehiculo, setLargoVehiculo] = useState(ruta?.largoVehiculo || '');
-  const [anchoVehiculo, setAnchoVehiculo] = useState(ruta?.anchoVehiculo || '');
-  const [alturaVehiculo, setAlturaVehiculo] = useState(ruta?.alturaVehiculo || '');
-  const [cantidadEjes, setCantidadEjes] = useState(ruta?.cantidadEjes || '');
-  const [cargaPeligrosa, setCargaPeligrosa] = useState(ruta?.cargaPeligrosa || false);
-  const [tipoCarga, setTipoCarga] = useState(ruta?.tipoCarga || '');
-  const [aseguradora, setAseguradora] = useState(ruta?.aseguradora || '');
-  const [nroSeguro, setNroSeguro] = useState(ruta?.nroSeguro || '');
+  const [patente, setPatente] = useState('');
+  const [tipoVehiculo, setTipoVehiculo] = useState('');
+  const [pesoToneladas, setPesoToneladas] = useState('');
+  const [largoVehiculo, setLargoVehiculo] = useState('');
+  const [anchoVehiculo, setAnchoVehiculo] = useState('');
+  const [alturaVehiculo, setAlturaVehiculo] = useState('');
+  const [cantidadEjes, setCantidadEjes] = useState('');
+  const [cargaPeligrosa, setCargaPeligrosa] = useState(false);
+  const [tipoCarga, setTipoCarga] = useState('');
+  const [aseguradora, setAseguradora] = useState('');
+  const [nroSeguro, setNroSeguro] = useState('');
 
-  const [vigenciaDesde, setVigenciaDesde] = useState(
-    ruta?.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : ''
-  );
-  const [vigenciaHasta, setVigenciaHasta] = useState(
-    ruta?.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : ''
-  );
+  const [vigenciaDesde, setVigenciaDesde] = useState('');
+  const [vigenciaHasta, setVigenciaHasta] = useState('');
+
+  useEffect(() => {
+    if (ruta) {
+      setPatente(ruta.patente || '');
+      setTipoVehiculo(ruta.tipoVehiculo || '');
+      setPesoToneladas(ruta.pesoToneladas || '');
+      setLargoVehiculo(ruta.largoVehiculo || '');
+      setAnchoVehiculo(ruta.anchoVehiculo || '');
+      setAlturaVehiculo(ruta.alturaVehiculo || '');
+      setCantidadEjes(ruta.cantidadEjes || '');
+      setCargaPeligrosa(ruta.cargaPeligrosa || false);
+      setTipoCarga(ruta.tipoCarga || '');
+      setAseguradora(ruta.aseguradora || '');
+      setNroSeguro(ruta.nroSeguro || '');
+      setVigenciaDesde(ruta.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : '');
+      setVigenciaHasta(ruta.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : '');
+    }
+  }, [ruta]);
 
   const handleClone = async () => {
     const fieldsToChange: string[] = [];
