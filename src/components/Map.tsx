@@ -1,10 +1,12 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
+import HeatmapLayer from './HeatmapLayer';
+
 import { renderToString } from 'react-dom/server';
 import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -269,9 +271,43 @@ export default function MapComponent() {
   const [cacheDatosGeo, setCacheDatosGeo] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
-  const [activeTab, setActiveTab] = useState<'layers' | 'info' | null>('layers');
+  const [activeTab, setActiveTab] = useState<'layers' | 'info' | 'reclamos' | null>('layers');
   const [baseLayer, setBaseLayer] = useState<any>(null);
   const [trackingMarkers, setTrackingMarkers] = useState<any[]>([]);
+
+  // Estados para el módulo de Reclamos SAT
+  const [reclamos, setReclamos] = useState<any[]>([]);
+  const [loadingReclamos, setLoadingReclamos] = useState(false);
+  const [verReclamosCalor, setVerReclamosCalor] = useState(false);
+  const [verReclamosMarcadores, setVerReclamosMarcadores] = useState(true);
+  const [motivosSeleccionados, setMotivosSeleccionados] = useState<number[]>([33, 38, 81, 83, 84]);
+  const [estadoFiltro, setEstadoFiltro] = useState<string>('TODOS');
+  const [prioridadFiltro, setPrioridadFiltro] = useState<string>('TODAS');
+
+  const getReclamos = async () => {
+    if (!user) return;
+    setLoadingReclamos(true);
+    try {
+      const token = await user.getIdToken();
+      const motivosQuery = motivosSeleccionados.join(',');
+      const res = await fetch(`/api/reclamos?motivoId=${motivosQuery}&estado=${estadoFiltro}&prioridad=${prioridadFiltro}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReclamos(data);
+      }
+    } catch (e) {
+      console.error("Error fetching reclamos:", e);
+    } finally {
+      setLoadingReclamos(false);
+    }
+  };
+
+  useEffect(() => {
+    getReclamos();
+  }, [user, motivosSeleccionados, estadoFiltro, prioridadFiltro]);
+
 
   useEffect(() => {
     const fetchCapas = async () => {
@@ -621,7 +657,26 @@ export default function MapComponent() {
 
       {/* Main Content Area */}
       <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
-        <Sidebar capas={capasConfig} alternarCapa={alternarCapa} activeTab={activeTab} setActiveTab={setActiveTab} />
+        <Sidebar 
+          capas={capasConfig} 
+          alternarCapa={alternarCapa} 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          reclamos={reclamos}
+          loadingReclamos={loadingReclamos}
+          verReclamosCalor={verReclamosCalor}
+          setVerReclamosCalor={setVerReclamosCalor}
+          verReclamosMarcadores={verReclamosMarcadores}
+          setVerReclamosMarcadores={setVerReclamosMarcadores}
+          motivosSeleccionados={motivosSeleccionados}
+          setMotivosSeleccionados={setMotivosSeleccionados}
+          estadoFiltro={estadoFiltro}
+          setEstadoFiltro={setEstadoFiltro}
+          prioridadFiltro={prioridadFiltro}
+          setPrioridadFiltro={setPrioridadFiltro}
+          recargarReclamos={getReclamos}
+          mapInstance={mapInstance}
+        />
         
         <div style={{ flex: 1, position: 'relative' }}>
           {capasConfig.some(c => c.active && !cacheDatosGeo[c.id] && fetchingRef.current[c.id]) && (
@@ -853,6 +908,55 @@ export default function MapComponent() {
             interactive={false}
           />
         )}
+        {/* Capa de calor para reclamos */}
+        {verReclamosCalor && reclamos.length > 0 && (
+          <HeatmapLayer 
+            points={reclamos.map(r => ({ lat: r.lat, lng: r.lng, intensity: r.prioridad === 'URGENTE' ? 3 : r.prioridad === 'ALTA' ? 2 : 1 }))}
+            radius={28}
+            maxIntensity={3}
+            opacity={0.8}
+          />
+        )}
+
+        {/* Marcadores individuales para reclamos */}
+        {verReclamosMarcadores && reclamos.map(r => {
+          const latlng: [number, number] = [r.lat, r.lng];
+          const color = r.motivoId === 81 ? '#EF4444' : '#3B82F6'; // Rojo para tránsito pesado, Azul para el resto
+          const innerHtml = `<div style="background-color: ${color}; width: 22px; height: 22px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;">⚠️</div>`;
+          const customIcon = L.divIcon({
+            html: innerHtml,
+            className: 'custom-reclamo-marker',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+            popupAnchor: [0, -12]
+          });
+
+          return (
+            <Marker key={r.id} position={latlng} icon={customIcon}>
+              <Popup>
+                <div style={{ fontFamily: 'Inter, system-ui, sans-serif', width: '250px' }}>
+                  <div style={{ background: '#1e293b', color: 'white', padding: '10px 12px', borderRadius: '6px 6px 0 0', margin: '-1px -1px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Exp. #{r.numero}</span>
+                      <span style={{
+                        background: r.prioridad === 'URGENTE' ? '#fee2e2' : r.prioridad === 'ALTA' ? '#ffedd5' : '#f1f5f9',
+                        color: r.prioridad === 'URGENTE' ? '#991b1b' : r.prioridad === 'ALTA' ? '#92400e' : '#475569',
+                        padding: '1px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: 'bold'
+                      }}>{r.prioridad.toUpperCase()}</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>{r.motivoNombre}</div>
+                  </div>
+                  <div style={{ padding: '10px' }}>
+                    <div style={{ fontSize: '11px', marginBottom: '6px' }}><strong>Dirección:</strong> {r.direccion || 'No especificada'}</div>
+                    {r.descripcion && <div style={{ fontSize: '11px', background: '#f8fafc', padding: '6px', borderRadius: '4px', border: '1px solid #e2e8f0', maxHeight: '80px', overflowY: 'auto' }}>{r.descripcion}</div>}
+                    <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '8px', textAlign: 'right' }}>{r.fecha || 'Sin fecha'}</div>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
         <TrackingLayer markers={trackingMarkers} />
         <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
       </MapContainer>

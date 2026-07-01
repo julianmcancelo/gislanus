@@ -67,6 +67,15 @@ export default function AdminPage() {
   const [lineas, setLineas] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [rolesPermisosData, setRolesPermisosData] = useState<any[]>([]);
+  
+  // Reclamos Admin State
+  const [reclamosAdmin, setReclamosAdmin] = useState<any[]>([]);
+  const [loadingReclamosAdmin, setLoadingReclamosAdmin] = useState(false);
+  const [reclamosSearch, setReclamosSearch] = useState('');
+  const [reclamosFilterPrio, setReclamosFilterPrio] = useState('TODAS');
+  const [reclamosFilterEstado, setReclamosFilterEstado] = useState('TODOS');
+  const [reclamosFilterCat, setReclamosFilterCat] = useState('TODAS');
+
   const [loading, setLoading] = useState(true);
 
   // Líneas editor state
@@ -159,6 +168,12 @@ export default function AdminPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'reclamos') {
+      fetchReclamosAdmin();
+    }
+  }, [activeTab]);
+
   // Escuchar nuevas solicitudes de transporte en tiempo real
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -178,6 +193,97 @@ export default function AdminPage() {
     return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchReclamosAdmin = async () => {
+    setLoadingReclamosAdmin(true);
+    try {
+      const res = await authFetch('/api/reclamos');
+      if (res.ok) {
+        const data = await res.json();
+        setReclamosAdmin(Array.isArray(data) ? data : []);
+      } else {
+        toast.error('No se pudieron obtener los reclamos del servidor.');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Error de conexión al buscar reclamos.');
+    }
+    setLoadingReclamosAdmin(false);
+  };
+
+  const handleUpdateReclamoStatus = async (id: string, nuevoEstado: string) => {
+    try {
+      const res = await authFetch(`/api/reclamos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: nuevoEstado })
+      });
+      if (res.ok) {
+        toast.success('Estado del reclamo actualizado.');
+        fetchReclamosAdmin();
+      } else {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+    } catch (e: any) {
+      toast.error('Error al actualizar el estado del reclamo.');
+    }
+  };
+
+  const handleUpdateReclamoPrioridad = async (id: string, nuevaPrioridad: string) => {
+    try {
+      const res = await authFetch(`/api/reclamos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prioridad: nuevaPrioridad })
+      });
+      if (res.ok) {
+        toast.success('Prioridad del reclamo actualizada.');
+        fetchReclamosAdmin();
+      } else {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+    } catch (e: any) {
+      toast.error('Error al actualizar la prioridad del reclamo.');
+    }
+  };
+
+  const handleDeleteReclamo = async (id: string) => {
+    if (!confirm('¿Seguro que deseas eliminar este reclamo de la base de datos local?')) return;
+    try {
+      const res = await authFetch(`/api/reclamos/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success('Reclamo eliminado.');
+        fetchReclamosAdmin();
+      } else {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+    } catch (e: any) {
+      toast.error('Error al eliminar el reclamo.');
+    }
+  };
+
+  const handleClearReclamos = async () => {
+    if (!confirm('¡ATENCIÓN! Esto eliminará TODOS los reclamos guardados en la base de datos local. ¿Deseas continuar?')) return;
+    try {
+      const res = await authFetch('/api/reclamos', {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        toast.success('Todos los reclamos fueron eliminados.');
+        fetchReclamosAdmin();
+      } else {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+    } catch (e: any) {
+      toast.error('Error al limpiar la base de datos.');
+    }
+  };
 
   const fetchSolicitudesQr = async () => {
     try {
@@ -1184,6 +1290,11 @@ export default function AdminPage() {
           {dbUser?.permisos?.verLineas && (
             <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
               <Train size={14} /> Líneas de Colectivo
+            </button>
+          )}
+          {dbUser?.permisos?.verReclamos && (
+            <button className={`${styles.menuItem} ${activeTab === 'reclamos' ? styles.active : ''}`} onClick={() => setActiveTab('reclamos')}>
+              <ClipboardList size={14} /> Reclamos SAT
             </button>
           )}
           {dbUser?.permisos?.gestionarUsuarios && (
@@ -2674,6 +2785,8 @@ export default function AdminPage() {
                         <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Transp.</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Ver Colectivos</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Colectivos</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Ver Reclamos</th>
+                        <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Editar Reclamos</th>
                         <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>Gestión Usuarios</th>
                       </tr>
                     </thead>
@@ -2701,6 +2814,12 @@ export default function AdminPage() {
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
                             <input type="checkbox" checked={rolData.editarLineas} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'editarLineas', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.verReclamos} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'verReclamos', e.target.checked)} />
+                          </td>
+                          <td style={{ padding: '12px', textAlign: 'center' }}>
+                            <input type="checkbox" checked={rolData.editarReclamos} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'editarReclamos', e.target.checked)} />
                           </td>
                           <td style={{ padding: '12px', textAlign: 'center' }}>
                             <input type="checkbox" checked={rolData.gestionarUsuarios} disabled={rolData.rol === 'SUPER_ADMIN'} onChange={(e) => handlePermisoChange(rolData.id, 'gestionarUsuarios', e.target.checked)} />
@@ -2811,6 +2930,236 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
+            </section>
+          )}
+
+          {/* ── Reclamos SAT ── */}
+          {activeTab === 'reclamos' && dbUser?.permisos?.verReclamos && (
+            <section className={styles.fullSection}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
+                <div>
+                  <h2>Gestión de Reclamos SAT</h2>
+                  <p className={styles.tabDescription}>
+                    Visualice, filtre y administre los reclamos de transporte y tránsito pesado importados de la plataforma SAT.
+                  </p>
+                </div>
+                {dbUser?.permisos?.editarReclamos && (
+                  <button onClick={handleClearReclamos} className={styles.deleteBtn} style={{ padding: '8px 16px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>
+                    Vaciar Base de Datos
+                  </button>
+                )}
+              </div>
+
+              {/* Filtros y Búsqueda */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                {/* Búsqueda */}
+                <div style={{ flex: 1, minWidth: '200px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Buscar por Expediente / Dirección / Ciudadano</label>
+                  <input
+                    type="text"
+                    value={reclamosSearch}
+                    onChange={e => setReclamosSearch(e.target.value)}
+                    placeholder="Ej. 2026-1006 o Ayacucho..."
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                  />
+                </div>
+
+                {/* Filtro Categoría */}
+                <div style={{ width: '180px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Categoría</label>
+                  <select
+                    value={reclamosFilterCat}
+                    onChange={e => setReclamosFilterCat(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#fff' }}
+                  >
+                    <option value="TODAS">Todas</option>
+                    <option value="81">Infracción Tránsito Pesado</option>
+                    <option value="83">Fuera de recorrido (Colectivos)</option>
+                    <option value="38">Transporte Público</option>
+                    <option value="33">Control de Tránsito</option>
+                    <option value="84">Colectivo no frena en parada</option>
+                  </select>
+                </div>
+
+                {/* Filtro Prioridad */}
+                <div style={{ width: '130px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Prioridad</label>
+                  <select
+                    value={reclamosFilterPrio}
+                    onChange={e => setReclamosFilterPrio(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#fff' }}
+                  >
+                    <option value="TODAS">Todas</option>
+                    <option value="URGENTE">Urgente</option>
+                    <option value="ALTA">Alta</option>
+                    <option value="MEDIA">Media</option>
+                    <option value="BAJA">Baja</option>
+                  </select>
+                </div>
+
+                {/* Filtro Estado */}
+                <div style={{ width: '130px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Estado</label>
+                  <select
+                    value={reclamosFilterEstado}
+                    onChange={e => setReclamosFilterEstado(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#fff' }}
+                  >
+                    <option value="TODOS">Todos</option>
+                    <option value="NUEVO">Nuevo</option>
+                    <option value="ASIGNADO">Asignado</option>
+                    <option value="RESUELTO">Resuelto</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Listado de Reclamos en Tabla */}
+              {loadingReclamosAdmin ? (
+                <p>Cargando reclamos...</p>
+              ) : (
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Expediente</th>
+                        <th>Fecha</th>
+                        <th>Categoría</th>
+                        <th>Dirección</th>
+                        <th>Ciudadano</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        {dbUser?.permisos?.editarReclamos && <th style={{ textAlign: 'center' }}>Acciones</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const filtered = reclamosAdmin.filter(rec => {
+                          const term = reclamosSearch.toLowerCase();
+                          const matchesSearch = !term ||
+                            (rec.numero && rec.numero.toLowerCase().includes(term)) ||
+                            (rec.direccion && rec.direccion.toLowerCase().includes(term)) ||
+                            (rec.ciudadano && rec.ciudadano.toLowerCase().includes(term)) ||
+                            (rec.motivoNombre && rec.motivoNombre.toLowerCase().includes(term));
+
+                          const matchesCat = reclamosFilterCat === 'TODAS' || String(rec.motivoId) === reclamosFilterCat;
+                          const matchesPrio = reclamosFilterPrio === 'TODAS' || rec.prioridad === reclamosFilterPrio;
+                          const matchesEstado = reclamosFilterEstado === 'TODOS' || rec.estado === reclamosFilterEstado;
+
+                          return matchesSearch && matchesCat && matchesPrio && matchesEstado;
+                        });
+
+                        if (filtered.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={dbUser?.permisos?.editarReclamos ? 8 : 7} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                                No se encontraron reclamos con los filtros seleccionados.
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        return filtered.map(rec => {
+                          const priBg = rec.prioridad === 'URGENTE' ? '#fee2e2' : rec.prioridad === 'ALTA' ? '#ffedd5' : '#f1f5f9';
+                          const priColor = rec.prioridad === 'URGENTE' ? '#991b1b' : rec.prioridad === 'ALTA' ? '#92400e' : '#475569';
+                          const statusBg = rec.estado === 'RESUELTO' ? '#dcfce7' : rec.estado === 'ASIGNADO' ? '#dbeafe' : '#f1f5f9';
+                          const statusColor = rec.estado === 'RESUELTO' ? '#166534' : rec.estado === 'ASIGNADO' ? '#1e40af' : '#475569';
+
+                          return (
+                            <tr key={rec.id}>
+                              <td>
+                                <strong>#{rec.numero.split('-').pop()}</strong>
+                                <div style={{ fontSize: '10px', color: '#94a3b8' }}>{rec.numero}</div>
+                              </td>
+                              <td><small style={{ color: '#64748b' }}>{rec.fecha || '—'}</small></td>
+                              <td>
+                                <span style={{ fontSize: '12px', fontWeight: 500 }}>{rec.motivoNombre}</span>
+                                <div style={{ fontSize: '9px', color: '#94a3b8' }}>ID Motivo: {rec.motivoId}</div>
+                              </td>
+                              <td><span style={{ fontSize: '12px' }}>📍 {rec.direccion || 'Ubicación'}</span></td>
+                              <td>
+                                <strong>{rec.ciudadano || 'Anónimo'}</strong>
+                                {rec.dniCiudadano && <div style={{ fontSize: '10px', color: '#94a3b8' }}>DNI: {rec.dniCiudadano}</div>}
+                              </td>
+                              <td>
+                                <span style={{ background: priBg, color: priColor, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                                  {rec.prioridad}
+                                </span>
+                              </td>
+                              <td>
+                                {dbUser?.permisos?.editarReclamos ? (
+                                  <select
+                                    value={rec.estado}
+                                    onChange={e => handleUpdateReclamoStatus(rec.id, e.target.value)}
+                                    style={{
+                                      padding: '4px 6px',
+                                      fontSize: '11px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #cbd5e1',
+                                      background: statusBg,
+                                      color: statusColor,
+                                      fontWeight: 'bold',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <option value="NUEVO">NUEVO</option>
+                                    <option value="ASIGNADO">ASIGNADO</option>
+                                    <option value="RESUELTO">RESUELTO</option>
+                                  </select>
+                                ) : (
+                                  <span style={{ background: statusBg, color: statusColor, padding: '3px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                                    {rec.estado}
+                                  </span>
+                                )}
+                              </td>
+                              {dbUser?.permisos?.editarReclamos && (
+                                <td style={{ textAlign: 'center' }}>
+                                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                    {/* Cambiar prioridad */}
+                                    <select
+                                      value={rec.prioridad}
+                                      onChange={e => handleUpdateReclamoPrioridad(rec.id, e.target.value)}
+                                      style={{
+                                        padding: '4px',
+                                        fontSize: '10px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #cbd5e1',
+                                        cursor: 'pointer'
+                                      }}
+                                      title="Cambiar Prioridad"
+                                    >
+                                      <option value="BAJA">Baja</option>
+                                      <option value="MEDIA">Media</option>
+                                      <option value="ALTA">Alta</option>
+                                      <option value="URGENTE">Urgente</option>
+                                    </select>
+                                    
+                                    {/* Eliminar */}
+                                    <button
+                                      onClick={() => handleDeleteReclamo(rec.id)}
+                                      style={{
+                                        padding: '4px 8px',
+                                        background: '#fee2e2',
+                                        color: '#ef4444',
+                                        border: '1px solid #fca5a5',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '11px',
+                                        fontWeight: 600
+                                      }}
+                                    >
+                                      Eliminar
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           )}
         </div>

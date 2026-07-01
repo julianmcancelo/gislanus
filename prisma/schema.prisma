@@ -166,6 +166,32 @@ model RolPermisos {
   editarLineas      Boolean  @default(false)
   verRutas          Boolean  @default(false)
   editarRutas       Boolean  @default(false)
+  verReclamos       Boolean  @default(false)
+  editarReclamos     Boolean  @default(false)
   gestionarGrupos   Boolean  @default(false)
   gestionarUsuarios Boolean  @default(false)
 }
+
+model Reclamo {
+  id            String   @id // ID del reclamo (ej: "1006")
+  numero        String   @unique // Código del expediente (ej: "2026-1006")
+  titulo        String
+  descripcion   String?
+  estado        String   // nuevo | asignado | resuelto | etc.
+  prioridad     String   // baja | media | alta | urgente
+  lat           Float
+  lng           Float
+  direccion     String?
+  ciudadano     String?
+  dniCiudadano  String?
+  fecha         String?  // Fecha del reclamo en formato SAT
+  motivoId      Int
+  motivoNombre  String
+  canalEntrada  String?  // Web | WhatsApp | etc.
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@index([motivoId])
+  @@index([estado])
+}
+

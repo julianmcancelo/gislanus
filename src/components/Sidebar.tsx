@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin,
-  Shield, User, ExternalLink, ChevronDown, ChevronRight,
+  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -31,9 +31,24 @@ interface Capa {
 interface SidebarProps {
   capas: Capa[];
   alternarCapa: (id: string) => void;
-  activeTab: 'layers' | 'info' | null;
-  setActiveTab: (tab: 'layers' | 'info' | null) => void;
+  activeTab: 'layers' | 'info' | 'reclamos' | null;
+  setActiveTab: (tab: 'layers' | 'info' | 'reclamos' | null) => void;
+  reclamos: any[];
+  loadingReclamos: boolean;
+  verReclamosCalor: boolean;
+  setVerReclamosCalor: (val: boolean) => void;
+  verReclamosMarcadores: boolean;
+  setVerReclamosMarcadores: (val: boolean) => void;
+  motivosSeleccionados: number[];
+  setMotivosSeleccionados: (val: number[]) => void;
+  estadoFiltro: string;
+  setEstadoFiltro: (val: string) => void;
+  prioridadFiltro: string;
+  setPrioridadFiltro: (val: string) => void;
+  recargarReclamos: () => void;
+  mapInstance: L.Map | null;
 }
+
 
 type SubgrupoData = { capasDirectas: Capa[]; subsubgrupos: Record<string, Capa[]> };
 type GroupedData  = { capasDirectas: Capa[]; subgrupos: Record<string, SubgrupoData> };
@@ -141,12 +156,100 @@ function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
 }
 
 /* ── Sidebar principal ── */
-export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }: SidebarProps) {
+export default function Sidebar({
+  capas,
+  alternarCapa,
+  activeTab,
+  setActiveTab,
+  reclamos,
+  loadingReclamos,
+  verReclamosCalor,
+  setVerReclamosCalor,
+  verReclamosMarcadores,
+  setVerReclamosMarcadores,
+  motivosSeleccionados,
+  setMotivosSeleccionados,
+  estadoFiltro,
+  setEstadoFiltro,
+  prioridadFiltro,
+  setPrioridadFiltro,
+  recargarReclamos,
+  mapInstance
+}: SidebarProps) {
   const { user, dbUser, logout } = useAuth();
   const router = useRouter();
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({ 'Solicitudes Transporte Pesado': true });
   const [expandedSols, setExpandedSols] = useState<Record<string, boolean>>({});
   const [confirmLogout, setConfirmLogout] = useState(false);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
+
+  const handleSyncSAT = async () => {
+    setIsSyncing(true);
+    setSyncResult('Obteniendo sesión de SAT...');
+    try {
+      let satToken = '';
+
+      // 1. Intentar obtener el token localmente (funcionará si está en el mismo dominio)
+      try {
+        const sessionRes = await fetch('/api/auth/session');
+        if (sessionRes.ok) {
+          const sessionData = await sessionRes.json();
+          satToken = sessionData?.accessToken || '';
+        }
+      } catch (e) {
+        console.log('No se pudo leer la sesión local (común en localhost):', e);
+      }
+
+      // 2. Si no hay token de sesión local, pedirlo amigablemente
+      if (!satToken) {
+        const inputToken = prompt(
+          "Para sincronizar desde localhost, necesitamos el Token de Acceso de SAT.\n\n" +
+          "Cómo obtenerlo:\n" +
+          "1. Ve a tu pestaña abierta de SAT Lanús (https://sat.lanus.gob.ar/reclamos).\n" +
+          "2. Abre la Consola del Desarrollador (presiona F12 o Ctrl+Shift+I).\n" +
+          "3. Ejecuta esta línea en la Consola:\n" +
+          "   (await fetch('/api/auth/session').then(r=>r.json())).accessToken\n\n" +
+          "4. Copia el texto largo resultante y pégalo aquí:"
+        );
+        if (!inputToken) {
+          setSyncResult('Sincronización cancelada.');
+          setIsSyncing(false);
+          return;
+        }
+        satToken = inputToken.trim();
+      }
+
+      setSyncResult('Sincronizando reclamos del SAT...');
+      const localToken = await user?.getIdToken();
+      
+      // Enviamos el satToken al backend, el cual realizará la petición de descarga sin trabas de CORS
+      const localSyncRes = await fetch('/api/reclamos/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(localToken ? { 'Authorization': `Bearer ${localToken}` } : {})
+        },
+        body: JSON.stringify({ satToken })
+      });
+
+      if (!localSyncRes.ok) {
+        const syncErr = await localSyncRes.json();
+        throw new Error(syncErr.error || 'Error al guardar los reclamos en el GIS.');
+      }
+
+      const syncResultData = await localSyncRes.json();
+      setSyncResult(`¡Sincronización exitosa! Sincronizados: ${syncResultData.count}`);
+      recargarReclamos();
+    } catch (err: any) {
+      console.error(err);
+      setSyncResult(`Error: ${err.message}`);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncResult(null), 6000);
+    }
+  };
 
   const toggleSol  = (k: string) => setExpandedSols(p => ({ ...p, [k]: p[k] === false }));
   const toggleNode = (k: string) => setExpandedNodes(p => ({ ...p, [k]: !p[k] }));
@@ -194,6 +297,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
   const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
   const canAccessLineas     = isSuperAdmin || (dbUser?.permisos?.editarLineas ?? false);
   const canAccessAdmin      = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
+  const canAccessReclamos   = isSuperAdmin || (dbUser?.permisos?.verReclamos ?? false);
 
   return (
     <div className={styles.sidebarContainer}>
@@ -208,6 +312,12 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
           onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} title="Información">
           <Info size={16} />
         </div>
+        {canAccessReclamos && (
+          <div className={`${styles.navIcon} ${activeTab === 'reclamos' ? styles.navIconActive : ''}`}
+            onClick={() => setActiveTab(activeTab === 'reclamos' ? null : 'reclamos')} title="Reclamos SAT">
+            <ClipboardList size={16} />
+          </div>
+        )}
 
         <div style={{ flex: 1 }} />
         <div className={styles.navDivider} />
@@ -623,6 +733,255 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
               <p style={{ fontSize: '0.6rem', color: '#d1d5db', textAlign: 'center', marginTop: 'auto', paddingTop: 8, lineHeight: 1.7 }}>
                 GIS Lanús · v2.0
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Reclamos ── */}
+        {activeTab === 'reclamos' && (
+          <div className={styles.panelContent}>
+            <div className={styles.panelHeader}>
+              <div className={styles.panelHeaderIcon}>
+                <ClipboardList size={14} color="#64748b" />
+              </div>
+              <h3 className={styles.panelTitle}>Reclamos SAT</h3>
+              <span className={`${styles.badge} ${styles.badgeBlue}`}>{reclamos.length}</span>
+            </div>
+
+            <div className={styles.panelBody} style={{ gap: '10px' }}>
+              {/* Sección Sincronización */}
+              <div style={{
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>SINCRONIZACIÓN</p>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={handleSyncSAT}
+                    disabled={isSyncing || loadingReclamos}
+                    style={{
+                      flex: 1,
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '8px',
+                      fontSize: '11px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 4px rgba(37,99,235,0.2)',
+                      transition: 'all 0.15s'
+                    }}
+                    onMouseOver={e => e.currentTarget.style.filter = 'brightness(1.05)'}
+                    onMouseOut={e => e.currentTarget.style.filter = 'none'}
+                  >
+                    <RefreshCw size={12} className={isSyncing ? styles.spin : ''} />
+                    {isSyncing ? 'Sincronizando...' : 'Sincronizar SAT'}
+                  </button>
+                </div>
+                {syncResult && (
+                  <p style={{ margin: 0, fontSize: '10px', color: syncResult.startsWith('Error') ? '#dc2626' : '#16a34a', fontWeight: 500 }}>
+                    {syncResult}
+                  </p>
+                )}
+              </div>
+
+              {/* Controles de Visualización */}
+              <div style={{
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>CAPAS DE MAPA</p>
+                
+                {/* Toggle Mapa de Calor */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
+                  <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>Mapa de Calor</span>
+                  <Toggle active={verReclamosCalor} color="#ef4444" onChange={() => setVerReclamosCalor(!verReclamosCalor)} />
+                </div>
+                
+                {/* Toggle Marcadores */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
+                  <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>Marcadores</span>
+                  <Toggle active={verReclamosMarcadores} color="#2563eb" onChange={() => setVerReclamosMarcadores(!verReclamosMarcadores)} />
+                </div>
+              </div>
+
+              {/* Filtros */}
+              <div style={{
+                background: '#fff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>FILTROS</p>
+
+                {/* Filtro por Categorías (Motivos) */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>Categorías</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '120px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {[
+                      { id: 81, name: 'Infracción Tránsito Pesado' },
+                      { id: 83, name: 'Fuera de recorrido (Colectivos)' },
+                      { id: 38, name: 'Transporte Público' },
+                      { id: 33, name: 'Control de Tránsito' },
+                      { id: 84, name: 'Colectivo no frena en parada' },
+                    ].map(cat => {
+                      const selected = motivosSeleccionados.includes(cat.id);
+                      return (
+                        <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#475569', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => {
+                              if (selected) {
+                                setMotivosSeleccionados(motivosSeleccionados.filter(id => id !== cat.id));
+                              } else {
+                                setMotivosSeleccionados([...motivosSeleccionados, cat.id]);
+                              }
+                            }}
+                            style={{ accentColor: '#2563eb', cursor: 'pointer' }}
+                          />
+                          {cat.name}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Filtro por Prioridad */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>Prioridad</label>
+                  <select
+                    value={prioridadFiltro}
+                    onChange={e => setPrioridadFiltro(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '6px',
+                      fontSize: '11px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#334155'
+                    }}
+                  >
+                    <option value="TODAS">Todas</option>
+                    <option value="URGENTE">Urgente</option>
+                    <option value="ALTA">Alta</option>
+                    <option value="MEDIA">Media</option>
+                    <option value="BAJA">Baja</option>
+                  </select>
+                </div>
+
+                {/* Filtro por Estado */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', color: '#94a3b8', fontWeight: 600, marginBottom: '4px', textTransform: 'uppercase' }}>Estado</label>
+                  <select
+                    value={estadoFiltro}
+                    onChange={e => setEstadoFiltro(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '6px',
+                      fontSize: '11px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: '#fff',
+                      color: '#334155'
+                    }}
+                  >
+                    <option value="TODOS">Todos</option>
+                    <option value="NUEVO">Nuevo</option>
+                    <option value="ASIGNADO">Asignado</option>
+                    <option value="RESUELTO">Resuelto</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Lista de Reclamos */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minHeight: '150px' }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>RECLAMOS ({reclamos.length})</p>
+                <div style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  maxHeight: '300px'
+                }}>
+                  {loadingReclamos ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+                      <RefreshCw size={18} className={`${styles.spin} animate-spin`} color="#64748b" />
+                    </div>
+                  ) : reclamos.length === 0 ? (
+                    <p style={{ margin: 0, padding: '20px', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
+                      No hay reclamos cargados con los filtros seleccionados.
+                    </p>
+                  ) : (
+                    reclamos.map(rec => {
+                      const color = rec.motivoId === 81 ? '#EF4444' : '#3B82F6';
+                      const prioBg = rec.prioridad === 'URGENTE' ? '#fee2e2' : rec.prioridad === 'ALTA' ? '#ffedd5' : '#f1f5f9';
+                      const prioColor = rec.prioridad === 'URGENTE' ? '#991b1b' : rec.prioridad === 'ALTA' ? '#92400e' : '#475569';
+                      
+                      return (
+                        <div
+                          key={rec.id}
+                          onClick={() => {
+                            if (mapInstance) {
+                              mapInstance.setView([rec.lat, rec.lng], 16);
+                            }
+                          }}
+                          style={{
+                            background: '#fff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            padding: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                            transition: 'border-color 0.15s',
+                          }}
+                          onMouseOver={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+                          onMouseOut={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color }} />
+                              <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#1e293b' }}>#{rec.numero.split('-').pop()}</span>
+                            </div>
+                            <span style={{ background: prioBg, color: prioColor, padding: '1px 4px', borderRadius: '4px', fontSize: '8px', fontWeight: 'bold' }}>
+                              {rec.prioridad}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {rec.motivoNombre}
+                          </span>
+                          <span style={{ fontSize: '9px', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            📍 {rec.direccion || 'Ubicación'}
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         )}

@@ -18,6 +18,8 @@ export interface PermisosRol {
   editarLineas: boolean;
   verRutas: boolean;
   editarRutas: boolean;
+  verReclamos: boolean;
+  editarReclamos: boolean;
   gestionarGrupos: boolean;
   gestionarUsuarios: boolean;
 }

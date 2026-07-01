@@ -13,12 +13,12 @@ export async function POST(req: Request) {
 
     // Asegurar que los roles básicos existan en la tabla RolPermisos
     const rolesBasicos = [
-      { rol: 'SUPER_ADMIN', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, gestionarGrupos: true, gestionarUsuarios: true },
-      { rol: 'ADMINISTRADOR', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, gestionarGrupos: true, gestionarUsuarios: false },
-      { rol: 'OPERADOR', accesoAdmin: true, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: true, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
-      { rol: 'CHOFER', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: true, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
-      { rol: 'VECINO', accesoAdmin: false, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: false, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false },
-      { rol: 'PENDIENTE', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: false, editarRutas: false, gestionarGrupos: false, gestionarUsuarios: false }
+      { rol: 'SUPER_ADMIN', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, verReclamos: true, editarReclamos: true, gestionarGrupos: true, gestionarUsuarios: true },
+      { rol: 'ADMINISTRADOR', accesoAdmin: true, verCapas: true, editarCapas: true, verLineas: true, editarLineas: true, verRutas: true, editarRutas: true, verReclamos: true, editarReclamos: true, gestionarGrupos: true, gestionarUsuarios: false },
+      { rol: 'OPERADOR', accesoAdmin: true, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: true, editarRutas: false, verReclamos: true, editarReclamos: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'CHOFER', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: true, editarRutas: false, verReclamos: false, editarReclamos: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'VECINO', accesoAdmin: false, verCapas: true, editarCapas: false, verLineas: true, editarLineas: false, verRutas: false, editarRutas: false, verReclamos: false, editarReclamos: false, gestionarGrupos: false, gestionarUsuarios: false },
+      { rol: 'PENDIENTE', accesoAdmin: false, verCapas: false, editarCapas: false, verLineas: false, editarLineas: false, verRutas: false, editarRutas: false, verReclamos: false, editarReclamos: false, gestionarGrupos: false, gestionarUsuarios: false }
     ];
 
     for (const r of rolesBasicos) {

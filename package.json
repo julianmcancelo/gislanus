@@ -12,6 +12,7 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@geoman-io/leaflet-geoman-free": "^2.19.3",
+    "@google/genai": "^2.10.0",
     "@prisma/client": "5.22.0",
     "@tmcw/togeojson": "^7.1.2",
     "@turf/turf": "^7.3.5",
