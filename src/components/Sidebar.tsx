@@ -600,7 +600,7 @@ export default function Sidebar({ capas, alternarCapa, activeTab, setActiveTab }
                       <ExternalLink size={10} color="#d1d5db" />
                     </a>
                   )}
-                  {canAccessHeavyTransport && (
+                  {canAccessTransporte && (
                     <a href="/instalar-asistente" style={{
                       display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px',
                       textDecoration: 'none', background: 'transparent', transition: 'background 0.1s'
