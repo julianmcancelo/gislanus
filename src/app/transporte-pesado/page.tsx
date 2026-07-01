@@ -80,6 +80,24 @@ export default function TransportePesadoWizard() {
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
 
+  const bookmarkletRef = React.useRef<HTMLAnchorElement>(null);
+  const [origin, setOrigin] = useState('https://lanus-gis.vercel.app');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
+  const bookmarkletCode = `javascript:(function(){var main=document.querySelector('.box-body')||document.querySelector('.content-wrapper')||document.querySelector('.content')||document.querySelector('main')||document.body;var text=main.innerText;var pageUrl=window.location.href;var pdfEl=document.querySelector('a[href*=\x22devoluciones/\x22]');var pdfUrl=pdfEl?pdfEl.href:null;var qrEl=Array.from(document.querySelectorAll('a[href*=\x22/qr/\x22]')).find(function(a){return!a.href.includes('/img')});var qrUrl=qrEl?qrEl.href:null;var imgs=Array.from(document.querySelectorAll('a[href]')).filter(function(a){return/\.(png|jpg|jpeg|pdf)$/i.test(a.href)&&(a.href.includes('croquis')||a.href.includes('formularios'))}).map(function(a){return a.href});var payload=JSON.stringify({text:text,pageUrl:pageUrl,pdfUrl:pdfUrl,qrUrl:qrUrl,imageUrls:imgs});window.open('${origin}/transporte-pesado#'+encodeURIComponent(payload),'_blank')})();`;
+
+  useEffect(() => {
+    if (bookmarkletRef.current) {
+      bookmarkletRef.current.setAttribute('href', bookmarkletCode);
+    }
+  }, [bookmarkletCode]);
+
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hash) {
       const hashContent = decodeURIComponent(window.location.hash.substring(1));
@@ -1107,7 +1125,7 @@ export default function TransportePesadoWizard() {
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <a
-                    href="javascript:(function(){var main=document.querySelector('.box-body')||document.querySelector('.content-wrapper')||document.querySelector('.content')||document.querySelector('main')||document.body;var text=main.innerText;var pageUrl=window.location.href;var pdfEl=document.querySelector('a[href*=\x22devoluciones/\x22]');var pdfUrl=pdfEl?pdfEl.href:null;var qrEl=Array.from(document.querySelectorAll('a[href*=\x22/qr/\x22]')).find(function(a){return!a.href.includes('/img')});var qrUrl=qrEl?qrEl.href:null;var imgs=Array.from(document.querySelectorAll('a[href]')).filter(function(a){return/\.(png|jpg|jpeg|pdf)$/i.test(a.href)&&(a.href.includes('croquis')||a.href.includes('formularios'))}).map(function(a){return a.href});var payload=JSON.stringify({text:text,pageUrl:pageUrl,pdfUrl:pdfUrl,qrUrl:qrUrl,imageUrls:imgs});window.open(window.location.origin+'/transporte-pesado#'+encodeURIComponent(payload),'_blank')})();"
+                    ref={bookmarkletRef}
                     style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: 'white', border: '1px solid #c4b5fd', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', textDecoration: 'none', cursor: 'grab', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
                     onClick={(e) => e.preventDefault()}
                     title="Arrastrá este botón a tu barra de marcadores"
