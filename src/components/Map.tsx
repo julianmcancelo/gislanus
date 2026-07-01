@@ -704,7 +704,7 @@ export default function MapComponent() {
               [-34.7505, -58.4519], // Sur-Oeste
               [-34.6537, -58.3284]  // Nor-Este
             ]}
-            style={{ width: '100%', height: '100%', zIndex: 1 }}
+            style={{ width: '100%', height: '100%' }}
             zoomControl={false}
             ref={setMapInstance}
           >
@@ -712,6 +712,7 @@ export default function MapComponent() {
           attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
           maxZoom={19}
+          zIndex={0}
         />
 
         <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />

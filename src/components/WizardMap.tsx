@@ -455,13 +455,14 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints, in
         zoom={14}
         minZoom={12}
         maxBounds={[[-34.7505, -58.4519], [-34.6537, -58.3284]]}
-        style={{ width: '100%', height: '100%', zIndex: 1 }}
+        style={{ width: '100%', height: '100%' }}
         zoomControl={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a>'
           url={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}`}
           maxZoom={19}
+          zIndex={0}
         />
         <MapSearch />
         <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} initialFeatures={initialFeatures} defaultRouteName={defaultRouteName} />

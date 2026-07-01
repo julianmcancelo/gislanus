@@ -9,7 +9,7 @@ import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa, emitirCambioEstado } from '@/lib/rtdb';
-import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield, LayoutDashboard, Layers, Truck, Train, UserCog, KeyRound, QrCode, FolderTree, ArrowLeft } from 'lucide-react';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield, LayoutDashboard, Layers, Truck, Train, UserCog, KeyRound, QrCode, FolderTree, ArrowLeft, RefreshCw } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -88,6 +88,13 @@ export default function AdminPage() {
   const [reclamosFilterPrio, setReclamosFilterPrio] = useState('TODAS');
   const [reclamosFilterEstado, setReclamosFilterEstado] = useState('TODOS');
   const [reclamosFilterCat, setReclamosFilterCat] = useState('TODAS');
+
+  // TramitesWeb Sync State
+  const [tramitesCookie, setTramitesCookie] = useState('');
+  const [isSyncingTramites, setIsSyncingTramites] = useState(false);
+  const [tramitesFormId, setTramitesFormId] = useState('160');
+  const [tramitesEstado, setTramitesEstado] = useState('archivadas');
+  const [syncResult, setSyncResult] = useState<any | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -295,6 +302,43 @@ export default function AdminPage() {
       }
     } catch (e: any) {
       toast.error('Error al limpiar la base de datos.');
+    }
+  };
+
+  const handleSyncTramites = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tramitesCookie.trim()) {
+      toast.error('Por favor, ingresá la cookie de sesión.');
+      return;
+    }
+    
+    setIsSyncingTramites(true);
+    setSyncResult(null);
+    const toastId = toast.loading('Sincronizando trámites... Esto puede demorar un momento por la geocodificación de calles.');
+    
+    try {
+      const res = await authFetch('/api/rutas-transporte/sync-tramites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cookie: tramitesCookie,
+          formularioId: tramitesFormId,
+          estado: tramitesEstado
+        })
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        toast.success('Sincronización de TramitesWeb finalizada.', { id: toastId });
+        setSyncResult(data);
+        fetchData(); // Actualizar las rutas cargadas en el dashboard/GIS
+      } else {
+        throw new Error(data.error || 'Error desconocido.');
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Error al conectar con TramitesWeb.', { id: toastId });
+    } finally {
+      setIsSyncingTramites(false);
     }
   };
 
@@ -1298,6 +1342,11 @@ export default function AdminPage() {
           {canVerRutas && (
             <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
               <Truck size={14} /> Transporte Pesado
+            </button>
+          )}
+          {canEditarRutas && (
+            <button className={`${styles.menuItem} ${activeTab === 'sync-tramites' ? styles.active : ''}`} onClick={() => setActiveTab('sync-tramites')}>
+              <RefreshCw size={14} /> Sincronizar Trámites
             </button>
           )}
           {canVerLineas && (
@@ -3171,6 +3220,137 @@ export default function AdminPage() {
                       })()}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* ── Sincronizar Trámites ── */}
+          {activeTab === 'sync-tramites' && canEditarRutas && (
+            <section className={styles.fullSection}>
+              <h2>Sincronización Masiva de Trámites Web</h2>
+              <p className={styles.tabDescription}>
+                Importe lotes de solicitudes aprobadas o archivadas de Tránsito Pesado directamente desde la plataforma municipal TramitesWeb.
+              </p>
+
+              <form onSubmit={handleSyncTramites} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '700px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                  {/* Formulario ID */}
+                  <div style={{ flex: 1, minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>ID Formulario TramitesWeb</label>
+                    <input
+                      type="text"
+                      value={tramitesFormId}
+                      onChange={e => setTramitesFormId(e.target.value)}
+                      placeholder="Ej. 160"
+                      style={{ padding: '10px 12px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                      required
+                    />
+                  </div>
+
+                  {/* Estado */}
+                  <div style={{ flex: 1, minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>Estado de Solicitudes</label>
+                    <select
+                      value={tramitesEstado}
+                      onChange={e => setTramitesEstado(e.target.value)}
+                      style={{ padding: '10px 12px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#fff' }}
+                      required
+                    >
+                      <option value="archivadas">Archivadas / Aprobadas</option>
+                      <option value="pendientes">Pendientes</option>
+                      <option value="todas">Todas</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Cookie */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    Cookie de Sesión (tramitesweb.lanus.gob.ar)
+                  </label>
+                  <textarea
+                    value={tramitesCookie}
+                    onChange={e => setTramitesCookie(e.target.value)}
+                    placeholder="Pegá aquí el encabezado Cookie completo (ej. laravel_session=...; XSRF-TOKEN=...)"
+                    rows={4}
+                    style={{ padding: '10px 12px', fontSize: '12px', fontFamily: 'monospace', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', resize: 'vertical' }}
+                    required
+                  />
+                  <small style={{ color: '#64748b', fontSize: '11px', lineHeight: 1.4 }}>
+                    ⚠️ <strong>Instrucciones:</strong> Iniciá sesión en <code>tramitesweb.lanus.gob.ar/admin</code>, abrí la consola del navegador (F12) o ve a la pestaña Red (Network), copiá el encabezado <code>Cookie</code> de cualquier petición y pegalo acá. Las cookies HTTP de TramitesWeb expiran cada unas horas.
+                  </small>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSyncingTramites}
+                  style={{
+                    padding: '12px 24px',
+                    background: isSyncingTramites ? '#94a3b8' : 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isSyncingTramites ? 'not-allowed' : 'pointer',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: isSyncingTramites ? 'none' : '0 4px 12px rgba(124, 58, 237, 0.25)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {isSyncingTramites ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} /> Procesando e importando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={16} /> Iniciar Sincronización Lote
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Resultados */}
+              {syncResult && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '20px', maxWidth: '700px' }}>
+                  <h3 style={{ margin: '0 0 12px 0', color: '#166534', fontSize: '15px', fontWeight: 700 }}>
+                    Sincronización Completada:
+                  </h3>
+                  <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#1e3a1e' }}>
+                    <li>
+                      <strong>Total de solicitudes detectadas en la lista:</strong> {syncResult.totalFound}
+                    </li>
+                    <li>
+                      <strong>Importadas con éxito (nuevas trazas geocodificadas):</strong> {syncResult.imported?.length || 0}
+                      {syncResult.imported?.length > 0 && (
+                        <div style={{ fontSize: '11px', color: '#15803d', marginTop: '4px', background: '#dcfce7', padding: '6px 10px', borderRadius: '6px', fontFamily: 'monospace' }}>
+                          IDs: {syncResult.imported.join(', ')}
+                        </div>
+                      )}
+                    </li>
+                    <li>
+                      <strong>Omitidas (ya existían en la base de datos):</strong> {syncResult.skipped?.length || 0}
+                      {syncResult.skipped?.length > 0 && (
+                        <div style={{ fontSize: '11px', color: '#4b5563', marginTop: '4px', background: '#f3f4f6', padding: '6px 10px', borderRadius: '6px', fontFamily: 'monospace' }}>
+                          IDs: {syncResult.skipped.join(', ')}
+                        </div>
+                      )}
+                    </li>
+                    {syncResult.errors?.length > 0 && (
+                      <li style={{ color: '#991b1b' }}>
+                        <strong>Errores en la importación ({syncResult.errors.length}):</strong>
+                        <div style={{ fontSize: '11px', color: '#991b1b', marginTop: '4px', background: '#fee2e2', padding: '6px 10px', borderRadius: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {syncResult.errors.map((err: any, idx: number) => (
+                            <div key={idx}>• ID #{err.id}: {err.error}</div>
+                          ))}
+                        </div>
+                      </li>
+                    )}
+                  </ul>
                 </div>
               )}
             </section>
