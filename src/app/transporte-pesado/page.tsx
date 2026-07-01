@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock, Zap, ChevronUp, ChevronDown, Bot, AlertTriangle, Copy } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import NotificacionToast from '@/components/NotificacionToast';
-import CloneRutaModal from '@/components/CloneRutaModal';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -26,7 +25,7 @@ export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlEditId = searchParams.get('editId');
-  const { user, dbUser, loading, getIdToken } = useAuth();
+  const { user, dbUser, loading } = useAuth();
   const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
@@ -80,9 +79,6 @@ export default function TransportePesadoWizard() {
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
-  const [cloneModalOpen, setCloneModalOpen] = useState(false);
-  const [cloneSourceRuta, setCloneSourceRuta] = useState<any>(null);
-  const [isCloning, setIsCloning] = useState(false);
 
   const bookmarkletRef = React.useRef<HTMLAnchorElement>(null);
   const [origin, setOrigin] = useState('https://lanus-gis.vercel.app');
@@ -386,41 +382,6 @@ export default function TransportePesadoWizard() {
     setStep(3);
   };
 
-  const handleCloneRuta = async (cloneData: any, fieldsToChange: string[]) => {
-    if (!cloneSourceRuta) return;
-    setIsCloning(true);
-    try {
-      const token = await getIdToken();
-      const res = await fetch('/api/rutas-transporte/clone', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          sourceRutaId: cloneSourceRuta.id,
-          cloneData,
-          fieldsToChange,
-        }),
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Error al clonar la solicitud');
-      }
-      const result = await res.json();
-      console.log('Solicitud clonada exitosamente:', result);
-      setCloneModalOpen(false);
-      setCloneSourceRuta(null);
-      // Recargar el listado
-      setLoadingRutas(true);
-      fetchRutasList();
-    } catch (error: any) {
-      console.error('Error al clonar:', error.message);
-      alert('Error al clonar: ' + error.message);
-    } finally {
-      setIsCloning(false);
-    }
-  };
 
   const handleSubmitFinal = async () => {
     setIsSubmitting(true);
@@ -1043,10 +1004,60 @@ export default function TransportePesadoWizard() {
                                   )}
                                   <button
                                     onClick={() => {
-                                      console.log('Botón clonar clickeado, ruta:', ruta);
-                                      setCloneSourceRuta(ruta);
-                                      setCloneModalOpen(true);
-                                      console.log('Estados actualizados');
+                                      // Pre-llenar datos clonados
+                                      setNumeroSolicitud('');
+                                      setIdSolicitudWeb('');
+                                      setEnlaceDocumento(ruta.enlaceDocumento || '');
+                                      setFechaCreacion(ruta.fechaCreacion || '');
+                                      setNombreSolicitante(ruta.nombreSolicitante || '');
+                                      setEmpresaSolicitante(ruta.empresaSolicitante || '');
+                                      setCuilCuit(ruta.cuilCuit || '');
+                                      setEmailSolicitante(ruta.emailSolicitante || '');
+                                      setTelefonoSolicitante(ruta.telefonoSolicitante || '');
+                                      setPatente(ruta.patente || '');
+                                      setTipoVehiculo(ruta.tipoVehiculo || '');
+                                      setPesoToneladas(ruta.pesoToneladas ? String(ruta.pesoToneladas) : '');
+                                      setCargaPeligrosa(ruta.cargaPeligrosa || false);
+                                      setTipoCarga(ruta.tipoCarga || '');
+                                      setLargoVehiculo(ruta.largoVehiculo || '');
+                                      setAnchoVehiculo(ruta.anchoVehiculo || '');
+                                      setAlturaVehiculo(ruta.alturaVehiculo || '');
+                                      setCantidadEjes(ruta.cantidadEjes ? String(ruta.cantidadEjes) : '');
+                                      setAseguradora(ruta.aseguradora || '');
+                                      setNroSeguro(ruta.nroSeguro || '');
+                                      setOrigenDireccion(ruta.origenDireccion || '');
+                                      setOrigenLocalidad(ruta.origenLocalidad || '');
+                                      setOrigenPartido(ruta.origenPartido || '');
+                                      setOrigenNombre(ruta.origenNombre || '');
+                                      setDestinoDireccion(ruta.destinoDireccion || '');
+                                      setDestinoLocalidad(ruta.destinoLocalidad || '');
+                                      setDestinoPartido(ruta.destinoPartido || '');
+                                      setDestinoNombre(ruta.destinoNombre || '');
+                                      setFrecuencia(ruta.frecuencia || '');
+                                      setHorario(ruta.horario || '');
+                                      setObservaciones(ruta.observaciones || '');
+                                      setVigenciaDesde(ruta.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : '');
+                                      setVigenciaHasta(ruta.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : '');
+                                      // Cargar geometría
+                                      if (ruta.datosGeo) {
+                                        const geo = typeof ruta.datosGeo === 'string' ? JSON.parse(ruta.datosGeo) : ruta.datosGeo;
+                                        setDatosGeo(geo);
+                                        if (geo.geometry && geo.geometry.coordinates && geo.geometry.type === 'LineString') {
+                                          const coords = geo.geometry.coordinates;
+                                          if (coords.length >= 2) {
+                                            setSavedWaypoints([
+                                              { latLng: { lat: coords[0][1], lng: coords[0][0] } },
+                                              { latLng: { lat: coords[coords.length - 1][1], lng: coords[coords.length - 1][0] } }
+                                            ]);
+                                          }
+                                        }
+                                      }
+                                      if (ruta.calles) {
+                                        setTracedStreets(ruta.calles.split(' | '));
+                                      }
+                                      setEditId(null);
+                                      setStep(1);
+                                      setViewMode('wizard');
                                     }}
                                     style={{ padding: '6px 14px', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(37,99,235,0.3)' }}
                                     onMouseOver={(e) => e.currentTarget.style.opacity = '0.88'}
@@ -1084,18 +1095,6 @@ export default function TransportePesadoWizard() {
             )}
           </div>
         </div>
-
-        {/* ── Modal de Clonación de Ruta ── */}
-        <CloneRutaModal
-          isOpen={cloneModalOpen}
-          ruta={cloneSourceRuta}
-          onClose={() => {
-            setCloneModalOpen(false);
-            setCloneSourceRuta(null);
-          }}
-          onClone={handleCloneRuta}
-          isLoading={isCloning}
-        />
       </div>
     );
   }
