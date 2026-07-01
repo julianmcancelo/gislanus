@@ -1104,9 +1104,20 @@ export default function TransportePesadoWizard() {
                     <div style={{ fontSize: '11px', color: '#3b82f6', marginTop: '1px' }}>Pegá el link QR o el texto completo — la IA completa todo automáticamente</div>
                   </div>
                 </div>
-                <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: showImport ? '#e0e7ff' : '#2563eb', color: showImport ? '#1e40af' : 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {showImport ? <><ChevronUp size={13}/> Cerrar</> : <><ChevronDown size={13}/> Abrir</>}
-                </button>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <a
+                    href="javascript:(function(){var main=document.querySelector('.box-body')||document.querySelector('.content-wrapper')||document.querySelector('.content')||document.querySelector('main')||document.body;var text=main.innerText;var pageUrl=window.location.href;var pdfEl=document.querySelector('a[href*=\x22devoluciones/\x22]');var pdfUrl=pdfEl?pdfEl.href:null;var qrEl=Array.from(document.querySelectorAll('a[href*=\x22/qr/\x22]')).find(function(a){return!a.href.includes('/img')});var qrUrl=qrEl?qrEl.href:null;var imgs=Array.from(document.querySelectorAll('a[href]')).filter(function(a){return/\.(png|jpg|jpeg|pdf)$/i.test(a.href)&&(a.href.includes('croquis')||a.href.includes('formularios'))}).map(function(a){return a.href});var payload=JSON.stringify({text:text,pageUrl:pageUrl,pdfUrl:pdfUrl,qrUrl:qrUrl,imageUrls:imgs});window.open(window.location.origin+'/transporte-pesado#'+encodeURIComponent(payload),'_blank')})();"
+                    style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)', color: 'white', border: '1px solid #c4b5fd', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', textDecoration: 'none', cursor: 'grab', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 4 }}
+                    onClick={(e) => e.preventDefault()}
+                    title="Arrastrá este botón a tu barra de marcadores"
+                  >
+                    ✨ Instalar Magia GIS
+                  </a>
+                  <button type="button" onClick={() => setShowImport(!showImport)} style={{ background: showImport ? '#e0e7ff' : '#2563eb', color: showImport ? '#1e40af' : 'white', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {showImport ? <><ChevronUp size={13}/> Cerrar</> : <><ChevronDown size={13}/> Abrir</>}
+                  </button>
+                </div>
               </div>
 
               {showImport && (
