@@ -2,6 +2,7 @@
 
 .adminLayout {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background-color: #f0f4f8;
@@ -9,64 +10,59 @@
   color: #0f172a;
 }
 
-/* ── SIDEBAR ── */
-.sidebar {
-  width: 220px;
+/* ── TOP HEADER ── */
+.topHeader {
+  height: 60px;
   background: rgba(255,255,255,0.93);
   backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(226,232,240,0.8);
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  z-index: 10;
-  flex-shrink: 0;
-  box-shadow: 1px 0 16px rgba(15,23,42,0.05);
-}
-
-.sidebarHeader {
-  padding: 14px 14px 12px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(226,232,240,0.8);
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  padding: 0 24px;
 }
 
-.sidebarHeader h1 {
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headerBrand h1 {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.2px;
   line-height: 1.2;
 }
 
-.sidebarMenu {
-  flex: 1;
-  padding: 10px 8px;
+.headerNav {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  overflow-y: auto;
+  align-items: center;
+  gap: 8px;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
-  width: 100%;
-  text-align: left;
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: transparent;
   border: none;
   color: #64748b;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
-  gap: 8px;
+  gap: 6px;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .menuItem:hover {
@@ -83,9 +79,12 @@
 /* ── MAIN CONTENT ── */
 .contentArea {
   flex: 1;
-  padding: 24px 28px 48px;
+  padding: 32px 40px;
   overflow-y: auto;
   min-width: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1400px;
 }
 
 .pageTitle {
@@ -110,12 +109,12 @@
 }
 
 /* ── CARDS / SECTIONS ── */
-.formSection, .listSection, .fullSection, .previewSection {
-  background: #ffffff;
-  padding: 22px 24px;
-  border: 1px solid rgba(226,232,240,0.8);
-  border-radius: 16px;
-  box-shadow: 0 2px 14px rgba(15,23,42,0.05), 0 1px 3px rgba(15,23,42,0.03);
+.formSection, .listSection, .fullSection {
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
 .formSection h2, .listSection h2, .fullSection h2, .previewSection h2 {
@@ -229,6 +228,28 @@
   font-family: inherit;
 }
 .approveBtn:hover { background: #dcfce7; }
+
+.primaryButton {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+}
+
+.primaryButton:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37,99,235,0.3);
+}
 
 .rejectBtn {
   background: #f8fafc;

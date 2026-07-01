@@ -1354,78 +1354,79 @@ export default function AdminPage() {
   return (
     <div className={styles.adminLayout}>
       <Toaster position="top-right" />
-      {/* SIDEBAR */}
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>
-          {/* Logo Placeholder */}
+      {/* TOP HEADER */}
+      <header className={styles.topHeader}>
+        <div className={styles.headerBrand}>
           <div style={{ width: 30, height: 30, background: '#3b82f6', borderRadius: '8px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '14px' }}>G</div>
           <div>
             <h1>Administración GIS</h1>
             <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 500, marginTop: 1 }}>Panel de Control General</div>
           </div>
         </div>
-        <nav className={styles.sidebarMenu}>
-          <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
-            <LayoutDashboard size={14} /> Dashboard
+        
+        <nav className={styles.headerNav}>
+          <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')} title="Dashboard">
+            <LayoutDashboard size={14} /> <span className="hidden md:inline">Dashboard</span>
           </button>
           {canGestionarGrupos && (
-            <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
-              <FolderTree size={14} /> Grupos
+            <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')} title="Grupos">
+              <FolderTree size={14} /> <span className="hidden lg:inline">Grupos</span>
             </button>
           )}
           {canVerCapas && (
-            <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
-              <Layers size={14} /> Capas
+            <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')} title="Capas">
+              <Layers size={14} /> <span className="hidden lg:inline">Capas</span>
             </button>
           )}
           {canVerRutas && (
-            <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
-              <Truck size={14} /> Transporte Pesado
+            <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')} title="Transporte Pesado">
+              <Truck size={14} /> <span className="hidden xl:inline">Transporte Pesado</span>
             </button>
           )}
           {canEditarRutas && (
-            <button className={`${styles.menuItem} ${activeTab === 'sync-tramites' ? styles.active : ''}`} onClick={() => setActiveTab('sync-tramites')}>
-              <RefreshCw size={14} /> Sincronizar Trámites
+            <button className={`${styles.menuItem} ${activeTab === 'sync-tramites' ? styles.active : ''}`} onClick={() => setActiveTab('sync-tramites')} title="Sincronizar Trámites">
+              <RefreshCw size={14} /> <span className="hidden xl:inline">Sincronizar</span>
             </button>
           )}
           {canVerLineas && (
-            <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
-              <Train size={14} /> Líneas de Colectivo
+            <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')} title="Líneas de Colectivo">
+              <Train size={14} /> <span className="hidden xl:inline">Colectivos</span>
             </button>
           )}
           {canVerReclamos && (
-            <button className={`${styles.menuItem} ${activeTab === 'reclamos' ? styles.active : ''}`} onClick={() => setActiveTab('reclamos')}>
-              <ClipboardList size={14} /> Reclamos SAT
+            <button className={`${styles.menuItem} ${activeTab === 'reclamos' ? styles.active : ''}`} onClick={() => setActiveTab('reclamos')} title="Reclamos SAT">
+              <ClipboardList size={14} /> <span className="hidden xl:inline">Reclamos</span>
             </button>
           )}
           {canGestionarUsuarios && (
-            <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
-              <Users size={14} /> Usuarios
+            <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')} title="Usuarios">
+              <Users size={14} /> <span className="hidden xl:inline">Usuarios</span>
             </button>
           )}
           {canGestionarUsuarios && (
-            <button className={`${styles.menuItem} ${activeTab === 'roles' ? styles.active : ''}`} onClick={() => setActiveTab('roles')}>
-              <KeyRound size={14} /> Roles y Permisos
+            <button className={`${styles.menuItem} ${activeTab === 'roles' ? styles.active : ''}`} onClick={() => setActiveTab('roles')} title="Roles y Permisos">
+              <KeyRound size={14} /> <span className="hidden xl:inline">Roles</span>
             </button>
           )}
           {canAccesoAdmin && (
-            <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }}>
-              <QrCode size={14} /> Acceso QR
+            <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }} title="Acceso QR">
+              <QrCode size={14} />
               {solicitudesQrPendientes > 0 && (
-                <span style={{ marginLeft: 'auto', background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{solicitudesQrPendientes}</span>
+                <span style={{ marginLeft: '4px', background: '#ef4444', color: '#fff', borderRadius: 9999, fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>{solicitudesQrPendientes}</span>
               )}
             </button>
           )}
+          
+          <div style={{ width: '1px', height: '24px', background: '#e2e8f0', margin: '0 8px' }} />
+          
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="Volver al Mapa">
+            <ArrowLeft size={14} /> <span className="hidden md:inline">Volver</span>
+          </a>
         </nav>
-        <a href="/" className={styles.backButton} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderTop: '1px solid #f1f5f9' }}>
-          <ArrowLeft size={13} /> Volver al Mapa
-        </a>
-      </aside>
+      </header>
 
       {/* MAIN CONTENT AREA */}
       <main className={styles.contentArea}>
-        <h1 className={styles.pageTitle}>Panel de Control</h1>
-        <p className={styles.breadcrumb}>GIS Lanús · {activeTab === 'dashboard' ? 'Vista general' : activeTab === 'grupos' ? 'Gestión de Grupos' : activeTab === 'capas' ? 'Capas GIS' : activeTab === 'solicitudes' ? 'Transporte Pesado' : activeTab === 'lineas' ? 'Líneas de Colectivo' : activeTab === 'usuarios' ? 'Gestión de Usuarios' : activeTab === 'roles' ? 'Roles y Permisos' : 'Acceso QR'}</p>
         <div className={styles.mainContent}>
         
         {/* DASHBOARD TAB */}
