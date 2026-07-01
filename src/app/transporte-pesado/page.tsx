@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock, Zap, ChevronUp, ChevronDown, Bot, AlertTriangle } from 'lucide-react';
+import { MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, FileText, Route, Navigation, ClipboardList, Clock, Zap, ChevronUp, ChevronDown, Bot, AlertTriangle, Copy } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import NotificacionToast from '@/components/NotificacionToast';
+import CloneRutaModal from '@/components/CloneRutaModal';
 
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -25,7 +26,7 @@ export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlEditId = searchParams.get('editId');
-  const { user, dbUser, loading } = useAuth();
+  const { user, dbUser, loading, getIdToken } = useAuth();
   const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
@@ -79,6 +80,9 @@ export default function TransportePesadoWizard() {
   const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [pendingDraft, setPendingDraft] = useState<any>(null);
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
+  const [cloneSourceRuta, setCloneSourceRuta] = useState<any>(null);
+  const [isCloning, setIsCloning] = useState(false);
 
   const bookmarkletRef = React.useRef<HTMLAnchorElement>(null);
   const [origin, setOrigin] = useState('https://lanus-gis.vercel.app');
@@ -380,6 +384,42 @@ export default function TransportePesadoWizard() {
       setSavedWaypoints(currentWaypoints);
     }
     setStep(3);
+  };
+
+  const handleCloneRuta = async (cloneData: any, fieldsToChange: string[]) => {
+    if (!cloneSourceRuta) return;
+    setIsCloning(true);
+    try {
+      const token = await getIdToken();
+      const res = await fetch('/api/rutas-transporte/clone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sourceRutaId: cloneSourceRuta.id,
+          cloneData,
+          fieldsToChange,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Error al clonar la solicitud');
+      }
+      const result = await res.json();
+      console.log('Solicitud clonada exitosamente:', result);
+      setCloneModalOpen(false);
+      setCloneSourceRuta(null);
+      // Recargar el listado
+      setLoadingRutas(true);
+      fetchRutasList();
+    } catch (error: any) {
+      console.error('Error al clonar:', error.message);
+      alert('Error al clonar: ' + error.message);
+    } finally {
+      setIsCloning(false);
+    }
   };
 
   const handleSubmitFinal = async () => {
@@ -1002,6 +1042,15 @@ export default function TransportePesadoWizard() {
                                     </a>
                                   )}
                                   <button
+                                    onClick={() => { setCloneSourceRuta(ruta); setCloneModalOpen(true); }}
+                                    style={{ padding: '6px 14px', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(37,99,235,0.3)' }}
+                                    onMouseOver={(e) => e.currentTarget.style.opacity = '0.88'}
+                                    onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                                    title="Clonar solicitud"
+                                  >
+                                    <Copy size={13} /> Clonar
+                                  </button>
+                                  <button
                                     onClick={() => { setEditId(ruta.id); setViewMode('wizard'); }}
                                     style={{ padding: '6px 14px', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#7c3aed,#6d28d9)', color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(109,40,217,0.3)' }}
                                     onMouseOver={(e) => e.currentTarget.style.opacity = '0.88'}
@@ -1518,6 +1567,18 @@ export default function TransportePesadoWizard() {
           </div>
         </div>
       )}
+
+      {/* ── Modal de Clonación de Ruta ── */}
+      <CloneRutaModal
+        isOpen={cloneModalOpen}
+        ruta={cloneSourceRuta}
+        onClose={() => {
+          setCloneModalOpen(false);
+          setCloneSourceRuta(null);
+        }}
+        onClone={handleCloneRuta}
+        isLoading={isCloning}
+      />
     </div>
   );
 }
