@@ -1084,6 +1084,18 @@ export default function TransportePesadoWizard() {
             )}
           </div>
         </div>
+
+        {/* ── Modal de Clonación de Ruta ── */}
+        <CloneRutaModal
+          isOpen={cloneModalOpen}
+          ruta={cloneSourceRuta}
+          onClose={() => {
+            setCloneModalOpen(false);
+            setCloneSourceRuta(null);
+          }}
+          onClone={handleCloneRuta}
+          isLoading={isCloning}
+        />
       </div>
     );
   }
@@ -1572,18 +1584,6 @@ export default function TransportePesadoWizard() {
           </div>
         </div>
       )}
-
-      {/* ── Modal de Clonación de Ruta ── */}
-      <CloneRutaModal
-        isOpen={cloneModalOpen}
-        ruta={cloneSourceRuta}
-        onClose={() => {
-          setCloneModalOpen(false);
-          setCloneSourceRuta(null);
-        }}
-        onClone={handleCloneRuta}
-        isLoading={isCloning}
-      />
     </div>
   );
 }
