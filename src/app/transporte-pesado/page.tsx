@@ -33,6 +33,7 @@ export default function TransportePesadoWizard() {
   const [loadingRutas, setLoadingRutas] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('TODAS');
+  const [groupBy, setGroupBy] = useState<'none' | 'solicitante' | 'empresa' | 'dominio'>('none');
   const [step, setStep] = useState(1);
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
   const [idSolicitudWeb, setIdSolicitudWeb] = useState('');
@@ -959,6 +960,22 @@ export default function TransportePesadoWizard() {
                   </select>
                   <svg style={{ position: 'absolute', right: 10, pointerEvents: 'none' }} width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <select
+                    value={groupBy}
+                    onChange={(e) => setGroupBy(e.target.value as any)}
+                    style={{ padding: '7px 30px 7px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 12, outline: 'none', background: '#fff', cursor: 'pointer', appearance: 'none', color: '#374151' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#2563eb'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)'; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+                    title="Agrupar por"
+                  >
+                    <option value="none">Sin agrupar</option>
+                    <option value="solicitante">Agrupar por Solicitante</option>
+                    <option value="empresa">Agrupar por Empresa</option>
+                    <option value="dominio">Agrupar por Dominio</option>
+                  </select>
+                  <svg style={{ position: 'absolute', right: 10, pointerEvents: 'none' }} width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
               </div>
             </div>
 
@@ -979,7 +996,17 @@ export default function TransportePesadoWizard() {
                   <tbody>
                     {(() => {
                       const groups = filteredRutas.reduce((acc, ruta) => {
-                        const key = `${ruta.numeroSolicitud || 'Sin-ID'}-${ruta.patente || 'Sin-Patente'}`;
+                        let key: string;
+                        if (groupBy === 'solicitante') {
+                          key = ruta.nombreSolicitante || 'Sin Solicitante';
+                        } else if (groupBy === 'empresa') {
+                          key = ruta.empresaSolicitante || 'Sin Empresa';
+                        } else if (groupBy === 'dominio') {
+                          const email = ruta.emailSolicitante || '';
+                          key = email.split('@')[1] || 'Sin Dominio';
+                        } else {
+                          key = `${ruta.numeroSolicitud || 'Sin-ID'}-${ruta.patente || 'Sin-Patente'}`;
+                        }
                         if (!acc[key]) acc[key] = [];
                         acc[key].push(ruta);
                         return acc;
@@ -987,13 +1014,20 @@ export default function TransportePesadoWizard() {
 
                       return (Object.entries(groups) as [string, any[]][]).map(([groupKey, groupRoutes]) => (
                         <React.Fragment key={groupKey}>
-                          {groupRoutes.length > 1 && (
+                          {(groupRoutes.length > 1 || groupBy !== 'none') && (
                             <tr style={{ background: '#f8faff', borderTop: '2px solid #e2e8f0', borderBottom: '1px solid #e9eef6' }}>
                               <td colSpan={5} style={{ padding: '9px 18px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                  <strong style={{ color: '#0f172a', fontSize: 13 }}>Solicitud: #{groupRoutes[0].numeroSolicitud}</strong>
-                                  <span style={{ fontSize: 11, color: '#475569', background: '#e2e8f0', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Patente: {groupRoutes[0].patente || 'N/A'}</span>
-                                  <span style={{ fontSize: 11, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: 20, fontWeight: 600, border: '1px solid #bfdbfe' }}>{groupRoutes.length} recorridos</span>
+                                  {groupBy === 'solicitante' && <strong style={{ color: '#0f172a', fontSize: 13 }}>👤 {groupKey}</strong>}
+                                  {groupBy === 'empresa' && <strong style={{ color: '#0f172a', fontSize: 13 }}>🏢 {groupKey}</strong>}
+                                  {groupBy === 'dominio' && <strong style={{ color: '#0f172a', fontSize: 13 }}>📧 @{groupKey}</strong>}
+                                  {groupBy === 'none' && (
+                                    <>
+                                      <strong style={{ color: '#0f172a', fontSize: 13 }}>Solicitud: #{groupRoutes[0].numeroSolicitud}</strong>
+                                      <span style={{ fontSize: 11, color: '#475569', background: '#e2e8f0', padding: '2px 8px', borderRadius: 20, fontWeight: 600 }}>Patente: {groupRoutes[0].patente || 'N/A'}</span>
+                                    </>
+                                  )}
+                                  <span style={{ fontSize: 11, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: 20, fontWeight: 600, border: '1px solid #bfdbfe' }}>{groupRoutes.length} {groupRoutes.length === 1 ? 'recorrido' : 'recorridos'}</span>
                                 </div>
                               </td>
                             </tr>

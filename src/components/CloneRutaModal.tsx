@@ -29,6 +29,8 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
 
   const [vigenciaDesde, setVigenciaDesde] = useState('');
   const [vigenciaHasta, setVigenciaHasta] = useState('');
+  const [numeroSolicitudNuevo, setNumeroSolicitudNuevo] = useState('');
+  const [expedienteNuevo, setExpedienteNuevo] = useState('');
 
   useEffect(() => {
     if (ruta) {
@@ -49,8 +51,20 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
   }, [ruta]);
 
   const handleClone = async () => {
-    const fieldsToChange: string[] = [];
-    const cloneData: any = {};
+    if (!numeroSolicitudNuevo.trim()) {
+      alert('⚠️ Debe completar el Número de Solicitud');
+      return;
+    }
+    if (!expedienteNuevo.trim()) {
+      alert('⚠️ Debe completar el Expediente');
+      return;
+    }
+
+    const fieldsToChange: string[] = ['numeroSolicitud', 'idSolicitudWeb'];
+    const cloneData: any = {
+      numeroSolicitud: numeroSolicitudNuevo,
+      idSolicitudWeb: expedienteNuevo,
+    };
 
     if (changeVehicle) {
       fieldsToChange.push('patente', 'tipoVehiculo', 'pesoToneladas', 'largoVehiculo', 'anchoVehiculo', 'alturaVehiculo', 'cantidadEjes', 'cargaPeligrosa', 'tipoCarga', 'aseguradora', 'nroSeguro');
@@ -140,6 +154,46 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Truck size={14} color="#f59e0b" style={{ flexShrink: 0 }} />
                 <span><strong>Patente:</strong> {ruta.patente || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Nueva Solicitud y Expediente */}
+          <div style={{
+            background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '10px',
+            padding: '16px', marginBottom: '24px'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#92400e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              📝 Nueva Solicitud y Expediente
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Número Solicitud *</label>
+                <input
+                  type="text"
+                  value={numeroSolicitudNuevo}
+                  onChange={(e) => setNumeroSolicitudNuevo(e.target.value)}
+                  disabled={isLoading}
+                  placeholder="Ej: 1000-2026-964795-O"
+                  style={{
+                    width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px',
+                    fontSize: '12px', fontFamily: 'monospace', backgroundColor: '#fffbeb'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Expediente/ID Web *</label>
+                <input
+                  type="text"
+                  value={expedienteNuevo}
+                  onChange={(e) => setExpedienteNuevo(e.target.value)}
+                  disabled={isLoading}
+                  placeholder="ID del expediente web"
+                  style={{
+                    width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px',
+                    fontSize: '12px', backgroundColor: '#fffbeb'
+                  }}
+                />
               </div>
             </div>
           </div>
