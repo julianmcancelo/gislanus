@@ -11,9 +11,11 @@ interface CloneRutaModalProps {
 }
 
 export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoading = false }: CloneRutaModalProps) {
-  console.log('CloneRutaModal renderizado - isOpen:', isOpen, 'ruta:', ruta);
   const [changeVehicle, setChangeVehicle] = useState(true);
   const [changeVigencia, setChangeVigencia] = useState(false);
+  const [changeSolicitante, setChangeSolicitante] = useState(false);
+  const [changeOrigen, setChangeOrigen] = useState(false);
+  const [changeDestino, setChangeDestino] = useState(false);
 
   const [patente, setPatente] = useState('');
   const [tipoVehiculo, setTipoVehiculo] = useState('');
@@ -26,6 +28,16 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
   const [tipoCarga, setTipoCarga] = useState('');
   const [aseguradora, setAseguradora] = useState('');
   const [nroSeguro, setNroSeguro] = useState('');
+
+  const [nombreSolicitante, setNombreSolicitante] = useState('');
+  const [empresaSolicitante, setEmpresaSolicitante] = useState('');
+  const [emailSolicitante, setEmailSolicitante] = useState('');
+
+  const [origenNombre, setOrigenNombre] = useState('');
+  const [origenDireccion, setOrigenDireccion] = useState('');
+
+  const [destinoNombre, setDestinoNombre] = useState('');
+  const [destinoDireccion, setDestinoDireccion] = useState('');
 
   const [vigenciaDesde, setVigenciaDesde] = useState('');
   const [vigenciaHasta, setVigenciaHasta] = useState('');
