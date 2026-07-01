@@ -27,6 +27,19 @@ const translatePropKey = (key: string) => {
 export default function AdminPage() {
   const { user, dbUser, loading: authLoading, getIdToken } = useAuth();
 
+  const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
+  const canGestionarGrupos = isSuperAdmin || (dbUser?.permisos?.gestionarGrupos ?? false);
+  const canVerCapas = isSuperAdmin || (dbUser?.permisos?.verCapas ?? false);
+  const canEditarCapas = isSuperAdmin || (dbUser?.permisos?.editarCapas ?? false);
+  const canVerRutas = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
+  const canEditarRutas = isSuperAdmin || (dbUser?.permisos?.editarRutas ?? false);
+  const canVerLineas = isSuperAdmin || (dbUser?.permisos?.verLineas ?? false);
+  const canEditarLineas = isSuperAdmin || (dbUser?.permisos?.editarLineas ?? false);
+  const canVerReclamos = isSuperAdmin || (dbUser?.permisos?.verReclamos ?? false);
+  const canEditarReclamos = isSuperAdmin || (dbUser?.permisos?.editarReclamos ?? false);
+  const canGestionarUsuarios = isSuperAdmin || (dbUser?.permisos?.gestionarUsuarios ?? false);
+  const canAccesoAdmin = isSuperAdmin || (dbUser?.permisos?.accesoAdmin ?? false);
+
   const authFetch = async (input: string, init: RequestInit = {}) => {
     const token = await getIdToken();
     return fetch(input, {
@@ -395,7 +408,7 @@ export default function AdminPage() {
       ));
 
       // Cargar roles si tiene permisos
-      if (dbUser?.permisos?.gestionarUsuarios) {
+      if (canGestionarUsuarios) {
         await fetchRoles();
       }
     } catch (e) {
@@ -1272,42 +1285,42 @@ export default function AdminPage() {
           <button className={`${styles.menuItem} ${activeTab === 'dashboard' ? styles.active : ''}`} onClick={() => setActiveTab('dashboard')}>
             <LayoutDashboard size={14} /> Dashboard
           </button>
-          {dbUser?.permisos?.gestionarGrupos && (
+          {canGestionarGrupos && (
             <button className={`${styles.menuItem} ${activeTab === 'grupos' ? styles.active : ''}`} onClick={() => setActiveTab('grupos')}>
               <FolderTree size={14} /> Grupos
             </button>
           )}
-          {dbUser?.permisos?.verCapas && (
+          {canVerCapas && (
             <button className={`${styles.menuItem} ${activeTab === 'capas' ? styles.active : ''}`} onClick={() => setActiveTab('capas')}>
               <Layers size={14} /> Capas
             </button>
           )}
-          {dbUser?.permisos?.verRutas && (
+          {canVerRutas && (
             <button className={`${styles.menuItem} ${activeTab === 'solicitudes' ? styles.active : ''}`} onClick={() => setActiveTab('solicitudes')}>
               <Truck size={14} /> Transporte Pesado
             </button>
           )}
-          {dbUser?.permisos?.verLineas && (
+          {canVerLineas && (
             <button className={`${styles.menuItem} ${activeTab === 'lineas' ? styles.active : ''}`} onClick={() => setActiveTab('lineas')}>
               <Train size={14} /> Líneas de Colectivo
             </button>
           )}
-          {dbUser?.permisos?.verReclamos && (
+          {canVerReclamos && (
             <button className={`${styles.menuItem} ${activeTab === 'reclamos' ? styles.active : ''}`} onClick={() => setActiveTab('reclamos')}>
               <ClipboardList size={14} /> Reclamos SAT
             </button>
           )}
-          {dbUser?.permisos?.gestionarUsuarios && (
+          {canGestionarUsuarios && (
             <button className={`${styles.menuItem} ${activeTab === 'usuarios' ? styles.active : ''}`} onClick={() => setActiveTab('usuarios')}>
               <Users size={14} /> Usuarios
             </button>
           )}
-          {dbUser?.permisos?.gestionarUsuarios && (
+          {canGestionarUsuarios && (
             <button className={`${styles.menuItem} ${activeTab === 'roles' ? styles.active : ''}`} onClick={() => setActiveTab('roles')}>
               <KeyRound size={14} /> Roles y Permisos
             </button>
           )}
-          {dbUser?.permisos?.accesoAdmin && (
+          {canAccesoAdmin && (
             <button className={`${styles.menuItem} ${activeTab === 'acceso-qr' ? styles.active : ''}`} onClick={() => { setActiveTab('acceso-qr'); fetchSolicitudesQr(); }}>
               <QrCode size={14} /> Acceso QR
               {solicitudesQrPendientes > 0 && (
@@ -1403,7 +1416,7 @@ export default function AdminPage() {
         )}
 
         {/* GRUPOS TAB */}
-        {activeTab === 'grupos' && dbUser?.permisos?.gestionarGrupos && (
+        {activeTab === 'grupos' && canGestionarGrupos && (
           <div className={styles.gruposGrid}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
               <section className={styles.formSection}>
@@ -1529,7 +1542,7 @@ export default function AdminPage() {
         )}
 
         {/* CAPAS TAB */}
-        {activeTab === 'capas' && dbUser?.permisos?.verCapas && (
+        {activeTab === 'capas' && canVerCapas && (
           <>
             {selectedCapaForRecords ? (
               <section className={styles.fullSection} style={{ marginBottom: '30px' }}>
@@ -1885,7 +1898,7 @@ export default function AdminPage() {
             </>
           )}
 
-          {activeTab === 'solicitudes' && dbUser?.permisos?.verRutas && (
+          {activeTab === 'solicitudes' && canVerRutas && (
             <section className={styles.fullSection}>
               <h2>Solicitudes de Transporte Pesado</h2>
               <p className={styles.tabDescription}>Gestione las rutas propuestas por los choferes y transportistas.</p>
@@ -2158,7 +2171,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'lineas' && dbUser?.permisos?.verLineas && (
+          {activeTab === 'lineas' && canVerLineas && (
             <section className={styles.fullSection}>
               <h2>Líneas de Transporte Público</h2>
               <p className={styles.tabDescription}>Organizá y editá las trazas de todas las líneas agrupadas por jurisdicción.</p>
@@ -2691,7 +2704,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'usuarios' && dbUser?.permisos?.gestionarUsuarios && (
+          {activeTab === 'usuarios' && canGestionarUsuarios && (
             <section className={styles.fullSection}>
               <h2>Gestión de Usuarios</h2>
               <p className={styles.tabDescription}>
@@ -2763,7 +2776,7 @@ export default function AdminPage() {
             </section>
           )}
 
-          {activeTab === 'roles' && dbUser?.permisos?.gestionarUsuarios && (
+          {activeTab === 'roles' && canGestionarUsuarios && (
             <section className={styles.fullSection}>
               <h2>Roles y Permisos</h2>
               <p className={styles.tabDescription}>
@@ -2934,7 +2947,7 @@ export default function AdminPage() {
           )}
 
           {/* ── Reclamos SAT ── */}
-          {activeTab === 'reclamos' && dbUser?.permisos?.verReclamos && (
+          {activeTab === 'reclamos' && canVerReclamos && (
             <section className={styles.fullSection}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '15px' }}>
                 <div>
@@ -2943,7 +2956,7 @@ export default function AdminPage() {
                     Visualice, filtre y administre los reclamos de transporte y tránsito pesado importados de la plataforma SAT.
                   </p>
                 </div>
-                {dbUser?.permisos?.editarReclamos && (
+                {canEditarReclamos && (
                   <button onClick={handleClearReclamos} className={styles.deleteBtn} style={{ padding: '8px 16px', background: '#dc2626', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>
                     Vaciar Base de Datos
                   </button>
@@ -3028,7 +3041,7 @@ export default function AdminPage() {
                         <th>Ciudadano</th>
                         <th>Prioridad</th>
                         <th>Estado</th>
-                        {dbUser?.permisos?.editarReclamos && <th style={{ textAlign: 'center' }}>Acciones</th>}
+                        {canEditarReclamos && <th style={{ textAlign: 'center' }}>Acciones</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -3051,7 +3064,7 @@ export default function AdminPage() {
                         if (filtered.length === 0) {
                           return (
                             <tr>
-                              <td colSpan={dbUser?.permisos?.editarReclamos ? 8 : 7} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                              <td colSpan={canEditarReclamos ? 8 : 7} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
                                 No se encontraron reclamos con los filtros seleccionados.
                               </td>
                             </tr>
@@ -3086,7 +3099,7 @@ export default function AdminPage() {
                                 </span>
                               </td>
                               <td>
-                                {dbUser?.permisos?.editarReclamos ? (
+                                {canEditarReclamos ? (
                                   <select
                                     value={rec.estado}
                                     onChange={e => handleUpdateReclamoStatus(rec.id, e.target.value)}
@@ -3111,7 +3124,7 @@ export default function AdminPage() {
                                   </span>
                                 )}
                               </td>
-                              {dbUser?.permisos?.editarReclamos && (
+                              {canEditarReclamos && (
                                 <td style={{ textAlign: 'center' }}>
                                   <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                                     {/* Cambiar prioridad */}

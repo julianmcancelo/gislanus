@@ -207,7 +207,9 @@ export default function TransportePublicoWizard() {
   };
 
   if (loading) return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
-  if (!user || !dbUser?.permisos?.editarLineas) {
+
+  const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
+  if (!user || (!isSuperAdmin && !dbUser?.permisos?.editarLineas)) {
     return <AccessDenied 
       mensaje="No tenés permiso para cargar líneas de transporte público. Contactá a un administrador."
     />;
