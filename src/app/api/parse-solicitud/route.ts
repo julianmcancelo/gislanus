@@ -82,6 +82,10 @@ async function buildRouteForStreets(streets: string[], index: number, descriptio
 
 export async function POST(req: Request) {
   try {
+    const { requirePermission } = await import('@/lib/authGuard');
+    const guard = await requirePermission(req, 'verRutas');
+    if (guard.error) return guard.error;
+
     const body = await req.json();
     const { text, pdfUrl: directPdfUrl, qrUrl: directQrUrl } = body;
 

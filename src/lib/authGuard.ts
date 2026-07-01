@@ -15,7 +15,7 @@ export async function requireRole(req: Request, allowedRoles: string[]): Promise
   const token = authHeader.slice(7);
 
   // Bypass mode for local development
-  if (token === 'bypass-token' && process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true') {
+  if (token === 'bypass-token' && process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true' && process.env.NODE_ENV === 'development') {
     const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
     const user = await prisma.usuario.findUnique({
       where: { email: superAdminEmail },
@@ -51,7 +51,7 @@ export async function requirePermission(req: Request, requiredPermission: keyof 
   const token = authHeader.slice(7);
 
   // Bypass mode for local development
-  if (token === 'bypass-token' && process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true') {
+  if (token === 'bypass-token' && process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true' && process.env.NODE_ENV === 'development') {
     const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
     const user = await prisma.usuario.findUnique({
       where: { email: superAdminEmail },

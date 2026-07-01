@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "GIS Lanús",
   description: "Sistema de Información Geográfica del Municipio de Lanús",
   icons: {
-    icon: "/logo-lanus.png",
+    icon: "/favicon.ico",
   },
 };
 

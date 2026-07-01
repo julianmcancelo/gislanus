@@ -837,6 +837,28 @@ export default function AdminPage() {
     }
   };
 
+  const handleBulkDeleteRutas = async () => {
+    if (selectedRutas.length === 0) return;
+    if (!confirm(`¿Eliminar ${selectedRutas.length} solicitud(es) de transporte pesado? Esta acción no se puede deshacer.`)) return;
+    const prev = rutas;
+    setRutas(prev.filter(r => !selectedRutas.includes(r.id)));
+    try {
+      const res = await authFetch('/api/rutas-transporte', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedRutas }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(`${selectedRutas.length} solicitud(es) eliminada(s).`);
+      setSelectedRutas([]);
+      emitirCambioMapa('rutas');
+      fetchData();
+    } catch {
+      setRutas(prev);
+      toast.error('Error al eliminar las solicitudes.');
+    }
+  };
+
 
   const COLOR_MAP: Record<string, string> = {
     red: '#ef4444', blue: '#3b82f6', green: '#22c55e', yellow: '#eab308',
@@ -1796,6 +1818,11 @@ export default function AdminPage() {
                       onClick={() => handleBulkStatusRutas('RECHAZADA')}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #f87171', background: '#fef2f2', color: '#b91c1c', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
                       Rechazar
+                    </button>
+                    <button
+                      onClick={handleBulkDeleteRutas}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '7px', border: '1.5px solid #fca5a5', background: '#fef2f2', color: '#b91c1c', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                      Eliminar
                     </button>
                     <button
                       onClick={() => setSelectedRutas([])}

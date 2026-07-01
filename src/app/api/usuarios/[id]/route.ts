@@ -20,6 +20,25 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Falta rol' }, { status: 400 });
     }
 
+    const usuarioDestino = await prisma.usuario.findUnique({
+      where: { id },
+      select: { rol: true }
+    });
+
+    if (!usuarioDestino) {
+      return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+    }
+
+    const esSuperAdmin = guard.user.rol === 'SUPER_ADMIN';
+
+    if (rol === 'SUPER_ADMIN' && !esSuperAdmin) {
+      return NextResponse.json({ error: 'Solo un SUPER_ADMIN puede asignar el rol de SUPER_ADMIN' }, { status: 403 });
+    }
+
+    if (usuarioDestino.rol === 'SUPER_ADMIN' && !esSuperAdmin) {
+      return NextResponse.json({ error: 'Solo un SUPER_ADMIN puede modificar a otro SUPER_ADMIN' }, { status: 403 });
+    }
+
     const updatedUser = await prisma.usuario.update({
       where: { id },
       data: { rol },
