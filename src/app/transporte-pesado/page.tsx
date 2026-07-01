@@ -1042,7 +1042,12 @@ export default function TransportePesadoWizard() {
                                     </a>
                                   )}
                                   <button
-                                    onClick={() => { setCloneSourceRuta(ruta); setCloneModalOpen(true); }}
+                                    onClick={() => {
+                                      console.log('Botón clonar clickeado, ruta:', ruta);
+                                      setCloneSourceRuta(ruta);
+                                      setCloneModalOpen(true);
+                                      console.log('Estados actualizados');
+                                    }}
                                     style={{ padding: '6px 14px', fontSize: 12, fontWeight: 700, background: 'linear-gradient(135deg,#3b82f6,#2563eb)', color: 'white', border: 'none', borderRadius: 7, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, boxShadow: '0 2px 6px rgba(37,99,235,0.3)' }}
                                     onMouseOver={(e) => e.currentTarget.style.opacity = '0.88'}
                                     onMouseOut={(e) => e.currentTarget.style.opacity = '1'}

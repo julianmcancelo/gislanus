@@ -11,6 +11,7 @@ interface CloneRutaModalProps {
 }
 
 export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoading = false }: CloneRutaModalProps) {
+  console.log('CloneRutaModal renderizado - isOpen:', isOpen, 'ruta:', ruta);
   const [changeVehicle, setChangeVehicle] = useState(true);
   const [changeVigencia, setChangeVigencia] = useState(false);
 
