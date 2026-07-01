@@ -151,9 +151,11 @@ export default function LoginPage() {
       </div>
 
       {/* ── Footer ── */}
-      <footer className="absolute bottom-0 left-0 right-0 py-3 text-[10px] text-slate-400 font-bold uppercase tracking-wider text-center pointer-events-none hidden md:block">
-        © 2026 Municipio de Lanús · Área de Modernización y Sistemas
-      </footer>
+      <div className="absolute bottom-4 left-0 right-0 text-center z-20 pointer-events-none">
+        <p className="text-[10px] text-slate-400 font-medium tracking-wide">
+        © 2026 GIS Portal · Área de Sistemas
+        </p>
+      </div>
     </div>
   );
 }

@@ -17,16 +17,7 @@ const MapComponent = dynamic(() => import('@/components/Map'), {
       color: '#fff',
       fontFamily: 'sans-serif'
     }}>
-      <img
-        src="/logo-lanus.png"
-        alt="Logo Lanús"
-        style={{
-          height: '100px',
-          objectFit: 'contain',
-          animation: 'pulse-logo 2s infinite ease-in-out',
-          marginBottom: '20px'
-        }}
-      />
+      <div style={{ width: 80, height: 80, background: '#3b82f6', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '40px', marginBottom: '20px', animation: 'pulse-logo 2s infinite ease-in-out' }}>G</div>
       <h2 style={{ letterSpacing: '1px', fontWeight: '500', color: '#ccc' }}>Cargando...</h2>
     </div>
   )
@@ -48,7 +39,7 @@ export default function Home() {
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         height: '100vh', background: '#111'
       }}>
-        <img src="/logo-lanus.png" alt="" style={{ height: '80px', opacity: 0.6 }} />
+        <div style={{ width: 60, height: 60, background: '#3b82f6', borderRadius: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '30px', opacity: 0.6 }}>G</div>
       </div>
     );
   }
