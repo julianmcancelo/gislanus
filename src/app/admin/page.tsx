@@ -13,6 +13,7 @@ import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartp
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
+const CloneRutaModal = dynamic(() => import('../../components/CloneRutaModal'), { ssr: false });
 
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
@@ -127,6 +128,11 @@ export default function AdminPage() {
 
   // Bulk selection for rutas
   const [selectedRutas, setSelectedRutas] = useState<string[]>([]);
+
+  // Clone Ruta Modal State
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
+  const [cloneSourceRuta, setCloneSourceRuta] = useState<any>(null);
+  const [isCloning, setIsCloning] = useState(false);
 
   // Edit & Bulk Delete State
   const [selectedCapas, setSelectedCapas] = useState<string[]>([]);
@@ -1305,6 +1311,35 @@ export default function AdminPage() {
     }
   };
 
+  const handleCloneRuta = async (cloneData: any, fieldsToChange: string[]) => {
+    if (!cloneSourceRuta) return;
+    setIsCloning(true);
+    try {
+      const res = await authFetch('/api/rutas-transporte/clone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceRutaId: cloneSourceRuta.id,
+          cloneData,
+          fieldsToChange,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || 'Error al clonar la solicitud');
+      }
+      const result = await res.json();
+      toast.success(`Solicitud clonada exitosamente #${result.numeroSolicitud || result.id}`);
+      setCloneModalOpen(false);
+      setCloneSourceRuta(null);
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || 'Error al clonar la solicitud.');
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
   const filteredRutas = rutas.filter(ruta => {
     const term = rutasSearchTerm.toLowerCase();
     const matchesSearch = !term || 
@@ -2221,7 +2256,10 @@ export default function AdminPage() {
                                 </>
                               )}
                             </div>
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                              <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); setCloneSourceRuta(ruta); setCloneModalOpen(true); }}>
+                                Clonar
+                              </button>
                               <button style={{ padding: '4px 8px', fontSize: '0.7rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); window.open(`/transporte-pesado?editId=${ruta.id}`, '_blank'); }}>
                                 Editar
                               </button>
@@ -3512,6 +3550,18 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ── Modal de Clonación de Ruta ── */}
+        <CloneRutaModal
+          isOpen={cloneModalOpen}
+          ruta={cloneSourceRuta}
+          onClose={() => {
+            setCloneModalOpen(false);
+            setCloneSourceRuta(null);
+          }}
+          onClone={handleCloneRuta}
+          isLoading={isCloning}
+        />
       </main>
     </div>
   );
