@@ -140,9 +140,8 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 font-bold tracking-wider uppercase">
-              <span>Acceso Restringido</span>
-              <span className="hover:text-sky-500 cursor-pointer transition-colors">Soporte Municipal</span>
+            <div className="mt-8 pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-bold tracking-wider uppercase">
+              Acceso Restringido
             </div>
 
           </div>
