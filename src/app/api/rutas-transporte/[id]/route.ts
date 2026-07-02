@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireRole, requirePermission } from '@/lib/authGuard';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarRutas');
   if (guard.error) return guard.error;
 
   try {
@@ -26,7 +26,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarRutas');
   if (guard.error) return guard.error;
 
   try {

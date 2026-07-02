@@ -1329,14 +1329,7 @@ export default function TransportePesadoWizard() {
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Tipo de Vehículo</label>
-                  <select value={tipoVehiculo} onChange={e => setTipoVehiculo(e.target.value)} style={{ ...inputStyle, backgroundColor: '#fff' }}>
-                    <option value="">Seleccione...</option>
-                    <option value="Chasis">Chasis</option>
-                    <option value="Chasis con Acoplado">Chasis c/ Acoplado</option>
-                    <option value="Semi-remolque">Semi-remolque</option>
-                    <option value="Bitrén">Bitrén</option>
-                    <option value="Maquinaria Especial">Maquinaria Especial</option>
-                  </select>
+                  <input type="text" value={tipoVehiculo} onChange={e => setTipoVehiculo(e.target.value)} placeholder="Ej: Chasis con Acoplado" style={{ ...inputStyle, backgroundColor: '#fff' }} />
                 </div>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Peso Total (Tn)</label>
