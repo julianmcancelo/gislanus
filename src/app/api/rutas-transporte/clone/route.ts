@@ -58,13 +58,20 @@ export async function POST(req: Request) {
       vigenciaHasta: sourceRuta.vigenciaHasta,
       datosGeo: sourceRuta.datosGeo,
       calles: sourceRuta.calles || null,
-      estado: sourceRuta.estado,
-      creadoPorId: sourceRuta.creadoPorId || null,
-      creadoPorNombre: sourceRuta.creadoPorNombre || null,
+      estado: 'PENDIENTE', // Toda solicitud clonada debe iniciar en PENDIENTE para su revisión
       enlaceDocumento: sourceRuta.enlaceDocumento || null,
       activo: true,
       tipoServicio: sourceRuta.tipoServicio || 'FIJO',
     };
+
+    // Obtener el nombre del usuario logueado en la BD
+    const userDb = await prisma.usuario.findUnique({
+      where: { id: guard.user.id },
+      select: { nombre: true, email: true }
+    });
+    const currentUserName = userDb?.nombre || userDb?.email || 'Sistema';
+    clonedData.creadoPorId = guard.user.id;
+    clonedData.creadoPorNombre = currentUserName;
 
     // Sobrescribir solo los campos que se indican en fieldsToChange
     if (fieldsToChange && Array.isArray(fieldsToChange) && cloneData) {
