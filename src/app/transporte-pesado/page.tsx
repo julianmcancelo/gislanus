@@ -134,10 +134,13 @@ export default function TransportePesadoWizard() {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
     if (editId) {
       const fetchEditData = async () => {
         try {
-          const res = await fetch(`/api/rutas-transporte/${editId}`);
+          const token = await user?.getIdToken();
+          const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+          const res = await fetch(`/api/rutas-transporte/${editId}`, { headers });
           if (!res.ok) throw new Error('No se pudo cargar la solicitud');
           const data = await res.json();
           setNumeroSolicitud(data.numeroSolicitud || '');
@@ -228,7 +231,7 @@ export default function TransportePesadoWizard() {
         }
       }
     }
-  }, [editId, viewMode]);
+  }, [editId, viewMode, user, loading]);
 
   // Autoguardado de borrador
   useEffect(() => {
