@@ -5,7 +5,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import MapSearch from './MapSearch';
-import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route, Wand2, ChevronRight, Pencil } from 'lucide-react';
+import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route, Wand2, ChevronRight, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -288,17 +288,56 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
             {waypoints.map((wp, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f9fafb', padding: '6px 8px', borderRadius: 6, border: '1px solid #f3f4f6' }}>
                 {i === 0
-                  ? <MapPin size={13} color="#16a34a" />
+                  ? <MapPin size={13} color="#16a34a" style={{ flexShrink: 0 }} />
                   : i === waypoints.length - 1
-                    ? <Flag size={13} color="#2563eb" />
-                    : <Octagon size={13} color="#d97706" />}
+                    ? <Flag size={13} color="#2563eb" style={{ flexShrink: 0 }} />
+                    : <Octagon size={13} color="#d97706" style={{ flexShrink: 0 }} />}
                 <span style={{ fontSize: 12, color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {wp.name || (i === 0 ? 'Inicio' : i === waypoints.length - 1 ? 'Destino' : `Parada ${i}`)}
                 </span>
-                <button onClick={e => { e.stopPropagation(); routingControl.spliceWaypoints(i, 1); }}
-                  style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex' }}>
-                  <X size={12} strokeWidth={2.5} />
-                </button>
+                
+                {/* Reordenar (subir y bajar) y compaginar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                  {i > 0 && (
+                    <button 
+                      onClick={e => { 
+                        e.stopPropagation(); 
+                        const newWps = [...waypoints];
+                        const temp = newWps[i];
+                        newWps[i] = newWps[i - 1];
+                        newWps[i - 1] = temp;
+                        routingControl.setWaypoints(newWps);
+                      }}
+                      title="Subir punto"
+                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 2, display: 'flex', borderRadius: 3 }}
+                    >
+                      <ChevronUp size={12} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  {i < waypoints.length - 1 && (
+                    <button 
+                      onClick={e => { 
+                        e.stopPropagation(); 
+                        const newWps = [...waypoints];
+                        const temp = newWps[i];
+                        newWps[i] = newWps[i + 1];
+                        newWps[i + 1] = temp;
+                        routingControl.setWaypoints(newWps);
+                      }}
+                      title="Bajar punto"
+                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 2, display: 'flex', borderRadius: 3 }}
+                    >
+                      <ChevronDown size={12} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  <button 
+                    onClick={e => { e.stopPropagation(); routingControl.spliceWaypoints(i, 1); }}
+                    title="Eliminar punto"
+                    style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', padding: 2, display: 'flex', borderRadius: 3 }}
+                  >
+                    <X size={12} strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

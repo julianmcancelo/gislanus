@@ -61,6 +61,13 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       setVigenciaDesde(ruta.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : '');
       setVigenciaHasta(ruta.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : '');
       setTipoServicio(ruta.tipoServicio || 'FIJO');
+      setNombreSolicitante(ruta.nombreSolicitante || '');
+      setEmpresaSolicitante(ruta.empresaSolicitante || '');
+      setEmailSolicitante(ruta.emailSolicitante || '');
+      setOrigenNombre(ruta.origenNombre || '');
+      setOrigenDireccion(ruta.origenDireccion || '');
+      setDestinoNombre(ruta.destinoNombre || '');
+      setDestinoDireccion(ruta.destinoDireccion || '');
     }
   }, [ruta]);
 
@@ -100,6 +107,25 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       fieldsToChange.push('vigenciaDesde', 'vigenciaHasta');
       cloneData.vigenciaDesde = vigenciaDesde ? new Date(vigenciaDesde) : null;
       cloneData.vigenciaHasta = vigenciaHasta ? new Date(vigenciaHasta) : null;
+    }
+
+    if (changeSolicitante) {
+      fieldsToChange.push('nombreSolicitante', 'empresaSolicitante', 'emailSolicitante');
+      cloneData.nombreSolicitante = nombreSolicitante;
+      cloneData.empresaSolicitante = empresaSolicitante;
+      cloneData.emailSolicitante = emailSolicitante;
+    }
+
+    if (changeOrigen) {
+      fieldsToChange.push('origenNombre', 'origenDireccion');
+      cloneData.origenNombre = origenNombre;
+      cloneData.origenDireccion = origenDireccion;
+    }
+
+    if (changeDestino) {
+      fieldsToChange.push('destinoNombre', 'destinoDireccion');
+      cloneData.destinoNombre = destinoNombre;
+      cloneData.destinoDireccion = destinoDireccion;
     }
 
     try {
@@ -264,6 +290,54 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
                   style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                 />
                 <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>📅 Vigencia (desde/hasta)</span>
+              </label>
+
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+                padding: '10px', borderRadius: '8px', backgroundColor: changeSolicitante ? '#f5f3ff' : 'transparent',
+                border: changeSolicitante ? '1px solid #ddd6fe' : '1px solid #e2e8f0',
+                transition: 'all 0.15s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={changeSolicitante}
+                  onChange={(e) => setChangeSolicitante(e.target.checked)}
+                  disabled={isLoading}
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+                <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>👤 Datos del Solicitante / Razón Social</span>
+              </label>
+
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+                padding: '10px', borderRadius: '8px', backgroundColor: changeOrigen ? '#eff6ff' : 'transparent',
+                border: changeOrigen ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                transition: 'all 0.15s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={changeOrigen}
+                  onChange={(e) => setChangeOrigen(e.target.checked)}
+                  disabled={isLoading}
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+                <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>📍 Dirección de Origen</span>
+              </label>
+
+              <label style={{
+                display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
+                padding: '10px', borderRadius: '8px', backgroundColor: changeDestino ? '#eff6ff' : 'transparent',
+                border: changeDestino ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
+                transition: 'all 0.15s'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={changeDestino}
+                  onChange={(e) => setChangeDestino(e.target.checked)}
+                  disabled={isLoading}
+                  style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                />
+                <span style={{ fontWeight: 600, fontSize: '13px', color: '#1e293b' }}>🏁 Dirección de Destino</span>
               </label>
             </div>
           </div>
@@ -479,6 +553,118 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
             </div>
           )}
 
+          {/* Solicitante - Solo si está seleccionado */}
+          {changeSolicitante && (
+            <div style={{
+              background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '10px',
+              padding: '16px', marginBottom: '24px'
+            }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: 700, color: '#5b21b6', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Users size={14} color="#7c3aed" /> Datos del Solicitante / Razón Social
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Nombre Solicitante *</label>
+                  <input
+                    type="text"
+                    value={nombreSolicitante}
+                    onChange={(e) => setNombreSolicitante(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Empresa / Razón Social</label>
+                  <input
+                    type="text"
+                    value={empresaSolicitante}
+                    onChange={(e) => setEmpresaSolicitante(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Email de Contacto</label>
+                  <input
+                    type="email"
+                    value={emailSolicitante}
+                    onChange={(e) => setEmailSolicitante(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Origen - Solo si está seleccionado */}
+          {changeOrigen && (
+            <div style={{
+              background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px',
+              padding: '16px', marginBottom: '24px'
+            }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={14} color="#1d4ed8" /> Dirección de Origen
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Nombre Origen (Localidad/Planta)</label>
+                  <input
+                    type="text"
+                    value={origenNombre}
+                    onChange={(e) => setOrigenNombre(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Dirección Origen</label>
+                  <input
+                    type="text"
+                    value={origenDireccion}
+                    onChange={(e) => setOrigenDireccion(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Destino - Solo si está seleccionado */}
+          {changeDestino && (
+            <div style={{
+              background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px',
+              padding: '16px', marginBottom: '24px'
+            }}>
+              <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={14} color="#1d4ed8" /> Dirección de Destino
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Nombre Destino (Localidad/Planta)</label>
+                  <input
+                    type="text"
+                    value={destinoNombre}
+                    onChange={(e) => setDestinoNombre(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Dirección Destino</label>
+                  <input
+                    type="text"
+                    value={destinoDireccion}
+                    onChange={(e) => setDestinoDireccion(e.target.value)}
+                    disabled={isLoading}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Botones */}
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
             <button
@@ -495,13 +681,13 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
             </button>
             <button
               onClick={handleClone}
-              disabled={isLoading || !patente}
+              disabled={isLoading}
               style={{
                 padding: '10px 20px', borderRadius: '8px', border: 'none',
                 background: '#3b82f6', color: 'white', fontWeight: 600, fontSize: '13px',
                 cursor: 'pointer', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '6px',
-                opacity: isLoading || !patente ? 0.5 : 1,
-                pointerEvents: isLoading || !patente ? 'none' : 'auto'
+                opacity: isLoading ? 0.5 : 1,
+                pointerEvents: isLoading ? 'none' : 'auto'
               }}
             >
               {isLoading ? (

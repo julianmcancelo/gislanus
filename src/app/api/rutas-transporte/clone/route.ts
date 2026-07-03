@@ -76,7 +76,9 @@ export async function POST(req: Request) {
     }
 
     let parsedGeo;
-    if (typeof clonedData.datosGeo === 'string') {
+    if (!clonedData.datosGeo) {
+      parsedGeo = { type: 'FeatureCollection', features: [] };
+    } else if (typeof clonedData.datosGeo === 'string') {
       try {
         parsedGeo = JSON.parse(clonedData.datosGeo);
       } catch {
@@ -86,17 +88,17 @@ export async function POST(req: Request) {
       parsedGeo = clonedData.datosGeo;
     }
 
-    if (!parsedGeo.type || (parsedGeo.type !== 'FeatureCollection' && parsedGeo.type !== 'Feature')) {
+    if (!parsedGeo || !parsedGeo.type || (parsedGeo.type !== 'FeatureCollection' && parsedGeo.type !== 'Feature')) {
       return NextResponse.json({ error: 'Formato GeoJSON inválido' }, { status: 400 });
     }
 
-    // Clip geometry to Lanús borders
-    if (parsedGeo.type === 'FeatureCollection') {
+    // Clip geometry to Lanús borders if features/geometries exist
+    if (parsedGeo.type === 'FeatureCollection' && parsedGeo.features) {
       parsedGeo.features = parsedGeo.features.map((f: any) => ({
         ...f,
-        geometry: clipGeometryToLanus(f.geometry)
+        geometry: f.geometry ? clipGeometryToLanus(f.geometry) : null
       }));
-    } else if (parsedGeo.type === 'Feature') {
+    } else if (parsedGeo.type === 'Feature' && parsedGeo.geometry) {
       parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
     }
 
