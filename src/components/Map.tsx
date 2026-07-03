@@ -15,6 +15,7 @@ import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
+import MapSearch from './MapSearch';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -707,6 +708,7 @@ export default function MapComponent() {
           maxZoom={19}
           zIndex={0}
         />
+        <MapSearch />
 
         <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
 
