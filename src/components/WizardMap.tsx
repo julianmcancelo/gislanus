@@ -506,6 +506,13 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints, in
         <MapSearch />
         <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} initialFeatures={initialFeatures} defaultRouteName={defaultRouteName} />
       </MapContainer>
+      
+      {/* Ocultar el panel de indicaciones por defecto de Leaflet Routing Machine */}
+      <style>{`
+        .leaflet-routing-container {
+          display: none !important;
+        }
+      `}</style>
     </div>
   );
 }
