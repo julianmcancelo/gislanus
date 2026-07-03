@@ -270,14 +270,14 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
 
   return (
     <>
-      {/* ── Panel izquierdo: waypoints activos ── */}
+      {/* ── Panel derecho inferior: waypoints activos ── */}
       {waypoints.length > 0 && (
         <div ref={panelRef} style={{
-          position: 'absolute', top: 60, left: 10, zIndex: 1000,
+          position: 'absolute', bottom: 10, right: 10, zIndex: 1000,
           background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(8px)',
           border: '1px solid rgba(226,232,240,0.9)',
-          borderRadius: 12, padding: '12px', width: 220,
-          maxHeight: 340, overflowY: 'auto',
+          borderRadius: 12, padding: '12px', width: 270,
+          maxHeight: 260, overflowY: 'auto',
           boxShadow: '0 8px 28px rgba(15,23,42,0.1), 0 2px 6px rgba(15,23,42,0.05)',
           fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         }}>
