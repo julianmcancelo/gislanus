@@ -298,7 +298,14 @@ export default function TransportePesadoWizard() {
   const handleNextStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     if (numeroSolicitud.trim() && nombreSolicitante.trim()) {
-      setStep(2);
+      if (tipoServicio === 'A_DEMANDA') {
+        setDatosGeo({ type: 'FeatureCollection', features: [] });
+        setTracedStreets([]);
+        setSavedWaypoints([]);
+        setStep(3);
+      } else {
+        setStep(2);
+      }
     }
   };
 
@@ -1573,17 +1580,33 @@ export default function TransportePesadoWizard() {
             </div>
 
             <div style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', marginBottom: '20px', textAlign: 'left', width: '100%' }}>
-              <StaticMapPreview geoData={datosGeo} />
+              {tipoServicio === 'A_DEMANDA' ? (
+                <div style={{
+                  height: '100px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#f1f5f9',
+                  borderRadius: '6px',
+                  border: '1px dashed #cbd5e1',
+                  color: '#64748b',
+                  fontSize: '13px',
+                  marginBottom: '15px',
+                  fontWeight: 500
+                }}>
+                  ℹ️ Servicio a Demanda — Sin recorrido fijo predefinido
+                </div>
+              ) : (
+                <StaticMapPreview geoData={datosGeo} />
+              )}
               
               <p style={detailStyle}><strong>Solicitud:</strong> {numeroSolicitud}</p>
               <p style={detailStyle}><strong>Solicitante:</strong> {nombreSolicitante}</p>
-              
-              
             </div>
 
             <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '8px' }}>
-              <button onClick={() => setStep(2)} style={{ ...btnStyle, background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: '600', flex: 1 }}>
-                Redibujar
+              <button onClick={() => setStep(tipoServicio === 'A_DEMANDA' ? 1 : 2)} style={{ ...btnStyle, background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: '600', flex: 1 }}>
+                {tipoServicio === 'A_DEMANDA' ? 'Atrás' : 'Redibujar'}
               </button>
               <button onClick={handleSubmitFinal} disabled={isSubmitting} style={{ ...primaryBtnStyle, flex: 2, marginTop: 0 }}>
                 {isSubmitting ? <Loader2 className="animate-spin" size={16} style={{ marginRight: 6 }} /> : null}

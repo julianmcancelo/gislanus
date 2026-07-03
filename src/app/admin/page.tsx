@@ -2218,36 +2218,61 @@ export default function AdminPage() {
                           </td>
                           <td>
                             <div className={styles.mapPreviewWrapper}>
-                              <div style={{ cursor: 'pointer', position: 'relative' }} onClick={(e) => {
-                                e.stopPropagation();
-                                const relatedRutas = ruta.numeroSolicitud ? rutas.filter(r => r.numeroSolicitud === ruta.numeroSolicitud) : [ruta];
-                                const features: any[] = [];
-                                relatedRutas.forEach(r => {
-                                  let g = r.datosGeo;
-                                  if (typeof g === 'string') { try { g = JSON.parse(g); } catch { g = null; } }
-                                  if (g) {
-                                    if (g.type === 'FeatureCollection') g.features.forEach((f: any) => features.push({ ...f, properties: { ...f.properties, patente: r.patente } }));
-                                    else if (g.type === 'Feature') features.push({ ...g, properties: { ...g.properties, patente: r.patente } });
-                                    else features.push({ type: 'Feature', geometry: g, properties: { patente: r.patente } });
-                                  }
-                                });
-                                setPreviewRutaGeo({ geo: { type: 'FeatureCollection', features }, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
-                              }}>
-                                <StaticMapPreview geoData={
-                                  typeof ruta.datosGeo === 'string' ?
-                                    ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })()
-                                    : ruta.datosGeo
-                                } />
-                                <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', pointerEvents: 'none', zIndex: 10, backdropFilter: 'blur(4px)' }}>
-                                  <MapIcon size={12} /> Ampliar
+                              {ruta.tipoServicio === 'A_DEMANDA' ? (
+                                <div style={{
+                                  height: '100%',
+                                  width: '100%',
+                                  minHeight: '120px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: '#f8fafc',
+                                  color: '#64748b',
+                                  fontSize: '0.75rem',
+                                  textAlign: 'center',
+                                  padding: '10px',
+                                  border: '1px dashed #cbd5e1',
+                                  borderRadius: '6px',
+                                  boxSizing: 'border-box'
+                                }}>
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '4px', color: '#94a3b8' }}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                                  <div style={{ fontWeight: 600 }}>Servicio a Demanda</div>
+                                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '2px' }}>Sin recorrido fijo</div>
                                 </div>
-                              </div>
+                              ) : (
+                                <div style={{ cursor: 'pointer', position: 'relative' }} onClick={(e) => {
+                                  e.stopPropagation();
+                                  const relatedRutas = ruta.numeroSolicitud ? rutas.filter(r => r.numeroSolicitud === ruta.numeroSolicitud) : [ruta];
+                                  const features: any[] = [];
+                                  relatedRutas.forEach(r => {
+                                    let g = r.datosGeo;
+                                    if (typeof g === 'string') { try { g = JSON.parse(g); } catch { g = null; } }
+                                    if (g) {
+                                      if (g.type === 'FeatureCollection') g.features.forEach((f: any) => features.push({ ...f, properties: { ...f.properties, patente: r.patente } }));
+                                      else if (g.type === 'Feature') features.push({ ...g, properties: { ...g.properties, patente: r.patente } });
+                                      else features.push({ type: 'Feature', geometry: g, properties: { patente: r.patente } });
+                                    }
+                                  });
+                                  setPreviewRutaGeo({ geo: { type: 'FeatureCollection', features }, numero: ruta.numeroSolicitud || ruta.patente || 'Sin ID' });
+                                }}>
+                                  <StaticMapPreview geoData={
+                                    typeof ruta.datosGeo === 'string' ?
+                                      ((): any => { try { return JSON.parse(ruta.datosGeo); } catch { return null; } })()
+                                      : ruta.datosGeo
+                                  } />
+                                  <div style={{ position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', pointerEvents: 'none', zIndex: 10, backdropFilter: 'blur(4px)' }}>
+                                    <MapIcon size={12} /> Ampliar
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                               {/* Botón Dibujar Ruta para solicitudes sin trazo */}
                               {(() => {
+                                if (ruta.tipoServicio === 'A_DEMANDA') return null;
                                 let geo = ruta.datosGeo;
                                 if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch { geo = null; } }
                                 return (!geo?.features?.length) ? (
