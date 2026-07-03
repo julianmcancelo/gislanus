@@ -43,6 +43,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
   const [vigenciaHasta, setVigenciaHasta] = useState('');
   const [numeroSolicitudNuevo, setNumeroSolicitudNuevo] = useState('');
   const [expedienteNuevo, setExpedienteNuevo] = useState('');
+  const [tipoServicio, setTipoServicio] = useState('FIJO');
 
   useEffect(() => {
     if (ruta) {
@@ -59,6 +60,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       setNroSeguro(ruta.nroSeguro || '');
       setVigenciaDesde(ruta.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : '');
       setVigenciaHasta(ruta.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : '');
+      setTipoServicio(ruta.tipoServicio || 'FIJO');
     }
   }, [ruta]);
 
@@ -72,10 +74,11 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       return;
     }
 
-    const fieldsToChange: string[] = ['numeroSolicitud', 'idSolicitudWeb'];
+    const fieldsToChange: string[] = ['numeroSolicitud', 'idSolicitudWeb', 'tipoServicio'];
     const cloneData: any = {
       numeroSolicitud: numeroSolicitudNuevo,
       idSolicitudWeb: expedienteNuevo,
+      tipoServicio: tipoServicio,
     };
 
     if (changeVehicle) {
@@ -178,7 +181,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#92400e', display: 'flex', alignItems: 'center', gap: '8px' }}>
               📝 Nueva Solicitud y Expediente
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', fontSize: '13px' }}>
               <div>
                 <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Número Solicitud *</label>
                 <input
@@ -189,7 +192,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
                   placeholder="Ej: 1000-2026-964795-O"
                   style={{
                     width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px',
-                    fontSize: '12px', fontFamily: 'monospace', backgroundColor: '#fffbeb'
+                    fontSize: '12px', fontFamily: 'monospace', backgroundColor: '#fffbeb', boxSizing: 'border-box'
                   }}
                 />
               </div>
@@ -203,9 +206,24 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
                   placeholder="ID del expediente web"
                   style={{
                     width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px',
-                    fontSize: '12px', backgroundColor: '#fffbeb'
+                    fontSize: '12px', backgroundColor: '#fffbeb', boxSizing: 'border-box'
                   }}
                 />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '4px', color: '#1e293b' }}>Tipo de Servicio *</label>
+                <select
+                  value={tipoServicio}
+                  onChange={(e) => setTipoServicio(e.target.value)}
+                  disabled={isLoading}
+                  style={{
+                    width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: '6px',
+                    fontSize: '12px', backgroundColor: '#fffbeb', height: '33px', outline: 'none', boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="FIJO">Fijo</option>
+                  <option value="A_DEMANDA">A Demanda</option>
+                </select>
               </div>
             </div>
           </div>

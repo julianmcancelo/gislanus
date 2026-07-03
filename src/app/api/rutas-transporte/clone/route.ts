@@ -63,6 +63,7 @@ export async function POST(req: Request) {
       creadoPorNombre: sourceRuta.creadoPorNombre || null,
       enlaceDocumento: sourceRuta.enlaceDocumento || null,
       activo: true,
+      tipoServicio: sourceRuta.tipoServicio || 'FIJO',
     };
 
     // Sobrescribir solo los campos que se indican en fieldsToChange
@@ -140,6 +141,7 @@ export async function POST(req: Request) {
         creadoPorNombre: clonedData.creadoPorNombre,
         enlaceDocumento: clonedData.enlaceDocumento,
         activo: clonedData.activo,
+        tipoServicio: clonedData.tipoServicio,
       },
     });
 

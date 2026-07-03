@@ -542,7 +542,9 @@ export default function MapComponent() {
       if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
         fetchingRef.current[capa.id] = true;
         try {
-          const res = await fetch(`/api/capas/${capa.id}`);
+          const token = user ? await user.getIdToken() : null;
+          const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+          const res = await fetch(`/api/capas/${capa.id}`, { headers });
           const data = await res.json();
           if (data.datosGeo) {
             let parsed = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;

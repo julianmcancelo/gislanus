@@ -2144,7 +2144,22 @@ export default function AdminPage() {
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: '0.85rem' }}><strong>#{ruta.numeroSolicitud}</strong></div>
                             {ruta.idSolicitudWeb && <div style={{ fontSize: '0.7rem', color: '#64748b' }}>ID Web: {ruta.idSolicitudWeb}</div>}
-                            <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>{ruta.fechaCreacion || new Date(ruta.creadoEn).toLocaleDateString()}</div>
+                            <div style={{ marginTop: '3px', marginBottom: '3px' }}>
+                              <span style={{
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '9px',
+                                fontWeight: 700,
+                                textTransform: 'uppercase',
+                                background: ruta.tipoServicio === 'A_DEMANDA' ? '#e0f2fe' : '#dcfce7',
+                                color: ruta.tipoServicio === 'A_DEMANDA' ? '#0369a1' : '#15803d',
+                                border: ruta.tipoServicio === 'A_DEMANDA' ? '1px solid #bae6fd' : '1px solid #bbf7d0',
+                                display: 'inline-block'
+                              }}>
+                                {ruta.tipoServicio === 'A_DEMANDA' ? 'A Demanda' : 'Fijo'}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{ruta.fechaCreacion || new Date(ruta.creadoEn).toLocaleDateString()}</div>
                           </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{ruta.nombreSolicitante}</div>
@@ -2340,6 +2355,7 @@ export default function AdminPage() {
                                     <Clock size={14} color="#8b5cf6" /> Circulación y Vigencia
                                   </h4>
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', color: '#475569' }}>
+                                    <div><strong>Servicio:</strong> {ruta.tipoServicio === 'A_DEMANDA' ? 'A Demanda' : 'Fijo'}</div>
                                     {ruta.frecuencia && <div><strong>Frecuencia:</strong> {ruta.frecuencia}</div>}
                                     {ruta.horario && <div><strong>Horario:</strong> {ruta.horario}</div>}
                                     {(ruta.vigenciaDesde || ruta.vigenciaHasta) && (

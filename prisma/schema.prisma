@@ -145,6 +145,7 @@ model RutaTransporte {
   vigenciaDesde     String?
   vigenciaHasta     String?
   estado            String   @default("PENDIENTE")
+  tipoServicio      String   @default("FIJO") // FIJO o A_DEMANDA
   // Tracking y Auditoría
   creadoPorId       String?
   creadoPorNombre   String?

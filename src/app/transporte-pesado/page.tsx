@@ -68,6 +68,7 @@ export default function TransportePesadoWizard() {
   const [observaciones, setObservaciones] = useState('');
   const [vigenciaDesde, setVigenciaDesde] = useState('');
   const [vigenciaHasta, setVigenciaHasta] = useState('');
+  const [tipoServicio, setTipoServicio] = useState('FIJO');
   const [datosGeo, setDatosGeo] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -172,6 +173,7 @@ export default function TransportePesadoWizard() {
           setObservaciones(data.observaciones || '');
           setVigenciaDesde(data.vigenciaDesde || '');
           setVigenciaHasta(data.vigenciaHasta || '');
+          setTipoServicio(data.tipoServicio || 'FIJO');
           if (data.datosGeo) {
             let parsedGeo = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;
             setDatosGeo(parsedGeo);
@@ -209,6 +211,7 @@ export default function TransportePesadoWizard() {
       setOrigenLocalidad(''); setOrigenPartido(''); setOrigenNombre(''); setDestinoDireccion('');
       setDestinoLocalidad(''); setDestinoPartido(''); setDestinoNombre(''); setFrecuencia('');
       setHorario(''); setObservaciones(''); setVigenciaDesde(''); setVigenciaHasta('');
+      setTipoServicio('FIJO');
       setDatosGeo(null); setSavedWaypoints([]); setTracedStreets([]);
 
       // Intentar cargar borrador si no hay editId y estamos en modo wizard
@@ -237,7 +240,7 @@ export default function TransportePesadoWizard() {
         cantidadEjes, aseguradora, nroSeguro, origenDireccion, origenLocalidad,
         origenPartido, origenNombre, destinoDireccion, destinoLocalidad,
         destinoPartido, destinoNombre, frecuencia, horario, observaciones,
-        vigenciaDesde, vigenciaHasta
+        vigenciaDesde, vigenciaHasta, tipoServicio
       };
       // Solo guardar si hay datos relevantes cargados
       if (patente || nombreSolicitante || empresaSolicitante || numeroSolicitud) {
@@ -251,7 +254,7 @@ export default function TransportePesadoWizard() {
     cantidadEjes, aseguradora, nroSeguro, origenDireccion, origenLocalidad,
     origenPartido, origenNombre, destinoDireccion, destinoLocalidad,
     destinoPartido, destinoNombre, frecuencia, horario, observaciones,
-    vigenciaDesde, vigenciaHasta, viewMode, editId, isSubmitting, step
+    vigenciaDesde, vigenciaHasta, tipoServicio, viewMode, editId, isSubmitting, step
   ]);
 
   const fetchRutasList = async () => {
@@ -433,6 +436,7 @@ export default function TransportePesadoWizard() {
       const payload: any = {
         numeroSolicitud,
         idSolicitudWeb,
+        tipoServicio,
         enlaceDocumento,
         fechaCreacion,
         nombreSolicitante,
@@ -681,6 +685,7 @@ export default function TransportePesadoWizard() {
     if (p.observaciones) setObservaciones(p.observaciones);
     if (p.vigenciaDesde) setVigenciaDesde(p.vigenciaDesde);
     if (p.vigenciaHasta) setVigenciaHasta(p.vigenciaHasta);
+    if (p.tipoServicio) setTipoServicio(p.tipoServicio);
     setShowDraftModal(false);
     setPendingDraft(null);
   };
@@ -1281,10 +1286,10 @@ export default function TransportePesadoWizard() {
               )}
             </div>
 
-            {/* ── FILA 1: Expediente + ID Web + Vigencias ── */}
+            {/* ── FILA 1: Expediente + ID Web + Tipo de Servicio ── */}
             <fieldset style={fieldsetStyle}>
               <legend style={legendStyle}>Identificación del Trámite</legend>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px', marginBottom: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr', gap: '10px', marginBottom: '10px' }}>
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>
                     N° Expediente <span style={{ color: '#dc2626' }}>*</span>
@@ -1295,6 +1300,13 @@ export default function TransportePesadoWizard() {
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>ID Web</label>
                   <input type="text" value={idSolicitudWeb} onChange={e => setIdSolicitudWeb(e.target.value)} placeholder="61433" style={inputStyle} />
+                </div>
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Tipo de Servicio</label>
+                  <select value={tipoServicio} onChange={e => setTipoServicio(e.target.value)} style={{ ...inputStyle, backgroundColor: 'white', cursor: 'pointer' }}>
+                    <option value="FIJO">Servicio Fijo</option>
+                    <option value="A_DEMANDA">Servicio a Demanda</option>
+                  </select>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '10px' }}>

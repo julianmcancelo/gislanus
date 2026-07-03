@@ -95,7 +95,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       frecuencia, horario, observaciones,
       vigenciaDesde, vigenciaHasta,
       datosGeo, calles,
-      editadoPorId, editadoPorNombre, enlaceDocumento
+      editadoPorId, editadoPorNombre, enlaceDocumento,
+      tipoServicio
     } = body;
 
     let parsedGeo;
@@ -149,6 +150,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         editadoPorId: editadoPorId || null,
         editadoPorNombre: editadoPorNombre || null,
         enlaceDocumento: enlaceDocumento || null,
+        tipoServicio: tipoServicio || 'FIJO',
       },
     });
 
