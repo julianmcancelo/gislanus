@@ -26,6 +26,8 @@ interface Capa {
   origenNombre?: string;
   destinoNombre?: string;
   datosGeo?: any;
+  patente?: string;
+  tipoServicio?: string;
 }
 
 interface SidebarProps {
@@ -92,17 +94,80 @@ function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
 function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
   const cfg = getEstado(capa.estado);
   const route = [capa.origenNombre, capa.destinoNombre].filter(Boolean).join(' → ');
+  const owner = capa.empresaSolicitante || capa.nombreSolicitante || 'Sin Datos';
+
   return (
     <div className={styles.solicitudRow} onClick={onToggle}
-      title={`#${capa.numeroSolicitud} · ${cfg.label}${route ? ' · ' + route : ''}`}
-      style={{ opacity: capa.active ? 1 : 0.55 }}>
-      <div className={styles.estadoDot} style={{ background: cfg.dot }} />
-      <span className={styles.solicitudNum}>#{capa.numeroSolicitud}</span>
-      <span className={styles.solicitudRoute}>{route || capa.tipoCarga || '—'}</span>
-      <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot }}>
-        {cfg.short}
-      </span>
-      <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
+      title={`#${capa.numeroSolicitud} · ${owner} · Dominio: ${capa.patente || 'S/D'} · ${cfg.label}${route ? ' · ' + route : ''}`}
+      style={{ 
+        opacity: capa.active ? 1 : 0.55,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        padding: '6px 8px',
+        borderBottom: '1px solid #f1f5f9',
+        width: '100%',
+        boxSizing: 'border-box'
+      }}>
+      
+      <div className={styles.estadoDot} style={{ background: cfg.dot, width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0 }} />
+      
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+          <span style={{ 
+            fontSize: '11px', 
+            fontWeight: 700, 
+            color: '#1e293b', 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            flex: 1 
+          }}>
+            {owner}
+          </span>
+          {capa.patente && (
+            <span style={{ 
+              fontSize: '8px', 
+              fontWeight: 700, 
+              color: '#1d4ed8', 
+              background: '#eff6ff', 
+              border: '1px solid #bfdbfe',
+              padding: '0.5px 4px',
+              borderRadius: '3px',
+              fontFamily: 'monospace',
+              flexShrink: 0
+            }}>
+              {capa.patente}
+            </span>
+          )}
+        </div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#64748b' }}>
+          <span style={{ fontWeight: 600, color: '#475569', fontSize: '9px', fontFamily: 'monospace' }}>
+            #{capa.numeroSolicitud}
+          </span>
+          {route && (
+            <>
+              <span style={{ color: '#cbd5e1' }}>•</span>
+              <span style={{ 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                whiteSpace: 'nowrap', 
+                flex: 1 
+              }}>
+                {route}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot, fontSize: '8px', padding: '1px 4px' }}>
+          {cfg.short}
+        </span>
+        <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
+      </div>
     </div>
   );
 }

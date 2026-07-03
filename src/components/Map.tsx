@@ -447,6 +447,8 @@ export default function MapComponent() {
             tipoCarga: r.tipoCarga || null,
             origenNombre: r.origenNombre || r.origenLocalidad || null,
             destinoNombre: r.destinoNombre || r.destinoLocalidad || null,
+            patente: r.patente || null,
+            tipoServicio: r.tipoServicio || 'FIJO',
           };
         });
 
