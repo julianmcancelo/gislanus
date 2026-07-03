@@ -5,7 +5,7 @@ import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
 import MapSearch from './MapSearch';
-import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route, Wand2, ChevronRight, Pencil, ChevronUp, ChevronDown } from 'lucide-react';
+import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route, Wand2, ChevronRight, Pencil, ChevronUp, ChevronDown, Truck } from 'lucide-react';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -30,6 +30,28 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const pendingEditWaypointsRef = useRef<any[]>([]);
+
+  const [capasTransporte, setCapasTransporte] = useState<any[]>([]);
+  const [mostrarCapasRed, setMostrarCapasRed] = useState(true);
+
+  useEffect(() => {
+    async function fetchCapas() {
+      try {
+        const res = await fetch('/api/capas');
+        if (res.ok) {
+          const data = await res.json();
+          const filtradas = data.filter((c: any) => 
+            c.grupo?.nombre === 'Redes Transporte Pesado' && 
+            c.subGrupo?.nombre === 'Lanus'
+          );
+          setCapasTransporte(filtradas);
+        }
+      } catch (e) {
+        console.error('Error fetching heavy transport networks in wizard map:', e);
+      }
+    }
+    fetchCapas();
+  }, []);
 
   useEffect(() => {
     if (initialFeatures && initialFeatures.length > 0) {
@@ -373,6 +395,53 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
           )}
         </div>
 
+        {/* Toggle Red Tránsito Pesado */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
+          borderRadius: '8px',
+          padding: '6px 10px',
+          marginBottom: '10px',
+          fontSize: '11px',
+          fontWeight: 600,
+          color: '#475569'
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Truck size={12} color="#475569" /> Red Tránsito Pesado
+          </span>
+          <label style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}>
+            <input 
+              type="checkbox" 
+              checked={mostrarCapasRed} 
+              onChange={e => setMostrarCapasRed(e.target.checked)}
+              style={{ display: 'none' }} 
+            />
+            <div style={{
+              width: '28px',
+              height: '16px',
+              backgroundColor: mostrarCapasRed ? '#3b82f6' : '#cbd5e1',
+              borderRadius: '9px',
+              position: 'relative',
+              transition: 'background-color 0.2s',
+            }}>
+              <div style={{
+                width: '12px',
+                height: '12px',
+                backgroundColor: 'white',
+                borderRadius: '50%',
+                position: 'absolute',
+                top: '2px',
+                left: mostrarCapasRed ? '14px' : '2px',
+                transition: 'left 0.2s',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+              }} />
+            </div>
+          </label>
+        </div>
+
         {/* Lista de trazos guardados */}
         <div style={{ flex: 1, overflowY: 'auto', marginBottom: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {savedFeatures.length === 0 ? (
@@ -474,6 +543,28 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
           }}
         />
       ))}
+
+      {/* ── Capas de Red de Tránsito Pesado ── */}
+      {mostrarCapasRed && capasTransporte.map((capa) => {
+        const parsedGeo = typeof capa.datosGeo === 'string' ? JSON.parse(capa.datosGeo) : capa.datosGeo;
+        if (!parsedGeo) return null;
+        return (
+          <GeoJSON
+            key={`red-transito-${capa.id}`}
+            data={parsedGeo}
+            style={() => ({
+              color: capa.color || '#475569',
+              weight: 2.5,
+              opacity: 0.55,
+              lineCap: 'round',
+              lineJoin: 'round'
+            })}
+            onEachFeature={(_feature, layer) => {
+              layer.bindTooltip(capa.nombre, { sticky: true, opacity: 0.9 });
+            }}
+          />
+        );
+      })}
     </>
   );
 }
