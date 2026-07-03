@@ -6,6 +6,7 @@ import L from 'leaflet';
 import 'leaflet-routing-machine';
 import MapSearch from './MapSearch';
 import { MapPin, Flag, Octagon, X, Ruler, Clock, Trash2, Plus, Route, Wand2, ChevronRight, Pencil, ChevronUp, ChevronDown, Truck } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const center: [number, number] = [-34.7042, -58.3961];
 
@@ -20,6 +21,7 @@ const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#d
 
 function WizardMapController({ onComplete, initialGeo, initialFeatures, initialWaypoints, defaultRouteName }: any) {
   const map = useMap();
+  const { user } = useAuth();
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [waypoints, setWaypoints] = useState<any[]>([]);
@@ -37,21 +39,43 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
   useEffect(() => {
     async function fetchCapas() {
       try {
-        const res = await fetch('/api/capas');
+        const token = user ? await user.getIdToken() : null;
+        const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('/api/capas', { headers });
         if (res.ok) {
           const data = await res.json();
           const filtradas = data.filter((c: any) => 
             c.grupo?.nombre === 'Redes Transporte Pesado' && 
             c.subGrupo?.nombre === 'Lanus'
           );
-          setCapasTransporte(filtradas);
+          
+          // Fetch detailed geometry for each filtered layer
+          const detailedCapas = await Promise.all(
+            filtradas.map(async (capa: any) => {
+              try {
+                const detailRes = await fetch(`/api/capas/${capa.id}`, { headers });
+                if (detailRes.ok) {
+                  const detailData = await detailRes.json();
+                  return {
+                    ...capa,
+                    datosGeo: detailData.datosGeo
+                  };
+                }
+              } catch (err) {
+                console.error(`Error fetching geometry for layer ${capa.id}:`, err);
+              }
+              return capa;
+            })
+          );
+          
+          setCapasTransporte(detailedCapas);
         }
       } catch (e) {
         console.error('Error fetching heavy transport networks in wizard map:', e);
       }
     }
     fetchCapas();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (initialFeatures && initialFeatures.length > 0) {
