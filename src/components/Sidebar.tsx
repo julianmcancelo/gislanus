@@ -289,14 +289,32 @@ export default function Sidebar({
       setSyncResult('Sincronizando reclamos del SAT...');
       const localToken = await user?.getIdToken();
       
-      // Enviamos el satToken al backend, el cual realizará la petición de descarga sin trabas de CORS
+      let reclamos = null;
+      try {
+        const response = await fetch('https://sat.lanus.gob.ar/apisat/v2/reclamos?limit=1000', {
+          headers: {
+            'Authorization': `Bearer ${satToken}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          reclamos = data.reclamos || data;
+          console.log('Descarga directa en browser exitosa, enviando al backend');
+        } else {
+          console.log(`Respuesta SAT API en browser: ${response.status}. Intentando vía backend...`);
+        }
+      } catch (e) {
+        console.log('No se pudo descargar directo en el browser (CORS). Se intentará vía backend.', e);
+      }
+
+      // Enviamos el satToken y los reclamos (si se descargaron en el browser) al backend
       const localSyncRes = await fetch('/api/reclamos/sync', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(localToken ? { 'Authorization': `Bearer ${localToken}` } : {})
         },
-        body: JSON.stringify({ satToken })
+        body: JSON.stringify({ satToken, reclamos })
       });
 
       if (!localSyncRes.ok) {
