@@ -2,6 +2,8 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getDatabase } from "firebase/database";
+import { getDataConnect, connectDataConnectEmulator } from "firebase/data-connect";
+import { connectorConfig } from "./dataconnect";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -18,6 +20,13 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const rtdb = getDatabase(app);
 
+// Data Connect
+const dataConnect = getDataConnect(app, connectorConfig);
+// Para desarrollo local, conectarse al emulador de Data Connect
+if (process.env.NODE_ENV === 'development') {
+  // connectDataConnectEmulator(dataConnect, 'localhost', 9399);
+}
+
 const googleProvider = new GoogleAuthProvider();
 
-export { app, auth, db, rtdb, googleProvider };
+export { app, auth, db, rtdb, googleProvider, dataConnect };

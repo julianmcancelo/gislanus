@@ -3,3 +3,6 @@ generate:
   javascriptSdk:
     outputDir: "../../src/lib/dataconnect"
     package: "@lanus-gis/dataconnect"
+  adminNodeSdk:
+    outputDir: "../../src/lib/dataconnect-admin"
+    package: "@lanus-gis/dataconnect-admin"

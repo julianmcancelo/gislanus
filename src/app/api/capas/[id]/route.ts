@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { requirePermission, requireRole } from '@/lib/authGuard';
+import { adminDc } from '@/lib/dataconnectAdmin';
+import { getCapa, deleteCapa } from '@/lib/dataconnect-admin';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const capa = await prisma.capa.findUnique({
-      where: { id },
-      select: { datosGeo: true, visibilidad: true, rolesPermitidos: true }
-    });
+    const res = await getCapa(adminDc, { id });
+    const capa = res.data.capa;
 
     if (!capa) {
       return NextResponse.json({ error: 'Capa no encontrada' }, { status: 404 });
@@ -31,6 +30,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json({ datosGeo: capa.datosGeo });
   } catch (error: any) {
+    console.error('Error procesando GET /api/capas/[id]:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -41,11 +41,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    await prisma.capa.delete({
-      where: { id },
-    });
+    await deleteCapa(adminDc, { id });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('Error procesando DELETE /api/capas/[id]:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

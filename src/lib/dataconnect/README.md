@@ -9,6 +9,7 @@ This README will guide you through the process of using the generated JavaScript
   - [*Connecting to the local Emulator*](#connecting-to-the-local-emulator)
 - [**Queries**](#queries)
   - [*ListCapas*](#listcapas)
+  - [*GetCapa*](#getcapa)
   - [*ListGrupos*](#listgrupos)
   - [*ListSubGrupos*](#listsubgrupos)
   - [*ListLineasTransporte*](#listlineastransporte)
@@ -124,6 +125,18 @@ export interface ListCapasData {
     subGrupoId?: string | null;
     creadoEn: TimestampString;
     actualizadoEn: TimestampString;
+    grupo?: {
+      id: string;
+      nombre: string;
+      color: string;
+      visibilidad: string;
+      rolesPermitidos?: string[] | null;
+    } & Grupo_Key;
+    subGrupo?: {
+      id: string;
+      nombre: string;
+      color: string;
+    } & SubGrupo_Key;
   } & Capa_Key)[];
 }
 ```
@@ -175,6 +188,120 @@ console.log(data.capas);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.capas);
+});
+```
+
+## GetCapa
+You can execute the `GetCapa` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect/index.d.ts](./index.d.ts):
+```typescript
+getCapa(vars: GetCapaVariables, options?: ExecuteQueryOptions): QueryPromise<GetCapaData, GetCapaVariables>;
+
+interface GetCapaRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetCapaVariables): QueryRef<GetCapaData, GetCapaVariables>;
+}
+export const getCapaRef: GetCapaRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getCapa(dc: DataConnect, vars: GetCapaVariables, options?: ExecuteQueryOptions): QueryPromise<GetCapaData, GetCapaVariables>;
+
+interface GetCapaRef {
+  ...
+  (dc: DataConnect, vars: GetCapaVariables): QueryRef<GetCapaData, GetCapaVariables>;
+}
+export const getCapaRef: GetCapaRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getCapaRef:
+```typescript
+const name = getCapaRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetCapa` query requires an argument of type `GetCapaVariables`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetCapaVariables {
+  id: string;
+}
+```
+### Return Type
+Recall that executing the `GetCapa` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetCapaData`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetCapaData {
+  capa?: {
+    id: string;
+    datosGeo: string;
+    visibilidad: string;
+    rolesPermitidos?: string[] | null;
+  } & Capa_Key;
+}
+```
+### Using `GetCapa`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getCapa, GetCapaVariables } from '@lanus-gis/dataconnect';
+
+// The `GetCapa` query requires an argument of type `GetCapaVariables`:
+const getCapaVars: GetCapaVariables = {
+  id: ..., 
+};
+
+// Call the `getCapa()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getCapa(getCapaVars);
+// Variables can be defined inline as well.
+const { data } = await getCapa({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getCapa(dataConnect, getCapaVars);
+
+console.log(data.capa);
+
+// Or, you can use the `Promise` API.
+getCapa(getCapaVars).then((response) => {
+  const data = response.data;
+  console.log(data.capa);
+});
+```
+
+### Using `GetCapa`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getCapaRef, GetCapaVariables } from '@lanus-gis/dataconnect';
+
+// The `GetCapa` query requires an argument of type `GetCapaVariables`:
+const getCapaVars: GetCapaVariables = {
+  id: ..., 
+};
+
+// Call the `getCapaRef()` function to get a reference to the query.
+const ref = getCapaRef(getCapaVars);
+// Variables can be defined inline as well.
+const ref = getCapaRef({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getCapaRef(dataConnect, getCapaVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.capa);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.capa);
 });
 ```
 

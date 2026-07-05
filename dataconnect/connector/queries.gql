@@ -12,6 +12,27 @@ query ListCapas @auth(level: USER) {
     subGrupoId
     creadoEn
     actualizadoEn
+    grupo {
+      id
+      nombre
+      color
+      visibilidad
+      rolesPermitidos
+    }
+    subGrupo {
+      id
+      nombre
+      color
+    }
+  }
+}
+
+query GetCapa($id: String!) @auth(level: USER) {
+  capa(id: $id) {
+    id
+    datosGeo
+    visibilidad
+    rolesPermitidos
   }
 }
 

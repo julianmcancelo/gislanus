@@ -84,6 +84,19 @@ export interface DispositivoBloqueado_Key {
   __typename?: 'DispositivoBloqueado_Key';
 }
 
+export interface GetCapaData {
+  capa?: {
+    id: string;
+    datosGeo: string;
+    visibilidad: string;
+    rolesPermitidos?: string[] | null;
+  } & Capa_Key;
+}
+
+export interface GetCapaVariables {
+  id: string;
+}
+
 export interface GetRolPermisosData {
   rolPermisos?: {
     id: string;
@@ -197,6 +210,18 @@ export interface ListCapasData {
     subGrupoId?: string | null;
     creadoEn: TimestampString;
     actualizadoEn: TimestampString;
+    grupo?: {
+      id: string;
+      nombre: string;
+      color: string;
+      visibilidad: string;
+      rolesPermitidos?: string[] | null;
+    } & Grupo_Key;
+    subGrupo?: {
+      id: string;
+      nombre: string;
+      color: string;
+    } & SubGrupo_Key;
   } & Capa_Key)[];
 }
 
@@ -486,6 +511,18 @@ export const listCapasRef: ListCapasRef;
 
 export function listCapas(options?: ExecuteQueryOptions): QueryPromise<ListCapasData, undefined>;
 export function listCapas(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListCapasData, undefined>;
+
+interface GetCapaRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetCapaVariables): QueryRef<GetCapaData, GetCapaVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetCapaVariables): QueryRef<GetCapaData, GetCapaVariables>;
+  operationName: string;
+}
+export const getCapaRef: GetCapaRef;
+
+export function getCapa(vars: GetCapaVariables, options?: ExecuteQueryOptions): QueryPromise<GetCapaData, GetCapaVariables>;
+export function getCapa(dc: DataConnect, vars: GetCapaVariables, options?: ExecuteQueryOptions): QueryPromise<GetCapaData, GetCapaVariables>;
 
 interface ListGruposRef {
   /* Allow users to create refs without passing in DataConnect */
