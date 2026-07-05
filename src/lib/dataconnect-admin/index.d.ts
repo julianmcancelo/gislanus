@@ -128,6 +128,27 @@ export interface GetCapaVariables {
   id: string;
 }
 
+export interface GetLineaTransporteData {
+  lineaTransporte?: {
+    id: string;
+    nombre: string;
+    numero?: string | null;
+    color: string;
+    descripcion?: string | null;
+    categoria: string;
+    subcategoria?: string | null;
+    sentido?: string | null;
+    activo: boolean;
+    datosGeo: string;
+    creadoEn: TimestampString;
+    actualizadoEn: TimestampString;
+  } & LineaTransporte_Key;
+}
+
+export interface GetLineaTransporteVariables {
+  id: string;
+}
+
 export interface GetRolPermisosData {
   rolPermisos?: {
     id: string;
@@ -520,6 +541,11 @@ export function listSubGrupos(options?: OperationOptions): Promise<ExecuteOperat
 export function listLineasTransporte(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListLineasTransporteData>>;
 /** Generated Node Admin SDK operation action function for the 'ListLineasTransporte' Query. Allow users to pass in custom DataConnect instances. */
 export function listLineasTransporte(options?: OperationOptions): Promise<ExecuteOperationResponse<ListLineasTransporteData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetLineaTransporte' Query. Allow users to execute without passing in DataConnect. */
+export function getLineaTransporte(dc: DataConnect, vars: GetLineaTransporteVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetLineaTransporteData>>;
+/** Generated Node Admin SDK operation action function for the 'GetLineaTransporte' Query. Allow users to pass in custom DataConnect instances. */
+export function getLineaTransporte(vars: GetLineaTransporteVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetLineaTransporteData>>;
 
 /** Generated Node Admin SDK operation action function for the 'ListRutasTransporte' Query. Allow users to execute without passing in DataConnect. */
 export function listRutasTransporte(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListRutasTransporteData>>;

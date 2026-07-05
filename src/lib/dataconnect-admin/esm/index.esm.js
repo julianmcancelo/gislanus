@@ -96,6 +96,12 @@ export function listLineasTransporte(dcOrOptions, options) {
   return dcInstance.executeQuery('ListLineasTransporte', undefined, inputOpts);
 }
 
+export function getLineaTransporte(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetLineaTransporte', inputVars, inputOpts);
+}
+
 export function listRutasTransporte(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
   dcInstance.useGen(true);

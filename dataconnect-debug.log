@@ -15,3 +15,79 @@ I0705 14:44:56.798006   38856 installsdk.go:138] generate.adminNodeSdk.packageJs
 I0705 14:44:56.798006   38856 load.go:109] Finished reloading
 I0705 14:44:56.805012   38856 dev.go:104] Listening on address (HTTP + gRPC): 127.0.0.1:9399
 I0705 14:44:56.919744   38856 dev.go:104] Listening on address (HTTP + gRPC): [::1]:9399
+I0705 14:45:00.230322   38856 migrate.go:24] Running migration SQL:
+Step 1: CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+Step 2: CREATE TABLE "public"."dispositivo_bloqueado" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "creado_en" timestamptz NOT NULL, "email" text NULL, "fingerprint" text NOT NULL, "motivo" text NULL, PRIMARY KEY ("id"))
+Step 3: CREATE UNIQUE INDEX "dispositivo_bloqueado_fingerprint_uidx" ON "public"."dispositivo_bloqueado" ("fingerprint")
+Step 4: CREATE TABLE "public"."grupo" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "color" text NOT NULL DEFAULT '#10B981', "nombre" text NOT NULL, "roles_permitidos" text[] NULL, "visibilidad" text NOT NULL DEFAULT 'PUBLIC', PRIMARY KEY ("id"))
+Step 5: CREATE UNIQUE INDEX "grupo_nombre_uidx" ON "public"."grupo" ("nombre")
+Step 6: CREATE TABLE "public"."linea_transporte" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "activo" boolean NOT NULL DEFAULT true, "actualizado_en" timestamptz NOT NULL, "categoria" text NOT NULL DEFAULT 'NACIONAL', "color" text NOT NULL DEFAULT '#E53E3E', "creado_en" timestamptz NOT NULL, "datos_geo" text NOT NULL, "descripcion" text NULL, "nombre" text NOT NULL, "numero" text NULL, "sentido" text NULL, "subcategoria" text NULL, PRIMARY KEY ("id"))
+Step 7: CREATE TABLE "public"."reclamo" ("id" text NOT NULL, "actualizado_en" timestamptz NOT NULL, "canal_entrada" text NULL, "ciudadano" text NULL, "creado_en" timestamptz NOT NULL, "descripcion" text NULL, "direccion" text NULL, "dni_ciudadano" text NULL, "estado" text NOT NULL, "fecha" text NULL, "lat" double precision NOT NULL, "lng" double precision NOT NULL, "motivo_id" integer NOT NULL, "motivo_nombre" text NOT NULL, "numero" text NOT NULL, "prioridad" text NOT NULL, "titulo" text NOT NULL, PRIMARY KEY ("id"))
+Step 8: CREATE UNIQUE INDEX "reclamo_numero_uidx" ON "public"."reclamo" ("numero")
+Step 9: CREATE TABLE "public"."rol_permisos" ("rol" text NOT NULL, "acceso_admin" boolean NOT NULL DEFAULT false, "editar_capas" boolean NOT NULL DEFAULT false, "editar_lineas" boolean NOT NULL DEFAULT false, "editar_reclamos" boolean NOT NULL DEFAULT false, "editar_rutas" boolean NOT NULL DEFAULT false, "gestionar_grupos" boolean NOT NULL DEFAULT false, "gestionar_usuarios" boolean NOT NULL DEFAULT false, "id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "ver_capas" boolean NOT NULL DEFAULT false, "ver_lineas" boolean NOT NULL DEFAULT false, "ver_reclamos" boolean NOT NULL DEFAULT false, "ver_rutas" boolean NOT NULL DEFAULT false, PRIMARY KEY ("rol"))
+Step 10: CREATE UNIQUE INDEX "rol_permisos_rol_uidx" ON "public"."rol_permisos" ("rol")
+Step 11: CREATE TABLE "public"."ruta_transporte" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "activo" boolean NOT NULL DEFAULT true, "altura_vehiculo" text NULL, "ancho_vehiculo" text NULL, "aseguradora" text NULL, "calles" text NULL, "cantidad_ejes" integer NULL, "carga_peligrosa" boolean NOT NULL DEFAULT false, "creado_en" timestamptz NOT NULL, "creado_por_id" text NULL, "creado_por_nombre" text NULL, "cuil_cuit" text NULL, "datos_geo" text NOT NULL, "destino_direccion" text NULL, "destino_localidad" text NULL, "destino_nombre" text NULL, "destino_partido" text NULL, "editado_por_id" text NULL, "editado_por_nombre" text NULL, "email_solicitante" text NULL, "empresa_solicitante" text NULL, "enlace_documento" text NULL, "estado" text NOT NULL DEFAULT 'PENDIENTE', "fecha_creacion" text NULL, "frecuencia" text NULL, "horario" text NULL, "id_solicitud_web" text NULL, "largo_vehiculo" text NULL, "nombre_solicitante" text NOT NULL, "nro_seguro" text NULL, "numero_solicitud" text NULL, "observaciones" text NULL, "origen_direccion" text NULL, "origen_localidad" text NULL, "origen_nombre" text NULL, "origen_partido" text NULL, "patente" text NULL, "peso_toneladas" double precision NULL, "telefono_solicitante" text NULL, "tipo_carga" text NULL, "tipo_servicio" text NOT NULL DEFAULT 'FIJO', "tipo_vehiculo" text NULL, "vigencia_desde" text NULL, "vigencia_hasta" text NULL, PRIMARY KEY ("id"))
+Step 12: CREATE TABLE "public"."sesion_q_r" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "creado_en" timestamptz NOT NULL, "custom_token" text NULL, "device_fingerprint" text NULL, "device_info" text NULL, "email" text NULL, "estado" text NOT NULL DEFAULT 'PENDIENTE', "expira_en" timestamptz NOT NULL, "ip_celular" text NULL, "nombre" text NULL, "revisado_en" timestamptz NULL, PRIMARY KEY ("id"))
+Step 13: CREATE TABLE "public"."solicitud_dispositivo" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "creado_en" timestamptz NOT NULL, "custom_token" text NULL, "device_fingerprint" text NULL, "device_info" text NULL, "email" text NOT NULL, "estado" text NOT NULL DEFAULT 'PENDIENTE', "ip_address" text NULL, "nombre" text NOT NULL, "revisado_en" timestamptz NULL, PRIMARY KEY ("id"))
+Step 14: CREATE TABLE "public"."usuario" ("firebase_uid" text NOT NULL, "creado_en" timestamptz NOT NULL, "email" text NOT NULL, "nombre" text NULL, "rol" text NOT NULL DEFAULT 'PENDIENTE', PRIMARY KEY ("firebase_uid"))
+Step 15: CREATE UNIQUE INDEX "usuario_email_uidx" ON "public"."usuario" ("email")
+Step 16: CREATE TABLE "public"."sub_grupo" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "grupo_id" text NOT NULL, "color" text NOT NULL DEFAULT '#10B981', "nombre" text NOT NULL, PRIMARY KEY ("id"), CONSTRAINT "sub_grupo_grupo_id_fkey" FOREIGN KEY ("grupo_id") REFERENCES "public"."grupo" ("id") ON DELETE CASCADE)
+Step 17: CREATE INDEX "sub_grupo_grupoId_idx" ON "public"."sub_grupo" ("grupo_id")
+Step 18: CREATE TABLE "public"."capa" ("id" text NOT NULL DEFAULT replace((uuid_generate_v4())::text, '-'::text, ''::text), "grupo_id" text NULL, "sub_grupo_id" text NULL, "actualizado_en" timestamptz NOT NULL, "color" text NOT NULL DEFAULT '#10B981', "creado_en" timestamptz NOT NULL, "datos_geo" text NOT NULL, "icono" text NULL, "nombre" text NOT NULL, "roles_permitidos" text[] NULL, "tipo" text NOT NULL, "visibilidad" text NOT NULL DEFAULT 'PUBLIC', PRIMARY KEY ("id"), CONSTRAINT "capa_grupo_id_fkey" FOREIGN KEY ("grupo_id") REFERENCES "public"."grupo" ("id") ON DELETE SET NULL, CONSTRAINT "capa_sub_grupo_id_fkey" FOREIGN KEY ("sub_grupo_id") REFERENCES "public"."sub_grupo" ("id") ON DELETE SET NULL)
+Step 19: CREATE INDEX "capa_grupoId_idx" ON "public"."capa" ("grupo_id")
+Step 20: CREATE INDEX "capa_subGrupoId_idx" ON "public"."capa" ("sub_grupo_id")
+I0705 14:45:00.405235   38856 control.go:100] [projects/emulator/locations/emulator/services/lanus-gis fc22] UpdateResources(): done
+Main schema: sources: schema\schema.gql [4544B] 
+Connector "default": sources: connector\mutations.gql [2815B] connector\queries.gql [2801B] 
+I0705 14:45:00.422233   38856 configure_emulator.go:21] ConfigureEmulator successed
+Request: service_id:  "lanus-gis"
+connection_string:  "postgres://127.0.0.1:5432/lanusgis_db?sslmode=disable"
+database:  "lanusgis_db"
+
+Response: 
+I0705 14:45:46.857112   38856 load.go:31] Reloading schema and connectors...
+I0705 14:45:47.206655   38856 control.go:100] [projects/emulator/locations/emulator/services/lanus-gis 3eaf] UpdateResources(): done
+Main schema: sources: schema\schema.gql [4544B] 
+Connector "default": sources: connector\mutations.gql [4792B] connector\queries.gql [2801B] 
+I0705 14:45:47.535395   38856 codegen.go:101] [connector "default" javascriptSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect"
+I0705 14:45:47.582974   38856 codegen.go:101] [connector "default" adminSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+I0705 14:45:47.587488   38856 collector.go:107] schema extensions wrote into "D:\\LanusGIS\\dataconnect\\.dataconnect\\schema"
+Generated sources: main\relation.gql [69973B] main\query.gql [15327B] main\mutation.gql [41058B] prelude.gql [84995B] main\implicit.gql [754B] main\input.gql [157757B] 
+I0705 14:45:47.590490   38856 collector.go:107] connector "default" javascriptSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect"
+Generated sources: esm\index.esm.js [11538B] esm\package.json [17B] index.cjs.js [12758B] package.json [615B] .guides/usage.md [2269B] .guides/setup.md [584B] index.d.ts [22920B] README.md [97063B] .guides/config.json [236B] 
+I0705 14:45:47.590490   38856 installsdk.go:138] generate.javascriptSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:45:47.593490   38856 collector.go:107] connector "default" adminSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+Generated sources: index.d.ts [21046B] esm\index.esm.js [6555B] esm\package.json [17B] index.cjs.js [7262B] package.json [632B] 
+I0705 14:45:47.593490   38856 installsdk.go:138] generate.adminNodeSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:45:47.593490   38856 load.go:109] Finished reloading
+I0705 14:46:26.856076   38856 load.go:31] Reloading schema and connectors...
+W0705 14:46:26.981295   38856 control.go:74] [projects/emulator/locations/emulator/services/lanus-gis 0efd] connector "default" has errors: connector\queries.gql:119:5: Cannot query field "actualizadoEn" on type "RutaTransporte".
+
+sources: connector\mutations.gql [4792B] connector\queries.gql [3403B] 
+I0705 14:46:26.981295   38856 control.go:100] [projects/emulator/locations/emulator/services/lanus-gis 0efd] UpdateResources(): done
+Main schema: sources: schema\schema.gql [4544B] 
+Connector "default": sources: connector\mutations.gql [4792B] connector\queries.gql [3403B] 
+E0705 14:46:26.984296   38856 load.go:73] Could not load sources: 
+Errors: connector\queries.gql:119:5: Cannot query field "actualizadoEn" on type "RutaTransporte".
+
+Warnings: schema\schema.gql:75:6: NAMING_LINTER: On SesionQR: Type name should be in PascalCase
+I0705 14:46:26.989295   38856 collector.go:107] schema extensions wrote into "D:\\LanusGIS\\dataconnect\\.dataconnect\\schema"
+Generated sources: main\query.gql [15327B] main\mutation.gql [41058B] main\implicit.gql [754B] prelude.gql [84995B] main\input.gql [157757B] main\relation.gql [69973B] 
+I0705 14:46:26.989295   38856 load.go:74] Finished reloading
+I0705 14:46:56.858660   38856 load.go:31] Reloading schema and connectors...
+I0705 14:46:56.957953   38856 migrate.go:24] Running migration SQL:
+Step 1: ALTER TABLE "public"."ruta_transporte" ADD COLUMN "actualizado_en" timestamptz NOT NULL
+I0705 14:46:57.046706   38856 control.go:100] [projects/emulator/locations/emulator/services/lanus-gis 59b2] UpdateResources(): done
+Main schema: sources: schema\schema.gql [4603B] 
+Connector "default": sources: connector\mutations.gql [4792B] connector\queries.gql [3403B] 
+I0705 14:46:57.083886   38856 codegen.go:101] [connector "default" javascriptSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect"
+I0705 14:46:57.102196   38856 codegen.go:101] [connector "default" adminSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+I0705 14:46:57.106315   38856 collector.go:107] schema extensions wrote into "D:\\LanusGIS\\dataconnect\\.dataconnect\\schema"
+Generated sources: main\query.gql [15327B] main\mutation.gql [41058B] main\implicit.gql [754B] main\input.gql [159562B] prelude.gql [84995B] main\relation.gql [70758B] 
+I0705 14:46:57.110313   38856 collector.go:107] connector "default" javascriptSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect"
+Generated sources: index.d.ts [24096B] esm\index.esm.js [11538B] esm\package.json [17B] index.cjs.js [12758B] package.json [615B] README.md [98239B] .guides/usage.md [2269B] .guides/setup.md [584B] .guides/config.json [236B] 
+I0705 14:46:57.111314   38856 installsdk.go:138] generate.javascriptSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:46:57.114313   38856 collector.go:107] connector "default" adminSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+Generated sources: index.d.ts [22222B] esm\index.esm.js [6555B] esm\package.json [17B] index.cjs.js [7262B] package.json [632B] 
+I0705 14:46:57.114313   38856 installsdk.go:138] generate.adminNodeSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:46:57.114313   38856 load.go:109] Finished reloading

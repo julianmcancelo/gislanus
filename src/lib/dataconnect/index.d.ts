@@ -130,6 +130,27 @@ export interface GetCapaVariables {
   id: string;
 }
 
+export interface GetLineaTransporteData {
+  lineaTransporte?: {
+    id: string;
+    nombre: string;
+    numero?: string | null;
+    color: string;
+    descripcion?: string | null;
+    categoria: string;
+    subcategoria?: string | null;
+    sentido?: string | null;
+    activo: boolean;
+    datosGeo: string;
+    creadoEn: TimestampString;
+    actualizadoEn: TimestampString;
+  } & LineaTransporte_Key;
+}
+
+export interface GetLineaTransporteVariables {
+  id: string;
+}
+
 export interface GetRolPermisosData {
   rolPermisos?: {
     id: string;
@@ -627,6 +648,18 @@ export const listLineasTransporteRef: ListLineasTransporteRef;
 
 export function listLineasTransporte(options?: ExecuteQueryOptions): QueryPromise<ListLineasTransporteData, undefined>;
 export function listLineasTransporte(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListLineasTransporteData, undefined>;
+
+interface GetLineaTransporteRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetLineaTransporteVariables): QueryRef<GetLineaTransporteData, GetLineaTransporteVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetLineaTransporteVariables): QueryRef<GetLineaTransporteData, GetLineaTransporteVariables>;
+  operationName: string;
+}
+export const getLineaTransporteRef: GetLineaTransporteRef;
+
+export function getLineaTransporte(vars: GetLineaTransporteVariables, options?: ExecuteQueryOptions): QueryPromise<GetLineaTransporteData, GetLineaTransporteVariables>;
+export function getLineaTransporte(dc: DataConnect, vars: GetLineaTransporteVariables, options?: ExecuteQueryOptions): QueryPromise<GetLineaTransporteData, GetLineaTransporteVariables>;
 
 interface ListRutasTransporteRef {
   /* Allow users to create refs without passing in DataConnect */

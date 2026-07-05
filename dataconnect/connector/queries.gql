@@ -72,6 +72,23 @@ query ListLineasTransporte @auth(level: USER) {
   }
 }
 
+query GetLineaTransporte($id: String!) @auth(level: USER) {
+  lineaTransporte(id: $id) {
+    id
+    nombre
+    numero
+    color
+    descripcion
+    categoria
+    subcategoria
+    sentido
+    activo
+    datosGeo
+    creadoEn
+    actualizadoEn
+  }
+}
+
 query ListRutasTransporte @auth(level: USER) {
   rutaTransportes(orderBy: [{ creadoEn: DESC }]) {
     id

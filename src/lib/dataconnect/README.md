@@ -13,6 +13,7 @@ This README will guide you through the process of using the generated JavaScript
   - [*ListGrupos*](#listgrupos)
   - [*ListSubGrupos*](#listsubgrupos)
   - [*ListLineasTransporte*](#listlineastransporte)
+  - [*GetLineaTransporte*](#getlineatransporte)
   - [*ListRutasTransporte*](#listrutastransporte)
   - [*GetRutaTransporte*](#getrutatransporte)
   - [*ListReclamos*](#listreclamos)
@@ -599,6 +600,128 @@ console.log(data.lineaTransportes);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.lineaTransportes);
+});
+```
+
+## GetLineaTransporte
+You can execute the `GetLineaTransporte` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect/index.d.ts](./index.d.ts):
+```typescript
+getLineaTransporte(vars: GetLineaTransporteVariables, options?: ExecuteQueryOptions): QueryPromise<GetLineaTransporteData, GetLineaTransporteVariables>;
+
+interface GetLineaTransporteRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetLineaTransporteVariables): QueryRef<GetLineaTransporteData, GetLineaTransporteVariables>;
+}
+export const getLineaTransporteRef: GetLineaTransporteRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getLineaTransporte(dc: DataConnect, vars: GetLineaTransporteVariables, options?: ExecuteQueryOptions): QueryPromise<GetLineaTransporteData, GetLineaTransporteVariables>;
+
+interface GetLineaTransporteRef {
+  ...
+  (dc: DataConnect, vars: GetLineaTransporteVariables): QueryRef<GetLineaTransporteData, GetLineaTransporteVariables>;
+}
+export const getLineaTransporteRef: GetLineaTransporteRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getLineaTransporteRef:
+```typescript
+const name = getLineaTransporteRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetLineaTransporte` query requires an argument of type `GetLineaTransporteVariables`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetLineaTransporteVariables {
+  id: string;
+}
+```
+### Return Type
+Recall that executing the `GetLineaTransporte` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetLineaTransporteData`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetLineaTransporteData {
+  lineaTransporte?: {
+    id: string;
+    nombre: string;
+    numero?: string | null;
+    color: string;
+    descripcion?: string | null;
+    categoria: string;
+    subcategoria?: string | null;
+    sentido?: string | null;
+    activo: boolean;
+    datosGeo: string;
+    creadoEn: TimestampString;
+    actualizadoEn: TimestampString;
+  } & LineaTransporte_Key;
+}
+```
+### Using `GetLineaTransporte`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getLineaTransporte, GetLineaTransporteVariables } from '@lanus-gis/dataconnect';
+
+// The `GetLineaTransporte` query requires an argument of type `GetLineaTransporteVariables`:
+const getLineaTransporteVars: GetLineaTransporteVariables = {
+  id: ..., 
+};
+
+// Call the `getLineaTransporte()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getLineaTransporte(getLineaTransporteVars);
+// Variables can be defined inline as well.
+const { data } = await getLineaTransporte({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getLineaTransporte(dataConnect, getLineaTransporteVars);
+
+console.log(data.lineaTransporte);
+
+// Or, you can use the `Promise` API.
+getLineaTransporte(getLineaTransporteVars).then((response) => {
+  const data = response.data;
+  console.log(data.lineaTransporte);
+});
+```
+
+### Using `GetLineaTransporte`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getLineaTransporteRef, GetLineaTransporteVariables } from '@lanus-gis/dataconnect';
+
+// The `GetLineaTransporte` query requires an argument of type `GetLineaTransporteVariables`:
+const getLineaTransporteVars: GetLineaTransporteVariables = {
+  id: ..., 
+};
+
+// Call the `getLineaTransporteRef()` function to get a reference to the query.
+const ref = getLineaTransporteRef(getLineaTransporteVars);
+// Variables can be defined inline as well.
+const ref = getLineaTransporteRef({ id: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getLineaTransporteRef(dataConnect, getLineaTransporteVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.lineaTransporte);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.lineaTransporte);
 });
 ```
 

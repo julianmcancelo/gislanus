@@ -1,29 +1,23 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/authGuard';
 import { clipGeometryToLanus } from '@/utils/geo';
+import { adminDc } from '@/lib/dataconnectAdmin';
+import { listLineasTransporte, createLineaTransporte, deleteLineaTransporte, updateLineaTransporte } from '@/lib/dataconnect-admin';
 
 export async function GET() {
   try {
-    const lineas = await prisma.lineaTransporte.findMany({
-      orderBy: { nombre: 'asc' },
-      select: {
-        id: true,
-        nombre: true,
-        numero: true,
-        color: true,
-        descripcion: true,
-        categoria: true,
-        subcategoria: true,
-        sentido: true,
-        activo: true,
-        datosGeo: true,
-        creadoEn: true,
-        actualizadoEn: true,
-      },
-    });
-    return NextResponse.json(lineas);
+    const res = await listLineasTransporte(adminDc);
+    const lineas = res.data.lineaTransportes.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre));
+    
+    // Map timestamps
+    const mapped = lineas.map((l: any) => ({
+      ...l,
+      creadoEn: l.creadoEn ? new Date(l.creadoEn).toISOString() : null,
+      actualizadoEn: l.actualizadoEn ? new Date(l.actualizadoEn).toISOString() : null,
+    }));
+    return NextResponse.json(mapped);
   } catch (error: any) {
+    console.error('Error procesando GET /api/lineas-transporte:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -61,21 +55,20 @@ export async function POST(req: Request) {
       parsedGeo = clipGeometryToLanus(parsedGeo);
     }
 
-    const linea = await prisma.lineaTransporte.create({
-      data: {
-        nombre,
-        numero: numero || null,
-        color: color || '#E53E3E',
-        descripcion: descripcion || null,
-        categoria: categoria || 'NACIONAL',
-        subcategoria: subcategoria || null,
-        sentido: sentido || null,
-        datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
-      },
+    const res = await createLineaTransporte(adminDc, {
+      nombre,
+      numero: numero || null,
+      color: color || '#E53E3E',
+      descripcion: descripcion || null,
+      categoria: categoria || 'NACIONAL',
+      subcategoria: subcategoria || null,
+      sentido: sentido || null,
+      datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
     });
 
-    return NextResponse.json(linea, { status: 201 });
+    return NextResponse.json({ id: res.data.lineaTransporte_insert.id }, { status: 201 });
   } catch (error: any) {
+    console.error('Error creando linea de transporte:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -90,9 +83,12 @@ export async function DELETE(req: Request) {
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
-    await prisma.lineaTransporte.deleteMany({ where: { id: { in: ids } } });
+    for (const id of ids) {
+      await deleteLineaTransporte(adminDc, { id });
+    }
     return NextResponse.json({ deleted: ids.length });
   } catch (error: any) {
+    console.error('Error bulk DELETE /api/lineas-transporte:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -107,9 +103,12 @@ export async function PATCH(req: Request) {
     if (!Array.isArray(ids) || ids.length === 0 || typeof activo !== 'boolean') {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 });
     }
-    await prisma.lineaTransporte.updateMany({ where: { id: { in: ids } }, data: { activo } });
+    for (const id of ids) {
+      await updateLineaTransporte(adminDc, { id, activo });
+    }
     return NextResponse.json({ updated: ids.length });
   } catch (error: any) {
+    console.error('Error bulk PATCH /api/lineas-transporte:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
