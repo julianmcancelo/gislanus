@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/authGuard';
+import { adminDc } from '@/lib/dataconnectAdmin';
+import { updateReclamo, deleteReclamo } from '@/lib/dataconnect-admin';
 
 export async function PATCH(
   req: Request,
@@ -14,16 +15,13 @@ export async function PATCH(
     const body = await req.json();
     const { estado, prioridad } = body;
 
-    const data: any = {};
+    const data: any = { id };
     if (estado !== undefined) data.estado = estado.toUpperCase();
     if (prioridad !== undefined) data.prioridad = prioridad.toUpperCase();
 
-    const updated = await prisma.reclamo.update({
-      where: { id },
-      data,
-    });
+    const res = await updateReclamo(adminDc, data);
 
-    return NextResponse.json(updated);
+    return NextResponse.json(res.data.reclamo_update);
   } catch (error: any) {
     console.error('Error updating reclamo:', error);
     return NextResponse.json(
@@ -43,9 +41,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await prisma.reclamo.delete({
-      where: { id },
-    });
+    await deleteReclamo(adminDc, { id });
 
     return NextResponse.json({ success: true, message: 'Reclamo eliminado.' });
   } catch (error: any) {

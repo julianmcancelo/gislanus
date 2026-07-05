@@ -226,6 +226,20 @@ export interface GetRutaTransporteVariables {
   id: string;
 }
 
+export interface GetUsuarioByEmailData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
+}
+
+export interface GetUsuarioByEmailVariables {
+  email: string;
+}
+
 export interface GetUsuarioData {
   usuario?: {
     firebaseUid: string;
@@ -383,6 +397,16 @@ export interface ListSubGruposData {
     color: string;
     grupoId: string;
   } & SubGrupo_Key)[];
+}
+
+export interface ListUsuariosData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
 }
 
 export interface Reclamo_Key {
@@ -720,4 +744,28 @@ export const getRolPermisosRef: GetRolPermisosRef;
 
 export function getRolPermisos(vars: GetRolPermisosVariables, options?: ExecuteQueryOptions): QueryPromise<GetRolPermisosData, GetRolPermisosVariables>;
 export function getRolPermisos(dc: DataConnect, vars: GetRolPermisosVariables, options?: ExecuteQueryOptions): QueryPromise<GetRolPermisosData, GetRolPermisosVariables>;
+
+interface GetUsuarioByEmailRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetUsuarioByEmailVariables): QueryRef<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: GetUsuarioByEmailVariables): QueryRef<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+  operationName: string;
+}
+export const getUsuarioByEmailRef: GetUsuarioByEmailRef;
+
+export function getUsuarioByEmail(vars: GetUsuarioByEmailVariables, options?: ExecuteQueryOptions): QueryPromise<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+export function getUsuarioByEmail(dc: DataConnect, vars: GetUsuarioByEmailVariables, options?: ExecuteQueryOptions): QueryPromise<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+
+interface ListUsuariosRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListUsuariosData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListUsuariosData, undefined>;
+  operationName: string;
+}
+export const listUsuariosRef: ListUsuariosRef;
+
+export function listUsuarios(options?: ExecuteQueryOptions): QueryPromise<ListUsuariosData, undefined>;
+export function listUsuarios(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListUsuariosData, undefined>;
 

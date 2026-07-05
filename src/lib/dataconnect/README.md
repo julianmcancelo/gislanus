@@ -19,6 +19,8 @@ This README will guide you through the process of using the generated JavaScript
   - [*ListReclamos*](#listreclamos)
   - [*GetUsuario*](#getusuario)
   - [*GetRolPermisos*](#getrolpermisos)
+  - [*GetUsuarioByEmail*](#getusuariobyemail)
+  - [*ListUsuarios*](#listusuarios)
 - [**Mutations**](#mutations)
   - [*UpsertUsuario*](#upsertusuario)
   - [*CreateCapa*](#createcapa)
@@ -1358,6 +1360,218 @@ console.log(data.rolPermisos);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.rolPermisos);
+});
+```
+
+## GetUsuarioByEmail
+You can execute the `GetUsuarioByEmail` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect/index.d.ts](./index.d.ts):
+```typescript
+getUsuarioByEmail(vars: GetUsuarioByEmailVariables, options?: ExecuteQueryOptions): QueryPromise<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+
+interface GetUsuarioByEmailRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: GetUsuarioByEmailVariables): QueryRef<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+}
+export const getUsuarioByEmailRef: GetUsuarioByEmailRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+getUsuarioByEmail(dc: DataConnect, vars: GetUsuarioByEmailVariables, options?: ExecuteQueryOptions): QueryPromise<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+
+interface GetUsuarioByEmailRef {
+  ...
+  (dc: DataConnect, vars: GetUsuarioByEmailVariables): QueryRef<GetUsuarioByEmailData, GetUsuarioByEmailVariables>;
+}
+export const getUsuarioByEmailRef: GetUsuarioByEmailRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the getUsuarioByEmailRef:
+```typescript
+const name = getUsuarioByEmailRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `GetUsuarioByEmail` query requires an argument of type `GetUsuarioByEmailVariables`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface GetUsuarioByEmailVariables {
+  email: string;
+}
+```
+### Return Type
+Recall that executing the `GetUsuarioByEmail` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `GetUsuarioByEmailData`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface GetUsuarioByEmailData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
+}
+```
+### Using `GetUsuarioByEmail`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, getUsuarioByEmail, GetUsuarioByEmailVariables } from '@lanus-gis/dataconnect';
+
+// The `GetUsuarioByEmail` query requires an argument of type `GetUsuarioByEmailVariables`:
+const getUsuarioByEmailVars: GetUsuarioByEmailVariables = {
+  email: ..., 
+};
+
+// Call the `getUsuarioByEmail()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await getUsuarioByEmail(getUsuarioByEmailVars);
+// Variables can be defined inline as well.
+const { data } = await getUsuarioByEmail({ email: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await getUsuarioByEmail(dataConnect, getUsuarioByEmailVars);
+
+console.log(data.usuarios);
+
+// Or, you can use the `Promise` API.
+getUsuarioByEmail(getUsuarioByEmailVars).then((response) => {
+  const data = response.data;
+  console.log(data.usuarios);
+});
+```
+
+### Using `GetUsuarioByEmail`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, getUsuarioByEmailRef, GetUsuarioByEmailVariables } from '@lanus-gis/dataconnect';
+
+// The `GetUsuarioByEmail` query requires an argument of type `GetUsuarioByEmailVariables`:
+const getUsuarioByEmailVars: GetUsuarioByEmailVariables = {
+  email: ..., 
+};
+
+// Call the `getUsuarioByEmailRef()` function to get a reference to the query.
+const ref = getUsuarioByEmailRef(getUsuarioByEmailVars);
+// Variables can be defined inline as well.
+const ref = getUsuarioByEmailRef({ email: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = getUsuarioByEmailRef(dataConnect, getUsuarioByEmailVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.usuarios);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.usuarios);
+});
+```
+
+## ListUsuarios
+You can execute the `ListUsuarios` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect/index.d.ts](./index.d.ts):
+```typescript
+listUsuarios(options?: ExecuteQueryOptions): QueryPromise<ListUsuariosData, undefined>;
+
+interface ListUsuariosRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListUsuariosData, undefined>;
+}
+export const listUsuariosRef: ListUsuariosRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listUsuarios(dc: DataConnect, options?: ExecuteQueryOptions): QueryPromise<ListUsuariosData, undefined>;
+
+interface ListUsuariosRef {
+  ...
+  (dc: DataConnect): QueryRef<ListUsuariosData, undefined>;
+}
+export const listUsuariosRef: ListUsuariosRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listUsuariosRef:
+```typescript
+const name = listUsuariosRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListUsuarios` query has no variables.
+### Return Type
+Recall that executing the `ListUsuarios` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListUsuariosData`, which is defined in [dataconnect/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListUsuariosData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
+}
+```
+### Using `ListUsuarios`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listUsuarios } from '@lanus-gis/dataconnect';
+
+
+// Call the `listUsuarios()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listUsuarios();
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listUsuarios(dataConnect);
+
+console.log(data.usuarios);
+
+// Or, you can use the `Promise` API.
+listUsuarios().then((response) => {
+  const data = response.data;
+  console.log(data.usuarios);
+});
+```
+
+### Using `ListUsuarios`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listUsuariosRef } from '@lanus-gis/dataconnect';
+
+
+// Call the `listUsuariosRef()` function to get a reference to the query.
+const ref = listUsuariosRef();
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listUsuariosRef(dataConnect);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.usuarios);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.usuarios);
 });
 ```
 

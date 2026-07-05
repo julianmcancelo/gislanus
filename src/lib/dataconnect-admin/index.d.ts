@@ -224,6 +224,20 @@ export interface GetRutaTransporteVariables {
   id: string;
 }
 
+export interface GetUsuarioByEmailData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
+}
+
+export interface GetUsuarioByEmailVariables {
+  email: string;
+}
+
 export interface GetUsuarioData {
   usuario?: {
     firebaseUid: string;
@@ -381,6 +395,16 @@ export interface ListSubGruposData {
     color: string;
     grupoId: string;
   } & SubGrupo_Key)[];
+}
+
+export interface ListUsuariosData {
+  usuarios: ({
+    firebaseUid: string;
+    email: string;
+    nombre?: string | null;
+    rol: string;
+    creadoEn: TimestampString;
+  } & Usuario_Key)[];
 }
 
 export interface Reclamo_Key {
@@ -571,4 +595,14 @@ export function getUsuario(vars: GetUsuarioVariables, options?: OperationOptions
 export function getRolPermisos(dc: DataConnect, vars: GetRolPermisosVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRolPermisosData>>;
 /** Generated Node Admin SDK operation action function for the 'GetRolPermisos' Query. Allow users to pass in custom DataConnect instances. */
 export function getRolPermisos(vars: GetRolPermisosVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetRolPermisosData>>;
+
+/** Generated Node Admin SDK operation action function for the 'GetUsuarioByEmail' Query. Allow users to execute without passing in DataConnect. */
+export function getUsuarioByEmail(dc: DataConnect, vars: GetUsuarioByEmailVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetUsuarioByEmailData>>;
+/** Generated Node Admin SDK operation action function for the 'GetUsuarioByEmail' Query. Allow users to pass in custom DataConnect instances. */
+export function getUsuarioByEmail(vars: GetUsuarioByEmailVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetUsuarioByEmailData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListUsuarios' Query. Allow users to execute without passing in DataConnect. */
+export function listUsuarios(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsuariosData>>;
+/** Generated Node Admin SDK operation action function for the 'ListUsuarios' Query. Allow users to pass in custom DataConnect instances. */
+export function listUsuarios(options?: OperationOptions): Promise<ExecuteOperationResponse<ListUsuariosData>>;
 

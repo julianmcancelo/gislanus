@@ -235,3 +235,23 @@ query GetRolPermisos($rol: String!) @auth(level: USER) {
     gestionarUsuarios
   }
 }
+
+query GetUsuarioByEmail($email: String!) @auth(level: USER) {
+  usuarios(where: { email: { eq: $email } }) {
+    firebaseUid
+    email
+    nombre
+    rol
+    creadoEn
+  }
+}
+
+query ListUsuarios @auth(level: USER) {
+  usuarios(orderBy: [{ creadoEn: DESC }]) {
+    firebaseUid
+    email
+    nombre
+    rol
+    creadoEn
+  }
+}

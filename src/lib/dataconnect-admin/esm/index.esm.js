@@ -132,3 +132,15 @@ export function getRolPermisos(dcOrVarsOrOptions, varsOrOptions, options) {
   return dcInstance.executeQuery('GetRolPermisos', inputVars, inputOpts);
 }
 
+export function getUsuarioByEmail(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('GetUsuarioByEmail', inputVars, inputOpts);
+}
+
+export function listUsuarios(dcOrOptions, options) {
+  const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListUsuarios', undefined, inputOpts);
+}
+

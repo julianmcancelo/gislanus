@@ -311,3 +311,33 @@ exports.getRolPermisos = function getRolPermisos(dcOrVars, varsOrOptions, option
   return executeQuery(getRolPermisosRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
 }
 ;
+
+const getUsuarioByEmailRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'GetUsuarioByEmail', inputVars);
+}
+getUsuarioByEmailRef.operationName = 'GetUsuarioByEmail';
+exports.getUsuarioByEmailRef = getUsuarioByEmailRef;
+
+exports.getUsuarioByEmail = function getUsuarioByEmail(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(getUsuarioByEmailRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+;
+
+const listUsuariosRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListUsuarios');
+}
+listUsuariosRef.operationName = 'ListUsuarios';
+exports.listUsuariosRef = listUsuariosRef;
+
+exports.listUsuarios = function listUsuarios(dcOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
+  return executeQuery(listUsuariosRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+;
