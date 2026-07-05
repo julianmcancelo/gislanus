@@ -1,0 +1,170 @@
+type Grupo @table {
+  id: String! @default(expr: "uuidV4()")
+  nombre: String! @unique
+  color: String! @default(value: "#10B981")
+  visibilidad: String! @default(value: "PUBLIC")
+  rolesPermitidos: [String!]
+}
+
+type SubGrupo @table {
+  id: String! @default(expr: "uuidV4()")
+  nombre: String!
+  color: String! @default(value: "#10B981")
+  grupo: Grupo!
+}
+
+type Capa @table {
+  id: String! @default(expr: "uuidV4()")
+  nombre: String!
+  tipo: String!
+  color: String! @default(value: "#10B981")
+  icono: String
+  datosGeo: String!
+  visibilidad: String! @default(value: "PUBLIC")
+  rolesPermitidos: [String!]
+  grupo: Grupo
+  subGrupo: SubGrupo
+  creadoEn: Timestamp! @default(expr: "request.time")
+  actualizadoEn: Timestamp! @default(expr: "request.time")
+}
+
+type Usuario @table(key: "firebaseUid") {
+  firebaseUid: String!
+  email: String! @unique
+  nombre: String
+  rol: String! @default(value: "PENDIENTE")
+  creadoEn: Timestamp! @default(expr: "request.time")
+}
+
+type LineaTransporte @table {
+  id: String! @default(expr: "uuidV4()")
+  nombre: String!
+  numero: String
+  color: String! @default(value: "#E53E3E")
+  descripcion: String
+  categoria: String! @default(value: "NACIONAL")
+  subcategoria: String
+  sentido: String
+  activo: Boolean! @default(value: true)
+  datosGeo: String!
+  creadoEn: Timestamp! @default(expr: "request.time")
+  actualizadoEn: Timestamp! @default(expr: "request.time")
+}
+
+type SolicitudDispositivo @table {
+  id: String! @default(expr: "uuidV4()")
+  nombre: String!
+  email: String!
+  deviceFingerprint: String
+  deviceInfo: String
+  ipAddress: String
+  estado: String! @default(value: "PENDIENTE")
+  customToken: String
+  creadoEn: Timestamp! @default(expr: "request.time")
+  revisadoEn: Timestamp
+}
+
+type DispositivoBloqueado @table {
+  id: String! @default(expr: "uuidV4()")
+  fingerprint: String! @unique
+  motivo: String
+  email: String
+  creadoEn: Timestamp! @default(expr: "request.time")
+}
+
+type SesionQR @table {
+  id: String! @default(expr: "uuidV4()")
+  estado: String! @default(value: "PENDIENTE")
+  nombre: String
+  email: String
+  deviceFingerprint: String
+  deviceInfo: String
+  ipCelular: String
+  customToken: String
+  creadoEn: Timestamp! @default(expr: "request.time")
+  expiraEn: Timestamp!
+  revisadoEn: Timestamp
+}
+
+type RutaTransporte @table {
+  id: String! @default(expr: "uuidV4()")
+  numeroSolicitud: String
+  idSolicitudWeb: String
+  enlaceDocumento: String
+  fechaCreacion: String
+  nombreSolicitante: String!
+  empresaSolicitante: String
+  cuilCuit: String
+  emailSolicitante: String
+  telefonoSolicitante: String
+  patente: String
+  tipoVehiculo: String
+  pesoToneladas: Float
+  cargaPeligrosa: Boolean! @default(value: false)
+  tipoCarga: String
+  largoVehiculo: String
+  anchoVehiculo: String
+  alturaVehiculo: String
+  cantidadEjes: Int
+  aseguradora: String
+  nroSeguro: String
+  calles: String
+  origenDireccion: String
+  origenLocalidad: String
+  origenPartido: String
+  origenNombre: String
+  destinoDireccion: String
+  destinoLocalidad: String
+  destinoPartido: String
+  destinoNombre: String
+  frecuencia: String
+  horario: String
+  observaciones: String
+  vigenciaDesde: String
+  vigenciaHasta: String
+  estado: String! @default(value: "PENDIENTE")
+  tipoServicio: String! @default(value: "FIJO")
+  creadoPorId: String
+  creadoPorNombre: String
+  editadoPorId: String
+  editadoPorNombre: String
+  activo: Boolean! @default(value: true)
+  datosGeo: String!
+  creadoEn: Timestamp! @default(expr: "request.time")
+}
+
+type RolPermisos @table(key: "rol") {
+  id: String! @default(expr: "uuidV4()")
+  rol: String! @unique
+  accesoAdmin: Boolean! @default(value: false)
+  verCapas: Boolean! @default(value: false)
+  editarCapas: Boolean! @default(value: false)
+  verLineas: Boolean! @default(value: false)
+  editarLineas: Boolean! @default(value: false)
+  verRutas: Boolean! @default(value: false)
+  editarRutas: Boolean! @default(value: false)
+  verReclamos: Boolean! @default(value: false)
+  editarReclamos: Boolean! @default(value: false)
+  gestionarGrupos: Boolean! @default(value: false)
+  gestionarUsuarios: Boolean! @default(value: false)
+}
+
+type Reclamo @table {
+  id: String!
+  numero: String! @unique
+  titulo: String!
+  descripcion: String
+  estado: String!
+  prioridad: String!
+  lat: Float!
+  lng: Float!
+  direccion: String
+  ciudadano: String
+  dniCiudadano: String
+  fecha: String
+  motivoId: Int!
+  motivoNombre: String!
+  canalEntrada: String
+  creadoEn: Timestamp! @default(expr: "request.time")
+  actualizadoEn: Timestamp! @default(expr: "request.time")
+}

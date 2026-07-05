@@ -1,0 +1,11 @@
+specVersion: "v1alpha"
+serviceId: "lanus-gis"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "lanusgis_db"
+      cloudSql:
+        instanceId: "lanusgis-db-instance"
+connectorDirs: ["./connector"]

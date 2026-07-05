@@ -1,0 +1,143 @@
+mutation UpsertUsuario($firebaseUid: String!, $email: String!, $nombre: String, $rol: String) @auth(level: USER) {
+  usuario_upsert(
+    data: {
+      firebaseUid: $firebaseUid
+      email: $email
+      nombre: $nombre
+      rol: $rol
+    }
+  )
+}
+
+mutation CreateCapa(
+  $nombre: String!
+  $tipo: String!
+  $color: String
+  $icono: String
+  $datosGeo: String!
+  $visibilidad: String
+  $rolesPermitidos: [String!]
+  $grupoId: String
+  $subGrupoId: String
+) @auth(level: USER) {
+  capa_insert(
+    data: {
+      nombre: $nombre
+      tipo: $tipo
+      color: $color
+      icono: $icono
+      datosGeo: $datosGeo
+      visibilidad: $visibilidad
+      rolesPermitidos: $rolesPermitidos
+      grupoId: $grupoId
+      subGrupoId: $subGrupoId
+    }
+  )
+}
+
+mutation UpdateCapa(
+  $id: String!
+  $nombre: String
+  $tipo: String
+  $color: String
+  $icono: String
+  $datosGeo: String
+  $visibilidad: String
+  $rolesPermitidos: [String!]
+  $grupoId: String
+  $subGrupoId: String
+) @auth(level: USER) {
+  capa_update(
+    id: $id
+    data: {
+      nombre: $nombre
+      tipo: $tipo
+      color: $color
+      icono: $icono
+      datosGeo: $datosGeo
+      visibilidad: $visibilidad
+      rolesPermitidos: $rolesPermitidos
+      grupoId: $grupoId
+      subGrupoId: $subGrupoId
+      actualizadoEn_expr: "request.time"
+    }
+  )
+}
+
+mutation DeleteCapa($id: String!) @auth(level: USER) {
+  capa_delete(id: $id)
+}
+
+mutation CreateGrupo(
+  $nombre: String!
+  $color: String
+  $visibilidad: String
+  $rolesPermitidos: [String!]
+) @auth(level: USER) {
+  grupo_insert(
+    data: {
+      nombre: $nombre
+      color: $color
+      visibilidad: $visibilidad
+      rolesPermitidos: $rolesPermitidos
+    }
+  )
+}
+
+mutation UpdateGrupo(
+  $id: String!
+  $nombre: String
+  $color: String
+  $visibilidad: String
+  $rolesPermitidos: [String!]
+) @auth(level: USER) {
+  grupo_update(
+    id: $id
+    data: {
+      nombre: $nombre
+      color: $color
+      visibilidad: $visibilidad
+      rolesPermitidos: $rolesPermitidos
+    }
+  )
+}
+
+mutation DeleteGrupo($id: String!) @auth(level: USER) {
+  grupo_delete(id: $id)
+}
+
+mutation CreateRutaTransporte(
+  $numeroSolicitud: String
+  $idSolicitudWeb: String
+  $nombreSolicitante: String!
+  $datosGeo: String!
+  $estado: String
+  $tipoServicio: String
+) @auth(level: USER) {
+  rutaTransporte_insert(
+    data: {
+      numeroSolicitud: $numeroSolicitud
+      idSolicitudWeb: $idSolicitudWeb
+      nombreSolicitante: $nombreSolicitante
+      datosGeo: $datosGeo
+      estado: $estado
+      tipoServicio: $tipoServicio
+    }
+  )
+}
+
+mutation UpdateRutaTransporteEstado(
+  $id: String!
+  $estado: String!
+) @auth(level: USER) {
+  rutaTransporte_update(
+    id: $id
+    data: {
+      estado: $estado
+    }
+  )
+}
+
+mutation DeleteRutaTransporte($id: String!) @auth(level: USER) {
+  rutaTransporte_delete(id: $id)
+}

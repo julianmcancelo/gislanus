@@ -1,0 +1,164 @@
+query ListCapas @auth(level: USER) {
+  capas {
+    id
+    nombre
+    tipo
+    color
+    icono
+    datosGeo
+    visibilidad
+    rolesPermitidos
+    grupoId
+    subGrupoId
+    creadoEn
+    actualizadoEn
+  }
+}
+
+query ListGrupos @auth(level: USER) {
+  grupos {
+    id
+    nombre
+    color
+    visibilidad
+    rolesPermitidos
+  }
+}
+
+query ListSubGrupos @auth(level: USER) {
+  subGrupos {
+    id
+    nombre
+    color
+    grupoId
+  }
+}
+
+query ListLineasTransporte @auth(level: USER) {
+  lineaTransportes {
+    id
+    nombre
+    numero
+    color
+    descripcion
+    categoria
+    subcategoria
+    sentido
+    activo
+    datosGeo
+    creadoEn
+    actualizadoEn
+  }
+}
+
+query ListRutasTransporte @auth(level: USER) {
+  rutaTransportes(orderBy: [{ creadoEn: DESC }]) {
+    id
+    numeroSolicitud
+    idSolicitudWeb
+    nombreSolicitante
+    empresaSolicitante
+    estado
+    tipoServicio
+    creadoEn
+  }
+}
+
+query GetRutaTransporte($id: String!) @auth(level: USER) {
+  rutaTransporte(id: $id) {
+    id
+    numeroSolicitud
+    idSolicitudWeb
+    enlaceDocumento
+    fechaCreacion
+    nombreSolicitante
+    empresaSolicitante
+    cuilCuit
+    emailSolicitante
+    telefonoSolicitante
+    patente
+    tipoVehiculo
+    pesoToneladas
+    cargaPeligrosa
+    tipoCarga
+    largoVehiculo
+    anchoVehiculo
+    alturaVehiculo
+    cantidadEjes
+    aseguradora
+    nroSeguro
+    calles
+    origenDireccion
+    origenLocalidad
+    origenPartido
+    origenNombre
+    destinoDireccion
+    destinoLocalidad
+    destinoPartido
+    destinoNombre
+    frecuencia
+    horario
+    observaciones
+    vigenciaDesde
+    vigenciaHasta
+    estado
+    tipoServicio
+    creadoPorId
+    creadoPorNombre
+    editadoPorId
+    editadoPorNombre
+    activo
+    datosGeo
+    creadoEn
+  }
+}
+
+query ListReclamos @auth(level: USER) {
+  reclamos(orderBy: [{ creadoEn: DESC }]) {
+    id
+    numero
+    titulo
+    descripcion
+    estado
+    prioridad
+    lat
+    lng
+    direccion
+    ciudadano
+    dniCiudadano
+    fecha
+    motivoId
+    motivoNombre
+    canalEntrada
+    creadoEn
+    actualizadoEn
+  }
+}
+
+query GetUsuario($firebaseUid: String!) @auth(level: USER) {
+  usuario(key: { firebaseUid: $firebaseUid }) {
+    firebaseUid
+    email
+    nombre
+    rol
+    creadoEn
+  }
+}
+
+query GetRolPermisos($rol: String!) @auth(level: USER) {
+  rolPermisos(key: { rol: $rol }) {
+    id
+    rol
+    accesoAdmin
+    verCapas
+    editarCapas
+    verLineas
+    editarLineas
+    verRutas
+    editarRutas
+    verReclamos
+    editarReclamos
+    gestionarGrupos
+    gestionarUsuarios
+  }
+}
