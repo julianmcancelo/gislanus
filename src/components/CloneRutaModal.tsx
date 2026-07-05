@@ -76,10 +76,7 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       alert('⚠️ Debe completar el Número de Solicitud');
       return;
     }
-    if (!expedienteNuevo.trim()) {
-      alert('⚠️ Debe completar el Expediente');
-      return;
-    }
+
 
     const fieldsToChange: string[] = ['numeroSolicitud', 'idSolicitudWeb', 'tipoServicio'];
     const cloneData: any = {
