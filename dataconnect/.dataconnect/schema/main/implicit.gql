@@ -1,0 +1,16 @@
+extend type Capa {
+  """
+  ✨ Implicit foreign key field based on `Capa`.`grupo`. It must match the value of `Grupo`.`id`. See `@ref` for how to customize it.
+  """
+  grupoId: String @fdc_generated(from: "Capa.grupo", purpose: IMPLICIT_REF_FIELD)
+  """
+  ✨ Implicit foreign key field based on `Capa`.`subGrupo`. It must match the value of `SubGrupo`.`id`. See `@ref` for how to customize it.
+  """
+  subGrupoId: String @fdc_generated(from: "Capa.subGrupo", purpose: IMPLICIT_REF_FIELD)
+}
+extend type SubGrupo {
+  """
+  ✨ Implicit foreign key field based on `SubGrupo`.`grupo`. It must match the value of `Grupo`.`id`. See `@ref` for how to customize it.
+  """
+  grupoId: String! @fdc_generated(from: "SubGrupo.grupo", purpose: IMPLICIT_REF_FIELD)
+}

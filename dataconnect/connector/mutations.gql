@@ -109,19 +109,85 @@ mutation DeleteGrupo($id: String!) @auth(level: USER) {
 mutation CreateRutaTransporte(
   $numeroSolicitud: String
   $idSolicitudWeb: String
+  $enlaceDocumento: String
+  $fechaCreacion: String
   $nombreSolicitante: String!
-  $datosGeo: String!
+  $empresaSolicitante: String
+  $cuilCuit: String
+  $emailSolicitante: String
+  $telefonoSolicitante: String
+  $patente: String
+  $tipoVehiculo: String
+  $pesoToneladas: Float
+  $cargaPeligrosa: Boolean
+  $tipoCarga: String
+  $largoVehiculo: String
+  $anchoVehiculo: String
+  $alturaVehiculo: String
+  $cantidadEjes: Int
+  $aseguradora: String
+  $nroSeguro: String
+  $calles: String
+  $origenDireccion: String
+  $origenLocalidad: String
+  $origenPartido: String
+  $origenNombre: String
+  $destinoDireccion: String
+  $destinoLocalidad: String
+  $destinoPartido: String
+  $destinoNombre: String
+  $frecuencia: String
+  $horario: String
+  $observaciones: String
+  $vigenciaDesde: String
+  $vigenciaHasta: String
   $estado: String
   $tipoServicio: String
+  $creadoPorId: String
+  $creadoPorNombre: String
+  $datosGeo: String!
 ) @auth(level: USER) {
   rutaTransporte_insert(
     data: {
       numeroSolicitud: $numeroSolicitud
       idSolicitudWeb: $idSolicitudWeb
+      enlaceDocumento: $enlaceDocumento
+      fechaCreacion: $fechaCreacion
       nombreSolicitante: $nombreSolicitante
-      datosGeo: $datosGeo
+      empresaSolicitante: $empresaSolicitante
+      cuilCuit: $cuilCuit
+      emailSolicitante: $emailSolicitante
+      telefonoSolicitante: $telefonoSolicitante
+      patente: $patente
+      tipoVehiculo: $tipoVehiculo
+      pesoToneladas: $pesoToneladas
+      cargaPeligrosa: $cargaPeligrosa
+      tipoCarga: $tipoCarga
+      largoVehiculo: $largoVehiculo
+      anchoVehiculo: $anchoVehiculo
+      alturaVehiculo: $alturaVehiculo
+      cantidadEjes: $cantidadEjes
+      aseguradora: $aseguradora
+      nroSeguro: $nroSeguro
+      calles: $calles
+      origenDireccion: $origenDireccion
+      origenLocalidad: $origenLocalidad
+      origenPartido: $origenPartido
+      origenNombre: $origenNombre
+      destinoDireccion: $destinoDireccion
+      destinoLocalidad: $destinoLocalidad
+      destinoPartido: $destinoPartido
+      destinoNombre: $destinoNombre
+      frecuencia: $frecuencia
+      horario: $horario
+      observaciones: $observaciones
+      vigenciaDesde: $vigenciaDesde
+      vigenciaHasta: $vigenciaHasta
       estado: $estado
       tipoServicio: $tipoServicio
+      creadoPorId: $creadoPorId
+      creadoPorNombre: $creadoPorNombre
+      datosGeo: $datosGeo
     }
   )
 }

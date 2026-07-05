@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { requireRole, requirePermission } from '@/lib/authGuard';
+import { adminDc } from '@/lib/dataconnectAdmin';
+import { getRutaTransporte, updateRutaTransporte, deleteRutaTransporte } from '@/lib/dataconnect-admin';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const guard = await requirePermission(req, 'editarRutas');
@@ -14,13 +15,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'El estado es requerido' }, { status: 400 });
     }
 
-    const ruta = await prisma.rutaTransporte.update({
-      where: { id },
-      data: { estado }
-    });
-
-    return NextResponse.json(ruta);
+    const res = await updateRutaTransporte(adminDc, { id, estado });
+    return NextResponse.json(res.data.rutaTransporte_update);
   } catch (error: any) {
+    console.error('Error procesando PATCH /api/rutas-transporte/[id]:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -31,13 +29,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-
-    await prisma.rutaTransporte.delete({
-      where: { id }
-    });
-
+    await deleteRutaTransporte(adminDc, { id });
     return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('Error procesando DELETE /api/rutas-transporte/[id]:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -48,9 +43,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   try {
     const { id } = await params;
-    const ruta = await prisma.rutaTransporte.findUnique({
-      where: { id }
-    });
+    const res = await getRutaTransporte(adminDc, { id });
+    const ruta = res.data.rutaTransporte;
 
     if (!ruta) {
       return NextResponse.json({ error: 'Ruta no encontrada' }, { status: 404 });
@@ -62,8 +56,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Sin permisos para ver esta solicitud' }, { status: 403 });
     }
 
-    return NextResponse.json(ruta);
+    return NextResponse.json({
+      ...ruta,
+      creadoEn: ruta.creadoEn ? new Date(ruta.creadoEn).toISOString() : null,
+      fechaCreacion: ruta.fechaCreacion ? new Date(ruta.fechaCreacion).toISOString() : null,
+    });
   } catch (error: any) {
+    console.error('Error procesando GET /api/rutas-transporte/[id]:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -78,7 +77,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     // Verificar que el usuario solo edite sus propias rutas (salvo ADMIN)
     const isAdmin = ['SUPER_ADMIN', 'ADMINISTRADOR'].includes(guard.user.rol);
     if (!isAdmin) {
-      const existing = await prisma.rutaTransporte.findUnique({ where: { id }, select: { creadoPorId: true } });
+      const res = await getRutaTransporte(adminDc, { id });
+      const existing = res.data.rutaTransporte;
       if (existing?.creadoPorId && existing.creadoPorId !== guard.user.id) {
         return NextResponse.json({ error: 'Sin permisos para editar esta solicitud' }, { status: 403 });
       }
@@ -110,51 +110,49 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       parsedGeo = datosGeo;
     }
 
-    const ruta = await prisma.rutaTransporte.update({
-      where: { id },
-      data: {
-        numeroSolicitud,
-        idSolicitudWeb: idSolicitudWeb || null,
-        fechaCreacion: fechaCreacion || null,
-        nombreSolicitante,
-        empresaSolicitante: empresaSolicitante || null,
-        cuilCuit: cuilCuit || null,
-        emailSolicitante: emailSolicitante || null,
-        telefonoSolicitante: telefonoSolicitante || null,
-        patente: patente || null,
-        tipoVehiculo: tipoVehiculo || null,
-        pesoToneladas: pesoToneladas ? parseFloat(pesoToneladas) : null,
-        cargaPeligrosa: !!cargaPeligrosa,
-        tipoCarga: tipoCarga || null,
-        largoVehiculo: largoVehiculo || null,
-        anchoVehiculo: anchoVehiculo || null,
-        alturaVehiculo: alturaVehiculo || null,
-        cantidadEjes: cantidadEjes ? parseInt(cantidadEjes) : null,
-        aseguradora: aseguradora || null,
-        nroSeguro: nroSeguro || null,
-        origenDireccion: origenDireccion || null,
-        origenLocalidad: origenLocalidad || null,
-        origenPartido: origenPartido || null,
-        origenNombre: origenNombre || null,
-        destinoDireccion: destinoDireccion || null,
-        destinoLocalidad: destinoLocalidad || null,
-        destinoPartido: destinoPartido || null,
-        destinoNombre: destinoNombre || null,
-        frecuencia: frecuencia || null,
-        horario: horario || null,
-        observaciones: observaciones || null,
-        vigenciaDesde: vigenciaDesde || null,
-        vigenciaHasta: vigenciaHasta || null,
-        datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
-        calles: calles || null,
-        editadoPorId: editadoPorId || null,
-        editadoPorNombre: editadoPorNombre || null,
-        enlaceDocumento: enlaceDocumento || null,
-        tipoServicio: tipoServicio || 'FIJO',
-      },
+    const res = await updateRutaTransporte(adminDc, {
+      id,
+      numeroSolicitud,
+      idSolicitudWeb: idSolicitudWeb || null,
+      fechaCreacion: fechaCreacion || null,
+      nombreSolicitante,
+      empresaSolicitante: empresaSolicitante || null,
+      cuilCuit: cuilCuit || null,
+      emailSolicitante: emailSolicitante || null,
+      telefonoSolicitante: telefonoSolicitante || null,
+      patente: patente || null,
+      tipoVehiculo: tipoVehiculo || null,
+      pesoToneladas: pesoToneladas ? parseFloat(pesoToneladas) : null,
+      cargaPeligrosa: !!cargaPeligrosa,
+      tipoCarga: tipoCarga || null,
+      largoVehiculo: largoVehiculo || null,
+      anchoVehiculo: anchoVehiculo || null,
+      alturaVehiculo: alturaVehiculo || null,
+      cantidadEjes: cantidadEjes ? parseInt(cantidadEjes) : null,
+      aseguradora: aseguradora || null,
+      nroSeguro: nroSeguro || null,
+      origenDireccion: origenDireccion || null,
+      origenLocalidad: origenLocalidad || null,
+      origenPartido: origenPartido || null,
+      origenNombre: origenNombre || null,
+      destinoDireccion: destinoDireccion || null,
+      destinoLocalidad: destinoLocalidad || null,
+      destinoPartido: destinoPartido || null,
+      destinoNombre: destinoNombre || null,
+      frecuencia: frecuencia || null,
+      horario: horario || null,
+      observaciones: observaciones || null,
+      vigenciaDesde: vigenciaDesde || null,
+      vigenciaHasta: vigenciaHasta || null,
+      datosGeo: typeof datosGeo === 'string' ? datosGeo : JSON.stringify(datosGeo),
+      calles: calles || null,
+      editadoPorId: editadoPorId || null,
+      editadoPorNombre: editadoPorNombre || null,
+      enlaceDocumento: enlaceDocumento || null,
+      tipoServicio: tipoServicio || 'FIJO',
     });
 
-    return NextResponse.json(ruta);
+    return NextResponse.json(res.data.rutaTransporte_update);
   } catch (error: any) {
     console.error('Error actualizando ruta:', error);
     return NextResponse.json({ error: 'Error interno del servidor', details: error.message }, { status: 500 });

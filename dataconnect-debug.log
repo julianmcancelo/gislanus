@@ -1,0 +1,17 @@
+I0705 14:44:56.606750   38856 load.go:31] Reloading schema and connectors...
+I0705 14:44:56.671922   38856 control.go:100] [projects/emulator/locations/emulator/services/lanus-gis aca4] UpdateResources(): done
+Main schema: sources: schema\schema.gql [4544B] 
+Connector "default": sources: connector\mutations.gql [2815B] connector\queries.gql [2801B] 
+I0705 14:44:56.728433   38856 codegen.go:101] [connector "default" javascriptSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect"
+I0705 14:44:56.759432   38856 codegen.go:101] [connector "default" adminSdk] Generating sources into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+I0705 14:44:56.772434   38856 collector.go:107] schema extensions wrote into "D:\\LanusGIS\\dataconnect\\.dataconnect\\schema"
+Generated sources: main\input.gql [157757B] main\relation.gql [69973B] main\query.gql [15327B] main\mutation.gql [41058B] prelude.gql [84995B] main\implicit.gql [754B] 
+I0705 14:44:56.797014   38856 collector.go:107] connector "default" javascriptSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect"
+Generated sources: esm\package.json [17B] index.cjs.js [12758B] package.json [615B] .guides/config.json [236B] index.d.ts [21841B] README.md [92464B] .guides/usage.md [2269B] .guides/setup.md [584B] esm\index.esm.js [11538B] 
+I0705 14:44:56.797014   38856 installsdk.go:138] generate.javascriptSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:44:56.798006   38856 collector.go:107] connector "default" adminSdk wrote into "D:\\LanusGIS\\src\\lib\\dataconnect-admin"
+Generated sources: esm\package.json [17B] index.cjs.js [7262B] package.json [632B] index.d.ts [19967B] esm\index.esm.js [6555B] 
+I0705 14:44:56.798006   38856 installsdk.go:138] generate.adminNodeSdk.packageJsonDir is not specified, skipping automatic installation of package
+I0705 14:44:56.798006   38856 load.go:109] Finished reloading
+I0705 14:44:56.805012   38856 dev.go:104] Listening on address (HTTP + gRPC): 127.0.0.1:9399
+I0705 14:44:56.919744   38856 dev.go:104] Listening on address (HTTP + gRPC): [::1]:9399

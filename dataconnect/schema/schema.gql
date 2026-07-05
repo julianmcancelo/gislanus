@@ -131,6 +131,7 @@ type RutaTransporte @table {
   activo: Boolean! @default(value: true)
   datosGeo: String!
   creadoEn: Timestamp! @default(expr: "request.time")
+  actualizadoEn: Timestamp! @default(expr: "request.time")
 }
 
 type RolPermisos @table(key: "rol") {

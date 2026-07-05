@@ -1,0 +1,5023 @@
+"""
+✨ `Capa_KeyOutput` returns the primary key fields of table type `Capa`.
+
+It has the same format as `Capa_Key`, but is only used as mutation return value.
+"""
+scalar Capa_KeyOutput
+"""
+✨ `DispositivoBloqueado_KeyOutput` returns the primary key fields of table type `DispositivoBloqueado`.
+
+It has the same format as `DispositivoBloqueado_Key`, but is only used as mutation return value.
+"""
+scalar DispositivoBloqueado_KeyOutput
+"""
+✨ `Grupo_KeyOutput` returns the primary key fields of table type `Grupo`.
+
+It has the same format as `Grupo_Key`, but is only used as mutation return value.
+"""
+scalar Grupo_KeyOutput
+"""
+✨ `LineaTransporte_KeyOutput` returns the primary key fields of table type `LineaTransporte`.
+
+It has the same format as `LineaTransporte_Key`, but is only used as mutation return value.
+"""
+scalar LineaTransporte_KeyOutput
+"""
+✨ `Reclamo_KeyOutput` returns the primary key fields of table type `Reclamo`.
+
+It has the same format as `Reclamo_Key`, but is only used as mutation return value.
+"""
+scalar Reclamo_KeyOutput
+"""
+✨ `RolPermisos_KeyOutput` returns the primary key fields of table type `RolPermisos`.
+
+It has the same format as `RolPermisos_Key`, but is only used as mutation return value.
+"""
+scalar RolPermisos_KeyOutput
+"""
+✨ `RutaTransporte_KeyOutput` returns the primary key fields of table type `RutaTransporte`.
+
+It has the same format as `RutaTransporte_Key`, but is only used as mutation return value.
+"""
+scalar RutaTransporte_KeyOutput
+"""
+✨ `SesionQR_KeyOutput` returns the primary key fields of table type `SesionQR`.
+
+It has the same format as `SesionQR_Key`, but is only used as mutation return value.
+"""
+scalar SesionQR_KeyOutput
+"""
+✨ `SolicitudDispositivo_KeyOutput` returns the primary key fields of table type `SolicitudDispositivo`.
+
+It has the same format as `SolicitudDispositivo_Key`, but is only used as mutation return value.
+"""
+scalar SolicitudDispositivo_KeyOutput
+"""
+✨ `SubGrupo_KeyOutput` returns the primary key fields of table type `SubGrupo`.
+
+It has the same format as `SubGrupo_Key`, but is only used as mutation return value.
+"""
+scalar SubGrupo_KeyOutput
+"""
+✨ `Usuario_KeyOutput` returns the primary key fields of table type `Usuario`.
+
+It has the same format as `Usuario_Key`, but is only used as mutation return value.
+"""
+scalar Usuario_KeyOutput
+"""
+✨ Generated data input type for table 'Capa'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Capa_Data {
+  """
+  ✨ Generated from Field `Capa`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Capa`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`grupoId` of type `String`
+  """
+  grupoId: String
+  """
+  ✨ `_expr` server value variant of `grupoId` (✨ Generated from Field `Capa`.`grupoId` of type `String`)
+  """
+  grupoId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`subGrupoId` of type `String`
+  """
+  subGrupoId: String
+  """
+  ✨ `_expr` server value variant of `subGrupoId` (✨ Generated from Field `Capa`.`subGrupoId` of type `String`)
+  """
+  subGrupoId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`grupo` of type `Grupo`
+  """
+  grupo: Grupo_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`subGrupo` of type `SubGrupo`
+  """
+  subGrupo: SubGrupo_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `actualizadoEn` (✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `actualizadoEn` (✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `actualizadoEn` (✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`color` of type `String!`
+  """
+  color: String
+  """
+  ✨ `_expr` server value variant of `color` (✨ Generated from Field `Capa`.`color` of type `String!`)
+  """
+  color_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`datosGeo` of type `String!`
+  """
+  datosGeo: String
+  """
+  ✨ `_expr` server value variant of `datosGeo` (✨ Generated from Field `Capa`.`datosGeo` of type `String!`)
+  """
+  datosGeo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`icono` of type `String`
+  """
+  icono: String
+  """
+  ✨ `_expr` server value variant of `icono` (✨ Generated from Field `Capa`.`icono` of type `String`)
+  """
+  icono_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`nombre` of type `String!`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `Capa`.`nombre` of type `String!`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`rolesPermitidos` of type `[String!]`
+  """
+  rolesPermitidos: [String!]
+  """
+  ✨ `_update` server value variant of `rolesPermitidos` (✨ Generated from Field `Capa`.`rolesPermitidos` of type `[String!]`)
+  """
+  rolesPermitidos_update: [String_ListUpdate!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`tipo` of type `String!`
+  """
+  tipo: String
+  """
+  ✨ `_expr` server value variant of `tipo` (✨ Generated from Field `Capa`.`tipo` of type `String!`)
+  """
+  tipo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Capa`.`visibilidad` of type `String!`
+  """
+  visibilidad: String
+  """
+  ✨ `_expr` server value variant of `visibilidad` (✨ Generated from Field `Capa`.`visibilidad` of type `String!`)
+  """
+  visibilidad_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'Capa'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Capa_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Capa_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Capa_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Capa_Filter!]
+  """
+  ✨ Generated from Field `Capa`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`grupoId` of type `String`
+  """
+  grupoId: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`subGrupoId` of type `String`
+  """
+  subGrupoId: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`grupo` of type `Grupo`
+  """
+  grupo: Grupo_Filter
+  """
+  ✨ Generated from Field `Capa`.`subGrupo` of type `SubGrupo`
+  """
+  subGrupo: SubGrupo_Filter
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `Capa`.`color` of type `String!`
+  """
+  color: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `Capa`.`datosGeo` of type `String!`
+  """
+  datosGeo: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`icono` of type `String`
+  """
+  icono: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`nombre` of type `String!`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`rolesPermitidos` of type `[String!]`
+  """
+  rolesPermitidos: String_ListFilter
+  """
+  ✨ Generated from Field `Capa`.`tipo` of type `String!`
+  """
+  tipo: String_Filter
+  """
+  ✨ Generated from Field `Capa`.`visibilidad` of type `String!`
+  """
+  visibilidad: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Capa'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Capa_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Capa_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Capa_Filter
+}
+"""
+✨ Generated having input type for table 'Capa'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Capa_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Capa_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Capa_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Capa_Having!]
+  """
+  ✨ Generated from Field `Capa`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`color_count` of type `Int!`
+  """
+  color_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`grupoId_count` of type `Int!`
+  """
+  grupoId_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`icono_count` of type `Int!`
+  """
+  icono_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`subGrupoId_count` of type `Int!`
+  """
+  subGrupoId_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`tipo_count` of type `Int!`
+  """
+  tipo_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`visibilidad_count` of type `Int!`
+  """
+  visibilidad_count: Int_Filter
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'Capa'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Capa_Key {
+  """
+  ✨ Generated from Field `Capa`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Capa`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Capa'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Capa_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Capa_Filter
+}
+"""
+✨ Generated order input type for table 'Capa'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Capa_Order {
+  """
+  ✨ Generated from Field `Capa`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`grupoId` of type `String`
+  """
+  grupoId: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`subGrupoId` of type `String`
+  """
+  subGrupoId: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`grupo` of type `Grupo`
+  """
+  grupo: Grupo_Order
+  """
+  ✨ Generated from Field `Capa`.`subGrupo` of type `SubGrupo`
+  """
+  subGrupo: SubGrupo_Order
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`color` of type `String!`
+  """
+  color: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`datosGeo` of type `String!`
+  """
+  datosGeo: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`icono` of type `String`
+  """
+  icono: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`nombre` of type `String!`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`tipo` of type `String!`
+  """
+  tipo: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`visibilidad` of type `String!`
+  """
+  visibilidad: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`color_count` of type `Int!`
+  """
+  color_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`grupoId_count` of type `Int!`
+  """
+  grupoId_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`icono_count` of type `Int!`
+  """
+  icono_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`subGrupoId_count` of type `Int!`
+  """
+  subGrupoId_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`tipo_count` of type `Int!`
+  """
+  tipo_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`visibilidad_count` of type `Int!`
+  """
+  visibilidad_count: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `Capa`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'DispositivoBloqueado'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input DispositivoBloqueado_Data {
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`email` of type `String`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `DispositivoBloqueado`.`email` of type `String`)
+  """
+  email_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`fingerprint` of type `String!`
+  """
+  fingerprint: String
+  """
+  ✨ `_expr` server value variant of `fingerprint` (✨ Generated from Field `DispositivoBloqueado`.`fingerprint` of type `String!`)
+  """
+  fingerprint_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`motivo` of type `String`
+  """
+  motivo: String
+  """
+  ✨ `_expr` server value variant of `motivo` (✨ Generated from Field `DispositivoBloqueado`.`motivo` of type `String`)
+  """
+  motivo_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'DispositivoBloqueado'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input DispositivoBloqueado_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [DispositivoBloqueado_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: DispositivoBloqueado_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [DispositivoBloqueado_Filter!]
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`email` of type `String`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`fingerprint` of type `String!`
+  """
+  fingerprint: String_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`motivo` of type `String`
+  """
+  motivo: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'DispositivoBloqueado'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input DispositivoBloqueado_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [DispositivoBloqueado_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: DispositivoBloqueado_Filter
+}
+"""
+✨ Generated having input type for table 'DispositivoBloqueado'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input DispositivoBloqueado_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [DispositivoBloqueado_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: DispositivoBloqueado_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [DispositivoBloqueado_Having!]
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`fingerprint_count` of type `Int!`
+  """
+  fingerprint_count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`motivo_count` of type `Int!`
+  """
+  motivo_count: Int_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'DispositivoBloqueado'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input DispositivoBloqueado_Key {
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'DispositivoBloqueado'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input DispositivoBloqueado_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: DispositivoBloqueado_Filter
+}
+"""
+✨ Generated order input type for table 'DispositivoBloqueado'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input DispositivoBloqueado_Order {
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`email` of type `String`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`fingerprint` of type `String!`
+  """
+  fingerprint: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`motivo` of type `String`
+  """
+  motivo: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`fingerprint_count` of type `Int!`
+  """
+  fingerprint_count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`motivo_count` of type `Int!`
+  """
+  motivo_count: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `DispositivoBloqueado`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Grupo'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Grupo_Data {
+  """
+  ✨ Generated from Field `Grupo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Grupo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Grupo`.`color` of type `String!`
+  """
+  color: String
+  """
+  ✨ `_expr` server value variant of `color` (✨ Generated from Field `Grupo`.`color` of type `String!`)
+  """
+  color_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Grupo`.`nombre` of type `String!`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `Grupo`.`nombre` of type `String!`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Grupo`.`rolesPermitidos` of type `[String!]`
+  """
+  rolesPermitidos: [String!]
+  """
+  ✨ `_update` server value variant of `rolesPermitidos` (✨ Generated from Field `Grupo`.`rolesPermitidos` of type `[String!]`)
+  """
+  rolesPermitidos_update: [String_ListUpdate!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Grupo`.`visibilidad` of type `String!`
+  """
+  visibilidad: String
+  """
+  ✨ `_expr` server value variant of `visibilidad` (✨ Generated from Field `Grupo`.`visibilidad` of type `String!`)
+  """
+  visibilidad_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Grupo`.`capas_on_grupo` of type `[Capa!]!`
+  """
+  capas_on_grupo: [Capa_Data!]
+  """
+  ✨ Generated from Field `Grupo`.`subGrupos_on_grupo` of type `[SubGrupo!]!`
+  """
+  subGrupos_on_grupo: [SubGrupo_Data!]
+}
+"""
+✨ Generated filter input type for table 'Grupo'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Grupo_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Grupo_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Grupo_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Grupo_Filter!]
+  """
+  ✨ Generated from Field `Grupo`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Grupo`.`color` of type `String!`
+  """
+  color: String_Filter
+  """
+  ✨ Generated from Field `Grupo`.`nombre` of type `String!`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `Grupo`.`rolesPermitidos` of type `[String!]`
+  """
+  rolesPermitidos: String_ListFilter
+  """
+  ✨ Generated from Field `Grupo`.`visibilidad` of type `String!`
+  """
+  visibilidad: String_Filter
+  """
+  ✨ Generated from Field `Grupo`.`capas_on_grupo` of type `[Capa!]!`
+  """
+  capas_on_grupo: Capa_ListFilter
+  """
+  ✨ Generated from Field `Grupo`.`subGrupos_on_grupo` of type `[SubGrupo!]!`
+  """
+  subGrupos_on_grupo: SubGrupo_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'Grupo'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Grupo_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Grupo_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Grupo_Filter
+}
+"""
+✨ Generated having input type for table 'Grupo'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Grupo_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Grupo_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Grupo_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Grupo_Having!]
+  """
+  ✨ Generated from Field `Grupo`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Grupo`.`color_count` of type `Int!`
+  """
+  color_count: Int_Filter
+  """
+  ✨ Generated from Field `Grupo`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Grupo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `Grupo`.`visibilidad_count` of type `Int!`
+  """
+  visibilidad_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'Grupo'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Grupo_Key {
+  """
+  ✨ Generated from Field `Grupo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Grupo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Grupo'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Grupo_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Grupo_Filter
+}
+"""
+✨ Generated order input type for table 'Grupo'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Grupo_Order {
+  """
+  ✨ Generated from Field `Grupo`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`color` of type `String!`
+  """
+  color: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`nombre` of type `String!`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`visibilidad` of type `String!`
+  """
+  visibilidad: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`color_count` of type `Int!`
+  """
+  color_count: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `Grupo`.`visibilidad_count` of type `Int!`
+  """
+  visibilidad_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'LineaTransporte'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input LineaTransporte_Data {
+  """
+  ✨ Generated from Field `LineaTransporte`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `LineaTransporte`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: Boolean
+  """
+  ✨ `_expr` server value variant of `activo` (✨ Generated from Field `LineaTransporte`.`activo` of type `Boolean!`)
+  """
+  activo_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `actualizadoEn` (✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `actualizadoEn` (✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `actualizadoEn` (✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`categoria` of type `String!`
+  """
+  categoria: String
+  """
+  ✨ `_expr` server value variant of `categoria` (✨ Generated from Field `LineaTransporte`.`categoria` of type `String!`)
+  """
+  categoria_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`color` of type `String!`
+  """
+  color: String
+  """
+  ✨ `_expr` server value variant of `color` (✨ Generated from Field `LineaTransporte`.`color` of type `String!`)
+  """
+  color_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: String
+  """
+  ✨ `_expr` server value variant of `datosGeo` (✨ Generated from Field `LineaTransporte`.`datosGeo` of type `String!`)
+  """
+  datosGeo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`descripcion` of type `String`
+  """
+  descripcion: String
+  """
+  ✨ `_expr` server value variant of `descripcion` (✨ Generated from Field `LineaTransporte`.`descripcion` of type `String`)
+  """
+  descripcion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`nombre` of type `String!`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `LineaTransporte`.`nombre` of type `String!`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`numero` of type `String`
+  """
+  numero: String
+  """
+  ✨ `_expr` server value variant of `numero` (✨ Generated from Field `LineaTransporte`.`numero` of type `String`)
+  """
+  numero_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`sentido` of type `String`
+  """
+  sentido: String
+  """
+  ✨ `_expr` server value variant of `sentido` (✨ Generated from Field `LineaTransporte`.`sentido` of type `String`)
+  """
+  sentido_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `LineaTransporte`.`subcategoria` of type `String`
+  """
+  subcategoria: String
+  """
+  ✨ `_expr` server value variant of `subcategoria` (✨ Generated from Field `LineaTransporte`.`subcategoria` of type `String`)
+  """
+  subcategoria_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'LineaTransporte'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input LineaTransporte_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [LineaTransporte_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: LineaTransporte_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [LineaTransporte_Filter!]
+  """
+  ✨ Generated from Field `LineaTransporte`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: Boolean_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`categoria` of type `String!`
+  """
+  categoria: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`color` of type `String!`
+  """
+  color: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`descripcion` of type `String`
+  """
+  descripcion: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`nombre` of type `String!`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`numero` of type `String`
+  """
+  numero: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`sentido` of type `String`
+  """
+  sentido: String_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`subcategoria` of type `String`
+  """
+  subcategoria: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'LineaTransporte'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input LineaTransporte_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [LineaTransporte_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: LineaTransporte_Filter
+}
+"""
+✨ Generated having input type for table 'LineaTransporte'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input LineaTransporte_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [LineaTransporte_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: LineaTransporte_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [LineaTransporte_Having!]
+  """
+  ✨ Generated from Field `LineaTransporte`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`activo_count` of type `Int!`
+  """
+  activo_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`categoria_count` of type `Int!`
+  """
+  categoria_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`color_count` of type `Int!`
+  """
+  color_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`descripcion_count` of type `Int!`
+  """
+  descripcion_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`numero_count` of type `Int!`
+  """
+  numero_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`sentido_count` of type `Int!`
+  """
+  sentido_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`subcategoria_count` of type `Int!`
+  """
+  subcategoria_count: Int_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'LineaTransporte'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input LineaTransporte_Key {
+  """
+  ✨ Generated from Field `LineaTransporte`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `LineaTransporte`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'LineaTransporte'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input LineaTransporte_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: LineaTransporte_Filter
+}
+"""
+✨ Generated order input type for table 'LineaTransporte'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input LineaTransporte_Order {
+  """
+  ✨ Generated from Field `LineaTransporte`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`categoria` of type `String!`
+  """
+  categoria: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`color` of type `String!`
+  """
+  color: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`descripcion` of type `String`
+  """
+  descripcion: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`nombre` of type `String!`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`numero` of type `String`
+  """
+  numero: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`sentido` of type `String`
+  """
+  sentido: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`subcategoria` of type `String`
+  """
+  subcategoria: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`activo_count` of type `Int!`
+  """
+  activo_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`categoria_count` of type `Int!`
+  """
+  categoria_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`color_count` of type `Int!`
+  """
+  color_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`descripcion_count` of type `Int!`
+  """
+  descripcion_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`numero_count` of type `Int!`
+  """
+  numero_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`sentido_count` of type `Int!`
+  """
+  sentido_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`subcategoria_count` of type `Int!`
+  """
+  subcategoria_count: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `LineaTransporte`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Reclamo'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Reclamo_Data {
+  """
+  ✨ Generated from Field `Reclamo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Reclamo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `actualizadoEn` (✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `actualizadoEn` (✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `actualizadoEn` (✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`canalEntrada` of type `String`
+  """
+  canalEntrada: String
+  """
+  ✨ `_expr` server value variant of `canalEntrada` (✨ Generated from Field `Reclamo`.`canalEntrada` of type `String`)
+  """
+  canalEntrada_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`ciudadano` of type `String`
+  """
+  ciudadano: String
+  """
+  ✨ `_expr` server value variant of `ciudadano` (✨ Generated from Field `Reclamo`.`ciudadano` of type `String`)
+  """
+  ciudadano_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`descripcion` of type `String`
+  """
+  descripcion: String
+  """
+  ✨ `_expr` server value variant of `descripcion` (✨ Generated from Field `Reclamo`.`descripcion` of type `String`)
+  """
+  descripcion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`direccion` of type `String`
+  """
+  direccion: String
+  """
+  ✨ `_expr` server value variant of `direccion` (✨ Generated from Field `Reclamo`.`direccion` of type `String`)
+  """
+  direccion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`dniCiudadano` of type `String`
+  """
+  dniCiudadano: String
+  """
+  ✨ `_expr` server value variant of `dniCiudadano` (✨ Generated from Field `Reclamo`.`dniCiudadano` of type `String`)
+  """
+  dniCiudadano_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`estado` of type `String!`
+  """
+  estado: String
+  """
+  ✨ `_expr` server value variant of `estado` (✨ Generated from Field `Reclamo`.`estado` of type `String!`)
+  """
+  estado_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`fecha` of type `String`
+  """
+  fecha: String
+  """
+  ✨ `_expr` server value variant of `fecha` (✨ Generated from Field `Reclamo`.`fecha` of type `String`)
+  """
+  fecha_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`lat` of type `Float!`
+  """
+  lat: Float
+  """
+  ✨ `_expr` server value variant of `lat` (✨ Generated from Field `Reclamo`.`lat` of type `Float!`)
+  """
+  lat_expr: Float_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `lat` (✨ Generated from Field `Reclamo`.`lat` of type `Float!`)
+  """
+  lat_update: [Float_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`lng` of type `Float!`
+  """
+  lng: Float
+  """
+  ✨ `_expr` server value variant of `lng` (✨ Generated from Field `Reclamo`.`lng` of type `Float!`)
+  """
+  lng_expr: Float_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `lng` (✨ Generated from Field `Reclamo`.`lng` of type `Float!`)
+  """
+  lng_update: [Float_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId` of type `Int!`
+  """
+  motivoId: Int
+  """
+  ✨ `_expr` server value variant of `motivoId` (✨ Generated from Field `Reclamo`.`motivoId` of type `Int!`)
+  """
+  motivoId_expr: Int_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `motivoId` (✨ Generated from Field `Reclamo`.`motivoId` of type `Int!`)
+  """
+  motivoId_update: [Int_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`motivoNombre` of type `String!`
+  """
+  motivoNombre: String
+  """
+  ✨ `_expr` server value variant of `motivoNombre` (✨ Generated from Field `Reclamo`.`motivoNombre` of type `String!`)
+  """
+  motivoNombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`numero` of type `String!`
+  """
+  numero: String
+  """
+  ✨ `_expr` server value variant of `numero` (✨ Generated from Field `Reclamo`.`numero` of type `String!`)
+  """
+  numero_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`prioridad` of type `String!`
+  """
+  prioridad: String
+  """
+  ✨ `_expr` server value variant of `prioridad` (✨ Generated from Field `Reclamo`.`prioridad` of type `String!`)
+  """
+  prioridad_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Reclamo`.`titulo` of type `String!`
+  """
+  titulo: String
+  """
+  ✨ `_expr` server value variant of `titulo` (✨ Generated from Field `Reclamo`.`titulo` of type `String!`)
+  """
+  titulo_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'Reclamo'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Reclamo_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Reclamo_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Reclamo_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Reclamo_Filter!]
+  """
+  ✨ Generated from Field `Reclamo`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`canalEntrada` of type `String`
+  """
+  canalEntrada: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`ciudadano` of type `String`
+  """
+  ciudadano: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`descripcion` of type `String`
+  """
+  descripcion: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`direccion` of type `String`
+  """
+  direccion: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`dniCiudadano` of type `String`
+  """
+  dniCiudadano: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`estado` of type `String!`
+  """
+  estado: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`fecha` of type `String`
+  """
+  fecha: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat` of type `Float!`
+  """
+  lat: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng` of type `Float!`
+  """
+  lng: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId` of type `Int!`
+  """
+  motivoId: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoNombre` of type `String!`
+  """
+  motivoNombre: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`numero` of type `String!`
+  """
+  numero: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`prioridad` of type `String!`
+  """
+  prioridad: String_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`titulo` of type `String!`
+  """
+  titulo: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Reclamo'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Reclamo_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Reclamo_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Reclamo_Filter
+}
+"""
+✨ Generated having input type for table 'Reclamo'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Reclamo_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Reclamo_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Reclamo_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Reclamo_Having!]
+  """
+  ✨ Generated from Field `Reclamo`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`canalEntrada_count` of type `Int!`
+  """
+  canalEntrada_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`ciudadano_count` of type `Int!`
+  """
+  ciudadano_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`descripcion_count` of type `Int!`
+  """
+  descripcion_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`direccion_count` of type `Int!`
+  """
+  direccion_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`dniCiudadano_count` of type `Int!`
+  """
+  dniCiudadano_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`estado_count` of type `Int!`
+  """
+  estado_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`fecha_count` of type `Int!`
+  """
+  fecha_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat_count` of type `Int!`
+  """
+  lat_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng_count` of type `Int!`
+  """
+  lng_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_count` of type `Int!`
+  """
+  motivoId_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoNombre_count` of type `Int!`
+  """
+  motivoNombre_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`numero_count` of type `Int!`
+  """
+  numero_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`prioridad_count` of type `Int!`
+  """
+  prioridad_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`titulo_count` of type `Int!`
+  """
+  titulo_count: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat_sum` of type `Float`
+  """
+  lat_sum: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng_sum` of type `Float`
+  """
+  lng_sum: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_sum` of type `Int`
+  """
+  motivoId_sum: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat_avg` of type `Float`
+  """
+  lat_avg: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng_avg` of type `Float`
+  """
+  lng_avg: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_avg` of type `Float`
+  """
+  motivoId_avg: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat_min` of type `Float`
+  """
+  lat_min: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng_min` of type `Float`
+  """
+  lng_min: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_min` of type `Int`
+  """
+  motivoId_min: Int_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lat_max` of type `Float`
+  """
+  lat_max: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`lng_max` of type `Float`
+  """
+  lng_max: Float_Filter
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_max` of type `Int`
+  """
+  motivoId_max: Int_Filter
+}
+"""
+✨ Generated key input type for table 'Reclamo'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Reclamo_Key {
+  """
+  ✨ Generated from Field `Reclamo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `Reclamo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Reclamo'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Reclamo_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Reclamo_Filter
+}
+"""
+✨ Generated order input type for table 'Reclamo'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Reclamo_Order {
+  """
+  ✨ Generated from Field `Reclamo`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`canalEntrada` of type `String`
+  """
+  canalEntrada: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`ciudadano` of type `String`
+  """
+  ciudadano: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`descripcion` of type `String`
+  """
+  descripcion: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`direccion` of type `String`
+  """
+  direccion: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`dniCiudadano` of type `String`
+  """
+  dniCiudadano: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`estado` of type `String!`
+  """
+  estado: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`fecha` of type `String`
+  """
+  fecha: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat` of type `Float!`
+  """
+  lat: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng` of type `Float!`
+  """
+  lng: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId` of type `Int!`
+  """
+  motivoId: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoNombre` of type `String!`
+  """
+  motivoNombre: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`numero` of type `String!`
+  """
+  numero: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`prioridad` of type `String!`
+  """
+  prioridad: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`titulo` of type `String!`
+  """
+  titulo: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`canalEntrada_count` of type `Int!`
+  """
+  canalEntrada_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`ciudadano_count` of type `Int!`
+  """
+  ciudadano_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`descripcion_count` of type `Int!`
+  """
+  descripcion_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`direccion_count` of type `Int!`
+  """
+  direccion_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`dniCiudadano_count` of type `Int!`
+  """
+  dniCiudadano_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`estado_count` of type `Int!`
+  """
+  estado_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`fecha_count` of type `Int!`
+  """
+  fecha_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat_count` of type `Int!`
+  """
+  lat_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng_count` of type `Int!`
+  """
+  lng_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_count` of type `Int!`
+  """
+  motivoId_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoNombre_count` of type `Int!`
+  """
+  motivoNombre_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`numero_count` of type `Int!`
+  """
+  numero_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`prioridad_count` of type `Int!`
+  """
+  prioridad_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`titulo_count` of type `Int!`
+  """
+  titulo_count: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat_sum` of type `Float`
+  """
+  lat_sum: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng_sum` of type `Float`
+  """
+  lng_sum: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_sum` of type `Int`
+  """
+  motivoId_sum: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat_avg` of type `Float`
+  """
+  lat_avg: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng_avg` of type `Float`
+  """
+  lng_avg: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_avg` of type `Float`
+  """
+  motivoId_avg: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat_min` of type `Float`
+  """
+  lat_min: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng_min` of type `Float`
+  """
+  lng_min: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_min` of type `Int`
+  """
+  motivoId_min: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lat_max` of type `Float`
+  """
+  lat_max: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`lng_max` of type `Float`
+  """
+  lng_max: OrderDirection
+  """
+  ✨ Generated from Field `Reclamo`.`motivoId_max` of type `Int`
+  """
+  motivoId_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'RolPermisos'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input RolPermisos_Data {
+  """
+  ✨ Generated from Field `RolPermisos`.`rol` of type `String!`
+  """
+  rol: String
+  """
+  ✨ `_expr` server value variant of `rol` (✨ Generated from Field `RolPermisos`.`rol` of type `String!`)
+  """
+  rol_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`accesoAdmin` of type `Boolean!`
+  """
+  accesoAdmin: Boolean
+  """
+  ✨ `_expr` server value variant of `accesoAdmin` (✨ Generated from Field `RolPermisos`.`accesoAdmin` of type `Boolean!`)
+  """
+  accesoAdmin_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`editarCapas` of type `Boolean!`
+  """
+  editarCapas: Boolean
+  """
+  ✨ `_expr` server value variant of `editarCapas` (✨ Generated from Field `RolPermisos`.`editarCapas` of type `Boolean!`)
+  """
+  editarCapas_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`editarLineas` of type `Boolean!`
+  """
+  editarLineas: Boolean
+  """
+  ✨ `_expr` server value variant of `editarLineas` (✨ Generated from Field `RolPermisos`.`editarLineas` of type `Boolean!`)
+  """
+  editarLineas_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`editarReclamos` of type `Boolean!`
+  """
+  editarReclamos: Boolean
+  """
+  ✨ `_expr` server value variant of `editarReclamos` (✨ Generated from Field `RolPermisos`.`editarReclamos` of type `Boolean!`)
+  """
+  editarReclamos_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`editarRutas` of type `Boolean!`
+  """
+  editarRutas: Boolean
+  """
+  ✨ `_expr` server value variant of `editarRutas` (✨ Generated from Field `RolPermisos`.`editarRutas` of type `Boolean!`)
+  """
+  editarRutas_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarGrupos` of type `Boolean!`
+  """
+  gestionarGrupos: Boolean
+  """
+  ✨ `_expr` server value variant of `gestionarGrupos` (✨ Generated from Field `RolPermisos`.`gestionarGrupos` of type `Boolean!`)
+  """
+  gestionarGrupos_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarUsuarios` of type `Boolean!`
+  """
+  gestionarUsuarios: Boolean
+  """
+  ✨ `_expr` server value variant of `gestionarUsuarios` (✨ Generated from Field `RolPermisos`.`gestionarUsuarios` of type `Boolean!`)
+  """
+  gestionarUsuarios_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `RolPermisos`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`verCapas` of type `Boolean!`
+  """
+  verCapas: Boolean
+  """
+  ✨ `_expr` server value variant of `verCapas` (✨ Generated from Field `RolPermisos`.`verCapas` of type `Boolean!`)
+  """
+  verCapas_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`verLineas` of type `Boolean!`
+  """
+  verLineas: Boolean
+  """
+  ✨ `_expr` server value variant of `verLineas` (✨ Generated from Field `RolPermisos`.`verLineas` of type `Boolean!`)
+  """
+  verLineas_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`verReclamos` of type `Boolean!`
+  """
+  verReclamos: Boolean
+  """
+  ✨ `_expr` server value variant of `verReclamos` (✨ Generated from Field `RolPermisos`.`verReclamos` of type `Boolean!`)
+  """
+  verReclamos_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RolPermisos`.`verRutas` of type `Boolean!`
+  """
+  verRutas: Boolean
+  """
+  ✨ `_expr` server value variant of `verRutas` (✨ Generated from Field `RolPermisos`.`verRutas` of type `Boolean!`)
+  """
+  verRutas_expr: Boolean_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'RolPermisos'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input RolPermisos_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [RolPermisos_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: RolPermisos_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [RolPermisos_Filter!]
+  """
+  ✨ Generated from Field `RolPermisos`.`rol` of type `String!`
+  """
+  rol: String_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`accesoAdmin` of type `Boolean!`
+  """
+  accesoAdmin: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarCapas` of type `Boolean!`
+  """
+  editarCapas: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarLineas` of type `Boolean!`
+  """
+  editarLineas: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarReclamos` of type `Boolean!`
+  """
+  editarReclamos: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarRutas` of type `Boolean!`
+  """
+  editarRutas: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarGrupos` of type `Boolean!`
+  """
+  gestionarGrupos: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarUsuarios` of type `Boolean!`
+  """
+  gestionarUsuarios: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verCapas` of type `Boolean!`
+  """
+  verCapas: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verLineas` of type `Boolean!`
+  """
+  verLineas: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verReclamos` of type `Boolean!`
+  """
+  verReclamos: Boolean_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verRutas` of type `Boolean!`
+  """
+  verRutas: Boolean_Filter
+}
+"""
+✨ Generated first-row input type for table 'RolPermisos'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input RolPermisos_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [RolPermisos_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: RolPermisos_Filter
+}
+"""
+✨ Generated having input type for table 'RolPermisos'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input RolPermisos_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [RolPermisos_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: RolPermisos_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [RolPermisos_Having!]
+  """
+  ✨ Generated from Field `RolPermisos`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`accesoAdmin_count` of type `Int!`
+  """
+  accesoAdmin_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarCapas_count` of type `Int!`
+  """
+  editarCapas_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarLineas_count` of type `Int!`
+  """
+  editarLineas_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarReclamos_count` of type `Int!`
+  """
+  editarReclamos_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`editarRutas_count` of type `Int!`
+  """
+  editarRutas_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarGrupos_count` of type `Int!`
+  """
+  gestionarGrupos_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarUsuarios_count` of type `Int!`
+  """
+  gestionarUsuarios_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`rol_count` of type `Int!`
+  """
+  rol_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verCapas_count` of type `Int!`
+  """
+  verCapas_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verLineas_count` of type `Int!`
+  """
+  verLineas_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verReclamos_count` of type `Int!`
+  """
+  verReclamos_count: Int_Filter
+  """
+  ✨ Generated from Field `RolPermisos`.`verRutas_count` of type `Int!`
+  """
+  verRutas_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'RolPermisos'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input RolPermisos_Key {
+  """
+  ✨ Generated from Field `RolPermisos`.`rol` of type `String!`
+  """
+  rol: String
+  """
+  ✨ `_expr` server value variant of `rol` (✨ Generated from Field `RolPermisos`.`rol` of type `String!`)
+  """
+  rol_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'RolPermisos'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input RolPermisos_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: RolPermisos_Filter
+}
+"""
+✨ Generated order input type for table 'RolPermisos'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input RolPermisos_Order {
+  """
+  ✨ Generated from Field `RolPermisos`.`rol` of type `String!`
+  """
+  rol: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`accesoAdmin` of type `Boolean!`
+  """
+  accesoAdmin: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarCapas` of type `Boolean!`
+  """
+  editarCapas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarLineas` of type `Boolean!`
+  """
+  editarLineas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarReclamos` of type `Boolean!`
+  """
+  editarReclamos: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarRutas` of type `Boolean!`
+  """
+  editarRutas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarGrupos` of type `Boolean!`
+  """
+  gestionarGrupos: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarUsuarios` of type `Boolean!`
+  """
+  gestionarUsuarios: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verCapas` of type `Boolean!`
+  """
+  verCapas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verLineas` of type `Boolean!`
+  """
+  verLineas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verReclamos` of type `Boolean!`
+  """
+  verReclamos: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verRutas` of type `Boolean!`
+  """
+  verRutas: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`accesoAdmin_count` of type `Int!`
+  """
+  accesoAdmin_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarCapas_count` of type `Int!`
+  """
+  editarCapas_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarLineas_count` of type `Int!`
+  """
+  editarLineas_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarReclamos_count` of type `Int!`
+  """
+  editarReclamos_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`editarRutas_count` of type `Int!`
+  """
+  editarRutas_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarGrupos_count` of type `Int!`
+  """
+  gestionarGrupos_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`gestionarUsuarios_count` of type `Int!`
+  """
+  gestionarUsuarios_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`rol_count` of type `Int!`
+  """
+  rol_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verCapas_count` of type `Int!`
+  """
+  verCapas_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verLineas_count` of type `Int!`
+  """
+  verLineas_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verReclamos_count` of type `Int!`
+  """
+  verReclamos_count: OrderDirection
+  """
+  ✨ Generated from Field `RolPermisos`.`verRutas_count` of type `Int!`
+  """
+  verRutas_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'RutaTransporte'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input RutaTransporte_Data {
+  """
+  ✨ Generated from Field `RutaTransporte`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `RutaTransporte`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: Boolean
+  """
+  ✨ `_expr` server value variant of `activo` (✨ Generated from Field `RutaTransporte`.`activo` of type `Boolean!`)
+  """
+  activo_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `actualizadoEn` (✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `actualizadoEn` (✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `actualizadoEn` (✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`)
+  """
+  actualizadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`alturaVehiculo` of type `String`
+  """
+  alturaVehiculo: String
+  """
+  ✨ `_expr` server value variant of `alturaVehiculo` (✨ Generated from Field `RutaTransporte`.`alturaVehiculo` of type `String`)
+  """
+  alturaVehiculo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`anchoVehiculo` of type `String`
+  """
+  anchoVehiculo: String
+  """
+  ✨ `_expr` server value variant of `anchoVehiculo` (✨ Generated from Field `RutaTransporte`.`anchoVehiculo` of type `String`)
+  """
+  anchoVehiculo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`aseguradora` of type `String`
+  """
+  aseguradora: String
+  """
+  ✨ `_expr` server value variant of `aseguradora` (✨ Generated from Field `RutaTransporte`.`aseguradora` of type `String`)
+  """
+  aseguradora_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`calles` of type `String`
+  """
+  calles: String
+  """
+  ✨ `_expr` server value variant of `calles` (✨ Generated from Field `RutaTransporte`.`calles` of type `String`)
+  """
+  calles_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes` of type `Int`
+  """
+  cantidadEjes: Int
+  """
+  ✨ `_expr` server value variant of `cantidadEjes` (✨ Generated from Field `RutaTransporte`.`cantidadEjes` of type `Int`)
+  """
+  cantidadEjes_expr: Int_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `cantidadEjes` (✨ Generated from Field `RutaTransporte`.`cantidadEjes` of type `Int`)
+  """
+  cantidadEjes_update: [Int_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`cargaPeligrosa` of type `Boolean!`
+  """
+  cargaPeligrosa: Boolean
+  """
+  ✨ `_expr` server value variant of `cargaPeligrosa` (✨ Generated from Field `RutaTransporte`.`cargaPeligrosa` of type `Boolean!`)
+  """
+  cargaPeligrosa_expr: Boolean_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorId` of type `String`
+  """
+  creadoPorId: String
+  """
+  ✨ `_expr` server value variant of `creadoPorId` (✨ Generated from Field `RutaTransporte`.`creadoPorId` of type `String`)
+  """
+  creadoPorId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorNombre` of type `String`
+  """
+  creadoPorNombre: String
+  """
+  ✨ `_expr` server value variant of `creadoPorNombre` (✨ Generated from Field `RutaTransporte`.`creadoPorNombre` of type `String`)
+  """
+  creadoPorNombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`cuilCuit` of type `String`
+  """
+  cuilCuit: String
+  """
+  ✨ `_expr` server value variant of `cuilCuit` (✨ Generated from Field `RutaTransporte`.`cuilCuit` of type `String`)
+  """
+  cuilCuit_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: String
+  """
+  ✨ `_expr` server value variant of `datosGeo` (✨ Generated from Field `RutaTransporte`.`datosGeo` of type `String!`)
+  """
+  datosGeo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoDireccion` of type `String`
+  """
+  destinoDireccion: String
+  """
+  ✨ `_expr` server value variant of `destinoDireccion` (✨ Generated from Field `RutaTransporte`.`destinoDireccion` of type `String`)
+  """
+  destinoDireccion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoLocalidad` of type `String`
+  """
+  destinoLocalidad: String
+  """
+  ✨ `_expr` server value variant of `destinoLocalidad` (✨ Generated from Field `RutaTransporte`.`destinoLocalidad` of type `String`)
+  """
+  destinoLocalidad_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoNombre` of type `String`
+  """
+  destinoNombre: String
+  """
+  ✨ `_expr` server value variant of `destinoNombre` (✨ Generated from Field `RutaTransporte`.`destinoNombre` of type `String`)
+  """
+  destinoNombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoPartido` of type `String`
+  """
+  destinoPartido: String
+  """
+  ✨ `_expr` server value variant of `destinoPartido` (✨ Generated from Field `RutaTransporte`.`destinoPartido` of type `String`)
+  """
+  destinoPartido_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorId` of type `String`
+  """
+  editadoPorId: String
+  """
+  ✨ `_expr` server value variant of `editadoPorId` (✨ Generated from Field `RutaTransporte`.`editadoPorId` of type `String`)
+  """
+  editadoPorId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorNombre` of type `String`
+  """
+  editadoPorNombre: String
+  """
+  ✨ `_expr` server value variant of `editadoPorNombre` (✨ Generated from Field `RutaTransporte`.`editadoPorNombre` of type `String`)
+  """
+  editadoPorNombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`emailSolicitante` of type `String`
+  """
+  emailSolicitante: String
+  """
+  ✨ `_expr` server value variant of `emailSolicitante` (✨ Generated from Field `RutaTransporte`.`emailSolicitante` of type `String`)
+  """
+  emailSolicitante_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`empresaSolicitante` of type `String`
+  """
+  empresaSolicitante: String
+  """
+  ✨ `_expr` server value variant of `empresaSolicitante` (✨ Generated from Field `RutaTransporte`.`empresaSolicitante` of type `String`)
+  """
+  empresaSolicitante_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`enlaceDocumento` of type `String`
+  """
+  enlaceDocumento: String
+  """
+  ✨ `_expr` server value variant of `enlaceDocumento` (✨ Generated from Field `RutaTransporte`.`enlaceDocumento` of type `String`)
+  """
+  enlaceDocumento_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`estado` of type `String!`
+  """
+  estado: String
+  """
+  ✨ `_expr` server value variant of `estado` (✨ Generated from Field `RutaTransporte`.`estado` of type `String!`)
+  """
+  estado_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`fechaCreacion` of type `String`
+  """
+  fechaCreacion: String
+  """
+  ✨ `_expr` server value variant of `fechaCreacion` (✨ Generated from Field `RutaTransporte`.`fechaCreacion` of type `String`)
+  """
+  fechaCreacion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`frecuencia` of type `String`
+  """
+  frecuencia: String
+  """
+  ✨ `_expr` server value variant of `frecuencia` (✨ Generated from Field `RutaTransporte`.`frecuencia` of type `String`)
+  """
+  frecuencia_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`horario` of type `String`
+  """
+  horario: String
+  """
+  ✨ `_expr` server value variant of `horario` (✨ Generated from Field `RutaTransporte`.`horario` of type `String`)
+  """
+  horario_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`idSolicitudWeb` of type `String`
+  """
+  idSolicitudWeb: String
+  """
+  ✨ `_expr` server value variant of `idSolicitudWeb` (✨ Generated from Field `RutaTransporte`.`idSolicitudWeb` of type `String`)
+  """
+  idSolicitudWeb_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`largoVehiculo` of type `String`
+  """
+  largoVehiculo: String
+  """
+  ✨ `_expr` server value variant of `largoVehiculo` (✨ Generated from Field `RutaTransporte`.`largoVehiculo` of type `String`)
+  """
+  largoVehiculo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`nombreSolicitante` of type `String!`
+  """
+  nombreSolicitante: String
+  """
+  ✨ `_expr` server value variant of `nombreSolicitante` (✨ Generated from Field `RutaTransporte`.`nombreSolicitante` of type `String!`)
+  """
+  nombreSolicitante_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`nroSeguro` of type `String`
+  """
+  nroSeguro: String
+  """
+  ✨ `_expr` server value variant of `nroSeguro` (✨ Generated from Field `RutaTransporte`.`nroSeguro` of type `String`)
+  """
+  nroSeguro_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`numeroSolicitud` of type `String`
+  """
+  numeroSolicitud: String
+  """
+  ✨ `_expr` server value variant of `numeroSolicitud` (✨ Generated from Field `RutaTransporte`.`numeroSolicitud` of type `String`)
+  """
+  numeroSolicitud_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`observaciones` of type `String`
+  """
+  observaciones: String
+  """
+  ✨ `_expr` server value variant of `observaciones` (✨ Generated from Field `RutaTransporte`.`observaciones` of type `String`)
+  """
+  observaciones_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenDireccion` of type `String`
+  """
+  origenDireccion: String
+  """
+  ✨ `_expr` server value variant of `origenDireccion` (✨ Generated from Field `RutaTransporte`.`origenDireccion` of type `String`)
+  """
+  origenDireccion_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenLocalidad` of type `String`
+  """
+  origenLocalidad: String
+  """
+  ✨ `_expr` server value variant of `origenLocalidad` (✨ Generated from Field `RutaTransporte`.`origenLocalidad` of type `String`)
+  """
+  origenLocalidad_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenNombre` of type `String`
+  """
+  origenNombre: String
+  """
+  ✨ `_expr` server value variant of `origenNombre` (✨ Generated from Field `RutaTransporte`.`origenNombre` of type `String`)
+  """
+  origenNombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenPartido` of type `String`
+  """
+  origenPartido: String
+  """
+  ✨ `_expr` server value variant of `origenPartido` (✨ Generated from Field `RutaTransporte`.`origenPartido` of type `String`)
+  """
+  origenPartido_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`patente` of type `String`
+  """
+  patente: String
+  """
+  ✨ `_expr` server value variant of `patente` (✨ Generated from Field `RutaTransporte`.`patente` of type `String`)
+  """
+  patente_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas` of type `Float`
+  """
+  pesoToneladas: Float
+  """
+  ✨ `_expr` server value variant of `pesoToneladas` (✨ Generated from Field `RutaTransporte`.`pesoToneladas` of type `Float`)
+  """
+  pesoToneladas_expr: Float_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `pesoToneladas` (✨ Generated from Field `RutaTransporte`.`pesoToneladas` of type `Float`)
+  """
+  pesoToneladas_update: [Float_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`telefonoSolicitante` of type `String`
+  """
+  telefonoSolicitante: String
+  """
+  ✨ `_expr` server value variant of `telefonoSolicitante` (✨ Generated from Field `RutaTransporte`.`telefonoSolicitante` of type `String`)
+  """
+  telefonoSolicitante_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoCarga` of type `String`
+  """
+  tipoCarga: String
+  """
+  ✨ `_expr` server value variant of `tipoCarga` (✨ Generated from Field `RutaTransporte`.`tipoCarga` of type `String`)
+  """
+  tipoCarga_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoServicio` of type `String!`
+  """
+  tipoServicio: String
+  """
+  ✨ `_expr` server value variant of `tipoServicio` (✨ Generated from Field `RutaTransporte`.`tipoServicio` of type `String!`)
+  """
+  tipoServicio_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoVehiculo` of type `String`
+  """
+  tipoVehiculo: String
+  """
+  ✨ `_expr` server value variant of `tipoVehiculo` (✨ Generated from Field `RutaTransporte`.`tipoVehiculo` of type `String`)
+  """
+  tipoVehiculo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaDesde` of type `String`
+  """
+  vigenciaDesde: String
+  """
+  ✨ `_expr` server value variant of `vigenciaDesde` (✨ Generated from Field `RutaTransporte`.`vigenciaDesde` of type `String`)
+  """
+  vigenciaDesde_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaHasta` of type `String`
+  """
+  vigenciaHasta: String
+  """
+  ✨ `_expr` server value variant of `vigenciaHasta` (✨ Generated from Field `RutaTransporte`.`vigenciaHasta` of type `String`)
+  """
+  vigenciaHasta_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'RutaTransporte'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input RutaTransporte_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [RutaTransporte_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: RutaTransporte_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [RutaTransporte_Filter!]
+  """
+  ✨ Generated from Field `RutaTransporte`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: Boolean_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`alturaVehiculo` of type `String`
+  """
+  alturaVehiculo: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`anchoVehiculo` of type `String`
+  """
+  anchoVehiculo: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`aseguradora` of type `String`
+  """
+  aseguradora: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`calles` of type `String`
+  """
+  calles: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes` of type `Int`
+  """
+  cantidadEjes: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cargaPeligrosa` of type `Boolean!`
+  """
+  cargaPeligrosa: Boolean_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorId` of type `String`
+  """
+  creadoPorId: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorNombre` of type `String`
+  """
+  creadoPorNombre: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cuilCuit` of type `String`
+  """
+  cuilCuit: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoDireccion` of type `String`
+  """
+  destinoDireccion: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoLocalidad` of type `String`
+  """
+  destinoLocalidad: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoNombre` of type `String`
+  """
+  destinoNombre: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoPartido` of type `String`
+  """
+  destinoPartido: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorId` of type `String`
+  """
+  editadoPorId: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorNombre` of type `String`
+  """
+  editadoPorNombre: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`emailSolicitante` of type `String`
+  """
+  emailSolicitante: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`empresaSolicitante` of type `String`
+  """
+  empresaSolicitante: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`enlaceDocumento` of type `String`
+  """
+  enlaceDocumento: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`estado` of type `String!`
+  """
+  estado: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`fechaCreacion` of type `String`
+  """
+  fechaCreacion: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`frecuencia` of type `String`
+  """
+  frecuencia: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`horario` of type `String`
+  """
+  horario: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`idSolicitudWeb` of type `String`
+  """
+  idSolicitudWeb: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`largoVehiculo` of type `String`
+  """
+  largoVehiculo: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`nombreSolicitante` of type `String!`
+  """
+  nombreSolicitante: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`nroSeguro` of type `String`
+  """
+  nroSeguro: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`numeroSolicitud` of type `String`
+  """
+  numeroSolicitud: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`observaciones` of type `String`
+  """
+  observaciones: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenDireccion` of type `String`
+  """
+  origenDireccion: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenLocalidad` of type `String`
+  """
+  origenLocalidad: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenNombre` of type `String`
+  """
+  origenNombre: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenPartido` of type `String`
+  """
+  origenPartido: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`patente` of type `String`
+  """
+  patente: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas` of type `Float`
+  """
+  pesoToneladas: Float_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`telefonoSolicitante` of type `String`
+  """
+  telefonoSolicitante: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoCarga` of type `String`
+  """
+  tipoCarga: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoServicio` of type `String!`
+  """
+  tipoServicio: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoVehiculo` of type `String`
+  """
+  tipoVehiculo: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaDesde` of type `String`
+  """
+  vigenciaDesde: String_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaHasta` of type `String`
+  """
+  vigenciaHasta: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'RutaTransporte'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input RutaTransporte_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [RutaTransporte_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: RutaTransporte_Filter
+}
+"""
+✨ Generated having input type for table 'RutaTransporte'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input RutaTransporte_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [RutaTransporte_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: RutaTransporte_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [RutaTransporte_Having!]
+  """
+  ✨ Generated from Field `RutaTransporte`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`activo_count` of type `Int!`
+  """
+  activo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`alturaVehiculo_count` of type `Int!`
+  """
+  alturaVehiculo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`anchoVehiculo_count` of type `Int!`
+  """
+  anchoVehiculo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`aseguradora_count` of type `Int!`
+  """
+  aseguradora_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`calles_count` of type `Int!`
+  """
+  calles_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_count` of type `Int!`
+  """
+  cantidadEjes_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cargaPeligrosa_count` of type `Int!`
+  """
+  cargaPeligrosa_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorId_count` of type `Int!`
+  """
+  creadoPorId_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorNombre_count` of type `Int!`
+  """
+  creadoPorNombre_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cuilCuit_count` of type `Int!`
+  """
+  cuilCuit_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoDireccion_count` of type `Int!`
+  """
+  destinoDireccion_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoLocalidad_count` of type `Int!`
+  """
+  destinoLocalidad_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoNombre_count` of type `Int!`
+  """
+  destinoNombre_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoPartido_count` of type `Int!`
+  """
+  destinoPartido_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorId_count` of type `Int!`
+  """
+  editadoPorId_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorNombre_count` of type `Int!`
+  """
+  editadoPorNombre_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`emailSolicitante_count` of type `Int!`
+  """
+  emailSolicitante_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`empresaSolicitante_count` of type `Int!`
+  """
+  empresaSolicitante_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`enlaceDocumento_count` of type `Int!`
+  """
+  enlaceDocumento_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`estado_count` of type `Int!`
+  """
+  estado_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`fechaCreacion_count` of type `Int!`
+  """
+  fechaCreacion_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`frecuencia_count` of type `Int!`
+  """
+  frecuencia_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`horario_count` of type `Int!`
+  """
+  horario_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`idSolicitudWeb_count` of type `Int!`
+  """
+  idSolicitudWeb_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`largoVehiculo_count` of type `Int!`
+  """
+  largoVehiculo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`nombreSolicitante_count` of type `Int!`
+  """
+  nombreSolicitante_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`nroSeguro_count` of type `Int!`
+  """
+  nroSeguro_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`numeroSolicitud_count` of type `Int!`
+  """
+  numeroSolicitud_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`observaciones_count` of type `Int!`
+  """
+  observaciones_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenDireccion_count` of type `Int!`
+  """
+  origenDireccion_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenLocalidad_count` of type `Int!`
+  """
+  origenLocalidad_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenNombre_count` of type `Int!`
+  """
+  origenNombre_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenPartido_count` of type `Int!`
+  """
+  origenPartido_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`patente_count` of type `Int!`
+  """
+  patente_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_count` of type `Int!`
+  """
+  pesoToneladas_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`telefonoSolicitante_count` of type `Int!`
+  """
+  telefonoSolicitante_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoCarga_count` of type `Int!`
+  """
+  tipoCarga_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoServicio_count` of type `Int!`
+  """
+  tipoServicio_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoVehiculo_count` of type `Int!`
+  """
+  tipoVehiculo_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaDesde_count` of type `Int!`
+  """
+  vigenciaDesde_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaHasta_count` of type `Int!`
+  """
+  vigenciaHasta_count: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_sum` of type `Int`
+  """
+  cantidadEjes_sum: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_sum` of type `Float`
+  """
+  pesoToneladas_sum: Float_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_avg` of type `Float`
+  """
+  cantidadEjes_avg: Float_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_avg` of type `Float`
+  """
+  pesoToneladas_avg: Float_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_min` of type `Int`
+  """
+  cantidadEjes_min: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_min` of type `Float`
+  """
+  pesoToneladas_min: Float_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_max` of type `Int`
+  """
+  cantidadEjes_max: Int_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_max` of type `Float`
+  """
+  pesoToneladas_max: Float_Filter
+}
+"""
+✨ Generated key input type for table 'RutaTransporte'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input RutaTransporte_Key {
+  """
+  ✨ Generated from Field `RutaTransporte`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `RutaTransporte`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'RutaTransporte'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input RutaTransporte_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: RutaTransporte_Filter
+}
+"""
+✨ Generated order input type for table 'RutaTransporte'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input RutaTransporte_Order {
+  """
+  ✨ Generated from Field `RutaTransporte`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`activo` of type `Boolean!`
+  """
+  activo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn` of type `Timestamp!`
+  """
+  actualizadoEn: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`alturaVehiculo` of type `String`
+  """
+  alturaVehiculo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`anchoVehiculo` of type `String`
+  """
+  anchoVehiculo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`aseguradora` of type `String`
+  """
+  aseguradora: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`calles` of type `String`
+  """
+  calles: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes` of type `Int`
+  """
+  cantidadEjes: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cargaPeligrosa` of type `Boolean!`
+  """
+  cargaPeligrosa: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorId` of type `String`
+  """
+  creadoPorId: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorNombre` of type `String`
+  """
+  creadoPorNombre: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cuilCuit` of type `String`
+  """
+  cuilCuit: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`datosGeo` of type `String!`
+  """
+  datosGeo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoDireccion` of type `String`
+  """
+  destinoDireccion: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoLocalidad` of type `String`
+  """
+  destinoLocalidad: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoNombre` of type `String`
+  """
+  destinoNombre: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoPartido` of type `String`
+  """
+  destinoPartido: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorId` of type `String`
+  """
+  editadoPorId: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorNombre` of type `String`
+  """
+  editadoPorNombre: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`emailSolicitante` of type `String`
+  """
+  emailSolicitante: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`empresaSolicitante` of type `String`
+  """
+  empresaSolicitante: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`enlaceDocumento` of type `String`
+  """
+  enlaceDocumento: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`estado` of type `String!`
+  """
+  estado: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`fechaCreacion` of type `String`
+  """
+  fechaCreacion: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`frecuencia` of type `String`
+  """
+  frecuencia: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`horario` of type `String`
+  """
+  horario: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`idSolicitudWeb` of type `String`
+  """
+  idSolicitudWeb: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`largoVehiculo` of type `String`
+  """
+  largoVehiculo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`nombreSolicitante` of type `String!`
+  """
+  nombreSolicitante: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`nroSeguro` of type `String`
+  """
+  nroSeguro: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`numeroSolicitud` of type `String`
+  """
+  numeroSolicitud: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`observaciones` of type `String`
+  """
+  observaciones: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenDireccion` of type `String`
+  """
+  origenDireccion: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenLocalidad` of type `String`
+  """
+  origenLocalidad: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenNombre` of type `String`
+  """
+  origenNombre: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenPartido` of type `String`
+  """
+  origenPartido: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`patente` of type `String`
+  """
+  patente: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas` of type `Float`
+  """
+  pesoToneladas: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`telefonoSolicitante` of type `String`
+  """
+  telefonoSolicitante: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoCarga` of type `String`
+  """
+  tipoCarga: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoServicio` of type `String!`
+  """
+  tipoServicio: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoVehiculo` of type `String`
+  """
+  tipoVehiculo: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaDesde` of type `String`
+  """
+  vigenciaDesde: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaHasta` of type `String`
+  """
+  vigenciaHasta: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`activo_count` of type `Int!`
+  """
+  activo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_count` of type `Int!`
+  """
+  actualizadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`alturaVehiculo_count` of type `Int!`
+  """
+  alturaVehiculo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`anchoVehiculo_count` of type `Int!`
+  """
+  anchoVehiculo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`aseguradora_count` of type `Int!`
+  """
+  aseguradora_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`calles_count` of type `Int!`
+  """
+  calles_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_count` of type `Int!`
+  """
+  cantidadEjes_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cargaPeligrosa_count` of type `Int!`
+  """
+  cargaPeligrosa_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorId_count` of type `Int!`
+  """
+  creadoPorId_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoPorNombre_count` of type `Int!`
+  """
+  creadoPorNombre_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cuilCuit_count` of type `Int!`
+  """
+  cuilCuit_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`datosGeo_count` of type `Int!`
+  """
+  datosGeo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoDireccion_count` of type `Int!`
+  """
+  destinoDireccion_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoLocalidad_count` of type `Int!`
+  """
+  destinoLocalidad_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoNombre_count` of type `Int!`
+  """
+  destinoNombre_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`destinoPartido_count` of type `Int!`
+  """
+  destinoPartido_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorId_count` of type `Int!`
+  """
+  editadoPorId_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`editadoPorNombre_count` of type `Int!`
+  """
+  editadoPorNombre_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`emailSolicitante_count` of type `Int!`
+  """
+  emailSolicitante_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`empresaSolicitante_count` of type `Int!`
+  """
+  empresaSolicitante_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`enlaceDocumento_count` of type `Int!`
+  """
+  enlaceDocumento_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`estado_count` of type `Int!`
+  """
+  estado_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`fechaCreacion_count` of type `Int!`
+  """
+  fechaCreacion_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`frecuencia_count` of type `Int!`
+  """
+  frecuencia_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`horario_count` of type `Int!`
+  """
+  horario_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`idSolicitudWeb_count` of type `Int!`
+  """
+  idSolicitudWeb_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`largoVehiculo_count` of type `Int!`
+  """
+  largoVehiculo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`nombreSolicitante_count` of type `Int!`
+  """
+  nombreSolicitante_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`nroSeguro_count` of type `Int!`
+  """
+  nroSeguro_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`numeroSolicitud_count` of type `Int!`
+  """
+  numeroSolicitud_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`observaciones_count` of type `Int!`
+  """
+  observaciones_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenDireccion_count` of type `Int!`
+  """
+  origenDireccion_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenLocalidad_count` of type `Int!`
+  """
+  origenLocalidad_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenNombre_count` of type `Int!`
+  """
+  origenNombre_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`origenPartido_count` of type `Int!`
+  """
+  origenPartido_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`patente_count` of type `Int!`
+  """
+  patente_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_count` of type `Int!`
+  """
+  pesoToneladas_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`telefonoSolicitante_count` of type `Int!`
+  """
+  telefonoSolicitante_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoCarga_count` of type `Int!`
+  """
+  tipoCarga_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoServicio_count` of type `Int!`
+  """
+  tipoServicio_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`tipoVehiculo_count` of type `Int!`
+  """
+  tipoVehiculo_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaDesde_count` of type `Int!`
+  """
+  vigenciaDesde_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`vigenciaHasta_count` of type `Int!`
+  """
+  vigenciaHasta_count: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_sum` of type `Int`
+  """
+  cantidadEjes_sum: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_sum` of type `Float`
+  """
+  pesoToneladas_sum: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_avg` of type `Float`
+  """
+  cantidadEjes_avg: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_avg` of type `Float`
+  """
+  pesoToneladas_avg: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_min` of type `Timestamp`
+  """
+  actualizadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_min` of type `Int`
+  """
+  cantidadEjes_min: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_min` of type `Float`
+  """
+  pesoToneladas_min: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`actualizadoEn_max` of type `Timestamp`
+  """
+  actualizadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`cantidadEjes_max` of type `Int`
+  """
+  cantidadEjes_max: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `RutaTransporte`.`pesoToneladas_max` of type `Float`
+  """
+  pesoToneladas_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'SesionQR'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input SesionQR_Data {
+  """
+  ✨ Generated from Field `SesionQR`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SesionQR`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`customToken` of type `String`
+  """
+  customToken: String
+  """
+  ✨ `_expr` server value variant of `customToken` (✨ Generated from Field `SesionQR`.`customToken` of type `String`)
+  """
+  customToken_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: String
+  """
+  ✨ `_expr` server value variant of `deviceFingerprint` (✨ Generated from Field `SesionQR`.`deviceFingerprint` of type `String`)
+  """
+  deviceFingerprint_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`deviceInfo` of type `String`
+  """
+  deviceInfo: String
+  """
+  ✨ `_expr` server value variant of `deviceInfo` (✨ Generated from Field `SesionQR`.`deviceInfo` of type `String`)
+  """
+  deviceInfo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`email` of type `String`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `SesionQR`.`email` of type `String`)
+  """
+  email_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`estado` of type `String!`
+  """
+  estado: String
+  """
+  ✨ `_expr` server value variant of `estado` (✨ Generated from Field `SesionQR`.`estado` of type `String!`)
+  """
+  estado_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`
+  """
+  expiraEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `expiraEn` (✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`)
+  """
+  expiraEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `expiraEn` (✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`)
+  """
+  expiraEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `expiraEn` (✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`)
+  """
+  expiraEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`ipCelular` of type `String`
+  """
+  ipCelular: String
+  """
+  ✨ `_expr` server value variant of `ipCelular` (✨ Generated from Field `SesionQR`.`ipCelular` of type `String`)
+  """
+  ipCelular_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`nombre` of type `String`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `SesionQR`.`nombre` of type `String`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `revisadoEn` (✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `revisadoEn` (✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `revisadoEn` (✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'SesionQR'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SesionQR_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [SesionQR_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: SesionQR_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [SesionQR_Filter!]
+  """
+  ✨ Generated from Field `SesionQR`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`customToken` of type `String`
+  """
+  customToken: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`deviceInfo` of type `String`
+  """
+  deviceInfo: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`email` of type `String`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`estado` of type `String!`
+  """
+  estado: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`
+  """
+  expiraEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`ipCelular` of type `String`
+  """
+  ipCelular: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`nombre` of type `String`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: Timestamp_Filter
+}
+"""
+✨ Generated first-row input type for table 'SesionQR'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input SesionQR_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [SesionQR_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: SesionQR_Filter
+}
+"""
+✨ Generated having input type for table 'SesionQR'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SesionQR_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [SesionQR_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: SesionQR_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [SesionQR_Having!]
+  """
+  ✨ Generated from Field `SesionQR`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`customToken_count` of type `Int!`
+  """
+  customToken_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`deviceFingerprint_count` of type `Int!`
+  """
+  deviceFingerprint_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`deviceInfo_count` of type `Int!`
+  """
+  deviceInfo_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`estado_count` of type `Int!`
+  """
+  estado_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_count` of type `Int!`
+  """
+  expiraEn_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`ipCelular_count` of type `Int!`
+  """
+  ipCelular_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_count` of type `Int!`
+  """
+  revisadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_min` of type `Timestamp`
+  """
+  expiraEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_min` of type `Timestamp`
+  """
+  revisadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_max` of type `Timestamp`
+  """
+  expiraEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_max` of type `Timestamp`
+  """
+  revisadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'SesionQR'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input SesionQR_Key {
+  """
+  ✨ Generated from Field `SesionQR`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SesionQR`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'SesionQR'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input SesionQR_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: SesionQR_Filter
+}
+"""
+✨ Generated order input type for table 'SesionQR'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input SesionQR_Order {
+  """
+  ✨ Generated from Field `SesionQR`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`customToken` of type `String`
+  """
+  customToken: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`deviceInfo` of type `String`
+  """
+  deviceInfo: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`email` of type `String`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`estado` of type `String!`
+  """
+  estado: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn` of type `Timestamp!`
+  """
+  expiraEn: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`ipCelular` of type `String`
+  """
+  ipCelular: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`nombre` of type `String`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`customToken_count` of type `Int!`
+  """
+  customToken_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`deviceFingerprint_count` of type `Int!`
+  """
+  deviceFingerprint_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`deviceInfo_count` of type `Int!`
+  """
+  deviceInfo_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`estado_count` of type `Int!`
+  """
+  estado_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_count` of type `Int!`
+  """
+  expiraEn_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`ipCelular_count` of type `Int!`
+  """
+  ipCelular_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_count` of type `Int!`
+  """
+  revisadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_min` of type `Timestamp`
+  """
+  expiraEn_min: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_min` of type `Timestamp`
+  """
+  revisadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`expiraEn_max` of type `Timestamp`
+  """
+  expiraEn_max: OrderDirection
+  """
+  ✨ Generated from Field `SesionQR`.`revisadoEn_max` of type `Timestamp`
+  """
+  revisadoEn_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'SolicitudDispositivo'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input SolicitudDispositivo_Data {
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`customToken` of type `String`
+  """
+  customToken: String
+  """
+  ✨ `_expr` server value variant of `customToken` (✨ Generated from Field `SolicitudDispositivo`.`customToken` of type `String`)
+  """
+  customToken_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: String
+  """
+  ✨ `_expr` server value variant of `deviceFingerprint` (✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint` of type `String`)
+  """
+  deviceFingerprint_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceInfo` of type `String`
+  """
+  deviceInfo: String
+  """
+  ✨ `_expr` server value variant of `deviceInfo` (✨ Generated from Field `SolicitudDispositivo`.`deviceInfo` of type `String`)
+  """
+  deviceInfo_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`email` of type `String!`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `SolicitudDispositivo`.`email` of type `String!`)
+  """
+  email_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`estado` of type `String!`
+  """
+  estado: String
+  """
+  ✨ `_expr` server value variant of `estado` (✨ Generated from Field `SolicitudDispositivo`.`estado` of type `String!`)
+  """
+  estado_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`ipAddress` of type `String`
+  """
+  ipAddress: String
+  """
+  ✨ `_expr` server value variant of `ipAddress` (✨ Generated from Field `SolicitudDispositivo`.`ipAddress` of type `String`)
+  """
+  ipAddress_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`nombre` of type `String!`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `SolicitudDispositivo`.`nombre` of type `String!`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `revisadoEn` (✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `revisadoEn` (✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `revisadoEn` (✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`)
+  """
+  revisadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'SolicitudDispositivo'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SolicitudDispositivo_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [SolicitudDispositivo_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: SolicitudDispositivo_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [SolicitudDispositivo_Filter!]
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`customToken` of type `String`
+  """
+  customToken: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceInfo` of type `String`
+  """
+  deviceInfo: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`email` of type `String!`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`estado` of type `String!`
+  """
+  estado: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`ipAddress` of type `String`
+  """
+  ipAddress: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`nombre` of type `String!`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: Timestamp_Filter
+}
+"""
+✨ Generated first-row input type for table 'SolicitudDispositivo'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input SolicitudDispositivo_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [SolicitudDispositivo_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: SolicitudDispositivo_Filter
+}
+"""
+✨ Generated having input type for table 'SolicitudDispositivo'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SolicitudDispositivo_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [SolicitudDispositivo_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: SolicitudDispositivo_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [SolicitudDispositivo_Having!]
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`customToken_count` of type `Int!`
+  """
+  customToken_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint_count` of type `Int!`
+  """
+  deviceFingerprint_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceInfo_count` of type `Int!`
+  """
+  deviceInfo_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`estado_count` of type `Int!`
+  """
+  estado_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`ipAddress_count` of type `Int!`
+  """
+  ipAddress_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_count` of type `Int!`
+  """
+  revisadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_min` of type `Timestamp`
+  """
+  revisadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_max` of type `Timestamp`
+  """
+  revisadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'SolicitudDispositivo'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input SolicitudDispositivo_Key {
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'SolicitudDispositivo'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input SolicitudDispositivo_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: SolicitudDispositivo_Filter
+}
+"""
+✨ Generated order input type for table 'SolicitudDispositivo'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input SolicitudDispositivo_Order {
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`customToken` of type `String`
+  """
+  customToken: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint` of type `String`
+  """
+  deviceFingerprint: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceInfo` of type `String`
+  """
+  deviceInfo: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`email` of type `String!`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`estado` of type `String!`
+  """
+  estado: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`ipAddress` of type `String`
+  """
+  ipAddress: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`nombre` of type `String!`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn` of type `Timestamp`
+  """
+  revisadoEn: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`customToken_count` of type `Int!`
+  """
+  customToken_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceFingerprint_count` of type `Int!`
+  """
+  deviceFingerprint_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`deviceInfo_count` of type `Int!`
+  """
+  deviceInfo_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`estado_count` of type `Int!`
+  """
+  estado_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`ipAddress_count` of type `Int!`
+  """
+  ipAddress_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_count` of type `Int!`
+  """
+  revisadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_min` of type `Timestamp`
+  """
+  revisadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+  """
+  ✨ Generated from Field `SolicitudDispositivo`.`revisadoEn_max` of type `Timestamp`
+  """
+  revisadoEn_max: OrderDirection
+}
+"""
+✨ Generated data input type for table 'SubGrupo'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input SubGrupo_Data {
+  """
+  ✨ Generated from Field `SubGrupo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SubGrupo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SubGrupo`.`grupoId` of type `String!`
+  """
+  grupoId: String
+  """
+  ✨ `_expr` server value variant of `grupoId` (✨ Generated from Field `SubGrupo`.`grupoId` of type `String!`)
+  """
+  grupoId_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SubGrupo`.`grupo` of type `Grupo!`
+  """
+  grupo: Grupo_Key @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SubGrupo`.`color` of type `String!`
+  """
+  color: String
+  """
+  ✨ `_expr` server value variant of `color` (✨ Generated from Field `SubGrupo`.`color` of type `String!`)
+  """
+  color_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SubGrupo`.`nombre` of type `String!`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `SubGrupo`.`nombre` of type `String!`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `SubGrupo`.`capas_on_subGrupo` of type `[Capa!]!`
+  """
+  capas_on_subGrupo: [Capa_Data!]
+}
+"""
+✨ Generated filter input type for table 'SubGrupo'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SubGrupo_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [SubGrupo_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: SubGrupo_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [SubGrupo_Filter!]
+  """
+  ✨ Generated from Field `SubGrupo`.`id` of type `String!`
+  """
+  id: String_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`grupoId` of type `String!`
+  """
+  grupoId: String_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`grupo` of type `Grupo!`
+  """
+  grupo: Grupo_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`color` of type `String!`
+  """
+  color: String_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`nombre` of type `String!`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`capas_on_subGrupo` of type `[Capa!]!`
+  """
+  capas_on_subGrupo: Capa_ListFilter
+}
+"""
+✨ Generated first-row input type for table 'SubGrupo'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input SubGrupo_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [SubGrupo_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: SubGrupo_Filter
+}
+"""
+✨ Generated having input type for table 'SubGrupo'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input SubGrupo_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [SubGrupo_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: SubGrupo_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [SubGrupo_Having!]
+  """
+  ✨ Generated from Field `SubGrupo`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`color_count` of type `Int!`
+  """
+  color_count: Int_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`grupoId_count` of type `Int!`
+  """
+  grupoId_count: Int_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`id_count` of type `Int!`
+  """
+  id_count: Int_Filter
+  """
+  ✨ Generated from Field `SubGrupo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+}
+"""
+✨ Generated key input type for table 'SubGrupo'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input SubGrupo_Key {
+  """
+  ✨ Generated from Field `SubGrupo`.`id` of type `String!`
+  """
+  id: String
+  """
+  ✨ `_expr` server value variant of `id` (✨ Generated from Field `SubGrupo`.`id` of type `String!`)
+  """
+  id_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'SubGrupo'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input SubGrupo_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: SubGrupo_Filter
+}
+"""
+✨ Generated order input type for table 'SubGrupo'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input SubGrupo_Order {
+  """
+  ✨ Generated from Field `SubGrupo`.`id` of type `String!`
+  """
+  id: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`grupoId` of type `String!`
+  """
+  grupoId: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`grupo` of type `Grupo!`
+  """
+  grupo: Grupo_Order
+  """
+  ✨ Generated from Field `SubGrupo`.`color` of type `String!`
+  """
+  color: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`nombre` of type `String!`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`color_count` of type `Int!`
+  """
+  color_count: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`grupoId_count` of type `Int!`
+  """
+  grupoId_count: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`id_count` of type `Int!`
+  """
+  id_count: OrderDirection
+  """
+  ✨ Generated from Field `SubGrupo`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+}
+"""
+✨ Generated data input type for table 'Usuario'. It includes all necessary fields for creating or upserting rows into table.
+"""
+input Usuario_Data {
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`
+  """
+  firebaseUid: String
+  """
+  ✨ `_expr` server value variant of `firebaseUid` (✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`)
+  """
+  firebaseUid_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp
+  """
+  ✨ `_expr` server value variant of `creadoEn` (✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_expr: Timestamp_Expr @fdc_forbiddenInVariables
+  """
+  ✨ `_time` server value variant of `creadoEn` (✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_time: Timestamp_Relative @fdc_forbiddenInVariables
+  """
+  ✨ `_update` server value variant of `creadoEn` (✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`)
+  """
+  creadoEn_update: [Timestamp_Update!] @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Usuario`.`email` of type `String!`
+  """
+  email: String
+  """
+  ✨ `_expr` server value variant of `email` (✨ Generated from Field `Usuario`.`email` of type `String!`)
+  """
+  email_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Usuario`.`nombre` of type `String`
+  """
+  nombre: String
+  """
+  ✨ `_expr` server value variant of `nombre` (✨ Generated from Field `Usuario`.`nombre` of type `String`)
+  """
+  nombre_expr: String_Expr @fdc_forbiddenInVariables
+  """
+  ✨ Generated from Field `Usuario`.`rol` of type `String!`
+  """
+  rol: String
+  """
+  ✨ `_expr` server value variant of `rol` (✨ Generated from Field `Usuario`.`rol` of type `String!`)
+  """
+  rol_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated filter input type for table 'Usuario'. This input allows filtering objects using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Usuario_Filter {
+  """
+  Apply multiple filter conditions using `AND` logic.
+  """
+  _and: [Usuario_Filter!]
+  """
+  Negate the result of the provided filter condition.
+  """
+  _not: Usuario_Filter
+  """
+  Apply multiple filter conditions using `OR` logic.
+  """
+  _or: [Usuario_Filter!]
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`
+  """
+  firebaseUid: String_Filter
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: Timestamp_Filter
+  """
+  ✨ Generated from Field `Usuario`.`email` of type `String!`
+  """
+  email: String_Filter
+  """
+  ✨ Generated from Field `Usuario`.`nombre` of type `String`
+  """
+  nombre: String_Filter
+  """
+  ✨ Generated from Field `Usuario`.`rol` of type `String!`
+  """
+  rol: String_Filter
+}
+"""
+✨ Generated first-row input type for table 'Usuario'. This input selects the first row matching the filter criteria, ordered according to the specified conditions.
+"""
+input Usuario_FirstRow {
+  """
+  Order the result by the specified fields.
+  """
+  orderBy: [Usuario_Order!]
+  """
+  Filters rows based on the specified conditions.
+  """
+  where: Usuario_Filter
+}
+"""
+✨ Generated having input type for table 'Usuario'. This input allows you to filter groups during aggregate queries using various conditions. Use `_or`, `_and`, and `_not` to compose complex filters.
+"""
+input Usuario_Having {
+  """
+  Apply multiple Having conditions using `AND` logic.
+  """
+  _and: [Usuario_Having!]
+  """
+  Whether to apply DISTINCT to the aggregate function.
+  """
+  _distinct: Boolean
+  """
+  Negate the result of the provided Having condition.
+  """
+  _not: Usuario_Having
+  """
+  Apply multiple Having conditions using `OR` logic.
+  """
+  _or: [Usuario_Having!]
+  """
+  ✨ Generated from Field `Usuario`.`_count` of type `Int!`
+  """
+  _count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`email_count` of type `Int!`
+  """
+  email_count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid_count` of type `Int!`
+  """
+  firebaseUid_count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`nombre_count` of type `Int!`
+  """
+  nombre_count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`rol_count` of type `Int!`
+  """
+  rol_count: Int_Filter
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: Timestamp_Filter
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: Timestamp_Filter
+}
+"""
+✨ Generated key input type for table 'Usuario'. It represents the primary key fields used to uniquely identify a row in the table.
+"""
+input Usuario_Key {
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`
+  """
+  firebaseUid: String
+  """
+  ✨ `_expr` server value variant of `firebaseUid` (✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`)
+  """
+  firebaseUid_expr: String_Expr @fdc_forbiddenInVariables
+}
+"""
+✨ Generated list filter input type for table 'Usuario'. This input applies filtering logic based on the count or existence of related objects that matches certain criteria.
+"""
+input Usuario_ListFilter {
+  """
+  The desired number of objects that match the condition (defaults to at least one).
+  """
+  count: Int_Filter = {gt:0}
+  """
+  Condition of the related objects to filter for.
+  """
+  exist: Usuario_Filter
+}
+"""
+✨ Generated order input type for table 'Usuario'. This input defines the sorting order of rows in query results based on one or more fields.
+"""
+input Usuario_Order {
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid` of type `String!`
+  """
+  firebaseUid: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn` of type `Timestamp!`
+  """
+  creadoEn: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`email` of type `String!`
+  """
+  email: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`nombre` of type `String`
+  """
+  nombre: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`rol` of type `String!`
+  """
+  rol: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`_count` of type `Int!`
+  """
+  _count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_count` of type `Int!`
+  """
+  creadoEn_count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`email_count` of type `Int!`
+  """
+  email_count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`firebaseUid_count` of type `Int!`
+  """
+  firebaseUid_count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`nombre_count` of type `Int!`
+  """
+  nombre_count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`rol_count` of type `Int!`
+  """
+  rol_count: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_min` of type `Timestamp`
+  """
+  creadoEn_min: OrderDirection
+  """
+  ✨ Generated from Field `Usuario`.`creadoEn_max` of type `Timestamp`
+  """
+  creadoEn_max: OrderDirection
+}

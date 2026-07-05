@@ -77,11 +77,46 @@ query ListRutasTransporte @auth(level: USER) {
     id
     numeroSolicitud
     idSolicitudWeb
+    enlaceDocumento
+    fechaCreacion
     nombreSolicitante
     empresaSolicitante
+    cuilCuit
+    emailSolicitante
+    telefonoSolicitante
+    patente
+    tipoVehiculo
+    pesoToneladas
+    cargaPeligrosa
+    tipoCarga
+    largoVehiculo
+    anchoVehiculo
+    alturaVehiculo
+    cantidadEjes
+    aseguradora
+    nroSeguro
+    calles
+    origenDireccion
+    origenLocalidad
+    origenPartido
+    origenNombre
+    destinoDireccion
+    destinoLocalidad
+    destinoPartido
+    destinoNombre
+    frecuencia
+    horario
+    observaciones
+    vigenciaDesde
+    vigenciaHasta
     estado
+    activo
     tipoServicio
+    creadoPorId
+    creadoPorNombre
+    datosGeo
     creadoEn
+    actualizadoEn
   }
 }
 

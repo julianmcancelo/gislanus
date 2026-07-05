@@ -1,0 +1,620 @@
+extend type Query {
+  """
+  ✨ Look up a single `Capa` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  capa(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Capa_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Capa_FirstRow
+  ): Capa @fdc_generated(from: "Capa", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `DispositivoBloqueado` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  dispositivoBloqueado(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: DispositivoBloqueado_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: DispositivoBloqueado_FirstRow
+  ): DispositivoBloqueado @fdc_generated(from: "DispositivoBloqueado", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Grupo` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  grupo(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Grupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Grupo_FirstRow
+  ): Grupo @fdc_generated(from: "Grupo", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `LineaTransporte` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  lineaTransporte(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: LineaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LineaTransporte_FirstRow
+  ): LineaTransporte @fdc_generated(from: "LineaTransporte", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Reclamo` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  reclamo(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Reclamo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Reclamo_FirstRow
+  ): Reclamo @fdc_generated(from: "Reclamo", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `RolPermisos` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  rolPermisos(
+    """
+    The key used to identify the object.
+    """
+    key: RolPermisos_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RolPermisos_FirstRow
+  ): RolPermisos @fdc_generated(from: "RolPermisos", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `RutaTransporte` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  rutaTransporte(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: RutaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RutaTransporte_FirstRow
+  ): RutaTransporte @fdc_generated(from: "RutaTransporte", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `SesionQR` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  sesionQR(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SesionQR_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SesionQR_FirstRow
+  ): SesionQR @fdc_generated(from: "SesionQR", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `SolicitudDispositivo` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  solicitudDispositivo(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SolicitudDispositivo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SolicitudDispositivo_FirstRow
+  ): SolicitudDispositivo @fdc_generated(from: "SolicitudDispositivo", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `SubGrupo` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  subGrupo(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SubGrupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SubGrupo_FirstRow
+  ): SubGrupo @fdc_generated(from: "SubGrupo", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Usuario` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  usuario(
+    """
+    The key used to identify the object.
+    """
+    key: Usuario_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Usuario_FirstRow
+  ): Usuario @fdc_generated(from: "Usuario", purpose: QUERY_SINGLE)
+  """
+  ✨ List `Capa` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  capas(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Capa_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Capa_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Capa_Having
+  ): [Capa!]! @fdc_generated(from: "Capa", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `DispositivoBloqueado` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  dispositivoBloqueados(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: DispositivoBloqueado_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [DispositivoBloqueado_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: DispositivoBloqueado_Having
+  ): [DispositivoBloqueado!]! @fdc_generated(from: "DispositivoBloqueado", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Grupo` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  grupos(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Grupo_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Grupo_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Grupo_Having
+  ): [Grupo!]! @fdc_generated(from: "Grupo", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `LineaTransporte` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  lineaTransportes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: LineaTransporte_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [LineaTransporte_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: LineaTransporte_Having
+  ): [LineaTransporte!]! @fdc_generated(from: "LineaTransporte", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Reclamo` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  reclamos(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Reclamo_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Reclamo_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Reclamo_Having
+  ): [Reclamo!]! @fdc_generated(from: "Reclamo", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `RolPermisos` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  rolPermisoss(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: RolPermisos_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [RolPermisos_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: RolPermisos_Having
+  ): [RolPermisos!]! @fdc_generated(from: "RolPermisos", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `RutaTransporte` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  rutaTransportes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: RutaTransporte_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [RutaTransporte_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: RutaTransporte_Having
+  ): [RutaTransporte!]! @fdc_generated(from: "RutaTransporte", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `SesionQR` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  sesionQRS(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: SesionQR_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [SesionQR_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: SesionQR_Having
+  ): [SesionQR!]! @fdc_generated(from: "SesionQR", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `SolicitudDispositivo` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  solicitudDispositivos(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: SolicitudDispositivo_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [SolicitudDispositivo_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: SolicitudDispositivo_Having
+  ): [SolicitudDispositivo!]! @fdc_generated(from: "SolicitudDispositivo", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `SubGrupo` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  subGrupos(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: SubGrupo_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [SubGrupo_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: SubGrupo_Having
+  ): [SubGrupo!]! @fdc_generated(from: "SubGrupo", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Usuario` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  usuarios(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Usuario_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Usuario_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Usuario_Having
+  ): [Usuario!]! @fdc_generated(from: "Usuario", purpose: QUERY_MULTIPLE)
+}

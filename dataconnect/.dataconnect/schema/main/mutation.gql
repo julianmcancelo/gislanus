@@ -1,0 +1,1304 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `Capa` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  capa_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Capa_Data!
+  ): Capa_KeyOutput! @fdc_generated(from: "Capa", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `DispositivoBloqueado` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  dispositivoBloqueado_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: DispositivoBloqueado_Data!
+  ): DispositivoBloqueado_KeyOutput! @fdc_generated(from: "DispositivoBloqueado", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Grupo` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  grupo_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Grupo_Data!
+  ): Grupo_KeyOutput! @fdc_generated(from: "Grupo", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `LineaTransporte` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  lineaTransporte_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: LineaTransporte_Data!
+  ): LineaTransporte_KeyOutput! @fdc_generated(from: "LineaTransporte", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Reclamo` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  reclamo_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Reclamo_Data!
+  ): Reclamo_KeyOutput! @fdc_generated(from: "Reclamo", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `RolPermisos` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  rolPermisos_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: RolPermisos_Data!
+  ): RolPermisos_KeyOutput! @fdc_generated(from: "RolPermisos", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `RutaTransporte` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  rutaTransporte_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: RutaTransporte_Data!
+  ): RutaTransporte_KeyOutput! @fdc_generated(from: "RutaTransporte", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `SesionQR` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  sesionQR_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: SesionQR_Data!
+  ): SesionQR_KeyOutput! @fdc_generated(from: "SesionQR", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `SolicitudDispositivo` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  solicitudDispositivo_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: SolicitudDispositivo_Data!
+  ): SolicitudDispositivo_KeyOutput! @fdc_generated(from: "SolicitudDispositivo", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `SubGrupo` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  subGrupo_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: SubGrupo_Data!
+  ): SubGrupo_KeyOutput! @fdc_generated(from: "SubGrupo", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert a single `Usuario` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  usuario_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Usuario_Data!
+  ): Usuario_KeyOutput! @fdc_generated(from: "Usuario", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `Capa` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  capa_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Capa_Data!]!
+  ): [Capa_KeyOutput!]! @fdc_generated(from: "Capa", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `DispositivoBloqueado` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  dispositivoBloqueado_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [DispositivoBloqueado_Data!]!
+  ): [DispositivoBloqueado_KeyOutput!]! @fdc_generated(from: "DispositivoBloqueado", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Grupo` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  grupo_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Grupo_Data!]!
+  ): [Grupo_KeyOutput!]! @fdc_generated(from: "Grupo", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `LineaTransporte` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  lineaTransporte_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [LineaTransporte_Data!]!
+  ): [LineaTransporte_KeyOutput!]! @fdc_generated(from: "LineaTransporte", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Reclamo` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  reclamo_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Reclamo_Data!]!
+  ): [Reclamo_KeyOutput!]! @fdc_generated(from: "Reclamo", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `RolPermisos` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  rolPermisos_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [RolPermisos_Data!]!
+  ): [RolPermisos_KeyOutput!]! @fdc_generated(from: "RolPermisos", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `RutaTransporte` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  rutaTransporte_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [RutaTransporte_Data!]!
+  ): [RutaTransporte_KeyOutput!]! @fdc_generated(from: "RutaTransporte", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `SesionQR` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  sesionQR_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [SesionQR_Data!]!
+  ): [SesionQR_KeyOutput!]! @fdc_generated(from: "SesionQR", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `SolicitudDispositivo` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  solicitudDispositivo_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [SolicitudDispositivo_Data!]!
+  ): [SolicitudDispositivo_KeyOutput!]! @fdc_generated(from: "SolicitudDispositivo", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `SubGrupo` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  subGrupo_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [SubGrupo_Data!]!
+  ): [SubGrupo_KeyOutput!]! @fdc_generated(from: "SubGrupo", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert `Usuario` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  usuario_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Usuario_Data!]!
+  ): [Usuario_KeyOutput!]! @fdc_generated(from: "Usuario", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `Capa` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Capa`.
+  """
+  capa_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Capa_Data!
+  ): Capa_KeyOutput! @fdc_generated(from: "Capa", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `DispositivoBloqueado` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `DispositivoBloqueado`.
+  """
+  dispositivoBloqueado_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: DispositivoBloqueado_Data!
+  ): DispositivoBloqueado_KeyOutput! @fdc_generated(from: "DispositivoBloqueado", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Grupo` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Grupo`.
+  """
+  grupo_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Grupo_Data!
+  ): Grupo_KeyOutput! @fdc_generated(from: "Grupo", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `LineaTransporte` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `LineaTransporte`.
+  """
+  lineaTransporte_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: LineaTransporte_Data!
+  ): LineaTransporte_KeyOutput! @fdc_generated(from: "LineaTransporte", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Reclamo` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Reclamo`.
+  """
+  reclamo_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Reclamo_Data!
+  ): Reclamo_KeyOutput! @fdc_generated(from: "Reclamo", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `RolPermisos` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `RolPermisos`.
+  """
+  rolPermisos_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: RolPermisos_Data!
+  ): RolPermisos_KeyOutput! @fdc_generated(from: "RolPermisos", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `RutaTransporte` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `RutaTransporte`.
+  """
+  rutaTransporte_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: RutaTransporte_Data!
+  ): RutaTransporte_KeyOutput! @fdc_generated(from: "RutaTransporte", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `SesionQR` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SesionQR`.
+  """
+  sesionQR_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: SesionQR_Data!
+  ): SesionQR_KeyOutput! @fdc_generated(from: "SesionQR", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `SolicitudDispositivo` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SolicitudDispositivo`.
+  """
+  solicitudDispositivo_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: SolicitudDispositivo_Data!
+  ): SolicitudDispositivo_KeyOutput! @fdc_generated(from: "SolicitudDispositivo", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `SubGrupo` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SubGrupo`.
+  """
+  subGrupo_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: SubGrupo_Data!
+  ): SubGrupo_KeyOutput! @fdc_generated(from: "SubGrupo", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update a single `Usuario` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Usuario`.
+  """
+  usuario_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Usuario_Data!
+  ): Usuario_KeyOutput! @fdc_generated(from: "Usuario", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `Capa` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Capa`.
+  """
+  capa_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Capa_Data!]!
+  ): [Capa_KeyOutput!]! @fdc_generated(from: "Capa", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `DispositivoBloqueado` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `DispositivoBloqueado`.
+  """
+  dispositivoBloqueado_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [DispositivoBloqueado_Data!]!
+  ): [DispositivoBloqueado_KeyOutput!]! @fdc_generated(from: "DispositivoBloqueado", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Grupo` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Grupo`.
+  """
+  grupo_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Grupo_Data!]!
+  ): [Grupo_KeyOutput!]! @fdc_generated(from: "Grupo", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `LineaTransporte` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `LineaTransporte`.
+  """
+  lineaTransporte_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [LineaTransporte_Data!]!
+  ): [LineaTransporte_KeyOutput!]! @fdc_generated(from: "LineaTransporte", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Reclamo` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Reclamo`.
+  """
+  reclamo_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Reclamo_Data!]!
+  ): [Reclamo_KeyOutput!]! @fdc_generated(from: "Reclamo", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `RolPermisos` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `RolPermisos`.
+  """
+  rolPermisos_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [RolPermisos_Data!]!
+  ): [RolPermisos_KeyOutput!]! @fdc_generated(from: "RolPermisos", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `RutaTransporte` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `RutaTransporte`.
+  """
+  rutaTransporte_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [RutaTransporte_Data!]!
+  ): [RutaTransporte_KeyOutput!]! @fdc_generated(from: "RutaTransporte", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `SesionQR` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SesionQR`.
+  """
+  sesionQR_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [SesionQR_Data!]!
+  ): [SesionQR_KeyOutput!]! @fdc_generated(from: "SesionQR", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `SolicitudDispositivo` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SolicitudDispositivo`.
+  """
+  solicitudDispositivo_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [SolicitudDispositivo_Data!]!
+  ): [SolicitudDispositivo_KeyOutput!]! @fdc_generated(from: "SolicitudDispositivo", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `SubGrupo` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `SubGrupo`.
+  """
+  subGrupo_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [SubGrupo_Data!]!
+  ): [SubGrupo_KeyOutput!]! @fdc_generated(from: "SubGrupo", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Insert or update `Usuario` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Usuario`.
+  """
+  usuario_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Usuario_Data!]!
+  ): [Usuario_KeyOutput!]! @fdc_generated(from: "Usuario", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `Capa` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Capa` or `null` if not found.
+  """
+  capa_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Capa_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Capa_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Capa_Data!
+  ): Capa_KeyOutput @fdc_generated(from: "Capa", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `DispositivoBloqueado` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `DispositivoBloqueado` or `null` if not found.
+  """
+  dispositivoBloqueado_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: DispositivoBloqueado_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: DispositivoBloqueado_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: DispositivoBloqueado_Data!
+  ): DispositivoBloqueado_KeyOutput @fdc_generated(from: "DispositivoBloqueado", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Grupo` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Grupo` or `null` if not found.
+  """
+  grupo_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Grupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Grupo_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Grupo_Data!
+  ): Grupo_KeyOutput @fdc_generated(from: "Grupo", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `LineaTransporte` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `LineaTransporte` or `null` if not found.
+  """
+  lineaTransporte_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: LineaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LineaTransporte_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: LineaTransporte_Data!
+  ): LineaTransporte_KeyOutput @fdc_generated(from: "LineaTransporte", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Reclamo` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Reclamo` or `null` if not found.
+  """
+  reclamo_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Reclamo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Reclamo_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Reclamo_Data!
+  ): Reclamo_KeyOutput @fdc_generated(from: "Reclamo", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `RolPermisos` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `RolPermisos` or `null` if not found.
+  """
+  rolPermisos_update(
+    """
+    The key used to identify the object.
+    """
+    key: RolPermisos_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RolPermisos_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: RolPermisos_Data!
+  ): RolPermisos_KeyOutput @fdc_generated(from: "RolPermisos", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `RutaTransporte` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `RutaTransporte` or `null` if not found.
+  """
+  rutaTransporte_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: RutaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RutaTransporte_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: RutaTransporte_Data!
+  ): RutaTransporte_KeyOutput @fdc_generated(from: "RutaTransporte", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `SesionQR` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `SesionQR` or `null` if not found.
+  """
+  sesionQR_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SesionQR_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SesionQR_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: SesionQR_Data!
+  ): SesionQR_KeyOutput @fdc_generated(from: "SesionQR", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `SolicitudDispositivo` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `SolicitudDispositivo` or `null` if not found.
+  """
+  solicitudDispositivo_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SolicitudDispositivo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SolicitudDispositivo_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: SolicitudDispositivo_Data!
+  ): SolicitudDispositivo_KeyOutput @fdc_generated(from: "SolicitudDispositivo", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `SubGrupo` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `SubGrupo` or `null` if not found.
+  """
+  subGrupo_update(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SubGrupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SubGrupo_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: SubGrupo_Data!
+  ): SubGrupo_KeyOutput @fdc_generated(from: "SubGrupo", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update a single `Usuario` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Usuario` or `null` if not found.
+  """
+  usuario_update(
+    """
+    The key used to identify the object.
+    """
+    key: Usuario_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Usuario_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Usuario_Data!
+  ): Usuario_KeyOutput @fdc_generated(from: "Usuario", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `Capa` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  capa_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Capa_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Capa_Data!
+  ): Int! @fdc_generated(from: "Capa", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `DispositivoBloqueado` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  dispositivoBloqueado_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: DispositivoBloqueado_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: DispositivoBloqueado_Data!
+  ): Int! @fdc_generated(from: "DispositivoBloqueado", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Grupo` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  grupo_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Grupo_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Grupo_Data!
+  ): Int! @fdc_generated(from: "Grupo", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `LineaTransporte` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  lineaTransporte_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: LineaTransporte_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: LineaTransporte_Data!
+  ): Int! @fdc_generated(from: "LineaTransporte", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Reclamo` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  reclamo_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Reclamo_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Reclamo_Data!
+  ): Int! @fdc_generated(from: "Reclamo", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `RolPermisos` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  rolPermisos_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: RolPermisos_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: RolPermisos_Data!
+  ): Int! @fdc_generated(from: "RolPermisos", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `RutaTransporte` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  rutaTransporte_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: RutaTransporte_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: RutaTransporte_Data!
+  ): Int! @fdc_generated(from: "RutaTransporte", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `SesionQR` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  sesionQR_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: SesionQR_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: SesionQR_Data!
+  ): Int! @fdc_generated(from: "SesionQR", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `SolicitudDispositivo` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  solicitudDispositivo_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: SolicitudDispositivo_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: SolicitudDispositivo_Data!
+  ): Int! @fdc_generated(from: "SolicitudDispositivo", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `SubGrupo` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  subGrupo_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: SubGrupo_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: SubGrupo_Data!
+  ): Int! @fdc_generated(from: "SubGrupo", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Update `Usuario` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  usuario_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Usuario_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Usuario_Data!
+  ): Int! @fdc_generated(from: "Usuario", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `Capa` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  capa_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Capa_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Capa_FirstRow
+  ): Capa_KeyOutput @fdc_generated(from: "Capa", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `DispositivoBloqueado` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  dispositivoBloqueado_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: DispositivoBloqueado_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: DispositivoBloqueado_FirstRow
+  ): DispositivoBloqueado_KeyOutput @fdc_generated(from: "DispositivoBloqueado", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Grupo` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  grupo_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Grupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Grupo_FirstRow
+  ): Grupo_KeyOutput @fdc_generated(from: "Grupo", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `LineaTransporte` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  lineaTransporte_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: LineaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: LineaTransporte_FirstRow
+  ): LineaTransporte_KeyOutput @fdc_generated(from: "LineaTransporte", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Reclamo` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  reclamo_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Reclamo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Reclamo_FirstRow
+  ): Reclamo_KeyOutput @fdc_generated(from: "Reclamo", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `RolPermisos` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  rolPermisos_delete(
+    """
+    The key used to identify the object.
+    """
+    key: RolPermisos_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RolPermisos_FirstRow
+  ): RolPermisos_KeyOutput @fdc_generated(from: "RolPermisos", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `RutaTransporte` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  rutaTransporte_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: RutaTransporte_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: RutaTransporte_FirstRow
+  ): RutaTransporte_KeyOutput @fdc_generated(from: "RutaTransporte", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `SesionQR` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  sesionQR_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SesionQR_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SesionQR_FirstRow
+  ): SesionQR_KeyOutput @fdc_generated(from: "SesionQR", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `SolicitudDispositivo` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  solicitudDispositivo_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SolicitudDispositivo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SolicitudDispositivo_FirstRow
+  ): SolicitudDispositivo_KeyOutput @fdc_generated(from: "SolicitudDispositivo", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `SubGrupo` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  subGrupo_delete(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: SubGrupo_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: SubGrupo_FirstRow
+  ): SubGrupo_KeyOutput @fdc_generated(from: "SubGrupo", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete a single `Usuario` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  usuario_delete(
+    """
+    The key used to identify the object.
+    """
+    key: Usuario_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Usuario_FirstRow
+  ): Usuario_KeyOutput @fdc_generated(from: "Usuario", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `Capa` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  capa_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Capa_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Capa", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `DispositivoBloqueado` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  dispositivoBloqueado_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: DispositivoBloqueado_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "DispositivoBloqueado", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Grupo` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  grupo_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Grupo_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Grupo", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `LineaTransporte` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  lineaTransporte_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: LineaTransporte_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "LineaTransporte", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Reclamo` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  reclamo_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Reclamo_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Reclamo", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `RolPermisos` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  rolPermisos_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: RolPermisos_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "RolPermisos", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `RutaTransporte` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  rutaTransporte_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: RutaTransporte_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "RutaTransporte", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `SesionQR` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  sesionQR_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: SesionQR_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "SesionQR", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `SolicitudDispositivo` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  solicitudDispositivo_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: SolicitudDispositivo_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "SolicitudDispositivo", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `SubGrupo` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  subGrupo_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: SubGrupo_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "SubGrupo", purpose: DELETE_MULTIPLE)
+  """
+  ✨ Delete `Usuario` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  usuario_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Usuario_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Usuario", purpose: DELETE_MULTIPLE)
+}

@@ -643,11 +643,46 @@ export interface ListRutasTransporteData {
     id: string;
     numeroSolicitud?: string | null;
     idSolicitudWeb?: string | null;
+    enlaceDocumento?: string | null;
+    fechaCreacion?: string | null;
     nombreSolicitante: string;
     empresaSolicitante?: string | null;
+    cuilCuit?: string | null;
+    emailSolicitante?: string | null;
+    telefonoSolicitante?: string | null;
+    patente?: string | null;
+    tipoVehiculo?: string | null;
+    pesoToneladas?: number | null;
+    cargaPeligrosa: boolean;
+    tipoCarga?: string | null;
+    largoVehiculo?: string | null;
+    anchoVehiculo?: string | null;
+    alturaVehiculo?: string | null;
+    cantidadEjes?: number | null;
+    aseguradora?: string | null;
+    nroSeguro?: string | null;
+    calles?: string | null;
+    origenDireccion?: string | null;
+    origenLocalidad?: string | null;
+    origenPartido?: string | null;
+    origenNombre?: string | null;
+    destinoDireccion?: string | null;
+    destinoLocalidad?: string | null;
+    destinoPartido?: string | null;
+    destinoNombre?: string | null;
+    frecuencia?: string | null;
+    horario?: string | null;
+    observaciones?: string | null;
+    vigenciaDesde?: string | null;
+    vigenciaHasta?: string | null;
     estado: string;
+    activo: boolean;
     tipoServicio: string;
+    creadoPorId?: string | null;
+    creadoPorNombre?: string | null;
+    datosGeo: string;
     creadoEn: TimestampString;
+    actualizadoEn: TimestampString;
   } & RutaTransporte_Key)[];
 }
 ```
@@ -2098,10 +2133,43 @@ The `CreateRutaTransporte` mutation requires an argument of type `CreateRutaTran
 export interface CreateRutaTransporteVariables {
   numeroSolicitud?: string | null;
   idSolicitudWeb?: string | null;
+  enlaceDocumento?: string | null;
+  fechaCreacion?: string | null;
   nombreSolicitante: string;
-  datosGeo: string;
+  empresaSolicitante?: string | null;
+  cuilCuit?: string | null;
+  emailSolicitante?: string | null;
+  telefonoSolicitante?: string | null;
+  patente?: string | null;
+  tipoVehiculo?: string | null;
+  pesoToneladas?: number | null;
+  cargaPeligrosa?: boolean | null;
+  tipoCarga?: string | null;
+  largoVehiculo?: string | null;
+  anchoVehiculo?: string | null;
+  alturaVehiculo?: string | null;
+  cantidadEjes?: number | null;
+  aseguradora?: string | null;
+  nroSeguro?: string | null;
+  calles?: string | null;
+  origenDireccion?: string | null;
+  origenLocalidad?: string | null;
+  origenPartido?: string | null;
+  origenNombre?: string | null;
+  destinoDireccion?: string | null;
+  destinoLocalidad?: string | null;
+  destinoPartido?: string | null;
+  destinoNombre?: string | null;
+  frecuencia?: string | null;
+  horario?: string | null;
+  observaciones?: string | null;
+  vigenciaDesde?: string | null;
+  vigenciaHasta?: string | null;
   estado?: string | null;
   tipoServicio?: string | null;
+  creadoPorId?: string | null;
+  creadoPorNombre?: string | null;
+  datosGeo: string;
 }
 ```
 ### Return Type
@@ -2123,17 +2191,50 @@ import { connectorConfig, createRutaTransporte, CreateRutaTransporteVariables } 
 const createRutaTransporteVars: CreateRutaTransporteVariables = {
   numeroSolicitud: ..., // optional
   idSolicitudWeb: ..., // optional
+  enlaceDocumento: ..., // optional
+  fechaCreacion: ..., // optional
   nombreSolicitante: ..., 
-  datosGeo: ..., 
+  empresaSolicitante: ..., // optional
+  cuilCuit: ..., // optional
+  emailSolicitante: ..., // optional
+  telefonoSolicitante: ..., // optional
+  patente: ..., // optional
+  tipoVehiculo: ..., // optional
+  pesoToneladas: ..., // optional
+  cargaPeligrosa: ..., // optional
+  tipoCarga: ..., // optional
+  largoVehiculo: ..., // optional
+  anchoVehiculo: ..., // optional
+  alturaVehiculo: ..., // optional
+  cantidadEjes: ..., // optional
+  aseguradora: ..., // optional
+  nroSeguro: ..., // optional
+  calles: ..., // optional
+  origenDireccion: ..., // optional
+  origenLocalidad: ..., // optional
+  origenPartido: ..., // optional
+  origenNombre: ..., // optional
+  destinoDireccion: ..., // optional
+  destinoLocalidad: ..., // optional
+  destinoPartido: ..., // optional
+  destinoNombre: ..., // optional
+  frecuencia: ..., // optional
+  horario: ..., // optional
+  observaciones: ..., // optional
+  vigenciaDesde: ..., // optional
+  vigenciaHasta: ..., // optional
   estado: ..., // optional
   tipoServicio: ..., // optional
+  creadoPorId: ..., // optional
+  creadoPorNombre: ..., // optional
+  datosGeo: ..., 
 };
 
 // Call the `createRutaTransporte()` function to execute the mutation.
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await createRutaTransporte(createRutaTransporteVars);
 // Variables can be defined inline as well.
-const { data } = await createRutaTransporte({ numeroSolicitud: ..., idSolicitudWeb: ..., nombreSolicitante: ..., datosGeo: ..., estado: ..., tipoServicio: ..., });
+const { data } = await createRutaTransporte({ numeroSolicitud: ..., idSolicitudWeb: ..., enlaceDocumento: ..., fechaCreacion: ..., nombreSolicitante: ..., empresaSolicitante: ..., cuilCuit: ..., emailSolicitante: ..., telefonoSolicitante: ..., patente: ..., tipoVehiculo: ..., pesoToneladas: ..., cargaPeligrosa: ..., tipoCarga: ..., largoVehiculo: ..., anchoVehiculo: ..., alturaVehiculo: ..., cantidadEjes: ..., aseguradora: ..., nroSeguro: ..., calles: ..., origenDireccion: ..., origenLocalidad: ..., origenPartido: ..., origenNombre: ..., destinoDireccion: ..., destinoLocalidad: ..., destinoPartido: ..., destinoNombre: ..., frecuencia: ..., horario: ..., observaciones: ..., vigenciaDesde: ..., vigenciaHasta: ..., estado: ..., tipoServicio: ..., creadoPorId: ..., creadoPorNombre: ..., datosGeo: ..., });
 
 // You can also pass in a `DataConnect` instance to the action shortcut function.
 const dataConnect = getDataConnect(connectorConfig);
@@ -2158,16 +2259,49 @@ import { connectorConfig, createRutaTransporteRef, CreateRutaTransporteVariables
 const createRutaTransporteVars: CreateRutaTransporteVariables = {
   numeroSolicitud: ..., // optional
   idSolicitudWeb: ..., // optional
+  enlaceDocumento: ..., // optional
+  fechaCreacion: ..., // optional
   nombreSolicitante: ..., 
-  datosGeo: ..., 
+  empresaSolicitante: ..., // optional
+  cuilCuit: ..., // optional
+  emailSolicitante: ..., // optional
+  telefonoSolicitante: ..., // optional
+  patente: ..., // optional
+  tipoVehiculo: ..., // optional
+  pesoToneladas: ..., // optional
+  cargaPeligrosa: ..., // optional
+  tipoCarga: ..., // optional
+  largoVehiculo: ..., // optional
+  anchoVehiculo: ..., // optional
+  alturaVehiculo: ..., // optional
+  cantidadEjes: ..., // optional
+  aseguradora: ..., // optional
+  nroSeguro: ..., // optional
+  calles: ..., // optional
+  origenDireccion: ..., // optional
+  origenLocalidad: ..., // optional
+  origenPartido: ..., // optional
+  origenNombre: ..., // optional
+  destinoDireccion: ..., // optional
+  destinoLocalidad: ..., // optional
+  destinoPartido: ..., // optional
+  destinoNombre: ..., // optional
+  frecuencia: ..., // optional
+  horario: ..., // optional
+  observaciones: ..., // optional
+  vigenciaDesde: ..., // optional
+  vigenciaHasta: ..., // optional
   estado: ..., // optional
   tipoServicio: ..., // optional
+  creadoPorId: ..., // optional
+  creadoPorNombre: ..., // optional
+  datosGeo: ..., 
 };
 
 // Call the `createRutaTransporteRef()` function to get a reference to the mutation.
 const ref = createRutaTransporteRef(createRutaTransporteVars);
 // Variables can be defined inline as well.
-const ref = createRutaTransporteRef({ numeroSolicitud: ..., idSolicitudWeb: ..., nombreSolicitante: ..., datosGeo: ..., estado: ..., tipoServicio: ..., });
+const ref = createRutaTransporteRef({ numeroSolicitud: ..., idSolicitudWeb: ..., enlaceDocumento: ..., fechaCreacion: ..., nombreSolicitante: ..., empresaSolicitante: ..., cuilCuit: ..., emailSolicitante: ..., telefonoSolicitante: ..., patente: ..., tipoVehiculo: ..., pesoToneladas: ..., cargaPeligrosa: ..., tipoCarga: ..., largoVehiculo: ..., anchoVehiculo: ..., alturaVehiculo: ..., cantidadEjes: ..., aseguradora: ..., nroSeguro: ..., calles: ..., origenDireccion: ..., origenLocalidad: ..., origenPartido: ..., origenNombre: ..., destinoDireccion: ..., destinoLocalidad: ..., destinoPartido: ..., destinoNombre: ..., frecuencia: ..., horario: ..., observaciones: ..., vigenciaDesde: ..., vigenciaHasta: ..., estado: ..., tipoServicio: ..., creadoPorId: ..., creadoPorNombre: ..., datosGeo: ..., });
 
 // You can also pass in a `DataConnect` instance to the `MutationRef` function.
 const dataConnect = getDataConnect(connectorConfig);
