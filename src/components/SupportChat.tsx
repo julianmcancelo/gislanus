@@ -105,6 +105,15 @@ export default function SupportChat() {
     }
   }, [isAdmin]);
 
+  // Register admin presence for security rules
+  useEffect(() => {
+    if (myUserId) {
+      registrarPresenciaAdmin(myUserId, isAdmin).catch(err => 
+        console.error('Error registering admin presence:', err)
+      );
+    }
+  }, [myUserId, isAdmin]);
+
   // 1. Listen for active chats (only if user is admin)
   useEffect(() => {
     if (!isAdmin) return;
