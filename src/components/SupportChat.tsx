@@ -192,7 +192,7 @@ export default function SupportChat() {
       const last = incoming[incoming.length - 1];
       const title = isAdmin ? `Nuevo mensaje de ${last.senderName || 'Usuario'}` : 'Nuevo mensaje de Soporte';
       const body = last.text || (last.image ? 'Imagen adjunta' : 'Mensaje nuevo');
-      const n = new Notification(title, { body, icon: '/logo-lanus.png', tag: 'soporte-chat', renotify: true });
+      const n = new Notification(title, { body, icon: '/logo-lanus.png', tag: 'soporte-chat', renotify: true } as any);
       n.onclick = () => { window.focus(); setIsOpen(true); n.close(); };
     }
   }, [messages, myUserId, isAdmin, isOpen]);

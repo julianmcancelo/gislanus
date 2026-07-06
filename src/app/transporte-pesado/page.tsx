@@ -1261,13 +1261,46 @@ export default function TransportePesadoWizard() {
           })}
         </div>
 
-        {/* Botón volver */}
-        <button
-          onClick={() => { setViewMode('home'); setEditId(null); fetchRutasList(); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-        >
-          <ArrowLeft size={13} /> Inicio
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Botón de Reportar Inconveniente */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('gis-reportar-error', { detail: { section: 'Transporte Pesado - Asistente' } }))}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              padding: '5px 12px',
+              color: '#f87171',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            }}
+          >
+            <AlertTriangle size={13} color="#f87171" />
+            Reportar Error
+          </button>
+
+          <button
+            onClick={() => { setViewMode('home'); setEditId(null); fetchRutasList(); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          >
+            <ArrowLeft size={13} /> Inicio
+          </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
@@ -1709,6 +1742,7 @@ export default function TransportePesadoWizard() {
           </div>
         </div>
       )}
+      <SupportChat />
     </div>
   );
 }

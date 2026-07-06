@@ -103,8 +103,16 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
 
     if (changeVigencia) {
       fieldsToChange.push('vigenciaDesde', 'vigenciaHasta');
-      cloneData.vigenciaDesde = vigenciaDesde ? new Date(vigenciaDesde) : null;
-      cloneData.vigenciaHasta = vigenciaHasta ? new Date(vigenciaHasta) : null;
+      const formatToDDMMYYYY = (val: string) => {
+        if (!val) return null;
+        const parts = val.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return val;
+      };
+      cloneData.vigenciaDesde = formatToDDMMYYYY(vigenciaDesde);
+      cloneData.vigenciaHasta = formatToDDMMYYYY(vigenciaHasta);
     }
 
     if (changeSolicitante) {
