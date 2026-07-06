@@ -44,6 +44,7 @@ export default function SupportChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const adminFileRef = useRef<HTMLInputElement>(null);
   const userFileRef = useRef<HTMLInputElement>(null);
+  const prevMsgCountRef = useRef<number>(0);
   
   const isAdmin = dbUser?.rol === 'SUPER_ADMIN' || dbUser?.rol === 'ADMINISTRADOR' || dbUser?.rol === 'OPERADOR';
   const myUserId = user?.uid || '';
@@ -172,6 +173,45 @@ export default function SupportChat() {
       }
     }
   }, [isOpen, selectedUserId, myUserId, isAdmin]);
+
+  // Request notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Browser notification on new incoming message
+  useEffect(() => {
+    const prev = prevMsgCountRef.current;
+    const curr = messages.length;
+    prevMsgCountRef.current = curr;
+
+    if (prev === 0 || curr <= prev) return;
+
+    // Only notify for messages from the OTHER side
+    const newMsgs = messages.slice(prev);
+    const incoming = newMsgs.filter(m => m.senderId !== myUserId);
+    if (incoming.length === 0) return;
+
+    // Only notify if chat is closed or page is hidden
+    if (isOpen && !document.hidden) return;
+
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const last = incoming[incoming.length - 1];
+      const title = isAdmin
+        ? `Nuevo mensaje de ${last.senderName || 'Usuario'}`
+        : 'Nuevo mensaje de Soporte';
+      const body = last.text || (last.image ? '📎 Imagen adjunta' : 'Mensaje nuevo');
+      const n = new Notification(title, {
+        body,
+        icon: '/logo-lanus.png',
+        tag: 'soporte-chat',
+        renotify: true,
+      });
+      n.onclick = () => { window.focus(); setIsOpen(true); n.close(); };
+    }
+  }, [messages, myUserId, isAdmin, isOpen]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
