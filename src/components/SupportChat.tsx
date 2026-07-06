@@ -149,15 +149,19 @@ export default function SupportChat() {
     const targetId = isAdmin ? selectedUserId : myUserId;
     if (!targetId) return;
 
+    const currentText = inputText.trim();
+    const currentImage = attachedImage;
+
     try {
+      // 1. Send to RTDB (Realtime UI updates)
       await enviarMensajeSoporte(
         targetId,
         {
           senderId: myUserId,
           senderName: myName,
           senderRole: dbUser?.rol || 'VECINO',
-          text: inputText.trim(),
-          ...(attachedImage ? { image: attachedImage } : {})
+          text: currentText,
+          ...(currentImage ? { image: currentImage } : {})
         },
         {
           nombre: isAdmin && selectedUserId ? (activeChats.find(c => c.userId === selectedUserId)?.userName || 'Usuario') : myName,
@@ -165,6 +169,25 @@ export default function SupportChat() {
           isUserAdmin: isAdmin
         }
       );
+
+      // 2. Mirror/Persist to PostgreSQL (Prisma)
+      const token = await getIdToken();
+      fetch('/api/soporte/mensaje', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          userId: targetId,
+          text: currentText,
+          image: currentImage,
+          senderId: myUserId,
+          senderName: myName,
+          senderRole: dbUser?.rol || 'VECINO'
+        })
+      }).catch(err => console.error('Error syncing message to Postgres:', err));
+
       setInputText('');
       setAttachedImage(null);
     } catch (err) {
@@ -174,7 +197,20 @@ export default function SupportChat() {
 
   const handleCloseChat = async (userId: string) => {
     try {
+      // 1. Finalize in RTDB
       await finalizarChatSoporte(userId);
+
+      // 2. Finalize in PostgreSQL
+      const token = await getIdToken();
+      fetch('/api/soporte/finalizar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId })
+      }).catch(err => console.error('Error finishing chat session in Postgres:', err));
+
       if (selectedUserId === userId) {
         setSelectedUserId(null);
         setMessages([]);

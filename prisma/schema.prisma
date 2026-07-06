@@ -45,12 +45,13 @@ model Capa {
 }
 
 model Usuario {
-  id          String   @id @default(cuid())
-  firebaseUid String   @unique
-  email       String   @unique
+  id          String        @id @default(cuid())
+  firebaseUid String        @unique
+  email       String        @unique
   nombre      String?
-  rol         String   @default("PENDIENTE") // "SUPER_ADMIN", "ADMINISTRADOR", "USUARIO", "PENDIENTE"
-  creadoEn    DateTime @default(now())
+  rol         String        @default("PENDIENTE") // "SUPER_ADMIN", "ADMINISTRADOR", "USUARIO", "PENDIENTE"
+  creadoEn    DateTime      @default(now())
+  chatsSoporte ChatSoporte[]
 }
 
 model LineaTransporte {
@@ -194,5 +195,31 @@ model Reclamo {
 
   @@index([motivoId])
   @@index([estado])
+}
+
+model ChatSoporte {
+  id            String           @id @default(cuid())
+  usuarioId     String
+  usuario       Usuario          @relation(fields: [usuarioId], references: [firebaseUid], onDelete: Cascade)
+  resuelto      Boolean          @default(false)
+  creadoEn      DateTime         @default(now())
+  actualizadoEn DateTime         @updatedAt
+  mensajes      MensajeSoporte[]
+
+  @@index([usuarioId])
+}
+
+model MensajeSoporte {
+  id              String      @id @default(cuid())
+  chatId          String
+  chat            ChatSoporte @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  remitenteId     String
+  remitenteNombre String
+  remitenteRol    String
+  texto           String
+  imagen          String?     @db.Text
+  creadoEn        DateTime    @default(now())
+
+  @@index([chatId])
 }
 
