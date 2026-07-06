@@ -2185,7 +2185,7 @@ export default function AdminPage() {
                                 {ruta.tipoServicio === 'A_DEMANDA' ? 'A Demanda' : 'Fijo'}
                               </span>
                             </div>
-                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{ruta.fechaCreacion || new Date(ruta.creadoEn).toLocaleDateString()}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{ruta.fechaCreacion || (ruta.creadoEn && !isNaN(new Date(ruta.creadoEn)) ? new Date(ruta.creadoEn).toLocaleDateString() : "-")}</div>
                           </td>
                           <td style={{ padding: '6px 8px' }}>
                             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>{ruta.nombreSolicitante}</div>
@@ -2427,7 +2427,7 @@ export default function AdminPage() {
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: '#475569' }}>
                                     <div><strong>Creado por:</strong> {ruta.creadoPorNombre || 'No registrado'}</div>
                                     {ruta.creadoEn && (
-                                      <div><strong>Fecha creación:</strong> {new Date(ruta.creadoEn).toLocaleString('es-AR')}</div>
+                                      <div><strong>Fecha creación:</strong> {(ruta.creadoEn && !isNaN(new Date(ruta.creadoEn)) ? new Date(ruta.creadoEn).toLocaleString("es-AR") : "-")}</div>
                                     )}
                                     {ruta.editadoPorNombre && (
                                       <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '6px', marginTop: '4px' }}>
@@ -3078,7 +3078,7 @@ export default function AdminPage() {
                             <strong>{u.email}</strong>
                             {u.email === user?.email && <span style={{ marginLeft: '10px', fontSize: '0.7rem', color: '#fff', background: '#2271b1', padding: '2px 6px', borderRadius: '2px', fontWeight: 'bold' }}>TÚ</span>}
                           </td>
-                          <td><small style={{color:'#646970'}}>{new Date(u.creadoEn).toLocaleDateString()}</small></td>
+                          <td><small style={{color:'#646970'}}>{(u.creadoEn && !isNaN(new Date(u.creadoEn)) ? new Date(u.creadoEn).toLocaleDateString() : "-")}</small></td>
                           <td>
                             <span className={`${styles.badge} ${
                               u.rol === 'PENDIENTE' ? styles.badgePendiente : 
@@ -3237,7 +3237,7 @@ export default function AdminPage() {
                             <td style={{ padding: '8px 12px', color: '#4b5563' }}>{s.email}</td>
                             <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 11, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.deviceInfo}>{s.deviceInfo || '—'}</td>
                             <td style={{ padding: '8px 12px', color: '#6b7280' }}>{s.ipCelular || '—'}</td>
-                            <td style={{ padding: '8px 12px', color: '#6b7280', whiteSpace: 'nowrap' }}>{new Date(s.creadoEn).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', whiteSpace: 'nowrap' }}>{(s.creadoEn && !isNaN(new Date(s.creadoEn)) ? new Date(s.creadoEn).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "-")}</td>
                             <td style={{ padding: '8px 12px' }}>
                               <span style={{
                                 padding: '2px 8px', borderRadius: 9999, fontSize: 11, fontWeight: 700,
@@ -3282,7 +3282,7 @@ export default function AdminPage() {
                           <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontSize: 11, color: '#6b7280' }}>{d.fingerprint.slice(0, 16)}…</td>
                             <td style={{ padding: '8px 12px', color: '#4b5563' }}>{d.email || '—'}</td>
-                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{new Date(d.creadoEn).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280' }}>{(d.creadoEn && !isNaN(new Date(d.creadoEn)) ? new Date(d.creadoEn).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "-")}</td>
                             <td style={{ padding: '8px 12px' }}>
                               <button onClick={() => handleDesbloquear(d.id)} style={{ padding: '3px 10px', borderRadius: 5, border: 'none', background: '#f59e0b', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Desbloquear</button>
                             </td>

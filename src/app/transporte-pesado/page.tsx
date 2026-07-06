@@ -21,6 +21,7 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
 
 import { useAuth } from '@/context/AuthContext';
 import { emitirNuevaSolicitud } from '@/lib/rtdb';
+import SupportChat from '../../components/SupportChat';
 
 export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
@@ -774,6 +775,38 @@ export default function TransportePesadoWizard() {
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {/* Botón de Reportar Inconveniente */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('gis-reportar-error', { detail: { section: 'Transporte Pesado - Inicio' } }))}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '5px 12px',
+                color: '#f87171',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+              }}
+            >
+              <AlertTriangle size={13} color="#f87171" />
+              Reportar Error
+            </button>
+
             <button onClick={() => router.push('/')} className="tp-back"
               style={{ display:'flex', alignItems:'center', gap:5, background:'#f1f5f9', border:'1px solid #e2e8f0', borderRadius:8, padding:'5px 12px', color:'#475569', fontSize:12, fontWeight:600, cursor:'pointer', transition:'background 0.15s' }}>
               <ArrowLeft size={13} /> Volver al mapa
@@ -903,6 +936,38 @@ export default function TransportePesadoWizard() {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* Botón de Reportar Inconveniente */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('gis-reportar-error', { detail: { section: 'Transporte Pesado - Solicitudes' } }))}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '5px 12px',
+                color: '#f87171',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+              }}
+            >
+              <AlertTriangle size={13} color="#f87171" />
+              Reportar Error
+            </button>
+
             <button
               onClick={() => setViewMode('home')}
               style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 8, padding: '5px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
@@ -1058,7 +1123,7 @@ export default function TransportePesadoWizard() {
                                 <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 13 }}>
                                   {groupRoutes.length > 1 ? <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>↳ Recorrido</span> : `#${ruta.numeroSolicitud}`}
                                 </div>
-                                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{new Date(ruta.creadoEn).toLocaleDateString('es-AR')}</div>
+                                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{ruta.creadoEn && !isNaN(new Date(ruta.creadoEn) as any) ? new Date(ruta.creadoEn).toLocaleDateString('es-AR') : '—'}</div>
                               </td>
                               <td style={{ padding: '13px 18px' }}>
                                 <div style={{ fontWeight: 600, color: '#0f172a', fontSize: 13 }}>{ruta.empresaSolicitante || ruta.nombreSolicitante}</div>

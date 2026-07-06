@@ -58,8 +58,9 @@ export default function CloneRutaModal({ isOpen, ruta, onClose, onClone, isLoadi
       setTipoCarga(ruta.tipoCarga || '');
       setAseguradora(ruta.aseguradora || '');
       setNroSeguro(ruta.nroSeguro || '');
-      setVigenciaDesde(ruta.vigenciaDesde ? new Date(ruta.vigenciaDesde).toISOString().split('T')[0] : '');
-      setVigenciaHasta(ruta.vigenciaHasta ? new Date(ruta.vigenciaHasta).toISOString().split('T')[0] : '');
+      const toDateInput = (v: any) => { try { const d = new Date(v); return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0]; } catch { return ''; } };
+      setVigenciaDesde(ruta.vigenciaDesde ? toDateInput(ruta.vigenciaDesde) : '');
+      setVigenciaHasta(ruta.vigenciaHasta ? toDateInput(ruta.vigenciaHasta) : '');
       setTipoServicio(ruta.tipoServicio || 'FIJO');
       setNombreSolicitante(ruta.nombreSolicitante || '');
       setEmpresaSolicitante(ruta.empresaSolicitante || '');
