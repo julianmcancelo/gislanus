@@ -651,6 +651,40 @@ export default function MapComponent() {
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* Botón de Reportar Error */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('gis-reportar-error', { detail: { section: 'Mapa Principal' } }))}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '8px',
+              color: '#f87171',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+              e.currentTarget.style.boxShadow = '0 0 10px rgba(239, 68, 68, 0.15)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <AlertTriangle size={13} color="#f87171" />
+            Reportar Inconveniente
+          </button>
+
           <div style={{ textAlign: 'right', lineHeight: '1.2' }}>
             <strong style={{ 
               fontSize: '18px', 

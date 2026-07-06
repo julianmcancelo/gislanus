@@ -105,6 +105,25 @@ export default function SupportChat() {
     }
   }, [isAdmin]);
 
+  // Listen to global error reporting event
+  useEffect(() => {
+    const handleReportEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const section = customEvent.detail?.section || 'Plataforma GIS';
+      setIsOpen(true);
+      setInputText(`⚠️ [Reporte de Inconveniente]\n- Pantalla: ${section}\n- Inconveniente: `);
+      
+      // Auto focus input
+      setTimeout(() => {
+        const inputEl = document.querySelector('input[placeholder*="Escribe"]') as HTMLInputElement;
+        inputEl?.focus();
+      }, 300);
+    };
+
+    window.addEventListener('gis-reportar-error', handleReportEvent);
+    return () => window.removeEventListener('gis-reportar-error', handleReportEvent);
+  }, []);
+
   // Register admin presence for security rules
   useEffect(() => {
     if (myUserId) {

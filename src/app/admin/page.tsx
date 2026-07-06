@@ -14,6 +14,7 @@ import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartp
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
 import CloneRutaModal from '../../components/CloneRutaModal';
+import SupportChat from '../../components/SupportChat';
 
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
@@ -1419,6 +1420,31 @@ export default function AdminPage() {
           
           <div style={{ width: '1px', height: '24px', background: '#e2e8f0', margin: '0 8px' }} />
           
+          {/* Botón de Reportar Inconveniente */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('gis-reportar-error', { detail: { section: 'Panel de Administración' } }))}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 12px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: '#ef4444',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              borderRadius: '8px',
+              transition: 'background 0.25s'
+            }}
+            onMouseOver={e => e.currentTarget.style.background = '#fee2e2'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+            title="Reportar Inconveniente"
+          >
+            <AlertTriangle size={14} color="#ef4444" />
+            <span className="hidden md:inline">Reportar Error</span>
+          </button>
+
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="Volver al Mapa">
             <ArrowLeft size={14} /> <span className="hidden md:inline">Volver</span>
           </a>
@@ -3676,6 +3702,7 @@ export default function AdminPage() {
           onClone={handleCloneRuta}
           isLoading={isCloning}
         />
+        <SupportChat />
       </main>
     </div>
   );
