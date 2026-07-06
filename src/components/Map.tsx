@@ -16,6 +16,7 @@ import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
+import SupportChat from './SupportChat';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -267,7 +268,7 @@ const escapeHtml = (unsafe: string) => {
 };
 
 export default function MapComponent() {
-  const { user, dbUser } = useAuth();
+  const { user, dbUser, getIdToken } = useAuth();
   const [capasConfig, setCapasConfig] = useState<any[]>([]);
   const [cacheDatosGeo, setCacheDatosGeo] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -289,7 +290,7 @@ export default function MapComponent() {
     if (!user) return;
     setLoadingReclamos(true);
     try {
-      const token = await user.getIdToken();
+      const token = await getIdToken();
       const motivosQuery = motivosSeleccionados.join(',');
       const res = await fetch(`/api/reclamos?motivoId=${motivosQuery}&estado=${estadoFiltro}&prioridad=${prioridadFiltro}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -545,7 +546,7 @@ export default function MapComponent() {
       if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
         fetchingRef.current[capa.id] = true;
         try {
-          const token = user ? await user.getIdToken() : null;
+          const token = user ? await getIdToken() : null;
           const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
           const res = await fetch(`/api/capas/${capa.id}`, { headers });
           const data = await res.json();
@@ -606,7 +607,7 @@ export default function MapComponent() {
       {/* Header Institucional - Premium Glassmorphism */}
       <header style={{ 
         height: '65px', 
-        background: 'linear-gradient(90deg, #0f172a 0%, #1e293b 100%)', // Slate dark gradient
+        background: 'linear-gradient(180deg, #090d16 0%, #0f172a 100%)', // Very sleek slate-dark gradient
         color: '#f8fafc', 
         display: 'flex', 
         alignItems: 'center', 
@@ -614,39 +615,63 @@ export default function MapComponent() {
         padding: '0 24px', 
         zIndex: 2000, 
         position: 'relative',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
-        borderBottom: '1px solid rgba(255,255,255,0.05)'
+        boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        fontFamily: "'Outfit', 'Inter', system-ui, sans-serif"
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{ 
-            background: 'rgba(255,255,255,0.05)', 
-            padding: '6px', 
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(29, 78, 216, 0.05) 100%)', 
+            padding: '5px', 
             borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid rgba(59, 130, 246, 0.35)',
+            boxShadow: '0 0 15px rgba(59, 130, 246, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
-            <div style={{ width: 38, height: 38, background: '#3b82f6', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '20px' }}>G</div>
+            <div style={{ 
+              width: 36, 
+              height: 36, 
+              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', 
+              borderRadius: '9px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              color: 'white', 
+              fontWeight: 800, 
+              fontSize: '20px',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}>G</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <strong style={{ fontSize: '19px', display: 'block', letterSpacing: '1.5px', fontWeight: 700, color: '#f8fafc' }}>SISTEMA</strong>
-            <span style={{ fontSize: '11px', letterSpacing: '3px', color: '#94a3b8', fontWeight: 600 }}>GEOGRÁFICO</span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+            <span style={{ fontSize: '8px', letterSpacing: '3px', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase' }}>MUNICIPALIDAD DE LANÚS</span>
+            <strong style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.2px' }}>Sistema Geográfico</strong>
           </div>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <div style={{ textAlign: 'right', lineHeight: '1.1' }}>
-            <strong style={{ fontSize: '20px', display: 'block', fontStyle: 'italic', fontWeight: 800, background: 'linear-gradient(to right, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>GIS PORTAL</strong>
-            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500, letterSpacing: '0.5px' }}>Sistema de Información Geográfica</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ textAlign: 'right', lineHeight: '1.2' }}>
+            <strong style={{ 
+              fontSize: '18px', 
+              fontWeight: 900, 
+              letterSpacing: '1px',
+              background: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)', 
+              WebkitBackgroundClip: 'text', 
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.25))'
+            }}>GIS PORTAL</strong>
+            <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, display: 'block', letterSpacing: '0.2px', marginTop: '1px' }}>Área de Sistemas e Innovación</span>
           </div>
           <div style={{ 
-            width: '40px', height: '40px', 
-            background: 'rgba(56, 189, 248, 0.1)',
-            border: '1px solid rgba(56, 189, 248, 0.3)', 
+            width: '38px', height: '38px', 
+            background: 'rgba(56, 189, 248, 0.08)',
+            border: '1px solid rgba(56, 189, 248, 0.25)', 
             borderRadius: '10px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: 'inset 0 0 10px rgba(56,189,248,0.1)'
+            boxShadow: '0 0 10px rgba(56,189,248,0.08)'
           }}>
-            <MapPin size={22} color="#38bdf8" />
+            <MapPin size={20} color="#38bdf8" />
           </div>
         </div>
       </header>
@@ -958,6 +983,7 @@ export default function MapComponent() {
         <TrackingLayer markers={trackingMarkers} />
         <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
       </MapContainer>
+      <SupportChat />
         </div>
       </div>
     </div>

@@ -21,7 +21,7 @@ const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#d
 
 function WizardMapController({ onComplete, initialGeo, initialFeatures, initialWaypoints, defaultRouteName }: any) {
   const map = useMap();
-  const { user } = useAuth();
+  const { user, getIdToken } = useAuth();
   const [routingControl, setRoutingControl] = useState<any>(null);
   const [currentRoute, setCurrentRoute] = useState<any>(null);
   const [waypoints, setWaypoints] = useState<any[]>([]);
@@ -39,7 +39,7 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
   useEffect(() => {
     async function fetchCapas() {
       try {
-        const token = user ? await user.getIdToken() : null;
+        const token = user ? await getIdToken() : null;
         const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
         const res = await fetch('/api/capas', { headers });
         if (res.ok) {

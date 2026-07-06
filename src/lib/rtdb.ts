@@ -188,3 +188,103 @@ export function escucharTracking(
   });
   return () => off(r, 'value', handler);
 }
+
+// ─── Live Support Chat ────────────────────────────────────────────────────────
+// Structure:
+// /support_chats/{userId}/metadata -> { userName, userEmail, lastMessage, lastMessageTimestamp, unreadByAdmin, unreadByUser, active }
+// /support_chats/{userId}/messages/{messageId} -> { senderId, senderName, senderRole, text, timestamp }
+
+export type SupportMessage = {
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  text: string;
+  timestamp: object;
+  image?: string;
+};
+
+export type SupportChatMetadata = {
+  userName: string;
+  userEmail: string;
+  lastMessage: string;
+  lastMessageTimestamp: object;
+  unreadByAdmin: boolean;
+  unreadByUser: boolean;
+  active: boolean;
+};
+
+export async function enviarMensajeSoporte(
+  userId: string,
+  msg: { senderId: string; senderName: string; senderRole: string; text: string; image?: string },
+  userMetadata: { nombre: string; email: string; isUserAdmin: boolean }
+) {
+  const messagesRef = ref(rtdb, `support_chats/${userId}/messages`);
+  const metaRef = ref(rtdb, `support_chats/${userId}/metadata`);
+
+  const timestamp = serverTimestamp();
+  
+  // 1. Push message
+  await push(messagesRef, {
+    ...msg,
+    timestamp
+  });
+
+  // 2. Update metadata
+  await set(metaRef, {
+    userName: userMetadata.nombre,
+    userEmail: userMetadata.email,
+    lastMessage: msg.image ? '📷 Imagen' : msg.text,
+    lastMessageTimestamp: timestamp,
+    unreadByAdmin: userMetadata.isUserAdmin ? false : true,
+    unreadByUser: userMetadata.isUserAdmin ? true : false,
+    active: true
+  });
+}
+
+export function escucharMensajesSoporte(
+  userId: string,
+  callback: (messages: (SupportMessage & { id: string })[]) => void
+) {
+  const messagesRef = ref(rtdb, `support_chats/${userId}/messages`);
+  const handler = onValue(messagesRef, (snap) => {
+    if (!snap.exists()) { callback([]); return; }
+    const messages: any[] = [];
+    snap.forEach((child: any) => {
+      messages.push({ id: child.key, ...child.val() });
+    });
+    // Sort by timestamp
+    messages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    callback(messages);
+  });
+  return () => off(messagesRef, 'value', handler);
+}
+
+export function escucharChatsActivos(
+  callback: (chats: (SupportChatMetadata & { userId: string })[]) => void
+) {
+  const chatsRef = ref(rtdb, 'support_chats');
+  const handler = onValue(chatsRef, (snap) => {
+    if (!snap.exists()) { callback([]); return; }
+    const chats: any[] = [];
+    snap.forEach((child: any) => {
+      const val = child.val();
+      if (val.metadata && val.metadata.active) {
+        chats.push({ userId: child.key, ...val.metadata });
+      }
+    });
+    // Sort by last message timestamp desc
+    chats.sort((a, b) => (b.lastMessageTimestamp || 0) - (a.lastMessageTimestamp || 0));
+    callback(chats);
+  });
+  return () => off(chatsRef, 'value', handler);
+}
+
+export function marcarChatComoLeido(userId: string, byAdmin: boolean) {
+  const path = `support_chats/${userId}/metadata/` + (byAdmin ? 'unreadByAdmin' : 'unreadByUser');
+  return set(ref(rtdb, path), false);
+}
+
+export function finalizarChatSoporte(userId: string) {
+  const metaRef = ref(rtdb, `support_chats/${userId}/metadata`);
+  return set(metaRef, null); // Deleting metadata cleans it from the active admin list
+}

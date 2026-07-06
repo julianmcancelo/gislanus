@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/authGuard';
 
 export async function GET(req: Request) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR', 'OPERADOR']);
   if (guard.error) return guard.error;
 
   try {

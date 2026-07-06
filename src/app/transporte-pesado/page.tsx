@@ -26,7 +26,7 @@ export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlEditId = searchParams.get('editId');
-  const { user, dbUser, loading } = useAuth();
+  const { user, dbUser, loading, getIdToken } = useAuth();
   const [viewMode, setViewMode] = useState<'home' | 'list' | 'wizard'>(urlEditId ? 'wizard' : 'home');
   const [editId, setEditId] = useState<string | null>(urlEditId);
   const [rutasList, setRutasList] = useState<any[]>([]);
@@ -323,7 +323,7 @@ export default function TransportePesadoWizard() {
 
       let token = '';
       if (user) {
-        token = await user.getIdToken();
+        token = await getIdToken();
       }
 
       const res = await fetch('/api/parse-solicitud', {

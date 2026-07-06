@@ -2392,6 +2392,24 @@ export default function AdminPage() {
                                     {ruta.observaciones && <div style={{ marginTop: '4px', fontSize: '0.75rem', fontStyle: 'italic', color: '#64748b' }}><strong>Obs:</strong> {ruta.observaciones}</div>}
                                   </div>
                                 </div>
+
+                                {/* Registro y Auditoría */}
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                                    <Shield size={14} color="#64748b" /> Registro y Auditoría
+                                  </h4>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: '#475569' }}>
+                                    <div><strong>Creado por:</strong> {ruta.creadoPorNombre || 'No registrado'}</div>
+                                    {ruta.creadoEn && (
+                                      <div><strong>Fecha creación:</strong> {new Date(ruta.creadoEn).toLocaleString('es-AR')}</div>
+                                    )}
+                                    {ruta.editadoPorNombre && (
+                                      <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '6px', marginTop: '4px' }}>
+                                        <div><strong>Última edición por:</strong> {ruta.editadoPorNombre}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
 
                               {/* Calles / Recorrido */}
@@ -2750,10 +2768,25 @@ export default function AdminPage() {
                       const catAllIds = catGroups.flatMap(g => g.records.map((r: any) => r.id));
 
                       return (
-                        <div key={cat} style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: `1.5px solid ${meta.border}` }}>
+                        <div key={cat} style={{ 
+                          borderRadius: '16px', 
+                          overflow: 'hidden', 
+                          boxShadow: '0 10px 25px rgba(15, 23, 42, 0.05)', 
+                          border: '1px solid #e2e8f0', 
+                          background: '#fff', 
+                          marginBottom: '28px' 
+                        }}>
 
                           {/* ── Level 1: Categoria header ── */}
-                          <div style={{ background: meta.bg, color: '#fff', padding: '12px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ 
+                             background: meta.bg, 
+                             color: '#fff', 
+                             padding: '16px 20px', 
+                             display: 'flex', 
+                             alignItems: 'center', 
+                             gap: '12px',
+                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+                           }}>
                             <input type="checkbox"
                               checked={catAllIds.length > 0 && catAllIds.every(id => selectedLineas.includes(id))}
                               onChange={e => setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...catAllIds])] : prev.filter(id => !catAllIds.includes(id)))}
@@ -2801,33 +2834,43 @@ export default function AdminPage() {
 
                                     {/* ── Level 2: Línea row ── */}
                                     <div
-                                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 18px', background: isLineaOpen ? '#f8fafc' : '#fff', cursor: 'pointer', userSelect: 'none', transition: 'background 0.12s' }}
+                                      style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px', 
+                                        padding: '14px 20px', 
+                                        background: isLineaOpen ? '#f8fafc' : '#fff', 
+                                        cursor: 'pointer', 
+                                        userSelect: 'none', 
+                                        transition: 'all 0.2s ease',
+                                        borderBottom: '1px solid #f1f5f9'
+                                      }}
                                       onClick={() => setExpandedLineas(prev => { const n = new Set(prev); n.has(lineaKey) ? n.delete(lineaKey) : n.add(lineaKey); return n; })}
                                     >
                                       <input type="checkbox"
                                         checked={lineaIds.every(id => selectedLineas.includes(id))}
                                         onChange={e => { e.stopPropagation(); setSelectedLineas(prev => e.target.checked ? [...new Set([...prev, ...lineaIds])] : prev.filter(id => !lineaIds.includes(id))); }}
                                         onClick={e => e.stopPropagation()}
-                                        style={{ width: '14px', height: '14px', cursor: 'pointer', flexShrink: 0 }}
+                                        style={{ width: '15px', height: '15px', cursor: 'pointer', flexShrink: 0, accentColor: '#2563eb' }}
                                       />
                                       {/* Color swatch */}
-                                      <span style={{ width: '14px', height: '14px', borderRadius: '3px', background: group.color, flexShrink: 0, display: 'inline-block', boxShadow: '0 0 0 1px rgba(0,0,0,0.1)' }} />
-                                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#111827' }}>
+                                      <span style={{ width: '16px', height: '16px', borderRadius: '4px', background: group.color, flexShrink: 0, display: 'inline-block', boxShadow: '0 0 0 1px rgba(0,0,0,0.1)' }} />
+                                      <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', letterSpacing: '-0.01em' }}>
                                         {group.numero ? `Línea ${group.numero}` : group.nombre}
                                       </span>
                                       {group.numero && group.nombre !== `Línea ${group.numero}` && (
-                                        <span style={{ color: '#6b7280', fontSize: '0.82rem', fontWeight: 400 }}>{group.nombre}</span>
+                                        <span style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500 }}>({group.nombre})</span>
                                       )}
                                       <span style={{ marginLeft: 'auto' }} />
                                       {/* Active badge */}
-                                      <span style={{ padding: '2px 9px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700, background: statusBg, color: statusColor, border: `1px solid ${statusColor}22` }}>
+                                      <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 800, background: statusBg, color: statusColor, border: `1px solid ${statusColor}33`, marginRight: '8px' }}>
                                         {activeCount}/{lineaIds.length} activas
                                       </span>
                                       <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, true); }}
-                                        style={pillBtn('show')}>Activar</button>
+                                        style={{ ...pillBtn('show'), marginRight: '4px' }}>Activar</button>
                                       <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(lineaIds, false); }}
-                                        style={pillBtn('hide')}>Desactivar</button>
-                                      <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}><IconChevron open={isLineaOpen} /></span>
+                                        style={{ ...pillBtn('hide'), marginRight: '8px' }}>Desactivar</button>
+                                      <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }}><IconChevron open={isLineaOpen} /></span>
                                     </div>
 
                                     {isLineaOpen && (
@@ -2845,18 +2888,28 @@ export default function AdminPage() {
                                               {/* ── Level 3: Ramal header ── */}
                                               {ramalLabel && (
                                                 <div
-                                                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 18px 7px 44px', background: isRamalOpen ? '#f1f5f9' : '#f8fafc', cursor: 'pointer', userSelect: 'none', transition: 'background 0.12s' }}
+                                                  style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '10px', 
+                                                    padding: '10px 20px 10px 48px', 
+                                                    background: isRamalOpen ? '#f1f5f9' : '#f8fafc', 
+                                                    cursor: 'pointer', 
+                                                    userSelect: 'none', 
+                                                    transition: 'all 0.15s ease',
+                                                    borderBottom: '1px solid #f1f5f9'
+                                                  }}
                                                   onClick={() => setExpandedRamales(prev => { const n = new Set(prev); n.has(ramalExpandKey) ? n.delete(ramalExpandKey) : n.add(ramalExpandKey); return n; })}
                                                 >
-                                                  <span style={{ color: '#6d28d9', display: 'flex', alignItems: 'center' }}><IconRoute /></span>
-                                                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151' }}>{ramalLabel}</span>
-                                                  <span style={{ fontSize: '0.73rem', color: '#9ca3af', fontWeight: 400 }}>{ramalRecords.length} traza{ramalRecords.length !== 1 ? 's' : ''}</span>
+                                                  <span style={{ color: '#7c3aed', display: 'flex', alignItems: 'center' }}><IconRoute /></span>
+                                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>{ramalLabel}</span>
+                                                  <span style={{ fontSize: '0.73rem', color: '#94a3b8', fontWeight: 500 }}>({ramalRecords.length} traza{ramalRecords.length !== 1 ? 's' : ''})</span>
                                                   <span style={{ marginLeft: 'auto' }} />
                                                   <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, true); }}
-                                                    style={pillBtn('show')}>Activar</button>
+                                                    style={{ ...pillBtn('show'), marginRight: '4px' }}>Activar</button>
                                                   <button onClick={e => { e.stopPropagation(); handleBulkToggleLineas_ids(ramalIds, false); }}
-                                                    style={pillBtn('hide')}>Desactivar</button>
-                                                  <span style={{ color: '#9ca3af', display: 'flex', alignItems: 'center' }}><IconChevron open={isRamalOpen} /></span>
+                                                    style={{ ...pillBtn('hide'), marginRight: '8px' }}>Desactivar</button>
+                                                  <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center' }}><IconChevron open={isRamalOpen} /></span>
                                                 </div>
                                               )}
 
@@ -2874,63 +2927,81 @@ export default function AdminPage() {
                                                 const sentidoColor = isIda ? '#1e40af' : isVuelta ? '#6d28d9' : '#374151';
                                                 return (
                                                   <div key={linea.id} style={{
-                                                    display: 'flex', alignItems: 'center', gap: '10px',
-                                                    padding: `8px 18px 8px ${indent}`,
-                                                    borderTop: si > 0 || ramalLabel ? '1px solid #e9ecef' : 'none',
-                                                    background: isActive ? '#fff' : '#fafafa',
-                                                    transition: 'background 0.12s',
-                                                  }}>
-                                                    <input type="checkbox"
-                                                      checked={selectedLineas.includes(linea.id)}
-                                                      onChange={e => setSelectedLineas(prev => e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id))}
-                                                      style={{ width: '13px', height: '13px', cursor: 'pointer', flexShrink: 0 }}
-                                                    />
-                                                    {/* Direction icon + label */}
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '100px' }}>
-                                                      <span style={{ color: isIda ? '#1d4ed8' : isVuelta ? '#7c3aed' : '#6b7280', display: 'flex', alignItems: 'center' }}>
-                                                        {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
-                                                      </span>
-                                                      <span style={{ fontSize: '0.83rem', fontWeight: 600, color: sentidoColor }}>
-                                                        {sentidoLabel}
-                                                      </span>
-                                                    </div>
-                                                    {linea.descripcion && (
-                                                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '240px' }}>
-                                                        {linea.descripcion}
-                                                      </span>
-                                                    )}
-                                                    <span style={{ marginLeft: 'auto' }} />
-                                                    {/* Visibility toggle */}
-                                                    <button
-                                                      onClick={() => handleToggleLinea(linea.id, !isActive)}
-                                                      title={isActive ? 'Visible — clic para ocultar del mapa' : 'Oculta — clic para mostrar en el mapa'}
-                                                      style={{
-                                                        display: 'inline-flex', alignItems: 'center', gap: '5px',
-                                                        padding: '4px 12px', borderRadius: '20px', cursor: 'pointer',
-                                                        fontWeight: 600, fontSize: '0.75rem', transition: 'all 0.15s',
-                                                        border: isActive ? '1.5px solid #86efac' : '1.5px dashed #d1d5db',
-                                                        background: isActive ? '#f0fdf4' : '#f9fafb',
-                                                        color: isActive ? '#15803d' : '#9ca3af',
-                                                        minWidth: '86px', justifyContent: 'center',
-                                                      }}>
-                                                      {isActive ? <IconEye /> : <IconEyeOff />}
-                                                      {isActive ? 'Visible' : 'Oculta'}
-                                                    </button>
-                                                    {/* Edit */}
-                                                    <button
-                                                      onClick={() => openEditLinea(linea)}
-                                                      title="Editar traza"
-                                                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 11px', borderRadius: '6px', border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                                                      <IconPencil /> Editar
-                                                    </button>
-                                                    {/* Delete */}
-                                                    <button
-                                                      onClick={() => handleDeleteLinea(linea.id)}
-                                                      title="Eliminar traza"
-                                                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '6px', border: '1.5px solid #fecaca', background: '#fff5f5', color: '#ef4444', cursor: 'pointer' }}>
-                                                      <IconTrash />
-                                                    </button>
-                                                  </div>
+                                                     display: 'flex', alignItems: 'center', gap: '12px',
+                                                     padding: `10px 20px 10px ${indent}`,
+                                                     borderTop: '1px solid #f1f5f9',
+                                                     background: isActive ? '#fff' : '#f8fafc',
+                                                     transition: 'all 0.15s ease',
+                                                   }}>
+                                                     <input type="checkbox"
+                                                       checked={selectedLineas.includes(linea.id)}
+                                                       onChange={e => setSelectedLineas(prev => e.target.checked ? [...prev, linea.id] : prev.filter(id => id !== linea.id))}
+                                                       style={{ width: '14px', height: '14px', cursor: 'pointer', flexShrink: 0, accentColor: '#2563eb' }}
+                                                     />
+                                                     {/* Direction icon + label */}
+                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '110px' }}>
+                                                       <span style={{ color: isIda ? '#2563eb' : isVuelta ? '#7c3aed' : '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                                                         {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
+                                                       </span>
+                                                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: sentidoColor }}>
+                                                         {sentidoLabel}
+                                                       </span>
+                                                     </div>
+                                                     {linea.descripcion && (
+                                                       <span style={{ fontSize: '0.74rem', color: '#94a3b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
+                                                         {linea.descripcion}
+                                                       </span>
+                                                     )}
+                                                     <span style={{ marginLeft: 'auto' }} />
+                                                     {/* Visibility toggle */}
+                                                     <button
+                                                       onClick={() => handleToggleLinea(linea.id, !isActive)}
+                                                       title={isActive ? 'Visible — clic para ocultar del mapa' : 'Oculta — clic para mostrar en el mapa'}
+                                                       style={{
+                                                         display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                                         padding: '5px 12px', borderRadius: '20px', cursor: 'pointer',
+                                                         fontWeight: 700, fontSize: '0.72rem', transition: 'all 0.15s ease',
+                                                         border: isActive ? '1px solid #86efac' : '1px dashed #cbd5e1',
+                                                         background: isActive ? '#f0fdf4' : '#fafafa',
+                                                         color: isActive ? '#15803d' : '#94a3b8',
+                                                         minWidth: '86px', justifyContent: 'center',
+                                                       }}>
+                                                       {isActive ? <IconEye /> : <IconEyeOff />}
+                                                       {isActive ? 'Visible' : 'Oculta'}
+                                                     </button>
+                                                     {/* Edit */}
+                                                     <button
+                                                       onClick={() => openEditLinea(linea)}
+                                                       title="Editar traza"
+                                                       style={{ 
+                                                         display: 'inline-flex', alignItems: 'center', gap: '5px', 
+                                                         padding: '5px 12px', borderRadius: '8px', 
+                                                         border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', 
+                                                         cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700,
+                                                         transition: 'all 0.15s ease',
+                                                         boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                                                       }}
+                                                       onMouseEnter={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#f8fafc'; }}
+                                                       onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}
+                                                     >
+                                                       <IconPencil /> Editar
+                                                     </button>
+                                                     {/* Delete */}
+                                                     <button
+                                                       onClick={() => handleDeleteLinea(linea.id)}
+                                                       title="Eliminar traza"
+                                                       style={{ 
+                                                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', 
+                                                         width: '28px', height: '28px', borderRadius: '8px', 
+                                                         border: '1.5px solid #fecaca', background: '#fff5f5', color: '#ef4444', 
+                                                         cursor: 'pointer', transition: 'all 0.15s ease' 
+                                                       }}
+                                                       onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; }}
+                                                       onMouseLeave={e => { e.currentTarget.style.background = '#fff5f5'; }}
+                                                     >
+                                                       <IconTrash />
+                                                     </button>
+                                                   </div>
                                                 );
                                               })}
                                             </div>

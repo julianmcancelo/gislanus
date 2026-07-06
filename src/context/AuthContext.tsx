@@ -58,12 +58,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [dbUser, setDbUser] = useState<DbUser | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const isBypass = process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true' || 
-                   process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'AIzaSyPlaceholder...';
+  const [isBypass, setIsBypass] = useState(false);
 
   useEffect(() => {
-    if (isBypass) {
+    const checkBypass = process.env.NEXT_PUBLIC_BYPASS_FIREBASE === 'true' || 
+                        process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'AIzaSyPlaceholder...' ||
+                        (typeof window !== 'undefined' && localStorage.getItem('gis_lanus_bypass_auth') === 'true');
+    setIsBypass(checkBypass);
+
+    if (checkBypass) {
       const savedUser = localStorage.getItem('gis_lanus_mock_user');
       if (savedUser) {
         const parsed = JSON.parse(savedUser);
@@ -195,8 +198,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    if (isBypass) {
+    if (isBypass || (typeof window !== 'undefined' && localStorage.getItem('gis_lanus_bypass_auth') === 'true')) {
       localStorage.removeItem('gis_lanus_mock_user');
+      localStorage.removeItem('gis_lanus_bypass_auth');
       setUser(null);
       setDbUser(null);
       return;

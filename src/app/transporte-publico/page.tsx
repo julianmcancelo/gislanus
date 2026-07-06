@@ -57,7 +57,7 @@ export default function TransportePublicoWizard() {
     try {
       let token = '';
       if (user) {
-        token = await user.getIdToken();
+        token = await getIdToken();
       }
 
       const res = await fetch('/api/parse-route', {
