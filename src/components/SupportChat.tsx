@@ -6,6 +6,7 @@ import {
   escucharChatsActivos, 
   marcarChatComoLeido, 
   finalizarChatSoporte,
+  registrarPresenciaAdmin,
   SupportMessage,
   SupportChatMetadata
 } from '@/lib/rtdb';
@@ -97,6 +98,13 @@ export default function SupportChat() {
     }
   };
 
+  // Load users list on mount if admin
+  useEffect(() => {
+    if (isAdmin) {
+      fetchUsers();
+    }
+  }, [isAdmin]);
+
   // 1. Listen for active chats (only if user is admin)
   useEffect(() => {
     if (!isAdmin) return;
@@ -164,8 +172,17 @@ export default function SupportChat() {
           ...(currentImage ? { image: currentImage } : {})
         },
         {
-          nombre: isAdmin && selectedUserId ? (activeChats.find(c => c.userId === selectedUserId)?.userName || 'Usuario') : myName,
-          email: isAdmin && selectedUserId ? (activeChats.find(c => c.userId === selectedUserId)?.userEmail || '') : myEmail,
+          nombre: isAdmin && selectedUserId 
+            ? (activeChats.find(c => c.userId === selectedUserId)?.userName || 
+               usersList.find(u => u.firebaseUid === selectedUserId)?.nombre || 
+               usersList.find(u => u.firebaseUid === selectedUserId)?.email?.split('@')[0] || 
+               'Usuario')
+            : myName,
+          email: isAdmin && selectedUserId 
+            ? (activeChats.find(c => c.userId === selectedUserId)?.userEmail || 
+               usersList.find(u => u.firebaseUid === selectedUserId)?.email || 
+               '')
+            : myEmail,
           isUserAdmin: isAdmin
         }
       );
@@ -226,8 +243,8 @@ export default function SupportChat() {
     : messages.filter(m => m.senderId !== myUserId && m.senderRole !== 'VECINO').length; // simple logic for users
 
   const filteredChats = activeChats.filter(c => 
-    c.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.userEmail.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.userName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (c.userEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -430,7 +447,10 @@ export default function SupportChat() {
                           >
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
                               <span style={{ fontSize: '12px', fontWeight: 800, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
-                                {c.userName}
+                                 {usersList.find(u => u.firebaseUid === c.userId)?.nombre || 
+                                  usersList.find(u => u.firebaseUid === c.userId)?.email?.split('@')[0] || 
+                                  c.userName || 
+                                  'Usuario'}
                               </span>
                               {c.unreadByAdmin && (
                                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />

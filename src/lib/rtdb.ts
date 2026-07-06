@@ -288,3 +288,8 @@ export function finalizarChatSoporte(userId: string) {
   const metaRef = ref(rtdb, `support_chats/${userId}/metadata`);
   return set(metaRef, null); // Deleting metadata cleans it from the active admin list
 }
+
+export function registrarPresenciaAdmin(uid: string, isAdmin: boolean) {
+  const adminRef = ref(rtdb, `admins/${uid}`);
+  return set(adminRef, isAdmin ? true : null);
+}
