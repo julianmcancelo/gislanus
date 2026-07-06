@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
+import SupportChat from './SupportChat';
 
 export default function PendingBlocker({ children }: { children: React.ReactNode }) {
   const { user, dbUser, loading, logout } = useAuth();
@@ -60,5 +61,10 @@ export default function PendingBlocker({ children }: { children: React.ReactNode
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {user && pathname !== '/login' && <SupportChat />}
+    </>
+  );
 }

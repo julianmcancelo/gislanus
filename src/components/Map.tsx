@@ -16,7 +16,6 @@ import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
-import SupportChat from './SupportChat';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -1017,7 +1016,6 @@ export default function MapComponent() {
         <TrackingLayer markers={trackingMarkers} />
         <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
       </MapContainer>
-      <SupportChat />
         </div>
       </div>
     </div>

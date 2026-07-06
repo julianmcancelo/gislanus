@@ -21,7 +21,6 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
 
 import { useAuth } from '@/context/AuthContext';
 import { emitirNuevaSolicitud } from '@/lib/rtdb';
-import SupportChat from '../../components/SupportChat';
 
 export default function TransportePesadoWizard() {
   const searchParams = useSearchParams();
@@ -1742,7 +1741,6 @@ export default function TransportePesadoWizard() {
           </div>
         </div>
       )}
-      <SupportChat />
     </div>
   );
 }

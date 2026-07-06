@@ -25,6 +25,99 @@ import {
   Loader2
 } from 'lucide-react';
 
+interface InputBarProps {
+  attachedImage: string | null;
+  setAttachedImage: (img: string | null) => void;
+  inputText: string;
+  setInputText: (text: string) => void;
+  handleSendMessage: (e: React.FormEvent) => void;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  handlePaste: (e: React.ClipboardEvent) => void;
+  isSending: boolean;
+}
+
+const InputBar = ({
+  attachedImage,
+  setAttachedImage,
+  inputText,
+  setInputText,
+  handleSendMessage,
+  fileInputRef,
+  textareaRef,
+  handleImageChange,
+  handleKeyDown,
+  handlePaste,
+  isSending
+}: InputBarProps) => (
+  <>
+    {attachedImage && (
+      <div style={{ padding: '8px 12px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <img src={attachedImage} alt="Preview" style={{ height: '40px', borderRadius: '6px', objectFit: 'cover' }} />
+        <span style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>Imagen lista · Ctrl+V para pegar otra</span>
+        <button type="button" onClick={() => setAttachedImage(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex' }}>
+          <X size={16} />
+        </button>
+      </div>
+    )}
+    <form onSubmit={handleSendMessage} style={{ padding: '10px 12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', background: '#fff', alignItems: 'flex-end' }}>
+      <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleImageChange} />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', flexShrink: 0, transition: 'color 0.15s' }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#475569')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
+      >
+        <Paperclip size={17} />
+      </button>
+      <textarea
+        ref={textareaRef}
+        value={inputText}
+        onChange={e => setInputText(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
+        placeholder="Escribe un mensaje… (Enter para enviar, Shift+Enter para nueva línea)"
+        rows={1}
+        style={{
+          flex: 1,
+          padding: '9px 13px',
+          borderRadius: '10px',
+          border: '1.5px solid #e2e8f0',
+          outline: 'none',
+          fontSize: '13px',
+          background: '#f8fafc',
+          resize: 'none',
+          lineHeight: '1.4',
+          maxHeight: '100px',
+          overflowY: 'auto',
+          fontFamily: 'inherit',
+          transition: 'border-color 0.15s'
+        }}
+        onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
+        onBlur={e => (e.currentTarget.style.borderColor = '#e2e8f0')}
+      />
+      <button
+        type="submit"
+        disabled={isSending || (!inputText.trim() && !attachedImage)}
+        style={{
+          width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+          background: isSending || (!inputText.trim() && !attachedImage) ? '#e2e8f0' : 'linear-gradient(135deg,#2563eb,#1d4ed8)',
+          color: isSending || (!inputText.trim() && !attachedImage) ? '#94a3b8' : 'white',
+          border: 'none', cursor: isSending ? 'wait' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: (!inputText.trim() && !attachedImage) ? 'none' : '0 2px 8px rgba(37,99,235,0.3)',
+          transition: 'all 0.15s'
+        }}
+      >
+        {isSending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} style={{ marginLeft: '1px' }} />}
+      </button>
+    </form>
+  </>
+);
+
 export default function SupportChat() {
   const { user, dbUser, getIdToken } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -42,8 +135,7 @@ export default function SupportChat() {
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const adminFileRef = useRef<HTMLInputElement>(null);
-  const userFileRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const prevMsgCountRef = useRef<number>(0);
   const lastSeenTimestampRef = useRef<number>(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -293,72 +385,7 @@ export default function SupportChat() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const InputBar = ({ isAdminSide }: { isAdminSide: boolean }) => (
-    <>
-      {attachedImage && (
-        <div style={{ padding: '8px 12px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src={attachedImage} alt="Preview" style={{ height: '40px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span style={{ fontSize: '11px', color: '#64748b', flex: 1 }}>Imagen lista · Ctrl+V para pegar otra</span>
-          <button type="button" onClick={() => setAttachedImage(null)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex' }}>
-            <X size={16} />
-          </button>
-        </div>
-      )}
-      <form onSubmit={handleSendMessage} style={{ padding: '10px 12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', background: '#fff', alignItems: 'flex-end' }}>
-        <input type="file" ref={isAdminSide ? adminFileRef : userFileRef} onChange={handleImageChange} style={{ display: 'none' }} accept="image/*" />
-        <button
-          type="button"
-          onClick={() => (isAdminSide ? adminFileRef : userFileRef).current?.click()}
-          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', flexShrink: 0, transition: 'color 0.15s' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#475569')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
-        >
-          <Paperclip size={17} />
-        </button>
-        <textarea
-          ref={textareaRef}
-          value={inputText}
-          onChange={e => setInputText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          placeholder="Escribe un mensaje… (Enter para enviar, Shift+Enter para nueva línea)"
-          rows={1}
-          style={{
-            flex: 1,
-            padding: '9px 13px',
-            borderRadius: '10px',
-            border: '1.5px solid #e2e8f0',
-            outline: 'none',
-            fontSize: '13px',
-            background: '#f8fafc',
-            resize: 'none',
-            lineHeight: '1.4',
-            maxHeight: '100px',
-            overflowY: 'auto',
-            fontFamily: 'inherit',
-            transition: 'border-color 0.15s'
-          }}
-          onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-          onBlur={e => (e.currentTarget.style.borderColor = '#e2e8f0')}
-        />
-        <button
-          type="submit"
-          disabled={isSending || (!inputText.trim() && !attachedImage)}
-          style={{
-            width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-            background: isSending || (!inputText.trim() && !attachedImage) ? '#e2e8f0' : 'linear-gradient(135deg,#2563eb,#1d4ed8)',
-            color: isSending || (!inputText.trim() && !attachedImage) ? '#94a3b8' : 'white',
-            border: 'none', cursor: isSending ? 'wait' : 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: (!inputText.trim() && !attachedImage) ? 'none' : '0 2px 8px rgba(37,99,235,0.3)',
-            transition: 'all 0.15s'
-          }}
-        >
-          {isSending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} style={{ marginLeft: '1px' }} />}
-        </button>
-      </form>
-    </>
-  );
+
 
   return (
     <>
@@ -548,7 +575,19 @@ export default function SupportChat() {
                       <div ref={messagesEndRef} />
                     </div>
 
-                    <InputBar isAdminSide={true} />
+                    <InputBar
+                      attachedImage={attachedImage}
+                      setAttachedImage={setAttachedImage}
+                      inputText={inputText}
+                      setInputText={setInputText}
+                      handleSendMessage={handleSendMessage}
+                      fileInputRef={fileInputRef}
+                      textareaRef={textareaRef}
+                      handleImageChange={handleImageChange}
+                      handleKeyDown={handleKeyDown}
+                      handlePaste={handlePaste}
+                      isSending={isSending}
+                    />
                   </>
                 ) : (
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', color: '#94a3b8', background: '#f8fafc' }}>
@@ -617,7 +656,19 @@ export default function SupportChat() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <InputBar isAdminSide={false} />
+              <InputBar
+                attachedImage={attachedImage}
+                setAttachedImage={setAttachedImage}
+                inputText={inputText}
+                setInputText={setInputText}
+                handleSendMessage={handleSendMessage}
+                fileInputRef={fileInputRef}
+                textareaRef={textareaRef}
+                handleImageChange={handleImageChange}
+                handleKeyDown={handleKeyDown}
+                handlePaste={handlePaste}
+                isSending={isSending}
+              />
             </>
           )}
         </div>

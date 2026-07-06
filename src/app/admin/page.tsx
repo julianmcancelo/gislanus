@@ -14,7 +14,6 @@ import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartp
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
 import CloneRutaModal from '../../components/CloneRutaModal';
-import SupportChat from '../../components/SupportChat';
 
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
@@ -3702,7 +3701,6 @@ export default function AdminPage() {
           onClone={handleCloneRuta}
           isLoading={isCloning}
         />
-        <SupportChat />
       </main>
     </div>
   );
