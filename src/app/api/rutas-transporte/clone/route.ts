@@ -58,7 +58,7 @@ export async function POST(req: Request) {
       vigenciaHasta: sourceRuta.vigenciaHasta,
       datosGeo: sourceRuta.datosGeo,
       calles: sourceRuta.calles || null,
-      estado: 'PENDIENTE', // Toda solicitud clonada debe iniciar en PENDIENTE para su revisión
+      estado: 'APROBADA', // Toda solicitud clonada se aprueba automáticamente
       enlaceDocumento: sourceRuta.enlaceDocumento || null,
       activo: true,
       tipoServicio: sourceRuta.tipoServicio || 'FIJO',

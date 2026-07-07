@@ -14,10 +14,10 @@ export async function POST(req: Request) {
     const updated = await prisma.rutaTransporte.updateMany({
       where: {
         numeroSolicitud,
-        estado: 'BORRADOR'
+        estado: { in: ['BORRADOR', 'PENDIENTE'] }
       },
       data: {
-        estado: 'PENDIENTE'
+        estado: 'APROBADA'
       }
     });
 

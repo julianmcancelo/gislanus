@@ -85,6 +85,8 @@ export default function TransportePesadoWizard() {
   const [cloneModalOpen, setCloneModalOpen] = useState(false);
   const [cloneSourceRuta, setCloneSourceRuta] = useState<any>(null);
   const [isCloning, setIsCloning] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const bookmarkletRef = React.useRef<HTMLAnchorElement>(null);
   const [origin, setOrigin] = useState('https://lanus-gis.vercel.app');
@@ -282,6 +284,10 @@ export default function TransportePesadoWizard() {
       fetchRutasList();
     }
   }, [viewMode]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus, groupBy]);
 
   if (loading) {
     return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Loader2 className="animate-spin" size={48} color="#29B6F6" /></div>;
@@ -922,8 +928,9 @@ export default function TransportePesadoWizard() {
   }
 
   if (viewMode === 'list') {
+    const totalPages = Math.ceil(filteredRutas.length / itemsPerPage);
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', backgroundColor: '#f0f4f8', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', height: 'auto', width: '100%', backgroundColor: '#f0f4f8', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
         {/* ── Header compacto ── */}
         <header style={{ height: 52, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 20, flexShrink: 0 }}>
@@ -984,7 +991,7 @@ export default function TransportePesadoWizard() {
           </div>
         </header>
 
-        <div style={{ flex: 1, padding: '24px 24px 40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1240, width: '100%', margin: '0 auto', alignSelf: 'center', boxSizing: 'border-box' }}>
+        <div style={{ flex: 1, padding: '24px 24px 40px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1240, width: '100%', margin: '0 auto', alignSelf: 'center', boxSizing: 'border-box' }}>
 
           {/* Stats */}
           {!loadingRutas && rutasList.length > 0 && (
@@ -1074,7 +1081,8 @@ export default function TransportePesadoWizard() {
                   </thead>
                   <tbody>
                     {(() => {
-                      const groups = filteredRutas.reduce((acc, ruta) => {
+                      const paginatedRutas = filteredRutas.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                      const groups = paginatedRutas.reduce((acc, ruta) => {
                         let key: string;
                         if (groupBy === 'solicitante') {
                           key = ruta.nombreSolicitante || 'Sin Solicitante';
@@ -1188,6 +1196,78 @@ export default function TransportePesadoWizard() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div style={{ padding: '14px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafbfd', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ fontSize: 12, color: '#64748b' }}>
+                  Mostrando <strong style={{ color: '#0f172a' }}>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredRutas.length)}</strong> a <strong style={{ color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filteredRutas.length)}</strong> de <strong style={{ color: '#0f172a' }}>{filteredRutas.length}</strong> solicitudes
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1.5px solid #e2e8f0',
+                      borderRadius: 8,
+                      background: currentPage === 1 ? '#f8fafc' : '#fff',
+                      color: currentPage === 1 ? '#cbd5e1' : '#475569',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Anterior
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                    if (totalPages > 5 && Math.abs(pageNum - currentPage) > 1 && pageNum !== 1 && pageNum !== totalPages) {
+                      if (pageNum === 2 || pageNum === totalPages - 1) {
+                        return <span key={pageNum} style={{ padding: '6px 4px', fontSize: 12, color: '#94a3b8' }}>...</span>;
+                      }
+                      return null;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        style={{
+                          padding: '6px 12px',
+                          border: pageNum === currentPage ? '1.5px solid #2563eb' : '1.5px solid #e2e8f0',
+                          borderRadius: 8,
+                          background: pageNum === currentPage ? '#eff6ff' : '#fff',
+                          color: pageNum === currentPage ? '#2563eb' : '#475569',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    style={{
+                      padding: '6px 12px',
+                      border: '1.5px solid #e2e8f0',
+                      borderRadius: 8,
+                      background: currentPage === totalPages ? '#f8fafc' : '#fff',
+                      color: currentPage === totalPages ? '#cbd5e1' : '#475569',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
             )}
           </div>
