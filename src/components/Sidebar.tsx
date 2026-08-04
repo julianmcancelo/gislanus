@@ -173,8 +173,8 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
 }
 
 /* ── Transporte group (por empresa/solicitante) ── */
-function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
-  capas: Capa[]; onToggle: (id: string) => void;
+function TransporteGroup({ capas, onToggle, onToggleMany, expandedSols, toggleSol }: {
+  capas: Capa[]; onToggle: (id: string) => void; onToggleMany: (ids: string[], nextValue: boolean) => void;
   expandedSols: Record<string, boolean>; toggleSol: (k: string) => void;
 }) {
   const byOwner = useMemo(() => {
@@ -193,6 +193,8 @@ function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
         const multi = items.length > 1;
         const isOpen = expandedSols[owner] !== false;
         const activeCount = items.filter(c => c.active).length;
+        const allActive = items.length > 0 && activeCount === items.length;
+        const someActive = activeCount > 0 && !allActive;
         return (
           <div key={owner} style={{ marginBottom: multi ? 3 : 1 }}>
             {multi ? (
@@ -201,6 +203,17 @@ function TransporteGroup({ capas, onToggle, expandedSols, toggleSol }: {
                   {isOpen
                     ? <ChevronDown size={10} color="#94a3b8" />
                     : <ChevronRight size={10} color="#94a3b8" />}
+                  <input
+                    type="checkbox"
+                    className={styles.groupCheckbox}
+                    checked={allActive}
+                    ref={el => { if (el) el.indeterminate = someActive; }}
+                    onChange={e => {
+                      e.stopPropagation();
+                      onToggleMany(items.map(c => c.id), e.target.checked);
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  />
                   <span className={styles.ownerName}>{owner}</span>
                   <span className={`${styles.badge} ${styles.badgeGray}`}>{activeCount}/{items.length}</span>
                 </div>
@@ -375,6 +388,10 @@ export default function Sidebar({
   const toggleAll       = (gn: string, v: boolean) => flattenGroup(gn).forEach(c => { if (c.active !== v) alternarCapa(c.id); });
   const toggleSubAll    = (gn: string, sn: string, v: boolean) => flattenSubGroup(gn, sn).forEach(c => { if (c.active !== v) alternarCapa(c.id); });
   const toggleSubSubAll = (gn: string, sn: string, ssn: string, v: boolean) => grupos[gn].subgrupos[sn].subsubgrupos[ssn].forEach(c => { if (c.active !== v) alternarCapa(c.id); });
+  const toggleMany      = (ids: string[], v: boolean) => ids.forEach(id => {
+    const capa = capas.find(c => c.id === id);
+    if (capa && capa.active !== v) alternarCapa(id);
+  });
 
   const isSuperAdmin        = dbUser?.rol === 'SUPER_ADMIN';
   const canAccessTransporte = isSuperAdmin || (dbUser?.permisos?.verRutas ?? false);
@@ -550,13 +567,11 @@ export default function Sidebar({
                       <span className={styles.groupChevron}>
                         {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                       </span>
-                      {!isTransporte && (
-                        <input type="checkbox" className={styles.groupCheckbox}
-                          checked={allActive}
-                          ref={el => { if (el) el.indeterminate = someActive; }}
-                          onChange={e => { e.stopPropagation(); toggleAll(gName, e.target.checked); }}
-                          onClick={e => e.stopPropagation()} />
-                      )}
+                      <input type="checkbox" className={styles.groupCheckbox}
+                        checked={allActive}
+                        ref={el => { if (el) el.indeterminate = someActive; }}
+                        onChange={e => { e.stopPropagation(); toggleAll(gName, e.target.checked); }}
+                        onClick={e => e.stopPropagation()} />
                       <span className={styles.groupName}>{gName}</span>
                       <span className={`${styles.badge} ${isTransporte ? styles.badgeBlue : styles.badgeGray}`}>
                         {isTransporte ? `${activeCount}/${allCapas.length}` : allCapas.length}
@@ -566,7 +581,25 @@ export default function Sidebar({
                     {isOpen && (
                       <div className={styles.groupItems}>
                         {isTransporte ? (
-                          <TransporteGroup capas={allCapas} onToggle={alternarCapa} expandedSols={expandedSols} toggleSol={toggleSol} />
+                          <>
+                            <div style={{ display: 'flex', gap: '6px', padding: '0 0 8px 0' }}>
+                              <button
+                                type="button"
+                                onClick={() => toggleAll(gName, true)}
+                                style={{ flex: 1, border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', borderRadius: '6px', padding: '6px 8px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}
+                              >
+                                Activar todo
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleAll(gName, false)}
+                                style={{ flex: 1, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', borderRadius: '6px', padding: '6px 8px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}
+                              >
+                                Desactivar todo
+                              </button>
+                            </div>
+                            <TransporteGroup capas={allCapas} onToggle={alternarCapa} onToggleMany={toggleMany} expandedSols={expandedSols} toggleSol={toggleSol} />
+                          </>
                         ) : (
                           <>
                             {Object.entries(gData.subgrupos).map(([sgName, sgData]) => {
