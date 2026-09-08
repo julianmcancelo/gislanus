@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin,
+  Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download,
   Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -49,6 +49,7 @@ interface SidebarProps {
   setPrioridadFiltro: (val: string) => void;
   recargarReclamos: () => void;
   mapInstance: L.Map | null;
+  descargarCapas: (capas: Capa[], nombreArchivo?: string) => void;
 }
 
 
@@ -252,7 +253,8 @@ export default function Sidebar({
   prioridadFiltro,
   setPrioridadFiltro,
   recargarReclamos,
-  mapInstance
+  mapInstance,
+  descargarCapas
 }: SidebarProps) {
   const { user, dbUser, logout } = useAuth();
   const router = useRouter();
@@ -559,6 +561,7 @@ export default function Sidebar({
                 const allActive   = allCapas.length > 0 && allCapas.every(l => l.active);
                 const someActive  = allCapas.some(l => l.active) && !allActive;
                 const isTransporte = gName === 'Solicitudes Transporte Pesado';
+                const isRedTransporte = gName === 'Red Municipal de Transporte' || gName === 'Red Provincial de Transporte';
                 const activeCount = allCapas.filter(c => c.active).length;
 
                 return (
@@ -576,6 +579,17 @@ export default function Sidebar({
                       <span className={`${styles.badge} ${isTransporte ? styles.badgeBlue : styles.badgeGray}`}>
                         {isTransporte ? `${activeCount}/${allCapas.length}` : allCapas.length}
                       </span>
+                      {isRedTransporte && (
+                        <button
+                          type="button"
+                          aria-label={`Descargar ${gName} en GeoJSON`}
+                          title={`Descargar ${gName} en GeoJSON`}
+                          onClick={e => { e.stopPropagation(); descargarCapas(allCapas, gName.toLowerCase().replaceAll(' ', '-')); }}
+                          style={{ marginLeft: 4, border: 'none', background: 'transparent', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 3 }}
+                        >
+                          <Download size={13} />
+                        </button>
+                      )}
                     </div>
 
                     {isOpen && (

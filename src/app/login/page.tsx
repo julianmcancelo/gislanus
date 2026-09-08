@@ -140,45 +140,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Bypass de Desarrollo */}
-            <div className="mt-4 p-4 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-              <div className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-2.5 text-center">Bypass de Desarrollo</div>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => {
-                    const mockUser = {
-                      uid: 'mock-admin-uid',
-                      email: 'admin@lanus.gob.ar',
-                      displayName: 'Administrador Local',
-                      photoURL: null
-                    };
-                    localStorage.setItem('gis_lanus_mock_user', JSON.stringify(mockUser));
-                    localStorage.setItem('gis_lanus_bypass_auth', 'true');
-                    window.location.href = '/';
-                  }}
-                  className="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-all text-center"
-                >
-                  Ingresar como Administrador (Admin)
-                </button>
-                <button
-                  onClick={() => {
-                    const mockUser = {
-                      uid: 'mock-vecino-uid',
-                      email: 'vecino@lanus.gob.ar',
-                      displayName: 'Juan Vecino',
-                      photoURL: null
-                    };
-                    localStorage.setItem('gis_lanus_mock_user', JSON.stringify(mockUser));
-                    localStorage.setItem('gis_lanus_bypass_auth', 'true');
-                    window.location.href = '/';
-                  }}
-                  className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-all text-center"
-                >
-                  Ingresar como Vecino (Usuario Común)
-                </button>
-              </div>
-            </div>
-
             <div className="mt-8 pt-4 border-t border-slate-100 text-center text-[10px] text-slate-400 font-bold tracking-wider uppercase">
               Acceso Restringido
             </div>

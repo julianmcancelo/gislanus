@@ -324,15 +324,17 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas, resLineas] = await Promise.all([
+        const [resCapas, resRutas, resLineas, resTransportBase] = await Promise.all([
           fetch('/api/capas'),
           fetch('/api/rutas-transporte'),
           fetch('/api/lineas-transporte'),
+          fetch('/transporte-lanus.geojson'),
         ]);
 
         const dataCapas = await resCapas.json();
         const dataRutas = await resRutas.json();
         const dataLineas = await resLineas.json();
+        const dataTransportBase = resTransportBase.ok ? await resTransportBase.json() : { features: [] };
 
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
@@ -395,6 +397,36 @@ export default function MapComponent() {
           };
         });
 
+        const formatedTransportBase = (Array.isArray(dataTransportBase?.features) ? dataTransportBase.features : []).map((feature: any, index: number) => {
+          const props = feature?.properties || {};
+          const red = props.network === 'PROVINCIAL' ? 'Provincial' : 'Municipal';
+          const lineaLabel = `Línea ${props.line || 's/n'}`;
+          const ramalLabel = `Ramal ${props.branch || 'Principal'}`;
+          const sentido = String(props.direction || '').toUpperCase();
+          const idPart = `${props.network}-${props.line}-${props.branch}-${sentido}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
+          const lineaProps = {
+            ...props,
+            _tipo: 'linea',
+            _linea: lineaLabel,
+            _ramal: ramalLabel,
+            _sentido: sentido,
+            _operador: props.operator || props.description || null,
+            _color: props.color || '#2563eb',
+          };
+
+          return {
+            id: `transporte-base-${idPart}`,
+            nombre: sentido === 'VUELTA' ? 'Vuelta' : 'Ida',
+            datosGeo: { ...feature, properties: lineaProps },
+            color: props.color || '#2563eb',
+            visibilidad: 'PUBLIC',
+            rolesPermitidos: [],
+            grupo: { nombre: `Red ${red} de Transporte` },
+            subGrupo: { nombre: lineaLabel },
+            subSubGrupo: { nombre: ramalLabel },
+          };
+        });
+
         const formatedRutas = validRutas.map((r: any, index: number) => {
           // Generar un color único usando el ángulo dorado para máxima distinción visual
           const hue = (index * 137.5) % 360;
@@ -452,7 +484,7 @@ export default function MapComponent() {
           };
         });
 
-        const allData = [...validCapas, ...formatedRutas, ...formatedLineas];
+        const allData = [...validCapas, ...formatedRutas, ...formatedLineas, ...formatedTransportBase];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {
@@ -600,6 +632,32 @@ export default function MapComponent() {
 
   const capaActiva = (id: string) => capasConfig.find(l => l.id === id)?.active;
 
+  const descargarCapas = (capas: any[], nombreArchivo = 'lineas-transporte-lanus') => {
+    const features = capas.flatMap(capa => {
+      const geo = cacheDatosGeo[capa.id];
+      if (!geo) return [];
+      const collection = geo.type === 'FeatureCollection' ? geo.features : [geo];
+      return collection.map((feature: any) => ({
+        ...feature,
+        properties: { ...(feature.properties || {}), nombreCapa: capa.nombre }
+      }));
+    });
+
+    if (features.length === 0) {
+      toast.error('No hay geometrías cargadas para descargar');
+      return;
+    }
+
+    const blob = new Blob([JSON.stringify({ type: 'FeatureCollection', features }, null, 2)], { type: 'application/geo+json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${nombreArchivo}.geojson`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${features.length} geometría(s) descargada(s)`);
+  };
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
@@ -730,6 +788,7 @@ export default function MapComponent() {
           setPrioridadFiltro={setPrioridadFiltro}
           recargarReclamos={getReclamos}
           mapInstance={mapInstance}
+          descargarCapas={descargarCapas}
         />
         
         <div style={{ flex: 1, position: 'relative' }}>
@@ -793,7 +852,16 @@ export default function MapComponent() {
             <GeoJSON 
               key={capa.id}
               data={cacheDatosGeo[capa.id]} 
-              style={{ color: capa.color, weight: 5, opacity: 0.9 }}
+              style={(feature: any) => {
+                const isTransportBase = Boolean(feature?.properties?.network);
+                const isReturn = feature?.properties?.direction === 'VUELTA';
+                return {
+                  color: capa.color,
+                  weight: isTransportBase ? 3 : 5,
+                  opacity: isTransportBase ? 0.78 : 0.9,
+                  dashArray: isTransportBase && isReturn ? '6 7' : undefined,
+                };
+              }}
               pointToLayer={(feature, latlng) => {
                 if (capa.icono && lucideIconsList[capa.icono]) {
                   const IconComp = lucideIconsList[capa.icono];
