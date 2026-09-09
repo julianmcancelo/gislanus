@@ -262,13 +262,13 @@ export default function LineaEditorMap({
         background: 'rgba(30,30,30,0.82)', color: '#fff', padding: '7px 18px',
         borderRadius: '20px', fontSize: '0.82rem', zIndex: 1000, pointerEvents: 'none', whiteSpace: 'nowrap',
       }}>
-        {initialGeo ? 'Traza guardada en gris · Hacé clic para agregar waypoints' : 'Hacé clic en el mapa para agregar waypoints'}
+        {initialGeo ? 'Editando traza existente · Mové, agregá o quitá puntos y guardá los cambios' : 'Hacé clic en el mapa para agregar waypoints'}
         {collaborators.length > 0 && <span style={{ marginLeft: '8px', color: '#a78bfa' }}>· Waypoints en violeta = otro editor</span>}
       </div>
 
       {/* Action buttons */}
       <div style={{ position: 'absolute', bottom: '20px', right: '20px', zIndex: 1000, display: 'flex', gap: '8px' }}>
-        <button onClick={handleClear} style={btn('#6b7280')}>Limpiar waypoints</button>
+        <button onClick={handleClear} style={btn('#6b7280')}>{initialGeo ? 'Reemplazar recorrido' : 'Limpiar waypoints'}</button>
         <button onClick={onCancel} style={btn('#ef4444')}>Cancelar</button>
         <button disabled={!pendingGeo || isSaving} onClick={handleSave} style={btn(pendingGeo ? '#10b981' : '#d1d5db', !pendingGeo)}>
           {isSaving ? 'Guardando…' : 'Guardar traza'}
