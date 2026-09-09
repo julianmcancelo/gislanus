@@ -3,8 +3,10 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import '@geoman-io/leaflet-geoman-free';
 import {
   publicarPresencia, eliminarPresencia, escucharPresencia,
   publicarWaypoints, escucharWaypoints, limpiarWaypoints,
@@ -49,12 +51,17 @@ function EditorController({ color, initialGeo, lineaId, onRouteChange, onWaypoin
   useEffect(() => {
     if (existingLayerRef.current) { map.removeLayer(existingLayerRef.current); existingLayerRef.current = null; }
     if (initialGeo) {
-      const layer = L.geoJSON(initialGeo, { style: { color: '#94a3b8', weight: 4, dashArray: '6 4', opacity: 0.6 } }).addTo(map);
+      const layer = L.geoJSON(initialGeo, { style: { color: '#64748b', weight: 4, opacity: 0.9 } }).addTo(map);
+      layer.eachLayer((editableLayer: any) => {
+        if (!editableLayer.pm) return;
+        editableLayer.pm.enable({ allowSelfIntersection: false });
+        editableLayer.on('pm:edit', () => onRouteChange(editableLayer.toGeoJSON()));
+      });
       existingLayerRef.current = layer;
       const b = layer.getBounds();
       if (b.isValid()) map.fitBounds(b, { padding: [50, 50] });
     }
-  }, [initialGeo, map]);
+  }, [initialGeo, map, onRouteChange]);
 
   // Listen to other collaborators' waypoints and draw them
   useEffect(() => {
