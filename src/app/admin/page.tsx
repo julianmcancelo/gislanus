@@ -15,6 +15,22 @@ const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
 import CloneRutaModal from '../../components/CloneRutaModal';
 
+const ADMIN_NOTIFICATION_CACHE = 'lanusgis:admin-notifications:v1';
+
+function notificationWasShown(key: string) {
+  try {
+    const now = Date.now();
+    const stored = JSON.parse(localStorage.getItem(ADMIN_NOTIFICATION_CACHE) || '{}') as Record<string, number>;
+    const recent = Object.fromEntries(Object.entries(stored).filter(([, timestamp]) => now - timestamp < 24 * 60 * 60 * 1000));
+    if (recent[key]) return true;
+    recent[key] = now;
+    localStorage.setItem(ADMIN_NOTIFICATION_CACHE, JSON.stringify(recent));
+  } catch {
+    // If storage is unavailable, the notification can still be displayed normally.
+  }
+  return false;
+}
+
 const translatePropKey = (key: string) => {
   const k = key.toLowerCase();
   if (k === 'marker-color') return 'Color del Marcador (HEX)';
@@ -206,6 +222,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const unsub = escucharNotificaciones((notif) => {
+      // Firebase notifies every open tab; only the first tab should show the toast.
+      if (notificationWasShown(notif.key)) return;
       toast((t) => (
         <span>
           <strong>Nueva solicitud #{notif.numeroSolicitud}</strong><br/>
