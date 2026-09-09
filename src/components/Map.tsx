@@ -26,6 +26,15 @@ L.Icon.Default.mergeOptions({
 
 const center: [number, number] = [-34.7042, -58.3961];
 
+const transitPalette = ['#2563eb', '#e11d48', '#059669', '#d97706', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5'];
+
+function stableTransitColor(value: string, fallback: string) {
+  if (!value) return fallback;
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  return transitPalette[hash % transitPalette.length];
+}
+
 const controlBtnStyle = {
   width: '28px',
   height: '28px',
@@ -367,6 +376,9 @@ export default function MapComponent() {
             if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
           }
           const sentido = sentidoRaw;
+          const lineColor = l.color && l.color !== '#E53E3E'
+            ? l.color
+            : stableTransitColor(`${cat}-${lineaLabel}`, '#2563eb');
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
             : lineaLabel;
@@ -376,7 +388,7 @@ export default function MapComponent() {
             _ramal: ramalLabel || null,
             _sentido: sentido || null,
             _operador: l.descripcion || null,
-            _color: l.color || '#E53E3E',
+            _color: lineColor,
           };
           let geoConProps = geo;
           if (geo?.type === 'Feature') {
@@ -388,7 +400,7 @@ export default function MapComponent() {
             id: `linea-${l.id}`,
             nombre,
             datosGeo: geoConProps,
-            color: l.color || '#E53E3E',
+            color: lineColor,
             visibilidad: 'PUBLIC',
             rolesPermitidos: [],
             grupo: { nombre: grupoNombre },
