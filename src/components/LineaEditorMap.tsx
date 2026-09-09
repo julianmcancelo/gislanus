@@ -33,6 +33,18 @@ function EditorController({ color, initialGeo, lineaId, onRouteChange, onWaypoin
   const existingLayerRef = useRef<any>(null);
   const collabLayerRef = useRef<any>(null);
 
+  const initialWaypoints = () => {
+    const feature = initialGeo?.type === 'Feature' ? initialGeo : initialGeo?.features?.[0];
+    const coordinates = feature?.geometry?.type === 'LineString' ? feature.geometry.coordinates : [];
+    if (coordinates.length < 2) return [];
+    const count = Math.min(8, coordinates.length);
+    return Array.from({ length: count }, (_, index) => {
+      const sourceIndex = Math.round(index * (coordinates.length - 1) / (count - 1));
+      const [lng, lat] = coordinates[sourceIndex];
+      return L.latLng(lat, lng);
+    });
+  };
+
   // Show saved trace as muted reference
   useEffect(() => {
     if (existingLayerRef.current) { map.removeLayer(existingLayerRef.current); existingLayerRef.current = null; }
@@ -113,9 +125,14 @@ function EditorController({ color, initialGeo, lineaId, onRouteChange, onWaypoin
 
     map.on('click', onClick);
     controlRef.current = control;
+    const existingWaypoints = initialWaypoints();
+    if (existingWaypoints.length >= 2) {
+      // Load a simplified version of the saved route so it can be adjusted directly.
+      setTimeout(() => control.setWaypoints(existingWaypoints), 0);
+    }
     return () => { map.off('click', onClick); try { map.removeControl(control); } catch (_) {} };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color]);
+  }, [color, initialGeo]);
 
   // Clear via DOM event
   useEffect(() => {
