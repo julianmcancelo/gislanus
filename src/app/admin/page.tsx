@@ -9,7 +9,7 @@ import { kml } from '@tmcw/togeojson';
 import styles from './Admin.module.css';
 import toast, { Toaster } from 'react-hot-toast';
 import { escucharNotificaciones, emitirCambioMapa, emitirCambioEstado } from '@/lib/rtdb';
-import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield, LayoutDashboard, Layers, Truck, Train, UserCog, KeyRound, QrCode, FolderTree, ArrowLeft, RefreshCw } from 'lucide-react';
+import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartphone, Search, Filter, Download, Loader2, FileText, Shield, LayoutDashboard, Layers, Truck, Train, UserCog, KeyRound, QrCode, FolderTree, ArrowLeft, RefreshCw, Zap } from 'lucide-react';
 
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
@@ -1522,6 +1522,46 @@ export default function AdminPage() {
                       <span className={styles.statIcon}><Smartphone size={20} color="#92400e" /></span>
                     </div>
                     <div className={styles.statValue} style={{ color: '#92400e' }}>{solicitudesQr.length}</div>
+                  </div>
+                </div>
+
+                <div className={styles.dashboardOverview}>
+                  <div className={styles.overviewPanel}>
+                    <div className={styles.overviewHeading}>
+                      <div>
+                        <h2>Red de transporte</h2>
+                        <p>Recorridos disponibles por jurisdicción</p>
+                      </div>
+                      <Bus size={20} color="#64748b" />
+                    </div>
+                    <div className={styles.networkStats}>
+                      {[
+                        ['MUNICIPAL', 'Municipales', '#2563eb'],
+                        ['PROVINCIAL', 'Provinciales', '#7c3aed'],
+                        ['NACIONAL', 'Nacionales', '#0891b2'],
+                      ].map(([category, label, color]) => {
+                        const total = lineas.filter(l => String(l.categoria || '').toUpperCase() === category).length;
+                        return <button key={category} className={styles.networkStat} onClick={() => { setActiveTab('lineas'); setLineaFiltroCategoria(category); }}>
+                          <span className={styles.networkDot} style={{ background: color }} />
+                          <span><strong>{total}</strong> {label}</span>
+                          <ArrowLeft size={14} style={{ transform: 'rotate(180deg)' }} />
+                        </button>;
+                      })}
+                    </div>
+                  </div>
+                  <div className={styles.overviewPanel}>
+                    <div className={styles.overviewHeading}>
+                      <div>
+                        <h2>Acciones rápidas</h2>
+                        <p>Accedé directamente a la gestión</p>
+                      </div>
+                      <Zap size={20} color="#64748b" />
+                    </div>
+                    <div className={styles.quickActions}>
+                      <button onClick={() => setActiveTab('lineas')}><Bus size={16} /> Gestionar líneas</button>
+                      <button onClick={() => setActiveTab('usuarios')}><Users size={16} /> Revisar usuarios</button>
+                      <button onClick={() => setActiveTab('capas')}><Layers size={16} /> Administrar capas</button>
+                    </div>
                   </div>
                 </div>
               </>

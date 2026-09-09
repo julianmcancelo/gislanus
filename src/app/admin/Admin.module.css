@@ -401,6 +401,45 @@
   font-weight: 500;
 }
 
+.dashboardOverview {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+  margin-top: 2px;
+}
+
+.overviewPanel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+}
+
+.overviewHeading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.overviewHeading h2 { margin: 0 0 4px; font-size: .92rem; color: #0f172a; }
+.overviewHeading p { margin: 0; font-size: .75rem; color: #94a3b8; }
+.networkStats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.networkStat, .quickActions button { display: flex; align-items: center; gap: 8px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; border-radius: 9px; padding: 11px 10px; font: inherit; font-size: .75rem; cursor: pointer; text-align: left; }
+.networkStat:hover, .quickActions button:hover { border-color: #93c5fd; background: #eff6ff; }
+.networkStat strong { display: block; font-size: 1.1rem; color: #0f172a; }
+.networkStat svg { margin-left: auto; color: #94a3b8; }
+.networkDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.quickActions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.quickActions button { flex-direction: column; align-items: flex-start; min-height: 68px; color: #2563eb; }
+.quickActions button svg { color: #2563eb; }
+
+@media (max-width: 900px) {
+  .dashboardGrid { grid-template-columns: repeat(2, 1fr) !important; }
+  .dashboardOverview { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .contentArea { padding: 20px 14px; }
+  .dashboardGrid { grid-template-columns: 1fr !important; }
+  .networkStats, .quickActions { grid-template-columns: 1fr; }
+}
+
 /* ── GIS GRIDS ── */
 .gruposGrid, .gisGrid {
   display: grid;

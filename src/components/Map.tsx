@@ -853,13 +853,23 @@ export default function MapComponent() {
               key={capa.id}
               data={cacheDatosGeo[capa.id]} 
               style={(feature: any) => {
-                const isTransportBase = Boolean(feature?.properties?.network);
-                const isReturn = feature?.properties?.direction === 'VUELTA';
+                const properties = feature?.properties || {};
+                const isCollectiveLine = Boolean(
+                  properties.network || properties._tipo === 'linea' || properties.sentido
+                );
+                const isReturn = String(
+                  properties.direction || properties.sentido || properties._sentido || ''
+                ).toUpperCase() === 'VUELTA';
+                const routeColor = String(
+                  properties.color_hex || properties.color || properties._color || capa.color
+                );
                 return {
-                  color: capa.color,
-                  weight: isTransportBase ? 3 : 5,
-                  opacity: isTransportBase ? 0.78 : 0.9,
-                  dashArray: isTransportBase && isReturn ? '6 7' : undefined,
+                  color: routeColor,
+                  weight: isCollectiveLine ? 2.5 : 5,
+                  opacity: isCollectiveLine ? 0.9 : 0.9,
+                  dashArray: isCollectiveLine && isReturn ? '7 8' : undefined,
+                  lineCap: 'round',
+                  lineJoin: 'round',
                 };
               }}
               pointToLayer={(feature, latlng) => {
