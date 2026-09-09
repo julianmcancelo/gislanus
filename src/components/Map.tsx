@@ -376,9 +376,7 @@ export default function MapComponent() {
             if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
           }
           const sentido = sentidoRaw;
-          const lineColor = l.color && l.color !== '#E53E3E'
-            ? l.color
-            : stableTransitColor(`${cat}-${lineaLabel}`, '#2563eb');
+          const lineColor = stableTransitColor(`${cat}-${lineaLabel}`, '#2563eb');
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
             : lineaLabel;
@@ -416,6 +414,7 @@ export default function MapComponent() {
           const ramalLabel = `Ramal ${props.branch || 'Principal'}`;
           const sentido = String(props.direction || '').toUpperCase();
           const idPart = `${props.network}-${props.line}-${props.branch}-${sentido}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
+          const lineColor = stableTransitColor(`${props.network || 'TRANSPORTE'}-${lineaLabel}`, '#2563eb');
           const lineaProps = {
             ...props,
             _tipo: 'linea',
@@ -423,14 +422,14 @@ export default function MapComponent() {
             _ramal: ramalLabel,
             _sentido: sentido,
             _operador: props.operator || props.description || null,
-            _color: props.color || '#2563eb',
+            _color: lineColor,
           };
 
           return {
             id: `transporte-base-${idPart}`,
             nombre: sentido === 'VUELTA' ? 'Vuelta' : 'Ida',
             datosGeo: { ...feature, properties: lineaProps },
-            color: props.color || '#2563eb',
+            color: lineColor,
             visibilidad: 'PUBLIC',
             rolesPermitidos: [],
             grupo: { nombre: `Red ${red} de Transporte` },
