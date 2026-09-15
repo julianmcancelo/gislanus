@@ -267,28 +267,28 @@ export default function MapPrintAtlasModal({
           {/* Opción 1: Número de tramos */}
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-              Cantidad de tramos (pantallas secuenciales a capturar):
+              Cantidad de hojas / capturas en el único PDF:
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
-              {[3, 6, 10, 15, 20].map((num) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
+              {[4, 8, 12, 16, 20, 30].map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => setNumSegmentos(num)}
                   disabled={isGenerating}
                   style={{
-                    padding: '10px 4px',
+                    padding: '8px 2px',
                     borderRadius: '10px',
                     border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
                     background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
                     color: numSegmentos === num ? '#1d4ed8' : '#475569',
                     fontWeight: 700,
-                    fontSize: '0.82rem',
+                    fontSize: '0.8rem',
                     cursor: isGenerating ? 'not-allowed' : 'pointer',
                     transition: 'all 0.15s',
                   }}
                 >
-                  {num} Hojas
+                  {num} Págs
                 </button>
               ))}
             </div>
