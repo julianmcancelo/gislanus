@@ -1108,6 +1108,15 @@ export default function MapComponent() {
       </MapContainer>
         </div>
       </div>
+
+      <MapPrintAtlasModal
+        isOpen={atlasModalOpen}
+        onClose={() => setAtlasModalOpen(false)}
+        lineaNombre={atlasLineaNombre}
+        capasLinea={atlasCapasLinea}
+        cacheDatosGeo={cacheDatosGeo}
+        mapInstance={mapInstance}
+      />
     </div>
   );
 }
