@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download,
+  Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download, Printer,
   Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
