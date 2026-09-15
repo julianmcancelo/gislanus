@@ -32,11 +32,37 @@ export async function POST(req: Request) {
     if (Array.isArray(importData.grupos)) {
       for (const g of importData.grupos) {
         const { capas, subGrupos, ...gData } = g;
-        await prisma.grupo.upsert({
-          where: {id: gData.id || gData.nombre },
-          update: {nombre: gData.nombre, color: gData.color, visibilidad: gData.visibilidad, rolesPermitidos: gData.rolesPermitidos || [] },
-          create: {id: gData.id, nombre: gData.nombre, color: gData.color, visibilidad: gData.visibilidad || 'PUBLIC', rolesPermitidos: gData.rolesPermitidos || [] },
+        // Buscar por id o por nombre por la restricción @unique de nombre
+        const existing = await prisma.grupo.findFirst({
+          where: {
+            OR: [
+              ...(gData.id ? [{ id: gData.id }] : []),
+              ...(gData.nombre ? [{ nombre: gData.nombre }] : []),
+            ]
+          }
         });
+
+        if (existing) {
+          await prisma.grupo.update({
+            where: { id: existing.id },
+            data: {
+              nombre: gData.nombre,
+              color: gData.color,
+              visibilidad: gData.visibilidad,
+              rolesPermitidos: gData.rolesPermitidos || []
+            },
+          });
+        } else {
+          await prisma.grupo.create({
+            data: {
+              ...(gData.id ? { id: gData.id } : {}),
+              nombre: gData.nombre,
+              color: gData.color || '#10B981',
+              visibilidad: gData.visibilidad || 'PUBLIC',
+              rolesPermitidos: gData.rolesPermitidos || []
+            },
+          });
+        }
         gruposImportados++;
       }
     }
@@ -45,11 +71,22 @@ export async function POST(req: Request) {
       for (const sg of importData.subGrupos) {
         const { capas, grupo, ...sgData } = sg;
         if (sgData.grupoId) {
-          await prisma.subGrupo.upsert({
-            where: {id: sgData.id},
-            update: {nombre: sgData.nombre, color: sgData.color, grupoId: sgData.grupoId},
-            create: {id: sgData.id, nombre: sgData.nombre, color: sgData.color || '#10B981', grupoId: sgData.grupoId},
-          });
+          const existingSg = sgData.id ? await prisma.subGrupo.findUnique({ where: { id: sgData.id } }) : null;
+          if (existingSg) {
+            await prisma.subGrupo.update({
+              where: { id: existingSg.id },
+              data: { nombre: sgData.nombre, color: sgData.color, grupoId: sgData.grupoId },
+            });
+          } else {
+            await prisma.subGrupo.create({
+              data: {
+                ...(sgData.id ? { id: sgData.id } : {}),
+                nombre: sgData.nombre,
+                color: sgData.color || '#10B981',
+                grupoId: sgData.grupoId
+              },
+            });
+          }
           subGruposImportados++;
         }
       }
