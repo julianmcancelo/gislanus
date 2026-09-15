@@ -1,7 +1,9 @@
 'use client';
 import React, { useState } from 'react';
-import { Printer, X } from 'lucide-react';
+import { Printer, X, Download, FileText, CheckCircle2, Loader2, MapPin } from 'lucide-react';
 import L from 'leaflet';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface MapPrintAtlasModalProps {
   isOpen: boolean;
@@ -21,10 +23,11 @@ export default function MapPrintAtlasModal({
   mapInstance,
 }: MapPrintAtlasModalProps) {
   const [zoomLevel, setZoomLevel] = useState<number>(16);
-  const [numSegmentos, setNumSegmentos] = useState<number>(4);
+  const [numSegmentos, setNumSegmentos] = useState<number>(6);
   const [incluirVistaGeneral, setIncluirVistaGeneral] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
+  const [captures, setCaptures] = useState<{ title: string; dataUrl: string }[]>([]);
 
   if (!isOpen) return null;
 
@@ -57,9 +60,10 @@ export default function MapPrintAtlasModal({
     return coords;
   };
 
-  const handleStartAtlasPrint = async () => {
+  // Capturar pantalla por tramos secuencialmente
+  const handleGenerateAtlasPDF = async () => {
     if (!mapInstance) {
-      alert('El mapa no está listo todavía.');
+      alert('El mapa no está listo.');
       return;
     }
 
@@ -70,24 +74,81 @@ export default function MapPrintAtlasModal({
     }
 
     setIsGenerating(true);
+    setCaptures([]);
+
+    const mapElement = mapInstance.getContainer();
+    const totalPts = allCoords.length;
+    const stepSize = Math.max(1, Math.floor(totalPts / numSegmentos));
+
+    const generatedCaptures: { title: string; dataUrl: string }[] = [];
 
     try {
-      setPrintStatus('Enfocando trazado de la línea...');
-      const fullBounds = L.latLngBounds(allCoords);
-      mapInstance.fitBounds(fullBounds, { padding: [50, 50] });
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      // 1. Vista General opcional
+      if (incluirVistaGeneral) {
+        setPrintStatus('Procesando Lámina 1: Vista General de Lanús...');
+        const fullBounds = L.latLngBounds(allCoords);
+        mapInstance.fitBounds(fullBounds, { padding: [50, 50] });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      setPrintStatus('Abriendo diálogo de impresión...');
-      setIsGenerating(false);
+        const canvas = await html2canvas(mapElement, { useCORS: true, allowTaint: true });
+        generatedCaptures.push({
+          title: `${lineaNombre} - Vista General Lanús`,
+          dataUrl: canvas.toDataURL('image/png'),
+        });
+      }
 
-      setTimeout(() => {
-        window.print();
-        onClose();
-      }, 200);
+      // 2. Tramo por tramo con zoom detallado
+      for (let i = 0; i < numSegmentos; i++) {
+        setPrintStatus(`Procesando Tramo ${i + 1} de ${numSegmentos}...`);
+        const startIndex = i * stepSize;
+        const endIndex = i === numSegmentos - 1 ? totalPts - 1 : Math.min(totalPts - 1, (i + 1) * stepSize);
+        const segmentPts = allCoords.slice(startIndex, endIndex + 1);
+
+        if (segmentPts.length > 0) {
+          const bounds = L.latLngBounds(segmentPts);
+          const centerPt = bounds.getCenter();
+
+          mapInstance.setView(centerPt, zoomLevel, { animate: false });
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          const canvas = await html2canvas(mapElement, { useCORS: true, allowTaint: true });
+          generatedCaptures.push({
+            title: `${lineaNombre} - Tramo ${i + 1}/${numSegmentos}`,
+            dataUrl: canvas.toDataURL('image/png'),
+          });
+        }
+      }
+
+      setCaptures(generatedCaptures);
+      setPrintStatus('Generando documento PDF multipágina...');
+
+      // 3. Ensamblar documento PDF en formato A4 Horizontal
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      generatedCaptures.forEach((item, index) => {
+        if (index > 0) pdf.addPage();
+        pdf.addImage(item.dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+        // Membrete impreso institucional en el PDF
+        pdf.setFillColor(15, 23, 42); // #0f172a
+        pdf.rect(10, 10, 140, 18, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(10);
+        pdf.text(`MUNICIPALIDAD DE LANÚS - GIS PORTAL`, 14, 16);
+        pdf.setFontSize(8);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text(`${item.title} | Hoja ${index + 1} de ${generatedCaptures.length}`, 14, 23);
+      });
+
+      pdf.save(`Atlas_Recorrido_${lineaNombre.replace(/\s+/g, '_')}.pdf`);
+      setPrintStatus('¡Atlas PDF generado y descargado con éxito!');
     } catch (err: any) {
-      console.error('Error al preparar la impresión:', err);
+      console.error('Error al generar atlas de capturas:', err);
+      alert('Hubo un error al generar las capturas.');
+    } finally {
       setIsGenerating(false);
-      alert('Error durante la preparación de la impresión.');
     }
   };
 
@@ -100,8 +161,8 @@ export default function MapPrintAtlasModal({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'rgba(15, 23, 42, 0.75)',
-        backdropFilter: 'blur(8px)',
+        background: 'rgba(15, 23, 42, 0.82)',
+        backdropFilter: 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -112,30 +173,31 @@ export default function MapPrintAtlasModal({
       <div
         style={{
           background: '#ffffff',
-          borderRadius: '16px',
+          borderRadius: '18px',
           width: '100%',
-          maxWidth: '480px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          maxWidth: '520px',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
           overflow: 'hidden',
           border: '1px solid #e2e8f0',
         }}
       >
+        {/* Modal Header */}
         <div
           style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             color: '#f8fafc',
-            padding: '18px 24px',
+            padding: '20px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                width: 34,
-                height: 34,
-                borderRadius: 10,
+                width: 38,
+                height: 38,
+                borderRadius: 12,
                 background: 'rgba(56, 189, 248, 0.15)',
                 border: '1px solid rgba(56, 189, 248, 0.3)',
                 display: 'flex',
@@ -143,67 +205,73 @@ export default function MapPrintAtlasModal({
                 justifyContent: 'center',
               }}
             >
-              <Printer size={18} color="#38bdf8" />
+              <Printer size={20} color="#38bdf8" />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#f8fafc' }}>
-                Imprimir Atlas de Recorrido Tramo por Tramo
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>
+                Generador de Atlas Tramo por Tramo
               </h3>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>
-                {lineaNombre} ({totalRamales} ramal/es)
+              <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#94a3b8' }}>
+                {lineaNombre} • {totalRamales} ramal(es) georreferenciado(s)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
+            disabled={isGenerating}
             style={{
               background: 'transparent',
               border: 'none',
               color: '#94a3b8',
-              cursor: 'pointer',
-              padding: '4px',
-              borderRadius: '6px',
+              cursor: isGenerating ? 'not-allowed' : 'pointer',
+              padding: '6px',
+              borderRadius: '8px',
             }}
           >
             <X size={20} />
           </button>
         </div>
 
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {/* Modal Body */}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Opción 1: Número de tramos */}
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-              Dividir recorrido en tramos con zoom detallado:
+              Cantidad de tramos (pantallas secuenciales a capturar):
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
-              {[2, 3, 4, 6].map((num) => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px' }}>
+              {[3, 6, 10, 15, 20].map((num) => (
                 <button
                   key={num}
                   type="button"
                   onClick={() => setNumSegmentos(num)}
+                  disabled={isGenerating}
                   style={{
-                    padding: '10px',
+                    padding: '10px 4px',
                     borderRadius: '10px',
                     border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
                     background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
                     color: numSegmentos === num ? '#1d4ed8' : '#475569',
                     fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
+                    fontSize: '0.82rem',
+                    cursor: isGenerating ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.15s',
                   }}
                 >
-                  {num} Tramos
+                  {num} Hojas
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Opción 2: Nivel de zoom */}
           <div>
             <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
               Nivel de zoom por tramo:
             </label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {[
-                { label: 'Cercano (Calles)', val: 17 },
+                { label: 'Detallado (Calles)', val: 17 },
                 { label: 'Medio (Barrios)', val: 16 },
                 { label: 'Amplio (Zonal)', val: 15 },
               ].map((item) => (
@@ -211,16 +279,17 @@ export default function MapPrintAtlasModal({
                   key={item.val}
                   type="button"
                   onClick={() => setZoomLevel(item.val)}
+                  disabled={isGenerating}
                   style={{
                     flex: 1,
-                    padding: '9px 10px',
+                    padding: '9px 8px',
                     borderRadius: '8px',
                     border: zoomLevel === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
                     background: zoomLevel === item.val ? '#eff6ff' : '#fff',
                     color: zoomLevel === item.val ? '#1d4ed8' : '#64748b',
                     fontSize: '0.78rem',
                     fontWeight: 700,
-                    cursor: 'pointer',
+                    cursor: isGenerating ? 'not-allowed' : 'pointer',
                   }}
                 >
                   {item.label}
@@ -229,6 +298,7 @@ export default function MapPrintAtlasModal({
             </div>
           </div>
 
+          {/* Checkbox Vista General */}
           <label
             style={{
               display: 'flex',
@@ -245,30 +315,37 @@ export default function MapPrintAtlasModal({
               type="checkbox"
               checked={incluirVistaGeneral}
               onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
+              disabled={isGenerating}
               style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
             />
             <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-              Incluir lámina con vista general de Lanús
+              Incluir lámina 1 con la vista panorámica completa
             </span>
           </label>
 
+          {/* Estado del procesamiento */}
           {isGenerating && (
             <div
               style={{
-                padding: '12px',
+                padding: '14px',
                 background: '#eff6ff',
-                borderRadius: '8px',
+                border: '1px solid #bfdbfe',
+                borderRadius: '10px',
                 color: '#1d4ed8',
-                fontSize: '0.8rem',
+                fontSize: '0.82rem',
                 fontWeight: 600,
-                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
               }}
             >
-              {printStatus}
+              <Loader2 className="animate-spin" size={18} />
+              <span>{printStatus}</span>
             </div>
           )}
         </div>
 
+        {/* Modal Footer */}
         <div
           style={{
             padding: '16px 24px',
@@ -283,6 +360,7 @@ export default function MapPrintAtlasModal({
           <button
             type="button"
             onClick={onClose}
+            disabled={isGenerating}
             style={{
               padding: '10px 18px',
               borderRadius: '10px',
@@ -291,19 +369,19 @@ export default function MapPrintAtlasModal({
               color: '#475569',
               fontWeight: 700,
               fontSize: '0.85rem',
-              cursor: 'pointer',
+              cursor: isGenerating ? 'not-allowed' : 'pointer',
             }}
           >
             Cancelar
           </button>
           <button
             type="button"
-            onClick={handleStartAtlasPrint}
+            onClick={handleGenerateAtlasPDF}
             disabled={isGenerating}
             style={{
               padding: '10px 22px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              background: isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
               border: 'none',
               color: '#fff',
               fontWeight: 700,
@@ -312,11 +390,11 @@ export default function MapPrintAtlasModal({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.3)',
+              boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
             }}
           >
-            <Printer size={16} />
-            {isGenerating ? 'Preparando...' : 'Generar Impresión Tramo a Tramo'}
+            {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+            {isGenerating ? 'Capturando pantallas...' : `Exportar Atlas PDF (${numSegmentos} Hojas)`}
           </button>
         </div>
       </div>
