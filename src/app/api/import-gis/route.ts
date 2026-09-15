@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const allowedOwnerEmails = ['jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com'];
   if (!authRes.user || !allowedOwnerEmails.includes(authRes.user.email.toLowerCase())) {
     return NextResponse.json(
-      { error: 'Acceso denegado. Solo jcancelo.dev@gmail.com tiene permisos para importar información GIS.' },
+      { error: 'Acceso denegado. Solo jcancelo.dev@gmail.com tiene permisos para importar informacion GIS.' },
       { status: 403 }
     );
   }
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const importData = payload.data || payload;
 
     if (!importData) {
-      return NextResponse.json({ error: 'Estructura de archivo JSON inv�lida' }, { status: 400 });
+      return NextResponse.json({ error: 'Estructura de archivo JSON invalida' }, { status: 400 });
     }
 
     let gruposImportados = 0;
@@ -114,7 +114,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
-      message: 'Importación completada con éxito',
+      message: 'Importacin completada con xito',
       summary: {
         grupos: gruposImportados,
         subGrupos: subGruposImportados,
