@@ -920,11 +920,14 @@ export default function MapComponent() {
                   const sentidoLabel = props._sentido
                     ? props._sentido.charAt(0) + props._sentido.slice(1).toLowerCase()
                     : null;
-                  popupContent = `
-                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:180px;max-width:260px;">
-                      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:3px solid ${props._color || capa.color};">
-                        <div style="width:10px;height:10px;border-radius:50%;background:${props._color || capa.color};flex-shrink:0;"></div>
-                        <span style="font-size:13px;font-weight:800;color:#1e293b;">${escapeHtml(props._linea || capa.nombre)}</span>
+                    popupContent = `
+                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:200px;max-width:280px;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:3px solid ${props._color || capa.color};">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                          <div style="width:10px;height:10px;border-radius:50%;background:${props._color || capa.color};flex-shrink:0;"></div>
+                          <span style="font-size:13px;font-weight:800;color:#1e293b;">${escapeHtml(props._linea || capa.nombre)}</span>
+                        </div>
+                        <button onclick="window.print()" style="background:#f1f5f9;border:1px solid #cbd5e1;color:#334155;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;" title="Imprimir o capturar esta línea">🖨️ Imprimir</button>
                       </div>
                       <div style="padding:8px 14px 10px;display:flex;flex-direction:column;gap:4px;">
                         ${props._ramal ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Ramal</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(props._ramal)}</span></div>` : ''}

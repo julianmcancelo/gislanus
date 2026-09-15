@@ -181,16 +181,41 @@ body {
   width: calc(100% - 8px);
 }
 
+/* ── Notifications / Toast overlay compact ── */
+.map-toast-compact {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  animation: fadeIn 0.2s ease-out;
+}
+
 @media print {
   header,
   .hide-on-print,
-  .leaflet-control-container {
+  .leaflet-control-container,
+  .leaflet-bottom,
+  .leaflet-top {
     display: none !important;
   }
 
   body, html {
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
   }
 
   .leaflet-container {
@@ -202,5 +227,21 @@ body {
     z-index: 9999 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  /* Printable Route Sheet Header */
+  .print-route-header {
+    display: block !important;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    z-index: 10000;
+    background: #ffffff;
+    border: 2px solid #0f172a;
+    border-radius: 8px;
+    padding: 12px 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
