@@ -172,8 +172,18 @@ export default function MapPrintAtlasModal({
         pdf.text(`${item.title} | Hoja ${index + 1} de ${generatedCaptures.length}`, 14, 23);
       });
 
+      const pdfBlobUrl = pdf.output('bloburl');
       pdf.save(`Atlas_Recorrido_${lineaNombre.replace(/\s+/g, '_')}.pdf`);
-      setPrintStatus('¡Atlas PDF generado y descargado con éxito!');
+
+      // Abrir automáticamente la ventana de impresión nativa con el PDF cargado
+      const printWindow = window.open(pdfBlobUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+
+      setPrintStatus('¡Atlas PDF generado, descargado y enviado a imprimir con éxito!');
     } catch (err: any) {
       console.error('Error al generar atlas de capturas:', err);
       alert('Hubo un error al generar las capturas.');
