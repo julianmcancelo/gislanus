@@ -50,6 +50,7 @@ interface SidebarProps {
   recargarReclamos: () => void;
   mapInstance: L.Map | null;
   descargarCapas: (capas: Capa[], nombreArchivo?: string) => void;
+  abrirImpresionAtlas?: (lineaNombre: string, capasLinea: Capa[]) => void;
 }
 
 
@@ -274,7 +275,8 @@ export default function Sidebar({
   setPrioridadFiltro,
   recargarReclamos,
   mapInstance,
-  descargarCapas
+  descargarCapas,
+  abrirImpresionAtlas,
 }: SidebarProps) {
   const { user, dbUser, logout } = useAuth();
   const router = useRouter();
@@ -660,9 +662,12 @@ export default function Sidebar({
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        // Activar solo esta linea si no esta activa
-                                        if (!sgAllActive) toggleSubAll(gName, sgName, true);
-                                        setTimeout(() => window.print(), 300);
+                                        if (abrirImpresionAtlas) {
+                                          abrirImpresionAtlas(sgName, sgCapas);
+                                        } else {
+                                          if (!sgAllActive) toggleSubAll(gName, sgName, true);
+                                          setTimeout(() => window.print(), 300);
+                                        }
                                       }}
                                       style={{
                                         background: 'transparent',
@@ -674,7 +679,7 @@ export default function Sidebar({
                                         display: 'flex',
                                         alignItems: 'center'
                                       }}
-                                      title={`Imprimir ficha y recorrido de ${sgName}`}
+                                      title={`Imprimir atlas de recorrido tramo por tramo (${sgName})`}
                                     >
                                       <Printer size={12} />
                                     </button>

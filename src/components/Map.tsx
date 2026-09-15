@@ -16,6 +16,7 @@ import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building };
 import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
+import MapPrintAtlasModal from './MapPrintAtlasModal';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -284,6 +285,20 @@ export default function MapComponent() {
   const [activeTab, setActiveTab] = useState<'layers' | 'info' | 'reclamos' | null>('layers');
   const [baseLayer, setBaseLayer] = useState<any>(null);
   const [trackingMarkers, setTrackingMarkers] = useState<any[]>([]);
+
+  const [atlasModalOpen, setAtlasModalOpen] = useState(false);
+  const [atlasLineaNombre, setAtlasLineaNombre] = useState('');
+  const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
+
+  const handleOpenAtlasPrint = (lineaNombre: string, capasLinea: any[]) => {
+    const capaIds = new Set(capasLinea.map((c) => c.id));
+    setCapasConfig((prev) =>
+      prev.map((l) => (capaIds.has(l.id) ? { ...l, active: true } : l))
+    );
+    setAtlasLineaNombre(lineaNombre);
+    setAtlasCapasLinea(capasLinea);
+    setAtlasModalOpen(true);
+  };
 
   // Estados para el módulo de Reclamos SAT
   const [reclamos, setReclamos] = useState<any[]>([]);
@@ -800,6 +815,7 @@ export default function MapComponent() {
           recargarReclamos={getReclamos}
           mapInstance={mapInstance}
           descargarCapas={descargarCapas}
+          abrirImpresionAtlas={handleOpenAtlasPrint}
         />
         
         <div style={{ flex: 1, position: 'relative' }}>
@@ -959,41 +975,23 @@ export default function MapComponent() {
                   const destino = [props._destinoDireccion, props._destinoNombre].filter(Boolean).join(', ');
 
                   popupContent = `
-                    <div style="font-family:'Inter',system-ui,sans-serif;width:280px;">
-                      <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:12px 14px;border-radius:6px 6px 0 0;margin:-1px -1px 0;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                          <span style="font-size:13px;font-weight:800;color:#f1f5f9;">Solicitud #${escapeHtml(String(props._numeroSolicitud || ''))}</span>
-                          <span style="background:${bgColor};color:${dotColor};border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.05em;">${estado}</span>
-                        </div>
-                        <div style="font-size:11px;color:#94a3b8;">${escapeHtml(props._empresaSolicitante || props._nombreSolicitante || '')}</div>
-                        ${props._empresaSolicitante && props._nombreSolicitante !== props._empresaSolicitante
-                          ? `<div style="font-size:10px;color:#64748b;margin-top:2px;">${escapeHtml(props._nombreSolicitante)}</div>` : ''}
+                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:260px;max-width:320px;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-size:13px;font-weight:800;color:#1e293b;">Solicitud #${escapeHtml(props._numeroSolicitud || '')}</span>
+                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;background:${bgColor};color:${dotColor};">
+                          ${escapeHtml(props._estado || '')}
+                        </span>
                       </div>
-                      <div style="padding:10px 14px;">
-                        ${props._tipoVehiculo || props._patente ? `
-                        <div style="display:flex;gap:6px;margin-bottom:8px;">
-                          ${props._tipoVehiculo ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;">${escapeHtml(props._tipoVehiculo)}</span>` : ''}
-                          ${props._patente ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;font-family:monospace;">${escapeHtml(props._patente)}</span>` : ''}
-                          ${props._pesoToneladas ? `<span style="background:#f1f5f9;color:#475569;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:600;">${escapeHtml(String(props._pesoToneladas))} t</span>` : ''}
-                        </div>` : ''}
-                        ${row('Tipo de carga', props._tipoCarga)}
-                        ${origen ? row('Origen', origen) : ''}
-                        ${destino ? row('Destino', destino) : ''}
-                        ${props._origenNombre && props._destinoNombre ? `
-                        <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-                          <span style="font-size:10px;color:#94a3b8;min-width:90px;">Recorrido</span>
-                          <span style="font-size:11px;color:#0ea5e9;font-weight:600;">${escapeHtml(props._origenNombre)} → ${escapeHtml(props._destinoNombre)}</span>
-                        </div>` : ''}
-                        ${row('Frecuencia', props._frecuencia)}
-                        ${row('Horario', props._horario)}
-                        ${props._vigenciaDesde || props._vigenciaHasta ? row('Vigencia',
-                          [props._vigenciaDesde, props._vigenciaHasta].filter(Boolean).join(' → ')) : ''}
-                        ${props._fechaCreacion ? row('Fecha solicitud', props._fechaCreacion.slice(0,10)) : ''}
-                        ${props._calles ? `
-                        <div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e8edf3;">
-                          <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Calles</div>
-                          <div style="font-size:10px;color:#475569;line-height:1.6;">${escapeHtml(props._calles)}</div>
-                        </div>` : ''}
+                      <div style="padding:8px 14px 12px;display:flex;flex-direction:column;gap:1px;">
+                        ${row('Solicitante', props._nombreSolicitante)}
+                        ${row('Empresa', props._empresaSolicitante)}
+                        ${row('Patente', props._patente)}
+                        ${row('Tipo Vehículo', props._tipoVehiculo)}
+                        ${row('Tipo Carga', props._tipoCarga)}
+                        ${props._pesoToneladas ? row('Peso', `${props._pesoToneladas} Tn`) : ''}
+                        ${row('Origen', origen)}
+                        ${row('Destino', destino)}
+                        ${row('Recorrido', props._calles)}
                       </div>
                     </div>`;
                 } else {
