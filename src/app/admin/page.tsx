@@ -204,6 +204,8 @@ export default function AdminPage() {
   const [previewCapas, setPreviewCapas] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExportingGis, setIsExportingGis] = useState(false);
+  const [isImportingGis, setIsImportingGis] = useState(false);
+  const importFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleExportGisData = async () => {
     setIsExportingGis(true);
@@ -225,6 +227,57 @@ export default function AdminPage() {
       toast.error('Error al exportar la información GIS.');
     } finally {
       setIsExportingGis(false);
+    }
+  };
+
+  const handleImportGisData = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImportingGis(true);
+    try {
+      const text = await file.text();
+      const json = JSON.parse(text);
+
+      const countCapas = json.data?.capas?.length || json.capas?.length || 0;
+      const countGrupos = json.data?.grupos?.length || json.grupos?.length || 0;
+      const countLineas = json.data?.lineasTransporte?.length || json.lineasTransporte?.length || 0;
+      const countRutas = json.data?.rutasTransporte?.length || json.rutasTransporte?.length || 0;
+
+      const confirmMsg = `¿Deseas importar esta información GIS a la base de datos?\n\n` +
+        `• Capas: ${countCapas}\n` +
+        `• Grupos: ${countGrupos}\n` +
+        `• Líneas de colectivo: ${countLineas}\n` +
+        `• Rutas de transporte: ${countRutas}`;
+
+      if (!confirm(confirmMsg)) {
+        setIsImportingGis(false);
+        if (e.target) e.target.value = '';
+        return;
+      }
+
+      const res = await authFetch('/api/import-gis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(json),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al importar información GIS');
+      }
+
+      const result = await res.json();
+      toast.success(`¡Importación completada! ${result.summary?.capas || 0} capas, ${result.summary?.grupos || 0} grupos cargados.`);
+      emitirCambioMapa('capas');
+      emitirCambioMapa('lineas');
+      emitirCambioMapa('rutas');
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Error al procesar archivo de importación GIS.');
+    } finally {
+      setIsImportingGis(false);
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -1489,34 +1542,70 @@ export default function AdminPage() {
             <span className="hidden md:inline">Reportar Error</span>
           </button>
 
-          {/* Botón de Exportar Toda la Información GIS (Exclusivo Propietario jcancelo.dev@gmail.com) */}
+          {/* Botones de Exportar/Importar Toda la Información GIS (Exclusivo Propietario jcancelo.dev@gmail.com) */}
           {isOwner && (
-            <button
-              onClick={handleExportGisData}
-              disabled={isExportingGis}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '6px 10px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                color: '#ffffff',
-                background: '#2563eb',
-                border: 'none',
-                cursor: isExportingGis ? 'not-allowed' : 'pointer',
-                borderRadius: '6px',
-                transition: 'background 0.2s',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                flexShrink: 0,
-              }}
-              onMouseOver={e => { if (!isExportingGis) e.currentTarget.style.background = '#1d4ed8'; }}
-              onMouseOut={e => { if (!isExportingGis) e.currentTarget.style.background = '#2563eb'; }}
-              title="Descargar toda la base de datos GIS (Exclusivo jcancelo.dev@gmail.com)"
-            >
-              {isExportingGis ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-              <span className="hidden lg:inline">Descargar Info GIS</span>
-            </button>
+            <>
+              <button
+                onClick={handleExportGisData}
+                disabled={isExportingGis}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '6px 10px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  background: '#2563eb',
+                  border: 'none',
+                  cursor: isExportingGis ? 'not-allowed' : 'pointer',
+                  borderRadius: '6px',
+                  transition: 'background 0.2s',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  flexShrink: 0,
+                }}
+                onMouseOver={e => { if (!isExportingGis) e.currentTarget.style.background = '#1d4ed8'; }}
+                onMouseOut={e => { if (!isExportingGis) e.currentTarget.style.background = '#2563eb'; }}
+                title="Descargar toda la base de datos GIS (Exclusivo jcancelo.dev@gmail.com)"
+              >
+                {isExportingGis ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                <span className="hidden lg:inline">Descargar GIS</span>
+              </button>
+
+              <input
+                type="file"
+                ref={importFileInputRef}
+                onChange={handleImportGisData}
+                accept=".json"
+                style={{ display: 'none' }}
+              />
+              <button
+                onClick={() => importFileInputRef.current?.click()}
+                disabled={isImportingGis}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '6px 10px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  background: '#e2e8f0',
+                  border: 'none',
+                  cursor: isImportingGis ? 'not-allowed' : 'pointer',
+                  borderRadius: '6px',
+                  transition: 'background 0.2s',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  flexShrink: 0,
+                }}
+                onMouseOver={e => { if (!isImportingGis) e.currentTarget.style.background = '#cbd5e1'; }}
+                onMouseOut={e => { if (!isImportingGis) e.currentTarget.style.background = '#e2e8f0'; }}
+                title="Importar respaldo JSON GIS (Exclusivo jcancelo.dev@gmail.com)"
+              >
+                {isImportingGis ? <Loader2 size={13} className="animate-spin" /> : <Zap size={13} color="#2563eb" />}
+                <span className="hidden lg:inline">Importar GIS</span>
+              </button>
+            </>
           )}
 
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="Volver al Mapa">
