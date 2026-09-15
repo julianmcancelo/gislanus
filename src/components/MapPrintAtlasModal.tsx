@@ -31,19 +31,25 @@ export default function MapPrintAtlasModal({
   const getLineCoordinates = (): [number, number][] => {
     const coords: [number, number][] = [];
     capasLinea.forEach((c) => {
-      const geo = cacheDatosGeo[c.id];
+      const geo = cacheDatosGeo[c.id] || c.datosGeo;
       if (!geo) return;
       const features = geo.type === 'FeatureCollection' ? geo.features : [geo];
       features.forEach((f: any) => {
-        if (!f.geometry) return;
+        if (!f || !f.geometry) return;
         const type = f.geometry.type;
         const geomCoords = f.geometry.coordinates;
 
-        if (type === 'LineString') {
-          geomCoords.forEach((pt: [number, number]) => coords.push([pt[1], pt[0]]));
-        } else if (type === 'MultiLineString') {
+        if (type === 'LineString' && Array.isArray(geomCoords)) {
+          geomCoords.forEach((pt: [number, number]) => {
+            if (pt && pt.length >= 2) coords.push([pt[1], pt[0]]);
+          });
+        } else if (type === 'MultiLineString' && Array.isArray(geomCoords)) {
           geomCoords.forEach((line: [number, number][]) => {
-            line.forEach((pt: [number, number]) => coords.push([pt[1], pt[0]]));
+            if (Array.isArray(line)) {
+              line.forEach((pt: [number, number]) => {
+                if (pt && pt.length >= 2) coords.push([pt[1], pt[0]]);
+              });
+            }
           });
         }
       });
@@ -66,22 +72,20 @@ export default function MapPrintAtlasModal({
     setIsGenerating(true);
 
     try {
-      if (incluirVistaGeneral) {
-        setPrintStatus('Ajustando lámina: Vista General...');
-        const fullBounds = L.latLngBounds(allCoords);
-        mapInstance.fitBounds(fullBounds, { padding: [40, 40] });
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
+      setPrintStatus('Enfocando trazado de la línea...');
+      const fullBounds = L.latLngBounds(allCoords);
+      mapInstance.fitBounds(fullBounds, { padding: [50, 50] });
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-      setPrintStatus('Listo para imprimir atlas tramo por tramo');
+      setPrintStatus('Abriendo diálogo de impresión...');
       setIsGenerating(false);
 
       setTimeout(() => {
         window.print();
         onClose();
-      }, 300);
+      }, 200);
     } catch (err: any) {
-      console.error('Error al generar atlas de impresión:', err);
+      console.error('Error al preparar la impresión:', err);
       setIsGenerating(false);
       alert('Error durante la preparación de la impresión.');
     }
