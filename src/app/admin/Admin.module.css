@@ -12,57 +12,66 @@
 
 /* ── TOP HEADER ── */
 .topHeader {
-  height: 60px;
-  background: rgba(255,255,255,0.93);
+  min-height: 52px;
+  height: auto;
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(226,232,240,0.8);
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.04);
-  padding: 0 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  padding: 6px 16px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .headerBrand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .headerBrand h1 {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.2px;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .headerNav {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
 }
 
 .menuItem {
   display: flex;
   align-items: center;
-  padding: 8px 14px;
+  padding: 6px 10px;
   background: transparent;
   border: none;
   color: #64748b;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
-  gap: 6px;
+  gap: 5px;
   font-family: inherit;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .menuItem:hover {
@@ -79,33 +88,33 @@
 /* ── MAIN CONTENT ── */
 .contentArea {
   flex: 1;
-  padding: 32px 40px;
+  padding: 16px 20px;
   overflow-y: auto;
   min-width: 0;
   margin: 0 auto;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1440px;
 }
 
 .pageTitle {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  margin: 0 0 4px;
+  margin: 0 0 2px;
   color: #0f172a;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.3px;
 }
 
 .breadcrumb {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #94a3b8;
-  margin: 0 0 20px;
+  margin: 0 0 14px;
   font-weight: 500;
 }
 
 .mainContent {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* ── CARDS / SECTIONS ── */
@@ -334,25 +343,25 @@
 .dashboardGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
-/* Stat card — premium */
+/* Stat card — premium compact */
 .statCard {
   background: #fff;
-  padding: 18px 20px;
+  padding: 10px 14px;
   border: 1px solid rgba(226,232,240,0.8);
-  border-radius: 14px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(15,23,42,0.05);
+  box-shadow: 0 1px 4px rgba(15,23,42,0.04);
   transition: box-shadow 0.15s, transform 0.15s;
 }
-.statCard:hover { box-shadow: 0 6px 22px rgba(15,23,42,0.09); transform: translateY(-1px); }
+.statCard:hover { box-shadow: 0 4px 14px rgba(15,23,42,0.08); transform: translateY(-1px); }
 
 .statCard.total    { border-left: 3px solid #2563eb; }
 .statCard.nuevos   { border-left: 3px solid #3b82f6; }
@@ -365,21 +374,21 @@
 .statHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .statLabel {
-  font-size: 0.67rem;
-  color: #94a3b8;
+  font-size: 0.65rem;
+  color: #64748b;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
 }
 
 .statIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,15 +397,15 @@
 }
 
 .statValue {
-  font-size: 2.1rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: #0f172a;
   line-height: 1;
-  letter-spacing: -1.5px;
+  letter-spacing: -0.8px;
 }
 
 .statSub {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: #94a3b8;
   font-weight: 500;
 }

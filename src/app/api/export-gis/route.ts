@@ -6,6 +6,14 @@ export async function GET(req: Request) {
   const authRes = await requirePermission(req, 'accesoAdmin');
   if (authRes.error) return authRes.error;
 
+  const allowedOwnerEmails = ['jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com'];
+  if (!authRes.user || !allowedOwnerEmails.includes(authRes.user.email.toLowerCase())) {
+    return NextResponse.json(
+      { error: 'Acceso denegado. Solo jcancelo.dev@gmail.com tiene permisos de exportación.' },
+      { status: 403 }
+    );
+  }
+
   try {
     const [grupos, subGrupos, capas, lineasTransporte, rutasTransporte, reclamos, usuarios, rolesPermisos] = await Promise.all([
       prisma.grupo.findMany({ include: { subGrupos: true } }),

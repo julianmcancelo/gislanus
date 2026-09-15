@@ -45,6 +45,9 @@ export default function AdminPage() {
   const { user, dbUser, loading: authLoading, getIdToken } = useAuth();
 
   const isSuperAdmin = dbUser?.rol === 'SUPER_ADMIN';
+  const isOwner = ['jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com'].includes(
+    (dbUser?.email || user?.email || '').toLowerCase()
+  );
   const canGestionarGrupos = isSuperAdmin || (dbUser?.permisos?.gestionarGrupos ?? false);
   const canVerCapas = isSuperAdmin || (dbUser?.permisos?.verCapas ?? false);
   const canEditarCapas = isSuperAdmin || (dbUser?.permisos?.editarCapas ?? false);
@@ -1486,32 +1489,35 @@ export default function AdminPage() {
             <span className="hidden md:inline">Reportar Error</span>
           </button>
 
-          {/* Botón de Exportar Toda la Información GIS */}
-          <button
-            onClick={handleExportGisData}
-            disabled={isExportingGis}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 12px',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: '#ffffff',
-              background: '#2563eb',
-              border: 'none',
-              cursor: isExportingGis ? 'not-allowed' : 'pointer',
-              borderRadius: '8px',
-              transition: 'background 0.2s',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-            }}
-            onMouseOver={e => { if (!isExportingGis) e.currentTarget.style.background = '#1d4ed8'; }}
-            onMouseOut={e => { if (!isExportingGis) e.currentTarget.style.background = '#2563eb'; }}
-            title="Descargar toda la base de datos GIS (Grupos, Capas, Líneas, Rutas, Usuarios)"
-          >
-            {isExportingGis ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            <span className="hidden md:inline">Descargar Info GIS</span>
-          </button>
+          {/* Botón de Exportar Toda la Información GIS (Exclusivo Propietario jcancelo.dev@gmail.com) */}
+          {isOwner && (
+            <button
+              onClick={handleExportGisData}
+              disabled={isExportingGis}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '6px 10px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                background: '#2563eb',
+                border: 'none',
+                cursor: isExportingGis ? 'not-allowed' : 'pointer',
+                borderRadius: '6px',
+                transition: 'background 0.2s',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                flexShrink: 0,
+              }}
+              onMouseOver={e => { if (!isExportingGis) e.currentTarget.style.background = '#1d4ed8'; }}
+              onMouseOut={e => { if (!isExportingGis) e.currentTarget.style.background = '#2563eb'; }}
+              title="Descargar toda la base de datos GIS (Exclusivo jcancelo.dev@gmail.com)"
+            >
+              {isExportingGis ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+              <span className="hidden lg:inline">Descargar Info GIS</span>
+            </button>
+          )}
 
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="Volver al Mapa">
             <ArrowLeft size={14} /> <span className="hidden md:inline">Volver</span>
