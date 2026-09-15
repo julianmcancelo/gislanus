@@ -86,6 +86,26 @@ function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
       <span className={`${styles.capaName} ${capa.active ? styles.capaNameActive : ''}`}>
         {capa.nombre}
       </span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!capa.active) onToggle();
+          setTimeout(() => window.print(), 300);
+        }}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '2px',
+          color: '#94a3b8',
+          display: 'flex',
+          alignItems: 'center',
+          marginRight: '2px'
+        }}
+        title={`Imprimir recorrido de ${capa.nombre}`}
+      >
+        <Printer size={12} />
+      </button>
       <Toggle active={capa.active} color={capa.color} onChange={onToggle} />
     </div>
   );
@@ -637,6 +657,27 @@ export default function Sidebar({
                                       onClick={e => e.stopPropagation()} />
                                     <span className={styles.subGroupName}>{sgName}</span>
                                     <span className={`${styles.badge} ${styles.badgeGray}`}>{sgCapas.length}</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Activar solo esta linea si no esta activa
+                                        if (!sgAllActive) toggleSubAll(gName, sgName, true);
+                                        setTimeout(() => window.print(), 300);
+                                      }}
+                                      style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '2px 4px',
+                                        borderRadius: '4px',
+                                        color: '#64748b',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                      }}
+                                      title={`Imprimir ficha y recorrido de ${sgName}`}
+                                    >
+                                      <Printer size={12} />
+                                    </button>
                                   </div>
 
                                   {sgOpen && (
