@@ -90,6 +90,7 @@ export default function MapSearch() {
   return (
     <div 
       ref={containerRef} 
+      className="map-search-box hide-on-print"
       style={{ 
         position: 'absolute', 
         top: '12px', 

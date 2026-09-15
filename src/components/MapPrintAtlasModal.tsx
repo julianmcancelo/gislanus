@@ -90,7 +90,22 @@ export default function MapPrintAtlasModal({
         mapInstance.fitBounds(fullBounds, { padding: [50, 50] });
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        const canvas = await html2canvas(mapElement, { useCORS: true, allowTaint: true });
+        const captureOptions = {
+          useCORS: true,
+          allowTaint: true,
+          ignoreElements: (el: Element) => {
+            if (el.classList.contains('map-search-box') ||
+                el.classList.contains('leaflet-control-container') ||
+                el.classList.contains('hide-on-print') ||
+                el.classList.contains('leaflet-popup') ||
+                el.tagName === 'HEADER') {
+              return true;
+            }
+            return false;
+          }
+        };
+
+        const canvas = await html2canvas(mapElement, captureOptions);
         generatedCaptures.push({
           title: `${lineaNombre} - Vista General Lanús`,
           dataUrl: canvas.toDataURL('image/png'),
@@ -111,7 +126,22 @@ export default function MapPrintAtlasModal({
           mapInstance.setView(centerPt, zoomLevel, { animate: false });
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          const canvas = await html2canvas(mapElement, { useCORS: true, allowTaint: true });
+          const captureOptions = {
+            useCORS: true,
+            allowTaint: true,
+            ignoreElements: (el: Element) => {
+              if (el.classList.contains('map-search-box') ||
+                  el.classList.contains('leaflet-control-container') ||
+                  el.classList.contains('hide-on-print') ||
+                  el.classList.contains('leaflet-popup') ||
+                  el.tagName === 'HEADER') {
+                return true;
+              }
+              return false;
+            }
+          };
+
+          const canvas = await html2canvas(mapElement, captureOptions);
           generatedCaptures.push({
             title: `${lineaNombre} - Tramo ${i + 1}/${numSegmentos}`,
             dataUrl: canvas.toDataURL('image/png'),
