@@ -80,7 +80,7 @@ function Toggle({ active, color, onChange }: { active: boolean; color: string; o
 }
 
 /* ── Capa row ── */
-function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
+function CapaRow({ capa, onToggle, abrirImpresionAtlas }: { capa: Capa; onToggle: () => void; abrirImpresionAtlas?: (lineaNombre: string, capasLinea: Capa[]) => void }) {
   return (
     <div className={styles.capaRow} onClick={onToggle} title={capa.nombre}>
       <div className={styles.capaColorBar} style={{ background: capa.color, opacity: capa.active ? 1 : 0.25 }} />
@@ -90,8 +90,12 @@ function CapaRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if (!capa.active) onToggle();
-          setTimeout(() => window.print(), 300);
+          if (abrirImpresionAtlas) {
+            abrirImpresionAtlas(capa.nombre, [capa]);
+          } else {
+            if (!capa.active) onToggle();
+            setTimeout(() => window.print(), 300);
+          }
         }}
         style={{
           background: 'transparent',
@@ -709,21 +713,21 @@ export default function Sidebar({
                                               </div>
                                               {ssgOpen && (
                                                 <div style={{ paddingLeft: 7 }}>
-                                                  {ssgCapas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
+                                                  {ssgCapas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} abrirImpresionAtlas={abrirImpresionAtlas} />)}
                                                 </div>
                                               )}
                                             </div>
                                           );
                                         })
                                       ) : (
-                                        sgData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)
+                                        sgData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} abrirImpresionAtlas={abrirImpresionAtlas} />)
                                       )}
                                     </div>
                                   )}
                                 </div>
                               );
                             })}
-                            {gData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
+                            {gData.capasDirectas.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} abrirImpresionAtlas={abrirImpresionAtlas} />)}
                           </>
                         )}
                       </div>
