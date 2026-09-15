@@ -200,6 +200,30 @@ export default function AdminPage() {
   // Preview state
   const [previewCapas, setPreviewCapas] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isExportingGis, setIsExportingGis] = useState(false);
+
+  const handleExportGisData = async () => {
+    setIsExportingGis(true);
+    try {
+      const res = await authFetch('/api/export-gis');
+      if (!res.ok) throw new Error('Falló la descarga de datos GIS');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gislanus-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('¡Toda la información GIS exportada correctamente!');
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Error al exportar la información GIS.');
+    } finally {
+      setIsExportingGis(false);
+    }
+  };
 
   // Records View State
   const [selectedCapaForRecords, setSelectedCapaForRecords] = useState<any | null>(null);
@@ -1460,6 +1484,33 @@ export default function AdminPage() {
           >
             <AlertTriangle size={14} color="#ef4444" />
             <span className="hidden md:inline">Reportar Error</span>
+          </button>
+
+          {/* Botón de Exportar Toda la Información GIS */}
+          <button
+            onClick={handleExportGisData}
+            disabled={isExportingGis}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 12px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: '#ffffff',
+              background: '#2563eb',
+              border: 'none',
+              cursor: isExportingGis ? 'not-allowed' : 'pointer',
+              borderRadius: '8px',
+              transition: 'background 0.2s',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+            }}
+            onMouseOver={e => { if (!isExportingGis) e.currentTarget.style.background = '#1d4ed8'; }}
+            onMouseOut={e => { if (!isExportingGis) e.currentTarget.style.background = '#2563eb'; }}
+            title="Descargar toda la base de datos GIS (Grupos, Capas, Líneas, Rutas, Usuarios)"
+          >
+            {isExportingGis ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            <span className="hidden md:inline">Descargar Info GIS</span>
           </button>
 
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textDecoration: 'none', borderRadius: '8px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#f1f5f9'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="Volver al Mapa">
