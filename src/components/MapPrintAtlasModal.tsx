@@ -533,6 +533,16 @@ export default function MapPrintAtlasModal({
           {/* PASO 1: Selección de Trazos / Ramales a imprimir */}
           {step === 1 && (
             <div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.1rem' }}>🪄</span>
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1d4ed8', display: 'block' }}>Varita Mágica de Selección</span>
+                    <span style={{ fontSize: '0.74rem', color: '#3b82f6' }}>Selección rápida de ramales del trazado</span>
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
                   Elegí los trazos / ramales que deseas incluir:
