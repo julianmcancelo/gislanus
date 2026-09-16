@@ -27,6 +27,8 @@ export default function MapPrintAtlasModal({
   const [incluirVistaGeneral, setIncluirVistaGeneral] = useState<boolean>(true);
   const [incluirCuadricula, setIncluirCuadricula] = useState<boolean>(true);
   const [orientacion, setOrientacion] = useState<'landscape' | 'portrait'>('landscape');
+  const [modoManual, setModoManual] = useState<boolean>(false);
+  const [capturasManuales, setCapturasManuales] = useState<{ title: string; dataUrl: string }[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
   const [captures, setCaptures] = useState<{ title: string; dataUrl: string }[]>([]);
@@ -252,18 +254,135 @@ export default function MapPrintAtlasModal({
       const pdfBlobUrl = pdf.output('bloburl');
       pdf.save(`Atlas_Recorrido_${lineaNombre.replace(/\s+/g, '_')}.pdf`);
 
-      // Abrir automáticamente la ventana de impresión nativa con el PDF cargado
       const printWindow = window.open(pdfBlobUrl, '_blank');
       if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-        };
+        printWindow.onload = () => printWindow.print();
       }
 
       setPrintStatus('¡Atlas PDF generado, descargado y enviado a imprimir con éxito!');
     } catch (err: any) {
       console.error('Error al generar atlas de capturas:', err);
       alert('Hubo un error al generar las capturas.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Capturar una foto manual de la vista actual del usuario en el mapa
+  const handleTomarCapturaManual = async () => {
+    if (!mapInstance) return;
+    setIsGenerating(true);
+    setPrintStatus('Capturando vista actual del mapa...');
+
+    try {
+      const mapElement = mapInstance.getContainer();
+      mapInstance.invalidateSize({ animate: false });
+      await new Promise((res) => setTimeout(res, 300));
+
+      const canvas = await html2canvas(mapElement, {
+        useCORS: true,
+        allowTaint: false,
+        scale: 2,
+        logging: false,
+        ignoreElements: (el: Element) => {
+          return (
+            el.classList.contains('map-search-box') ||
+            el.classList.contains('leaflet-control-container') ||
+            el.classList.contains('hide-on-print') ||
+            el.classList.contains('leaflet-popup') ||
+            el.tagName === 'HEADER'
+          );
+        },
+      });
+
+      const num = capturasManuales.length + 1;
+      const dataUrl = canvas.toDataURL('image/png');
+      setCapturasManuales((prev) => [
+        ...prev,
+        { title: `${lineaNombre} - Foto ${num}`, dataUrl },
+      ]);
+      setPrintStatus(`¡Foto ${num} agregada! Podés mover el mapa y sacar otra.`);
+    } catch (err) {
+      console.error('Error al tomar captura manual:', err);
+      alert('Error al tomar foto.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleBorrarCapturaManual = (index: number) => {
+    setCapturasManuales((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Ensamblar PDF de capturas manuales
+  const handleExportarPDFManual = () => {
+    if (capturasManuales.length === 0) {
+      alert('Primero saca al menos 1 foto del mapa.');
+      return;
+    }
+
+    setIsGenerating(true);
+    setPrintStatus('Compilando PDF multipágina...');
+
+    try {
+      const isLandscape = orientacion === 'landscape';
+      const pdf = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      capturasManuales.forEach((item, index) => {
+        if (index > 0) pdf.addPage();
+        pdf.addImage(item.dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+        if (incluirCuadricula) {
+          pdf.setDrawColor(30, 41, 59);
+          pdf.setLineWidth(0.15);
+          const numCols = 4;
+          const numRows = 3;
+          const colWidth = pdfWidth / numCols;
+          const rowHeight = pdfHeight / numRows;
+          for (let c = 1; c < numCols; c++) pdf.line(c * colWidth, 0, c * colWidth, pdfHeight);
+          for (let r = 1; r < numRows; r++) pdf.line(0, r * rowHeight, pdfWidth, r * rowHeight);
+        }
+
+        // Encabezado
+        pdf.setFillColor(15, 23, 42);
+        pdf.rect(8, 8, isLandscape ? 160 : 140, 18, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(10);
+        pdf.text(`MUNICIPALIDAD DE LANÚS — ATLAS DE RECORRIDOS`, 12, 15);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text(`${item.title} | Hoja ${index + 1} de ${capturasManuales.length}`, 12, 21);
+
+        // Pie de página
+        pdf.setFillColor(255, 255, 255);
+        pdf.setDrawColor(203, 213, 225);
+        pdf.rect(8, pdfHeight - 16, isLandscape ? 180 : 160, 10, 'FD');
+        pdf.setTextColor(15, 23, 42);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7.5);
+        pdf.text(`IMPRESIÓN MANUAL DE CAPTURAS - CAPA: ${lineaNombre.toUpperCase()}`, 12, pdfHeight - 10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`Lanús Gobierno • Trazado cartográfico de precisión`, 12, pdfHeight - 6);
+      });
+
+      const pdfBlobUrl = pdf.output('bloburl');
+      pdf.save(`Atlas_Manual_${lineaNombre.replace(/\s+/g, '_')}.pdf`);
+
+      const printWindow = window.open(pdfBlobUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => printWindow.print();
+      }
+      setPrintStatus('¡PDF generado y enviado a imprimir!');
+    } catch (err) {
+      console.error(err);
+      alert('Error al generar PDF.');
     } finally {
       setIsGenerating(false);
     }
@@ -349,177 +468,279 @@ export default function MapPrintAtlasModal({
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Opción 1: Número de tramos */}
-          <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-              Cantidad de hojas / capturas en el único PDF:
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
-              {[4, 8, 12, 16, 20, 30].map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => setNumSegmentos(num)}
-                  disabled={isGenerating}
-                  style={{
-                    padding: '8px 2px',
-                    borderRadius: '10px',
-                    border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                    background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
-                    color: numSegmentos === num ? '#1d4ed8' : '#475569',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    cursor: isGenerating ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {num} Págs
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Opción 2: Nivel de zoom */}
-          <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-              Nivel de zoom por tramo:
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[
-                { label: 'Detallado (Calles)', val: 17 },
-                { label: 'Medio (Barrios)', val: 16 },
-                { label: 'Amplio (Zonal)', val: 15 },
-              ].map((item) => (
-                <button
-                  key={item.val}
-                  type="button"
-                  onClick={() => setZoomLevel(item.val)}
-                  disabled={isGenerating}
-                  style={{
-                    flex: 1,
-                    padding: '9px 8px',
-                    borderRadius: '8px',
-                    border: zoomLevel === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                    background: zoomLevel === item.val ? '#eff6ff' : '#fff',
-                    color: zoomLevel === item.val ? '#1d4ed8' : '#64748b',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    cursor: isGenerating ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Opción 3: Orientación del papel */}
-          <div>
-            <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-              Orientación de página:
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {[
-                { label: 'Horizontal (A4 Landscape)', val: 'landscape' },
-                { label: 'Vertical (A4 Portrait)', val: 'portrait' },
-              ].map((item) => (
-                <button
-                  key={item.val}
-                  type="button"
-                  onClick={() => setOrientacion(item.val as any)}
-                  disabled={isGenerating}
-                  style={{
-                    flex: 1,
-                    padding: '9px 8px',
-                    borderRadius: '8px',
-                    border: orientacion === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                    background: orientacion === item.val ? '#eff6ff' : '#fff',
-                    color: orientacion === item.val ? '#1d4ed8' : '#64748b',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    cursor: isGenerating ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Opción 4: Cuadrícula y Vista General */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px 14px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={incluirCuadricula}
-                onChange={(e) => setIncluirCuadricula(e.target.checked)}
-                disabled={isGenerating}
-                style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-                Incluir cuadrícula cartográfica (estilo Field Papers / Nakarte)
-              </span>
-            </label>
-
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px 14px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                cursor: 'pointer',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={incluirVistaGeneral}
-                onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
-                disabled={isGenerating}
-                style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-                Incluir lámina 1 con la vista panorámica completa
-              </span>
-            </label>
-          </div>
-
-          {/* Estado del procesamiento */}
-          {isGenerating && (
-            <div
-              style={{
-                padding: '14px',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '10px',
-                color: '#1d4ed8',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <Loader2 className="animate-spin" size={18} />
-              <span>{printStatus}</span>
-            </div>
-          )}
+        {/* Tab selector Modo Automático / Modo Manual */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+          <button
+            type="button"
+            onClick={() => setModoManual(false)}
+            style={{
+              flex: 1,
+              padding: '12px',
+              border: 'none',
+              background: !modoManual ? '#fff' : 'transparent',
+              borderBottom: !modoManual ? '2px solid #2563eb' : 'none',
+              color: !modoManual ? '#2563eb' : '#64748b',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+            }}
+          >
+            🤖 Generación Automática
+          </button>
+          <button
+            type="button"
+            onClick={() => setModoManual(true)}
+            style={{
+              flex: 1,
+              padding: '12px',
+              border: 'none',
+              background: modoManual ? '#fff' : 'transparent',
+              borderBottom: modoManual ? '2px solid #2563eb' : 'none',
+              color: modoManual ? '#2563eb' : '#64748b',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+            }}
+          >
+            📸 Captura Manual Foto x Foto ({capturasManuales.length})
+          </button>
         </div>
+
+        {/* Modal Body */}
+        {!modoManual ? (
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Opción 1: Número de tramos */}
+            <div>
+              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                Cantidad de hojas / capturas en el único PDF:
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
+                {[4, 8, 12, 16, 20, 30].map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setNumSegmentos(num)}
+                    disabled={isGenerating}
+                    style={{
+                      padding: '8px 2px',
+                      borderRadius: '10px',
+                      border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
+                      color: numSegmentos === num ? '#1d4ed8' : '#475569',
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      cursor: isGenerating ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {num} Págs
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Opción 2: Nivel de zoom */}
+            <div>
+              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                Nivel de zoom por tramo:
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[
+                  { label: 'Detallado (Calles)', val: 17 },
+                  { label: 'Medio (Barrios)', val: 16 },
+                  { label: 'Amplio (Zonal)', val: 15 },
+                ].map((item) => (
+                  <button
+                    key={item.val}
+                    type="button"
+                    onClick={() => setZoomLevel(item.val)}
+                    disabled={isGenerating}
+                    style={{
+                      flex: 1,
+                      padding: '9px 8px',
+                      borderRadius: '8px',
+                      border: zoomLevel === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      background: zoomLevel === item.val ? '#eff6ff' : '#fff',
+                      color: zoomLevel === item.val ? '#1d4ed8' : '#64748b',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: isGenerating ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Opción 3: Orientación del papel */}
+            <div>
+              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                Orientación de página:
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {[
+                  { label: 'Horizontal (A4 Landscape)', val: 'landscape' },
+                  { label: 'Vertical (A4 Portrait)', val: 'portrait' },
+                ].map((item) => (
+                  <button
+                    key={item.val}
+                    type="button"
+                    onClick={() => setOrientacion(item.val as any)}
+                    disabled={isGenerating}
+                    style={{
+                      flex: 1,
+                      padding: '9px 8px',
+                      borderRadius: '8px',
+                      border: orientacion === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      background: orientacion === item.val ? '#eff6ff' : '#fff',
+                      color: orientacion === item.val ? '#1d4ed8' : '#64748b',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: isGenerating ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Opción 4: Cuadrícula y Vista General */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 14px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={incluirCuadricula}
+                  onChange={(e) => setIncluirCuadricula(e.target.checked)}
+                  disabled={isGenerating}
+                  style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                  Incluir cuadrícula cartográfica (estilo Field Papers / Nakarte)
+                </span>
+              </label>
+
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 14px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={incluirVistaGeneral}
+                  onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
+                  disabled={isGenerating}
+                  style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+                />
+                <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                  Incluir lámina 1 con la vista panorámica completa
+                </span>
+              </label>
+            </div>
+
+            {/* Estado del procesamiento */}
+            {isGenerating && (
+              <div
+                style={{
+                  padding: '14px',
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '10px',
+                  color: '#1d4ed8',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <Loader2 className="animate-spin" size={18} />
+                <span>{printStatus}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* MODO MANUAL: Sacar fotos a mano y armar PDF */
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px', color: '#166534', fontSize: '0.82rem', fontWeight: 600 }}>
+              💡 Mové el mapa y hacé zoom en cada tramo a tu gusto. Presioná <strong>" Sacar foto actual"</strong> por cada sector. Al terminar, dale a <strong>"Unir fotos en PDF"</strong>.
+            </div>
+
+            <button
+              type="button"
+              onClick={handleTomarCapturaManual}
+              disabled={isGenerating}
+              style={{
+                padding: '12px',
+                borderRadius: '10px',
+                background: '#16a34a',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
+              }}
+            >
+              📷 Sacar Foto de la Vista Actual del Mapa
+            </button>
+
+            {/* Galería de fotos sacadas */}
+            {capturasManuales.length > 0 && (
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                  Fotos capturadas ({capturasManuales.length}):
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                  {capturasManuales.map((cap, idx) => (
+                    <div key={idx} style={{ position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', background: '#f8fafc' }}>
+                      <img src={cap.dataUrl} alt={`Foto ${idx + 1}`} style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
+                      <div style={{ padding: '4px', fontSize: '0.7rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Hoja {idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleBorrarCapturaManual(idx)}
+                          style={{ background: '#fee2e2', border: 'none', color: '#991b1b', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px', fontSize: '0.65rem', fontWeight: 800 }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {isGenerating && (
+              <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', color: '#1d4ed8', fontSize: '0.8rem', fontWeight: 600 }}>
+                {printStatus}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Modal Footer */}
         <div
@@ -550,28 +771,53 @@ export default function MapPrintAtlasModal({
           >
             Cancelar
           </button>
-          <button
-            type="button"
-            onClick={handleGenerateAtlasPDF}
-            disabled={isGenerating}
-            style={{
-              padding: '10px 22px',
-              borderRadius: '10px',
-              background: isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              border: 'none',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: isGenerating ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
-            }}
-          >
-            {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-            {isGenerating ? 'Capturando pantallas...' : `Exportar Atlas PDF (${numSegmentos} Hojas)`}
-          </button>
+          {!modoManual ? (
+            <button
+              type="button"
+              onClick={handleGenerateAtlasPDF}
+              disabled={isGenerating}
+              style={{
+                padding: '10px 22px',
+                borderRadius: '10px',
+                background: isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
+              }}
+            >
+              {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+              {isGenerating ? 'Capturando pantallas...' : `Exportar Atlas PDF (${numSegmentos} Hojas)`}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleExportarPDFManual}
+              disabled={isGenerating || capturasManuales.length === 0}
+              style={{
+                padding: '10px 22px',
+                borderRadius: '10px',
+                background: capturasManuales.length === 0 || isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: capturasManuales.length === 0 || isGenerating ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: capturasManuales.length === 0 || isGenerating ? 'none' : '0 4px 14px rgba(22,163,74,0.3)',
+              }}
+            >
+              {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+              Unir y Exportar PDF ({capturasManuales.length} Hojas)
+            </button>
+          )}
         </div>
       </div>
     </div>
