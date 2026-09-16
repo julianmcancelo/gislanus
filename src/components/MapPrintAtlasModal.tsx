@@ -22,8 +22,9 @@ export default function MapPrintAtlasModal({
   cacheDatosGeo,
   mapInstance,
 }: MapPrintAtlasModalProps) {
-  const [step, setStep] = useState<number>(1); // Paso 1: Selección de Trazos, Paso 2: Diseño y Formato, Paso 3: Renderizado
+  const [step, setStep] = useState<number>(1);
   const [ramalesSeleccionados, setRamalesSeleccionados] = useState<string[]>(capasLinea.map(c => c.id));
+  const [modoVarita, setModoVarita] = useState<boolean>(false);
   const [paperFormat, setPaperFormat] = useState<'A4' | 'A3' | 'A2'>('A4');
   const [zoomLevel, setZoomLevel] = useState<number>(16);
   const [numSegmentos, setNumSegmentos] = useState<number>(6);
@@ -35,6 +36,44 @@ export default function MapPrintAtlasModal({
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
   const [captures, setCaptures] = useState<{ title: string; dataUrl: string }[]>([]);
+
+  // Efecto para activar la Varita Mágica en el mapa
+  React.useEffect(() => {
+    if (!isOpen || !mapInstance || !modoVarita) return;
+
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      const clickPt = e.latlng;
+      let minDistance = Infinity;
+      let closestCapaId: string | null = null;
+
+      capasLinea.forEach((c) => {
+        const segs = getLayerFeatureSegments(c);
+        segs.forEach((s) => {
+          s.coords.forEach((coord) => {
+            const dist = mapInstance.distance(clickPt, L.latLng(coord[0], coord[1]));
+            if (dist < minDistance) {
+              minDistance = dist;
+              closestCapaId = c.id;
+            }
+          });
+        });
+      });
+
+      // Si se hizo clic cerca de un trazo (menos de 250 metros)
+      if (closestCapaId && minDistance < 250) {
+        setRamalesSeleccionados((prev) =>
+          prev.includes(closestCapaId!)
+            ? prev.filter((id) => id !== closestCapaId)
+            : [...prev, closestCapaId!]
+        );
+      }
+    };
+
+    mapInstance.on('click', handleMapClick);
+    return () => {
+      mapInstance.off('click', handleMapClick);
+    };
+  }, [isOpen, mapInstance, modoVarita, capasLinea, cacheDatosGeo]);
 
   if (!isOpen) return null;
 
@@ -533,14 +572,35 @@ export default function MapPrintAtlasModal({
           {/* PASO 1: Selección de Trazos / Ramales a imprimir */}
           {step === 1 && (
             <div>
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: modoVarita ? '#f0fdf4' : '#eff6ff', border: modoVarita ? '1px solid #86efac' : '1px solid #bfdbfe', borderRadius: '10px', padding: '10px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '1.1rem' }}>🪄</span>
                   <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1d4ed8', display: 'block' }}>Varita Mágica de Selección</span>
-                    <span style={{ fontSize: '0.74rem', color: '#3b82f6' }}>Selección rápida de ramales del trazado</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: modoVarita ? '#166534' : '#1d4ed8', display: 'block' }}>
+                      {modoVarita ? '¡Varita Mágica Activada!' : 'Varita Mágica de Selección'}
+                    </span>
+                    <span style={{ fontSize: '0.74rem', color: modoVarita ? '#15803d' : '#3b82f6' }}>
+                      {modoVarita ? 'Tocá cualquier trazo directamente en el mapa para marcarlo/desmarcarlo' : 'Elegí hacer clic en la pantalla o mediante la lista'}
+                    </span>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setModoVarita(!modoVarita)}
+                  style={{
+                    background: modoVarita ? '#16a34a' : '#2563eb',
+                    border: 'none',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  {modoVarita ? '✓ Seleccionando en Mapa' : 'Activar Clic en Mapa'}
+                </button>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
