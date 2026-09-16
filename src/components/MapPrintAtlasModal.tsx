@@ -207,8 +207,26 @@ export default function MapPrintAtlasModal({
       generatedCaptures.forEach((item, index) => {
         if (index > 0) pdf.addPage();
 
-        // Fondo y mapa principal
-        pdf.addImage(item.dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        // Calcular el aspecto original de la captura para no deformar/estirar el mapa
+        const imgProps = pdf.getImageProperties(item.dataUrl);
+        const imgAspect = imgProps.width / imgProps.height;
+        const pageAspect = pdfWidth / pdfHeight;
+
+        let renderW = pdfWidth;
+        let renderH = pdfHeight;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (imgAspect > pageAspect) {
+          renderH = pdfWidth / imgAspect;
+          offsetY = (pdfHeight - renderH) / 2;
+        } else {
+          renderW = pdfHeight * imgAspect;
+          offsetX = (pdfWidth - renderW) / 2;
+        }
+
+        // Fondo y mapa principal sin deformaciones
+        pdf.addImage(item.dataUrl, 'PNG', offsetX, offsetY, renderW, renderH);
 
         // Cuadrícula de coordenadas estilo Nakarte / Field Papers
         if (incluirCuadricula) {
