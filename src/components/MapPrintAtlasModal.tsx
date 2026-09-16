@@ -31,33 +31,51 @@ export default function MapPrintAtlasModal({
 
   if (!isOpen) return null;
 
-  const getLineCoordinates = (): [number, number][] => {
-    const coords: [number, number][] = [];
-    capasLinea.forEach((c) => {
-      const geo = cacheDatosGeo[c.id] || c.datosGeo;
-      if (!geo) return;
-      const features = geo.type === 'FeatureCollection' ? geo.features : [geo];
-      features.forEach((f: any) => {
-        if (!f || !f.geometry) return;
-        const type = f.geometry.type;
-        const geomCoords = f.geometry.coordinates;
+  const getLayerFeatureSegments = (capa: any) => {
+    const geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+    if (!geo) return [];
+    const features = geo.type === 'FeatureCollection' ? geo.features : [geo];
+    const segments: { nombre: string; coords: [number, number][] }[] = [];
 
-        if (type === 'LineString' && Array.isArray(geomCoords)) {
-          geomCoords.forEach((pt: [number, number]) => {
-            if (pt && pt.length >= 2) coords.push([pt[1], pt[0]]);
-          });
-        } else if (type === 'MultiLineString' && Array.isArray(geomCoords)) {
-          geomCoords.forEach((line: [number, number][]) => {
-            if (Array.isArray(line)) {
-              line.forEach((pt: [number, number]) => {
-                if (pt && pt.length >= 2) coords.push([pt[1], pt[0]]);
-              });
-            }
-          });
-        }
-      });
+    features.forEach((f: any, idx: number) => {
+      if (!f || !f.geometry) return;
+      const type = f.geometry.type;
+      const geomCoords = f.geometry.coordinates;
+      const featName = f.properties?.nombre || f.properties?.name || f.properties?.RAMAL || capa.nombre;
+      const featCoords: [number, number][] = [];
+
+      if (type === 'LineString' && Array.isArray(geomCoords)) {
+        geomCoords.forEach((pt: [number, number]) => {
+          if (pt && pt.length >= 2) featCoords.push([pt[1], pt[0]]);
+        });
+      } else if (type === 'MultiLineString' && Array.isArray(geomCoords)) {
+        geomCoords.forEach((line: [number, number][]) => {
+          if (Array.isArray(line)) {
+            line.forEach((pt: [number, number]) => {
+              if (pt && pt.length >= 2) featCoords.push([pt[1], pt[0]]);
+            });
+          }
+        });
+      }
+
+      if (featCoords.length > 0) {
+        segments.push({
+          nombre: `${capa.nombre}${features.length > 1 ? ` (Tramo ${idx + 1})` : ''}`,
+          coords: featCoords,
+        });
+      }
     });
-    return coords;
+
+    return segments;
+  };
+
+  const getAllCoordinates = (): [number, number][] => {
+    const allCoords: [number, number][] = [];
+    capasLinea.forEach((c) => {
+      const segs = getLayerFeatureSegments(c);
+      segs.forEach((s) => allCoords.push(...s.coords));
+    });
+    return allCoords;
   };
 
   // Capturar pantalla por tramos secuencialmente
@@ -67,9 +85,9 @@ export default function MapPrintAtlasModal({
       return;
     }
 
-    const allCoords = getLineCoordinates();
+    const allCoords = getAllCoordinates();
     if (allCoords.length === 0) {
-      alert('No se encontraron coordenadas trazadas para esta línea.');
+      alert('No se encontraron coordenadas trazadas para la selección.');
       return;
     }
 
@@ -77,9 +95,6 @@ export default function MapPrintAtlasModal({
     setCaptures([]);
 
     const mapElement = mapInstance.getContainer();
-    const totalPts = allCoords.length;
-    const stepSize = Math.max(1, Math.floor(totalPts / numSegmentos));
-
     const generatedCaptures: { title: string; dataUrl: string }[] = [];
 
     try {
@@ -87,7 +102,6 @@ export default function MapPrintAtlasModal({
       const waitForMapTiles = async () => {
         mapInstance.invalidateSize({ animate: false });
         await new Promise((resolve) => setTimeout(resolve, 1500));
-        // Esperar a que no queden imágenes cargando en el contenedor del mapa
         const images = mapElement.querySelectorAll('img');
         const pendingImages = Array.from(images).filter((img) => !img.complete);
         if (pendingImages.length > 0) {
@@ -97,7 +111,7 @@ export default function MapPrintAtlasModal({
                 new Promise((res) => {
                   img.onload = res;
                   img.onerror = res;
-                  setTimeout(res, 2000); // timeout máximo de seguridad de 2s por tile
+                  setTimeout(res, 2000);
                 })
             )
           );
@@ -108,7 +122,7 @@ export default function MapPrintAtlasModal({
       const captureOptions = {
         useCORS: true,
         allowTaint: false,
-        scale: 2, // Mayor resolución para evitar borrosidad
+        scale: 2,
         logging: false,
         ignoreElements: (el: Element) => {
           if (
@@ -138,24 +152,37 @@ export default function MapPrintAtlasModal({
         });
       }
 
-      // 2. Tramo por tramo con encuadre exacto del segmento
-      for (let i = 0; i < numSegmentos; i++) {
-        setPrintStatus(`Procesando Tramo ${i + 1} de ${numSegmentos}...`);
-        const startIndex = i * stepSize;
-        const endIndex = i === numSegmentos - 1 ? totalPts - 1 : Math.min(totalPts - 1, (i + 1) * stepSize);
-        const segmentPts = allCoords.slice(startIndex, endIndex + 1);
+      // 2. Recorrer cada capa/ramal de la selección de forma independiente
+      for (let cIdx = 0; cIdx < capasLinea.length; cIdx++) {
+        const capaObj = capasLinea[cIdx];
+        const segs = getLayerFeatureSegments(capaObj);
 
-        if (segmentPts.length > 0) {
-          const bounds = L.latLngBounds(segmentPts);
-          // Usar fitBounds en lugar de setView para que el tramo quede perfectamente centrado y visible
-          mapInstance.fitBounds(bounds, { padding: [60, 60], maxZoom: zoomLevel, animate: false });
-          await waitForMapTiles();
+        for (let sIdx = 0; sIdx < segs.length; sIdx++) {
+          const seg = segs[sIdx];
+          const coords = seg.coords;
+          const totalPts = coords.length;
+          const stepSize = Math.max(1, Math.floor(totalPts / numSegmentos));
 
-          const canvas = await html2canvas(mapElement, captureOptions);
-          generatedCaptures.push({
-            title: `${lineaNombre} - Tramo ${i + 1}/${numSegmentos}`,
-            dataUrl: canvas.toDataURL('image/png'),
-          });
+          for (let i = 0; i < numSegmentos; i++) {
+            const currentStepNum = generatedCaptures.length + 1;
+            setPrintStatus(`Procesando ${seg.nombre} - Sub-tramo ${i + 1} de ${numSegmentos}...`);
+
+            const startIndex = i * stepSize;
+            const endIndex = i === numSegmentos - 1 ? totalPts - 1 : Math.min(totalPts - 1, (i + 1) * stepSize);
+            const segmentPts = coords.slice(startIndex, endIndex + 1);
+
+            if (segmentPts.length > 0) {
+              const bounds = L.latLngBounds(segmentPts);
+              mapInstance.fitBounds(bounds, { padding: [60, 60], maxZoom: zoomLevel, animate: false });
+              await waitForMapTiles();
+
+              const canvas = await html2canvas(mapElement, captureOptions);
+              generatedCaptures.push({
+                title: `${seg.nombre} - Tramo ${i + 1}/${numSegmentos}`,
+                dataUrl: canvas.toDataURL('image/png'),
+              });
+            }
+          }
         }
       }
 
