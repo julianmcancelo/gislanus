@@ -22,6 +22,9 @@ export default function MapPrintAtlasModal({
   cacheDatosGeo,
   mapInstance,
 }: MapPrintAtlasModalProps) {
+  const [step, setStep] = useState<number>(1); // Paso 1: Selección de Trazos, Paso 2: Diseño y Formato, Paso 3: Renderizado
+  const [ramalesSeleccionados, setRamalesSeleccionados] = useState<string[]>(capasLinea.map(c => c.id));
+  const [paperFormat, setPaperFormat] = useState<'A4' | 'A3' | 'A2'>('A4');
   const [zoomLevel, setZoomLevel] = useState<number>(16);
   const [numSegmentos, setNumSegmentos] = useState<number>(6);
   const [incluirVistaGeneral, setIncluirVistaGeneral] = useState<boolean>(true);
@@ -73,9 +76,11 @@ export default function MapPrintAtlasModal({
     return segments;
   };
 
+  const capasFiltradas = capasLinea.filter((c) => ramalesSeleccionados.includes(c.id));
+
   const getAllCoordinates = (): [number, number][] => {
     const allCoords: [number, number][] = [];
-    capasLinea.forEach((c) => {
+    capasFiltradas.forEach((c) => {
       const segs = getLayerFeatureSegments(c);
       segs.forEach((s) => allCoords.push(...s.coords));
     });
@@ -157,8 +162,8 @@ export default function MapPrintAtlasModal({
       }
 
       // 2. Recorrer cada capa/ramal de la selección de forma independiente
-      for (let cIdx = 0; cIdx < capasLinea.length; cIdx++) {
-        const capaObj = capasLinea[cIdx];
+      for (let cIdx = 0; cIdx < capasFiltradas.length; cIdx++) {
+        const capaObj = capasFiltradas[cIdx];
         const segs = getLayerFeatureSegments(capaObj);
 
         for (let sIdx = 0; sIdx < segs.length; sIdx++) {
@@ -445,10 +450,10 @@ export default function MapPrintAtlasModal({
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>
-                Generador de Atlas Tramo por Tramo
+                Asistente de Impresión Cartográfica (Atlas MapOSMatic)
               </h3>
               <p style={{ margin: '2px 0 0', fontSize: '0.76rem', color: '#94a3b8' }}>
-                {lineaNombre} • {totalRamales} ramal(es) georreferenciado(s)
+                {lineaNombre} • {totalRamales} ramal(es) cargado(s)
               </p>
             </div>
           </div>
@@ -468,281 +473,266 @@ export default function MapPrintAtlasModal({
           </button>
         </div>
 
-        {/* Tab selector Modo Automático / Modo Manual */}
-        <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <button
-            type="button"
-            onClick={() => setModoManual(false)}
-            style={{
-              flex: 1,
-              padding: '12px',
-              border: 'none',
-              background: !modoManual ? '#fff' : 'transparent',
-              borderBottom: !modoManual ? '2px solid #2563eb' : 'none',
-              color: !modoManual ? '#2563eb' : '#64748b',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-            }}
-          >
-            🤖 Generación Automática
-          </button>
-          <button
-            type="button"
-            onClick={() => setModoManual(true)}
-            style={{
-              flex: 1,
-              padding: '12px',
-              border: 'none',
-              background: modoManual ? '#fff' : 'transparent',
-              borderBottom: modoManual ? '2px solid #2563eb' : 'none',
-              color: modoManual ? '#2563eb' : '#64748b',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-            }}
-          >
-            📸 Captura Manual Foto x Foto ({capturasManuales.length})
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        {!modoManual ? (
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Opción 1: Número de tramos */}
-            <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-                Cantidad de hojas / capturas en el único PDF:
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
-                {[4, 8, 12, 16, 20, 30].map((num) => (
-                  <button
-                    key={num}
-                    type="button"
-                    onClick={() => setNumSegmentos(num)}
-                    disabled={isGenerating}
-                    style={{
-                      padding: '8px 2px',
-                      borderRadius: '10px',
-                      border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                      background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
-                      color: numSegmentos === num ? '#1d4ed8' : '#475569',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      cursor: isGenerating ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {num} Págs
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Opción 2: Nivel de zoom */}
-            <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-                Nivel de zoom por tramo:
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {[
-                  { label: 'Detallado (Calles)', val: 17 },
-                  { label: 'Medio (Barrios)', val: 16 },
-                  { label: 'Amplio (Zonal)', val: 15 },
-                ].map((item) => (
-                  <button
-                    key={item.val}
-                    type="button"
-                    onClick={() => setZoomLevel(item.val)}
-                    disabled={isGenerating}
-                    style={{
-                      flex: 1,
-                      padding: '9px 8px',
-                      borderRadius: '8px',
-                      border: zoomLevel === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                      background: zoomLevel === item.val ? '#eff6ff' : '#fff',
-                      color: zoomLevel === item.val ? '#1d4ed8' : '#64748b',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: isGenerating ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Opción 3: Orientación del papel */}
-            <div>
-              <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-                Orientación de página:
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {[
-                  { label: 'Horizontal (A4 Landscape)', val: 'landscape' },
-                  { label: 'Vertical (A4 Portrait)', val: 'portrait' },
-                ].map((item) => (
-                  <button
-                    key={item.val}
-                    type="button"
-                    onClick={() => setOrientacion(item.val as any)}
-                    disabled={isGenerating}
-                    style={{
-                      flex: 1,
-                      padding: '9px 8px',
-                      borderRadius: '8px',
-                      border: orientacion === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                      background: orientacion === item.val ? '#eff6ff' : '#fff',
-                      color: orientacion === item.val ? '#1d4ed8' : '#64748b',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: isGenerating ? 'not-allowed' : 'pointer',
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Opción 4: Cuadrícula y Vista General */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 14px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={incluirCuadricula}
-                  onChange={(e) => setIncluirCuadricula(e.target.checked)}
-                  disabled={isGenerating}
-                  style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-                  Incluir cuadrícula cartográfica (estilo Field Papers / Nakarte)
-                </span>
-              </label>
-
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  padding: '10px 14px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={incluirVistaGeneral}
-                  onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
-                  disabled={isGenerating}
-                  style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-                  Incluir lámina 1 con la vista panorámica completa
-                </span>
-              </label>
-            </div>
-
-            {/* Estado del procesamiento */}
-            {isGenerating && (
-              <div
-                style={{
-                  padding: '14px',
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '10px',
-                  color: '#1d4ed8',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <Loader2 className="animate-spin" size={18} />
-                <span>{printStatus}</span>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* MODO MANUAL: Sacar fotos a mano y armar PDF */
-          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px 14px', borderRadius: '10px', color: '#166534', fontSize: '0.82rem', fontWeight: 600 }}>
-              💡 Mové el mapa y hacé zoom en cada tramo a tu gusto. Presioná <strong>" Sacar foto actual"</strong> por cada sector. Al terminar, dale a <strong>"Unir fotos en PDF"</strong>.
-            </div>
-
+        {/* Indicador de Pasos del Asistente estilo MapOSMatic / get-map.org */}
+        <div style={{ background: '#0f172a', padding: '12px 24px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {[
+            { num: 1, label: '1. Trazos' },
+            { num: 2, label: '2. Formato' },
+            { num: 3, label: '3. Generar' },
+          ].map((st) => (
             <button
+              key={st.num}
               type="button"
-              onClick={handleTomarCapturaManual}
-              disabled={isGenerating}
+              onClick={() => !isGenerating && setStep(st.num)}
               style={{
-                padding: '12px',
-                borderRadius: '10px',
-                background: '#16a34a',
-                color: '#fff',
+                background: 'transparent',
                 border: 'none',
-                fontWeight: 700,
-                fontSize: '0.9rem',
+                color: step === st.num ? '#38bdf8' : '#64748b',
+                fontWeight: step === st.num ? 800 : 600,
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
+                gap: '6px',
               }}
             >
-              📷 Sacar Foto de la Vista Actual del Mapa
+              <span style={{
+                width: 20, height: 20, borderRadius: '50%',
+                background: step === st.num ? '#38bdf8' : '#1e293b',
+                color: step === st.num ? '#0f172a' : '#94a3b8',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.75rem', fontWeight: 800
+              }}>
+                {st.num}
+              </span>
+              {st.label}
             </button>
+          ))}
+        </div>
 
-            {/* Galería de fotos sacadas */}
-            {capturasManuales.length > 0 && (
+        {/* Modal Body: Paso a Paso estilo MapOSMatic (print.get-map.org) */}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '320px' }}>
+          {/* PASO 1: Selección de Trazos / Ramales a imprimir */}
+          {step === 1 && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
+                  Elegí los trazos / ramales que deseas incluir:
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRamalesSeleccionados(capasLinea.map(c => c.id))}
+                    style={{ background: '#eff6ff', border: 'none', color: '#2563eb', fontSize: '0.72rem', fontWeight: 700, borderRadius: '4px', padding: '3px 8px', cursor: 'pointer' }}
+                  >
+                    Seleccionar todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRamalesSeleccionados([])}
+                    style={{ background: '#f1f5f9', border: 'none', color: '#64748b', fontSize: '0.72rem', fontWeight: 700, borderRadius: '4px', padding: '3px 8px', cursor: 'pointer' }}
+                  >
+                    Ninguno
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                {capasLinea.map((capa) => {
+                  const isChecked = ramalesSeleccionados.includes(capa.id);
+                  return (
+                    <label
+                      key={capa.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: isChecked ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: isChecked ? '#f0f6ff' : '#ffffff',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setRamalesSeleccionados([...ramalesSeleccionados, capa.id]);
+                            } else {
+                              setRamalesSeleccionados(ramalesSeleccionados.filter(id => id !== capa.id));
+                            }
+                          }}
+                          style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
+                          {capa.nombre}
+                        </span>
+                      </div>
+                      <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: capa.color || '#2563eb' }} />
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* PASO 2: Diseño, Formato y Escala estilo MapOSMatic */}
+          {step === 2 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-                  Fotos capturadas ({capturasManuales.length}):
+                  1. Formato de Papel:
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
-                  {capturasManuales.map((cap, idx) => (
-                    <div key={idx} style={{ position: 'relative', border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden', background: '#f8fafc' }}>
-                      <img src={cap.dataUrl} alt={`Foto ${idx + 1}`} style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
-                      <div style={{ padding: '4px', fontSize: '0.7rem', fontWeight: 700, color: '#334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>Hoja {idx + 1}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleBorrarCapturaManual(idx)}
-                          style={{ background: '#fee2e2', border: 'none', color: '#991b1b', borderRadius: '4px', cursor: 'pointer', padding: '2px 4px', fontSize: '0.65rem', fontWeight: 800 }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {['A4', 'A3', 'A2'].map((fmt) => (
+                    <button
+                      key={fmt}
+                      type="button"
+                      onClick={() => setPaperFormat(fmt as any)}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: paperFormat === fmt ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                        background: paperFormat === fmt ? '#eff6ff' : '#fff',
+                        color: paperFormat === fmt ? '#1d4ed8' : '#475569',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Hoja {fmt}
+                    </button>
                   ))}
                 </div>
               </div>
-            )}
 
-            {isGenerating && (
-              <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', color: '#1d4ed8', fontSize: '0.8rem', fontWeight: 600 }}>
-                {printStatus}
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                  2. Orientación de Página:
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[
+                    { label: 'Horizontal (Landscape)', val: 'landscape' },
+                    { label: 'Vertical (Portrait)', val: 'portrait' },
+                  ].map((item) => (
+                    <button
+                      key={item.val}
+                      type="button"
+                      onClick={() => setOrientacion(item.val as any)}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: orientacion === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: orientacion === item.val ? '#eff6ff' : '#fff',
+                        color: orientacion === item.val ? '#1d4ed8' : '#64748b',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Modal Footer */}
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                  3. Nivel de Detalle / Zoom:
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[
+                    { label: 'Máximo (Calles)', val: 17 },
+                    { label: 'Medio (Barrios)', val: 16 },
+                    { label: 'Amplio (Zonal)', val: 15 },
+                  ].map((item) => (
+                    <button
+                      key={item.val}
+                      type="button"
+                      onClick={() => setZoomLevel(item.val)}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: zoomLevel === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: zoomLevel === item.val ? '#eff6ff' : '#fff',
+                        color: zoomLevel === item.val ? '#1d4ed8' : '#64748b',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PASO 3: Opciones de Renderizado y Disparo estilo MapOSMatic */}
+          {step === 3 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                  Cantidad de Láminas / Hojas continuas en el Atlas:
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px' }}>
+                  {[4, 8, 12, 16, 20, 30].map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setNumSegmentos(num)}
+                      style={{
+                        padding: '8px 2px',
+                        borderRadius: '8px',
+                        border: numSegmentos === num ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                        background: numSegmentos === num ? '#eff6ff' : '#f8fafc',
+                        color: numSegmentos === num ? '#1d4ed8' : '#475569',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {num} Págs
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={incluirCuadricula} onChange={(e) => setIncluirCuadricula(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#2563eb' }} />
+                  <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                    Incluir cuadrícula cartográfica (estilo Field Papers / MapOSMatic)
+                  </span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={incluirVistaGeneral} onChange={(e) => setIncluirVistaGeneral(e.target.checked)} style={{ width: '16px', height: '16px', accentColor: '#2563eb' }} />
+                  <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                    Incluir lámina 1 con la vista panorámica completa
+                  </span>
+                </label>
+              </div>
+
+              {isGenerating && (
+                <div style={{ padding: '14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', color: '#1d4ed8', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Loader2 className="animate-spin" size={18} />
+                  <span>{printStatus}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer: Navegación de Pasos estilo MapOSMatic / print.get-map.org */}
         <div
           style={{
             padding: '16px 24px',
@@ -750,8 +740,7 @@ export default function MapPrintAtlasModal({
             borderTop: '1px solid #f1f5f9',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: '10px',
+            justifyContent: 'space-between',
           }}
         >
           <button
@@ -771,53 +760,76 @@ export default function MapPrintAtlasModal({
           >
             Cancelar
           </button>
-          {!modoManual ? (
-            <button
-              type="button"
-              onClick={handleGenerateAtlasPDF}
-              disabled={isGenerating}
-              style={{
-                padding: '10px 22px',
-                borderRadius: '10px',
-                background: isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                border: 'none',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: isGenerating ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
-              }}
-            >
-              {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-              {isGenerating ? 'Capturando pantallas...' : `Exportar Atlas PDF (${numSegmentos} Hojas)`}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleExportarPDFManual}
-              disabled={isGenerating || capturasManuales.length === 0}
-              style={{
-                padding: '10px 22px',
-                borderRadius: '10px',
-                background: capturasManuales.length === 0 || isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                border: 'none',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: capturasManuales.length === 0 || isGenerating ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: capturasManuales.length === 0 || isGenerating ? 'none' : '0 4px 14px rgba(22,163,74,0.3)',
-              }}
-            >
-              {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-              Unir y Exportar PDF ({capturasManuales.length} Hojas)
-            </button>
-          )}
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={() => setStep(step - 1)}
+                disabled={isGenerating}
+                style={{
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  background: '#f1f5f9',
+                  border: '1px solid #cbd5e1',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                }}
+              >
+                ← Anterior
+              </button>
+            )}
+
+            {step < 3 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (ramalesSeleccionados.length === 0) {
+                    alert('Selecciona al menos 1 ramal para continuar.');
+                    return;
+                  }
+                  setStep(step + 1);
+                }}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: '10px',
+                  background: '#2563eb',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Siguiente →
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleGenerateAtlasPDF}
+                disabled={isGenerating}
+                style={{
+                  padding: '10px 22px',
+                  borderRadius: '10px',
+                  background: isGenerating ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
+                }}
+              >
+                {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                {isGenerating ? 'Generando MapOSMatic...' : `Generar Atlas (${numSegmentos} Hojas)`}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
