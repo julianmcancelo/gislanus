@@ -83,27 +83,53 @@ export default function MapPrintAtlasModal({
     const generatedCaptures: { title: string; dataUrl: string }[] = [];
 
     try {
+      // Helper para esperar a que los tiles de Leaflet se hayan cargado
+      const waitForMapTiles = async () => {
+        mapInstance.invalidateSize({ animate: false });
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Esperar a que no queden imágenes cargando en el contenedor del mapa
+        const images = mapElement.querySelectorAll('img');
+        const pendingImages = Array.from(images).filter((img) => !img.complete);
+        if (pendingImages.length > 0) {
+          await Promise.all(
+            pendingImages.map(
+              (img) =>
+                new Promise((res) => {
+                  img.onload = res;
+                  img.onerror = res;
+                  setTimeout(res, 2000); // timeout máximo de seguridad de 2s por tile
+                })
+            )
+          );
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      };
+
+      const captureOptions = {
+        useCORS: true,
+        allowTaint: false,
+        scale: 2, // Mayor resolución para evitar borrosidad
+        logging: false,
+        ignoreElements: (el: Element) => {
+          if (
+            el.classList.contains('map-search-box') ||
+            el.classList.contains('leaflet-control-container') ||
+            el.classList.contains('hide-on-print') ||
+            el.classList.contains('leaflet-popup') ||
+            el.tagName === 'HEADER'
+          ) {
+            return true;
+          }
+          return false;
+        },
+      };
+
       // 1. Vista General opcional
       if (incluirVistaGeneral) {
         setPrintStatus('Procesando Lámina 1: Vista General de Lanús...');
         const fullBounds = L.latLngBounds(allCoords);
-        mapInstance.fitBounds(fullBounds, { padding: [50, 50] });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        const captureOptions = {
-          useCORS: true,
-          allowTaint: true,
-          ignoreElements: (el: Element) => {
-            if (el.classList.contains('map-search-box') ||
-                el.classList.contains('leaflet-control-container') ||
-                el.classList.contains('hide-on-print') ||
-                el.classList.contains('leaflet-popup') ||
-                el.tagName === 'HEADER') {
-              return true;
-            }
-            return false;
-          }
-        };
+        mapInstance.fitBounds(fullBounds, { padding: [40, 40], animate: false });
+        await waitForMapTiles();
 
         const canvas = await html2canvas(mapElement, captureOptions);
         generatedCaptures.push({
@@ -112,7 +138,7 @@ export default function MapPrintAtlasModal({
         });
       }
 
-      // 2. Tramo por tramo con zoom detallado
+      // 2. Tramo por tramo con encuadre exacto del segmento
       for (let i = 0; i < numSegmentos; i++) {
         setPrintStatus(`Procesando Tramo ${i + 1} de ${numSegmentos}...`);
         const startIndex = i * stepSize;
@@ -121,25 +147,9 @@ export default function MapPrintAtlasModal({
 
         if (segmentPts.length > 0) {
           const bounds = L.latLngBounds(segmentPts);
-          const centerPt = bounds.getCenter();
-
-          mapInstance.setView(centerPt, zoomLevel, { animate: false });
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          const captureOptions = {
-            useCORS: true,
-            allowTaint: true,
-            ignoreElements: (el: Element) => {
-              if (el.classList.contains('map-search-box') ||
-                  el.classList.contains('leaflet-control-container') ||
-                  el.classList.contains('hide-on-print') ||
-                  el.classList.contains('leaflet-popup') ||
-                  el.tagName === 'HEADER') {
-                return true;
-              }
-              return false;
-            }
-          };
+          // Usar fitBounds en lugar de setView para que el tramo quede perfectamente centrado y visible
+          mapInstance.fitBounds(bounds, { padding: [60, 60], maxZoom: zoomLevel, animate: false });
+          await waitForMapTiles();
 
           const canvas = await html2canvas(mapElement, captureOptions);
           generatedCaptures.push({
