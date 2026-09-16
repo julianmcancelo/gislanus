@@ -25,6 +25,8 @@ export default function MapPrintAtlasModal({
   const [zoomLevel, setZoomLevel] = useState<number>(16);
   const [numSegmentos, setNumSegmentos] = useState<number>(6);
   const [incluirVistaGeneral, setIncluirVistaGeneral] = useState<boolean>(true);
+  const [incluirCuadricula, setIncluirCuadricula] = useState<boolean>(true);
+  const [orientacion, setOrientacion] = useState<'landscape' | 'portrait'>('landscape');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
   const [captures, setCaptures] = useState<{ title: string; dataUrl: string }[]>([]);
@@ -189,24 +191,62 @@ export default function MapPrintAtlasModal({
       setCaptures(generatedCaptures);
       setPrintStatus('Generando documento PDF multipágina...');
 
-      // 3. Ensamblar documento PDF en formato A4 Horizontal
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      // 3. Ensamblar documento PDF en formato profesional tipo Nakarte / Field Papers
+      const isLandscape = orientacion === 'landscape';
+      const pdf = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       generatedCaptures.forEach((item, index) => {
         if (index > 0) pdf.addPage();
+
+        // Fondo y mapa principal
         pdf.addImage(item.dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
-        // Membrete impreso institucional en el PDF
+        // Cuadrícula de coordenadas estilo Nakarte / Field Papers
+        if (incluirCuadricula) {
+          pdf.setDrawColor(30, 41, 59);
+          pdf.setLineWidth(0.15);
+          const numCols = 4;
+          const numRows = 3;
+          const colWidth = pdfWidth / numCols;
+          const rowHeight = pdfHeight / numRows;
+
+          for (let c = 1; c < numCols; c++) {
+            pdf.line(c * colWidth, 0, c * colWidth, pdfHeight);
+          }
+          for (let r = 1; r < numRows; r++) {
+            pdf.line(0, r * rowHeight, pdfWidth, r * rowHeight);
+          }
+        }
+
+        // Encabezado profesional institucional
         pdf.setFillColor(15, 23, 42); // #0f172a
-        pdf.rect(10, 10, 140, 18, 'F');
+        pdf.rect(8, 8, isLandscape ? 160 : 140, 18, 'F');
         pdf.setTextColor(255, 255, 255);
+        pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(10);
-        pdf.text(`MUNICIPALIDAD DE LANÚS - GIS PORTAL`, 14, 16);
+        pdf.text(`MUNICIPALIDAD DE LANÚS — SISTEMA GIS / ATLAS DE RECORRIDOS`, 12, 15);
+
+        pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(8);
         pdf.setTextColor(148, 163, 184);
-        pdf.text(`${item.title} | Hoja ${index + 1} de ${generatedCaptures.length}`, 14, 23);
+        pdf.text(`${item.title} | Hoja ${index + 1} de ${generatedCaptures.length}`, 12, 21);
+
+        // Leyenda de escala e instrucciones en pie de página estilo Nakarte / Field Papers
+        pdf.setFillColor(255, 255, 255);
+        pdf.setDrawColor(203, 213, 225);
+        pdf.rect(8, pdfHeight - 16, isLandscape ? 180 : 160, 10, 'FD');
+
+        pdf.setTextColor(15, 23, 42);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7.5);
+        pdf.text(`ESCALA ZOOM ${zoomLevel} — IMPRESIÓN OFICIAL CAMPO / RECORRIDO`, 12, pdfHeight - 10);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text(`Lanús Gobierno • Trazado cartográfico de precisión`, 12, pdfHeight - 6);
       });
 
       const pdfBlobUrl = pdf.output('bloburl');
@@ -375,30 +415,89 @@ export default function MapPrintAtlasModal({
             </div>
           </div>
 
-          {/* Checkbox Vista General */}
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '12px 14px',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '10px',
-              cursor: 'pointer',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={incluirVistaGeneral}
-              onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
-              disabled={isGenerating}
-              style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
-            />
-            <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
-              Incluir lámina 1 con la vista panorámica completa
-            </span>
-          </label>
+          {/* Opción 3: Orientación del papel */}
+          <div>
+            <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+              Orientación de página:
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[
+                { label: 'Horizontal (A4 Landscape)', val: 'landscape' },
+                { label: 'Vertical (A4 Portrait)', val: 'portrait' },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  type="button"
+                  onClick={() => setOrientacion(item.val as any)}
+                  disabled={isGenerating}
+                  style={{
+                    flex: 1,
+                    padding: '9px 8px',
+                    borderRadius: '8px',
+                    border: orientacion === item.val ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                    background: orientacion === item.val ? '#eff6ff' : '#fff',
+                    color: orientacion === item.val ? '#1d4ed8' : '#64748b',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: isGenerating ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Opción 4: Cuadrícula y Vista General */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={incluirCuadricula}
+                onChange={(e) => setIncluirCuadricula(e.target.checked)}
+                disabled={isGenerating}
+                style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                Incluir cuadrícula cartográfica (estilo Field Papers / Nakarte)
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={incluirVistaGeneral}
+                onChange={(e) => setIncluirVistaGeneral(e.target.checked)}
+                disabled={isGenerating}
+                style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '0.82rem', color: '#1e293b', fontWeight: 600 }}>
+                Incluir lámina 1 con la vista panorámica completa
+              </span>
+            </label>
+          </div>
 
           {/* Estado del procesamiento */}
           {isGenerating && (
