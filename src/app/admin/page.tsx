@@ -1326,6 +1326,24 @@ export default function AdminPage() {
     }
   };
 
+  const handleToggleSentidoLinea = async (id: string, currentSentido: string) => {
+    const nextSentido = (currentSentido || '').toUpperCase() === 'VUELTA' ? 'IDA' : 'VUELTA';
+    setLineas(prev => prev.map(l => l.id === id ? { ...l, sentido: nextSentido } : l));
+    try {
+      const res = await authFetch(`/api/lineas-transporte/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sentido: nextSentido }),
+      });
+      if (!res.ok) throw new Error();
+      emitirCambioMapa('lineas');
+      toast.success(`Sentido actualizado a ${nextSentido}`);
+    } catch {
+      setLineas(prev => prev.map(l => l.id === id ? { ...l, sentido: currentSentido } : l));
+      toast.error('Error al actualizar el sentido.');
+    }
+  };
+
   const handleToggleLinea = async (id: string, activo: boolean) => {
     // Optimistic update
     setLineas(prev => prev.map(l => l.id === id ? { ...l, activo } : l));
@@ -3168,14 +3186,23 @@ export default function AdminPage() {
                                                        style={{ width: '14px', height: '14px', cursor: 'pointer', flexShrink: 0, accentColor: '#2563eb' }}
                                                      />
                                                      {/* Direction icon + label */}
-                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '110px' }}>
-                                                       <span style={{ color: isIda ? '#2563eb' : isVuelta ? '#7c3aed' : '#94a3b8', display: 'flex', alignItems: 'center' }}>
-                                                         {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
-                                                       </span>
-                                                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: sentidoColor }}>
-                                                         {sentidoLabel}
-                                                       </span>
-                                                     </div>
+                                                     <button
+                                                        type="button"
+                                                        onClick={() => handleToggleSentidoLinea(linea.id, linea.sentido)}
+                                                        title="Clic para alternar entre IDA y VUELTA"
+                                                        style={{
+                                                          display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: '110px',
+                                                          background: isIda ? '#eff6ff' : isVuelta ? '#f5f3ff' : '#f8fafc',
+                                                          border: `1px solid ${isIda ? '#bfdbfe' : isVuelta ? '#ddd6fe' : '#e2e8f0'}`,
+                                                          padding: '3px 8px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
+                                                        }}>
+                                                        <span style={{ color: isIda ? '#2563eb' : isVuelta ? '#7c3aed' : '#94a3b8', display: 'flex', alignItems: 'center' }}>
+                                                          {isIda ? <IconArrowRight /> : isVuelta ? <IconArrowLeft /> : <IconArrowBoth />}
+                                                        </span>
+                                                        <span style={{ fontSize: '0.78rem', fontWeight: 700, color: sentidoColor }}>
+                                                          {sentidoLabel}
+                                                        </span>
+                                                      </button>
                                                      {linea.descripcion && (
                                                        <span style={{ fontSize: '0.74rem', color: '#94a3b8', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
                                                          {linea.descripcion}
