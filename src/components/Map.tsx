@@ -8,7 +8,7 @@ import '@geoman-io/leaflet-geoman-free';
 import HeatmapLayer from './HeatmapLayer';
 
 import { renderToString } from 'react-dom/server';
-import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building } from 'lucide-react';
+import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building, Share2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
@@ -17,6 +17,7 @@ const lucideIconsList: any = { MapPin, School, Hospital, Bus, Car, AlertTriangle
 import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
 import MapPrintAtlasModal from './MapPrintAtlasModal';
+import CompartirModal from './CompartirModal';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -68,11 +69,13 @@ function MapToolbar({
   activeTab,
   isAdmin,
   abrirImpresionAtlas,
+  abrirCompartir,
   capasConfig,
 }: {
   activeTab: string | null;
   isAdmin: boolean;
   abrirImpresionAtlas?: (lineaNombre: string, capasLinea: any[]) => void;
+  abrirCompartir?: () => void;
   capasConfig?: any[];
 }) {
   const map = useMap();
@@ -217,6 +220,11 @@ function MapToolbar({
           )}
         </div>
 
+        <div className="map-divider" />
+        <button onClick={() => abrirCompartir?.()} className="map-tool-btn" title="Generar Enlace Compartido & QR">
+          <Share2 size={16} />
+        </button>
+
         {isAdmin && (
           <>
             <div className="map-divider" />
@@ -308,6 +316,7 @@ export default function MapComponent() {
   const [atlasModalOpen, setAtlasModalOpen] = useState(false);
   const [atlasLineaNombre, setAtlasLineaNombre] = useState('');
   const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
+  const [compartirModalOpen, setCompartirModalOpen] = useState(false);
 
   const handleOpenAtlasPrint = (lineaNombre: string, capasLinea: any[]) => {
     const capaIds = new Set(capasLinea.map((c) => c.id));
@@ -1122,6 +1131,7 @@ export default function MapComponent() {
           activeTab={activeTab} 
           isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} 
           abrirImpresionAtlas={handleOpenAtlasPrint}
+          abrirCompartir={() => setCompartirModalOpen(true)}
           capasConfig={capasConfig}
         />
       </MapContainer>
@@ -1135,6 +1145,12 @@ export default function MapComponent() {
         capasLinea={atlasCapasLinea}
         cacheDatosGeo={cacheDatosGeo}
         mapInstance={mapInstance}
+      />
+
+      <CompartirModal
+        isOpen={compartirModalOpen}
+        onClose={() => setCompartirModalOpen(false)}
+        capasConfig={capasConfig}
       />
     </div>
   );

@@ -223,3 +223,14 @@ model MensajeSoporte {
   @@index([chatId])
 }
 
+model EnlaceCompartido {
+  id              String    @id @default(cuid())
+  token           String    @unique
+  titulo          String    @default("Vista Personalizada GIS")
+  descripcion     String?
+  capasPermitidas String[]  // Array de IDs de capas/líneas/rutas permitidas
+  permitirReclamos Boolean  @default(false)
+  creadoPor       String?
+  expiraEn        DateTime?
+  creadoEn        DateTime  @default(now())
+}
