@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download, Printer,
-  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw
+  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -51,6 +51,7 @@ interface SidebarProps {
   mapInstance: L.Map | null;
   descargarCapas: (capas: Capa[], nombreArchivo?: string) => void;
   abrirImpresionAtlas?: (lineaNombre: string, capasLinea: Capa[]) => void;
+  abrirCompartir?: () => void;
 }
 
 
@@ -281,6 +282,7 @@ export default function Sidebar({
   mapInstance,
   descargarCapas,
   abrirImpresionAtlas,
+  abrirCompartir,
 }: SidebarProps) {
   const { user, dbUser, logout } = useAuth();
   const router = useRouter();
@@ -436,6 +438,11 @@ export default function Sidebar({
           onClick={() => setActiveTab(activeTab === 'layers' ? null : 'layers')} title="Capas">
           <Layers size={16} />
         </div>
+        {abrirCompartir && (
+          <div className={styles.navIcon} onClick={() => abrirCompartir()} title="Generar Enlace Compartido & QR">
+            <Share2 size={16} color="#38bdf8" />
+          </div>
+        )}
         <div className={`${styles.navIcon} ${activeTab === 'info' ? styles.navIconActive : ''}`}
           onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} title="Información">
           <Info size={16} />

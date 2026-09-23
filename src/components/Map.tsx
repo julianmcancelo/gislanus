@@ -844,6 +844,7 @@ export default function MapComponent() {
           mapInstance={mapInstance}
           descargarCapas={descargarCapas}
           abrirImpresionAtlas={handleOpenAtlasPrint}
+          abrirCompartir={() => setCompartirModalOpen(true)}
         />
         
         <div style={{ flex: 1, position: 'relative' }}>
