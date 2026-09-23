@@ -37,6 +37,10 @@ export default function PublicSharedView({ token }: { token: string }) {
   const [activeTab, setActiveTab] = useState<'layers' | 'info' | 'reclamos' | null>('layers');
   const [baseLayer, setBaseLayer] = useState<any>(null);
 
+  // Estados para contraer Header y Sidebar
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [atlasModalOpen, setAtlasModalOpen] = useState(false);
   const [atlasLineaNombre, setAtlasLineaNombre] = useState('');
   const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
@@ -93,12 +97,46 @@ export default function PublicSharedView({ token }: { token: string }) {
           const cat = l.categoria || 'NACIONAL';
           const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
-          const ramalLabel = l.subcategoria || null;
+          let ramalLabel = l.subcategoria || null;
+          let sentidoRaw = (l.sentido || '').toUpperCase();
+          if (!ramalLabel || !sentidoRaw) {
+            const firstFeature = geo?.type === 'Feature' ? geo : geo?.features?.[0];
+            const fp = firstFeature?.properties || {};
+            if (!ramalLabel) {
+              if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
+              else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
+              else if (fp.subgrupo) ramalLabel = fp.subgrupo;
+              else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
+            }
+            if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
+          }
+          const sentido = sentidoRaw;
           const lineColor = stableTransitColor(`${cat}-${lineaLabel}`, '#2563eb');
+          const nombre = sentido
+            ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
+            : lineaLabel;
+
+          const lineaProps = {
+            _tipo: 'linea',
+            _linea: lineaLabel,
+            _ramal: ramalLabel || null,
+            _sentido: sentido || null,
+            _operador: l.descripcion || null,
+            _color: lineColor,
+            sentido: sentido || null,
+          };
+
+          let geoConProps = geo;
+          if (geo?.type === 'Feature') {
+            geoConProps = { ...geo, properties: { ...geo.properties, ...lineaProps } };
+          } else if (geo?.features) {
+            geoConProps = { ...geo, features: geo.features.map((f: any) => ({ ...f, properties: { ...f.properties, ...lineaProps } })) };
+          }
+
           return {
             id: `linea-${l.id}`,
-            nombre: lineaLabel,
-            datosGeo: geo,
+            nombre,
+            datosGeo: geoConProps,
             color: lineColor,
             visibilidad: 'PUBLIC',
             grupo: { nombre: grupoNombre },
@@ -129,12 +167,25 @@ export default function PublicSharedView({ token }: { token: string }) {
           const red = props.network === 'PROVINCIAL' ? 'Provincial' : 'Municipal';
           const lineaLabel = `Línea ${props.line || 's/n'}`;
           const ramalLabel = `Ramal ${props.branch || 'Principal'}`;
-          const idPart = `${props.network}-${props.line}-${props.branch}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
+          const sentido = String(props.direction || '').toUpperCase();
+          const idPart = `${props.network}-${props.line}-${props.branch}-${sentido}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
           const lineColor = stableTransitColor(`${props.network || 'TRANSPORTE'}-${lineaLabel}`, '#2563eb');
+
+          const lineaProps = {
+            ...props,
+            _tipo: 'linea',
+            _linea: lineaLabel,
+            _ramal: ramalLabel,
+            _sentido: sentido,
+            _operador: props.operator || props.description || null,
+            _color: lineColor,
+            sentido: sentido,
+          };
+
           return {
             id: `transporte-base-${idPart}`,
-            nombre: ramalLabel,
-            datosGeo: feature,
+            nombre: sentido === 'VUELTA' ? 'Vuelta' : 'Ida',
+            datosGeo: { ...feature, properties: lineaProps },
             color: lineColor,
             visibilidad: 'PUBLIC',
             grupo: { nombre: `Red ${red} de Transporte` },
@@ -199,50 +250,115 @@ export default function PublicSharedView({ token }: { token: string }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
-      {/* Header Institucional de Vista Pública */}
-      <header style={{ height: '60px', background: '#0f172a', color: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 2000, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: 34, height: 34, background: '#2563eb', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800 }}>G</div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#f8fafc' }}>{meta?.titulo || 'Vista Compartida GIS'}</h1>
-            <p style={{ margin: 0, fontSize: '0.72rem', color: '#38bdf8', fontWeight: 700 }}>LANÚS GOBIERNO • ACCESO ACCESIBLE PÚBLICO</p>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* Header Institucional de Vista Pública - Collapsible */}
+      {!headerCollapsed && (
+        <header style={{ height: '54px', background: '#0f172a', color: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', zIndex: 2000, borderBottom: '1px solid rgba(255,255,255,0.08)', transition: 'all 0.3s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: 30, height: 30, background: '#2563eb', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '0.85rem' }}>G</div>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#f8fafc' }}>{meta?.titulo || 'Vista Compartida GIS'}</h1>
+              <p style={{ margin: 0, fontSize: '0.68rem', color: '#38bdf8', fontWeight: 700 }}>LANÚS GOBIERNO • ACCESO PÚBLICO</p>
+            </div>
           </div>
-        </div>
 
-        <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '20px', padding: '4px 12px', fontSize: '0.75rem', color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          🔒 Menú Acotado ({capasConfig.length} capas)
-        </div>
-      </header>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '20px', padding: '3px 10px', fontSize: '0.72rem', color: '#38bdf8', fontWeight: 700 }}>
+              Menú Acotado ({capasConfig.length} capas)
+            </div>
+            <button
+              onClick={() => setHeaderCollapsed(true)}
+              style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#94a3b8', borderRadius: '6px', padding: '4px 8px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+              title="Ocultar encabezado para mayor mapa"
+            >
+              ▲ Ocultar Encabezado
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Botón flotante para restaurar Encabezado cuando está contraído */}
+      {headerCollapsed && (
+        <button
+          onClick={() => setHeaderCollapsed(false)}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '16px',
+            zIndex: 2500,
+            background: '#0f172a',
+            color: '#38bdf8',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
+            borderRadius: '20px',
+            padding: '5px 12px',
+            fontSize: '0.72rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          }}
+        >
+          ▼ Mostrar Encabezado
+        </button>
+      )}
 
       {/* Main Container */}
       <div style={{ flex: 1, position: 'relative', display: 'flex', overflow: 'hidden' }}>
-        <Sidebar
-          capas={capasConfig}
-          alternarCapa={alternarCapa}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          reclamos={[]}
-          loadingReclamos={false}
-          verReclamosCalor={false}
-          setVerReclamosCalor={() => {}}
-          verReclamosMarcadores={false}
-          setVerReclamosMarcadores={() => {}}
-          motivosSeleccionados={[]}
-          setMotivosSeleccionados={() => {}}
-          estadoFiltro="TODOS"
-          setEstadoFiltro={() => {}}
-          prioridadFiltro="TODAS"
-          setPrioridadFiltro={() => {}}
-          recargarReclamos={() => {}}
-          mapInstance={mapInstance}
-          descargarCapas={() => {}}
-          abrirImpresionAtlas={(nombre, capas) => {
-            setAtlasLineaNombre(nombre);
-            setAtlasCapasLinea(capas);
-            setAtlasModalOpen(true);
+        {/* Sidebar contraíble */}
+        {!sidebarCollapsed && (
+          <Sidebar
+            capas={capasConfig}
+            alternarCapa={alternarCapa}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            reclamos={[]}
+            loadingReclamos={false}
+            verReclamosCalor={false}
+            setVerReclamosCalor={() => {}}
+            verReclamosMarcadores={false}
+            setVerReclamosMarcadores={() => {}}
+            motivosSeleccionados={[]}
+            setMotivosSeleccionados={() => {}}
+            estadoFiltro="TODOS"
+            setEstadoFiltro={() => {}}
+            prioridadFiltro="TODAS"
+            setPrioridadFiltro={() => {}}
+            recargarReclamos={() => {}}
+            mapInstance={mapInstance}
+            descargarCapas={() => {}}
+            abrirImpresionAtlas={(nombre, capas) => {
+              setAtlasLineaNombre(nombre);
+              setAtlasCapasLinea(capas);
+              setAtlasModalOpen(true);
+            }}
+          />
+        )}
+
+        {/* Botón flotante para contraer / expandir Sidebar */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: sidebarCollapsed ? '16px' : activeTab ? '356px' : '64px',
+            zIndex: 2500,
+            background: '#0f172a',
+            color: '#f8fafc',
+            border: '1px solid #334155',
+            borderRadius: '8px',
+            padding: '8px 12px',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+            transition: 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
-        />
+          title={sidebarCollapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
+        >
+          {sidebarCollapsed ? '▶ Ver Menú' : '◀ Ocultar Menú'}
+        </button>
 
         <div style={{ flex: 1, position: 'relative' }}>
           <MapContainer center={center} zoom={14} style={{ width: '100%', height: '100%' }} zoomControl={false} ref={setMapInstance}>
@@ -257,11 +373,26 @@ export default function PublicSharedView({ token }: { token: string }) {
                 <GeoJSON
                   key={capa.id}
                   data={cacheDatosGeo[capa.id]}
-                  style={(feature: any) => ({
-                    color: capa.color || '#2563eb',
-                    weight: 3.5,
-                    opacity: 0.9,
-                  })}
+                  style={(feature: any) => {
+                    const properties = feature?.properties || {};
+                    const isCollectiveLine = Boolean(
+                      properties.network || properties._tipo === 'linea' || properties.sentido
+                    );
+                    const isReturn = String(
+                      properties.direction || properties.sentido || properties._sentido || ''
+                    ).toUpperCase() === 'VUELTA';
+                    const routeColor = String(
+                      properties.color_hex || properties.color || properties._color || capa.color
+                    );
+                    return {
+                      color: routeColor,
+                      weight: isCollectiveLine ? 2.5 : 4,
+                      opacity: 0.9,
+                      dashArray: isCollectiveLine && isReturn ? '7 8' : undefined,
+                      lineCap: 'round',
+                      lineJoin: 'round',
+                    };
+                  }}
                 />
               );
             })}
@@ -273,3 +404,4 @@ export default function PublicSharedView({ token }: { token: string }) {
     </div>
   );
 }
+

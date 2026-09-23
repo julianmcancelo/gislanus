@@ -108,18 +108,18 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
           style={{
             background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             color: '#f8fafc',
-            padding: '20px 24px',
+            padding: '16px 20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
+                width: 36,
+                height: 36,
+                borderRadius: 10,
                 background: 'rgba(56, 189, 248, 0.15)',
                 border: '1px solid rgba(56, 189, 248, 0.3)',
                 display: 'flex',
@@ -127,14 +127,14 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
                 justifyContent: 'center',
               }}
             >
-              <Share2 size={22} color="#38bdf8" />
+              <Share2 size={18} color="#38bdf8" />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#f8fafc' }}>
                 Generar Enlace Directo & QR
               </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#94a3b8' }}>
-                Acceso público sin inicio de sesión con permisos acotados
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+                Acceso público sin inicio de sesión con visibilidad acotada
               </p>
             </div>
           </div>
@@ -149,19 +149,19 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
               borderRadius: '8px',
             }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '18px', maxHeight: '78vh', overflowY: 'auto' }}>
+        <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '78vh', overflowY: 'auto' }}>
           
           {!generatedUrl ? (
             <>
               {/* Título de la vista */}
               <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b', display: 'block', marginBottom: '6px' }}>
-                  ✏️ Nombre de la vista personalizada:
+                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', display: 'block', marginBottom: '4px' }}>
+                  Nombre de la vista personalizada:
                 </label>
                 <input
                   type="text"
@@ -170,10 +170,10 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
                   placeholder="Ej: Vista Recorrido Línea 45"
                   style={{
                     width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
+                    fontSize: '0.82rem',
                     color: '#0f172a',
                     fontWeight: 600,
                   }}
@@ -182,29 +182,29 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
 
               {/* Selección de Capas Concedidas */}
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>
-                    🔒 Capas y Trazos que se podrán ver ({capasSeleccionadas.length}):
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>
+                    Capas y Trazos permitidos ({capasSeleccionadas.length}):
                   </label>
-                  <div style={{ display: 'flex', gap: '6px' }}>
+                  <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       onClick={seleccionarTodas}
-                      style={{ background: '#eff6ff', border: 'none', color: '#2563eb', fontSize: '0.72rem', fontWeight: 700, borderRadius: '4px', padding: '3px 8px', cursor: 'pointer' }}
+                      style={{ background: '#eff6ff', border: 'none', color: '#2563eb', fontSize: '0.7rem', fontWeight: 700, borderRadius: '4px', padding: '2px 6px', cursor: 'pointer' }}
                     >
                       Todas
                     </button>
                     <button
                       type="button"
                       onClick={deseleccionarTodas}
-                      style={{ background: '#f1f5f9', border: 'none', color: '#64748b', fontSize: '0.72rem', fontWeight: 700, borderRadius: '4px', padding: '3px 8px', cursor: 'pointer' }}
+                      style={{ background: '#f1f5f9', border: 'none', color: '#64748b', fontSize: '0.7rem', fontWeight: 700, borderRadius: '4px', padding: '2px 6px', cursor: 'pointer' }}
                     >
                       Ninguna
                     </button>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
                   {capasConfig.map((capa) => {
                     const isChecked = capasSeleccionadas.includes(capa.id);
                     return (
@@ -214,32 +214,32 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          border: isChecked ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: isChecked ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                           background: isChecked ? '#f0f6ff' : '#ffffff',
                           cursor: 'pointer',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleCapa(capa.id)}
-                            style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
+                            style={{ width: '15px', height: '15px', accentColor: '#2563eb', cursor: 'pointer' }}
                           />
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
                               {capa.subGrupo?.nombre ? `${capa.subGrupo.nombre} - ` : ''}{capa.nombre}
                             </span>
                             {capa.grupo?.nombre && (
-                              <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                              <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
                                 {capa.grupo.nombre}
                               </span>
                             )}
                           </div>
                         </div>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: capa.color || '#2563eb' }} />
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: capa.color || '#2563eb' }} />
                       </label>
                     );
                   })}
@@ -247,31 +247,31 @@ export default function CompartirModal({ isOpen, onClose, capasConfig }: Compart
               </div>
 
               {/* Opción adicional Reclamos */}
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
                   checked={permitirReclamos}
                   onChange={(e) => setPermitirReclamos(e.target.checked)}
-                  style={{ width: '16px', height: '16px', accentColor: '#2563eb' }}
+                  style={{ width: '15px', height: '15px', accentColor: '#2563eb' }}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#1e293b', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.78rem', color: '#1e293b', fontWeight: 600 }}>
                   Permitir ver la capa de Reclamos SAT en esta vista pública
                 </span>
               </label>
             </>
           ) : (
             /* Vista del Enlace Generado y Código QR */
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', textAlign: 'center' }}>
-              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '12px', padding: '12px 16px', width: '100%', color: '#166534', fontWeight: 700, fontSize: '0.85rem' }}>
-                🎉 ¡Enlace directo y Token creados con éxito!
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', textAlign: 'center' }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '10px 14px', width: '100%', color: '#166534', fontWeight: 700, fontSize: '0.82rem' }}>
+                Enlace directo y Token generados correctamente
               </div>
 
-              <div style={{ padding: '16px', background: '#fff', border: '2px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.06)' }}>
-                <QRCodeSVG value={generatedUrl} size={180} />
+              <div style={{ padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+                <QRCodeSVG value={generatedUrl} size={160} />
               </div>
 
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
-                Cualquier persona con este QR o link podrá ingresar <strong>sin iniciar sesión</strong> y verá únicamente el menú acotado a las capas concedidas.
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                Acceso directo sin inicio de sesión acotado a las capas seleccionadas.
               </p>
 
               <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
