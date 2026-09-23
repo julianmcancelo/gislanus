@@ -9,7 +9,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos de usuario' }, { status: 400 });
     }
 
-    const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com';
+    const SUPER_ADMIN_EMAILS = [
+      (process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com').toLowerCase(),
+      'jcancelo.dev@gmail.com'
+    ];
 
     // Asegurar que los roles básicos existan en la tabla RolPermisos
     const rolesBasicos = [
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
 
     if (!usuario) {
       // Crear el usuario nuevo
-      const rolInicial = email.toLowerCase() === SUPER_ADMIN_EMAIL ? 'SUPER_ADMIN' : 'PENDIENTE';
+      const rolInicial = SUPER_ADMIN_EMAILS.includes(email.toLowerCase()) ? 'SUPER_ADMIN' : 'PENDIENTE';
       
       try {
         usuario = await prisma.usuario.create({
@@ -80,8 +83,8 @@ export async function POST(req: Request) {
         }
       }
     } else {
-      // Si el usuario existe pero es el super admin y por alguna razón no tiene el rol, forzarlo
-      if (email.toLowerCase() === SUPER_ADMIN_EMAIL && usuario.rol !== 'SUPER_ADMIN') {
+      // Si el usuario existe pero es super admin y no tiene el rol, forzarlo
+      if (SUPER_ADMIN_EMAILS.includes(email.toLowerCase()) && usuario.rol !== 'SUPER_ADMIN') {
         usuario = await prisma.usuario.update({
           where: { id: usuario.id },
           data: { rol: 'SUPER_ADMIN' },
