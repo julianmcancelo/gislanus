@@ -10,6 +10,9 @@ const PublicSharedView = dynamic(() => import('@/components/PublicSharedView'), 
   ),
 });
 
-export default function SharedTokenPage({ params }: { params: { token: string } }) {
-  return <PublicSharedView token={params.token} />;
+import { use } from 'react';
+
+export default function SharedTokenPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = use(params);
+  return <PublicSharedView token={token} />;
 }

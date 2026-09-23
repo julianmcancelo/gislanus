@@ -3,9 +3,9 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: Request, { params }: { params: { token: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
   try {
-    const token = params.token;
+    const { token } = await params;
     const enlace = await prisma.enlaceCompartido.findUnique({
       where: { token },
     });
