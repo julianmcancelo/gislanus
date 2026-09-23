@@ -225,6 +225,46 @@ export default function PublicSharedView({ token }: { token: string }) {
     fetchSharedView();
   }, [token]);
 
+  const fetchingRef = useRef<Record<string, boolean>>({});
+
+  // Lazy loading para capas que no traen datosGeo de entrada
+  useEffect(() => {
+    capasConfig.forEach(async (capa) => {
+      if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
+        fetchingRef.current[capa.id] = true;
+        try {
+          const res = await fetch(`/api/capas/${capa.id}`);
+          const data = await res.json();
+          if (data.datosGeo) {
+            let parsed = typeof data.datosGeo === 'string' ? JSON.parse(data.datosGeo) : data.datosGeo;
+            setCacheDatosGeo((prev) => ({ ...prev, [capa.id]: parsed }));
+          }
+        } catch (e) {
+          console.error('Error fetching lazy layer:', e);
+        }
+      }
+    });
+  }, [capasConfig, cacheDatosGeo]);
+
+  // Encuadrar automáticamente el mapa sobre los elementos compartidos
+  useEffect(() => {
+    if (!mapInstance || Object.keys(cacheDatosGeo).length === 0) return;
+    try {
+      const bounds = L.latLngBounds([]);
+      Object.values(cacheDatosGeo).forEach((geo) => {
+        if (!geo) return;
+        const layer = L.geoJSON(geo);
+        const b = layer.getBounds();
+        if (b.isValid()) bounds.extend(b);
+      });
+      if (bounds.isValid()) {
+        mapInstance.fitBounds(bounds, { padding: [40, 40] });
+      }
+    } catch (e) {
+      console.error('Fit bounds error:', e);
+    }
+  }, [mapInstance, cacheDatosGeo]);
+
   const alternarCapa = (id: string) => {
     setCapasConfig((prev) => prev.map((l) => (l.id === id ? { ...l, active: !l.active } : l)));
   };
