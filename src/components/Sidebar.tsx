@@ -82,12 +82,35 @@ function Toggle({ active, color, onChange }: { active: boolean; color: string; o
 
 /* ── Capa row ── */
 function CapaRow({ capa, onToggle, abrirImpresionAtlas }: { capa: Capa; onToggle: () => void; abrirImpresionAtlas?: (lineaNombre: string, capasLinea: Capa[]) => void }) {
+  const nameLower = (capa.nombre || '').toLowerCase();
+  const isVuelta = nameLower.includes('vuelta');
+  const isIda = nameLower.includes('ida');
+
   return (
     <div className={styles.capaRow} onClick={onToggle} title={capa.nombre}>
-      <div className={styles.capaColorBar} style={{ background: capa.color, opacity: capa.active ? 1 : 0.25 }} />
+      <div
+        className={styles.capaColorBar}
+        style={{
+          background: capa.color,
+          opacity: capa.active ? 1 : 0.25,
+          borderRight: isVuelta ? '2px dashed #ffffff' : undefined,
+        }}
+      />
       <span className={`${styles.capaName} ${capa.active ? styles.capaNameActive : ''}`}>
         {capa.nombre}
       </span>
+
+      {isVuelta && (
+        <span style={{ fontSize: '8px', fontWeight: 800, color: '#e11d48', background: '#ffe4e6', border: '1px solid #fecdd3', padding: '1px 4px', borderRadius: '4px', flexShrink: 0, marginRight: '2px', letterSpacing: '0.3px' }}>
+          VUELTA ╌
+        </span>
+      )}
+      {isIda && (
+        <span style={{ fontSize: '8px', fontWeight: 800, color: '#0284c7', background: '#e0f2fe', border: '1px solid #bae6fd', padding: '1px 4px', borderRadius: '4px', flexShrink: 0, marginRight: '2px', letterSpacing: '0.3px' }}>
+          IDA —
+        </span>
+      )}
+
       <button
         onClick={(e) => {
           e.stopPropagation();
