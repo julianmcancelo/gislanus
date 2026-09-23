@@ -95,6 +95,7 @@ export default function PublicSharedView({ token }: { token: string }) {
           MUNICIPAL: 'Líneas Municipales',
         };
 
+        const seenLineRamal: Record<string, number> = {};
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
@@ -113,7 +114,18 @@ export default function PublicSharedView({ token }: { token: string }) {
             }
             if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
           }
-          const sentido = sentidoRaw;
+          const pairKey = `${cat}-${lineaLabel}-${ramalLabel || 'principal'}`;
+          const currentCount = seenLineRamal[pairKey] || 0;
+          seenLineRamal[pairKey] = currentCount + 1;
+
+          // Auto-repair duplicate "IDA": if there are 2 traces for the same line+ramal and this is the second one, and both are IDA/unspecified, set to VUELTA
+          let sentido = sentidoRaw;
+          if ((!sentido || sentido === 'IDA') && currentCount === 1) {
+            sentido = 'VUELTA';
+          } else if (!sentido) {
+            sentido = 'IDA';
+          }
+
           const lineColor = stableTransitColor(`${cat}-${lineaLabel}-${ramalLabel || ''}`, sentido, '#2563eb');
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
@@ -419,19 +431,28 @@ export default function PublicSharedView({ token }: { token: string }) {
                   style={(feature: any) => {
                     const properties = feature?.properties || {};
                     const isCollectiveLine = Boolean(
-                      properties.network || properties._tipo === 'linea' || properties.sentido
+                      properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo
                     );
                     const isReturn = String(
-                      properties.direction || properties.sentido || properties._sentido || ''
-                    ).toUpperCase() === 'VUELTA';
-                    const routeColor = String(
-                      properties.color_hex || properties.color || properties._color || capa.color
-                    );
+                      properties.direction || properties.sentido || properties._sentido || capa.nombre || ''
+                    ).toUpperCase().includes('VUELTA');
+
+                    let routeColor: string;
+                    if (isCollectiveLine) {
+                      routeColor = capa.color || properties._color || stableTransitColor(
+                        `${properties._linea || capa.subGrupo?.nombre || capa.nombre}-${properties._ramal || capa.subSubGrupo?.nombre || ''}`,
+                        isReturn ? 'VUELTA' : 'IDA',
+                        isReturn ? '#ea580c' : '#2563eb'
+                      );
+                    } else {
+                      routeColor = String(capa.color || properties.color_hex || properties.color || '#3b82f6');
+                    }
+
                     return {
                       color: routeColor,
-                      weight: isCollectiveLine ? 2.5 : 4,
-                      opacity: 0.9,
-                      dashArray: isCollectiveLine && isReturn ? '7 8' : undefined,
+                      weight: isCollectiveLine ? 3.5 : 4,
+                      opacity: 0.95,
+                      dashArray: isCollectiveLine && isReturn ? '8 6' : undefined,
                       lineCap: 'round',
                       lineJoin: 'round',
                     };

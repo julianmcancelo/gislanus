@@ -113,3 +113,42 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// Auto-pair duplicate Ida / Vuelta traces across the whole database
+export async function PUT(req: Request) {
+  const guard = await requirePermission(req, 'editarLineas');
+  if (guard.error) return guard.error;
+
+  try {
+    const all = await prisma.lineaTransporte.findMany({
+      orderBy: [{ numero: 'asc' }, { id: 'asc' }]
+    });
+
+    const groups: Record<string, any[]> = {};
+    all.forEach(l => {
+      const key = `${l.categoria || 'NACIONAL'}-${l.numero || l.nombre}-${l.subcategoria || 'principal'}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(l);
+    });
+
+    let fixedCount = 0;
+    for (const traces of Object.values(groups)) {
+      if (traces.length === 2) {
+        const [t1, t2] = traces;
+        const s1 = (t1.sentido || '').toUpperCase();
+        const s2 = (t2.sentido || '').toUpperCase();
+        // If both are IDA, or both null, or identical sentidos
+        if ((s1 === 'IDA' && s2 === 'IDA') || (!s1 && !s2) || (s1 === s2)) {
+          await prisma.lineaTransporte.update({ where: { id: t1.id }, data: { sentido: 'IDA' } });
+          await prisma.lineaTransporte.update({ where: { id: t2.id }, data: { sentido: 'VUELTA' } });
+          fixedCount += 2;
+        }
+      }
+    }
+
+    return NextResponse.json({ fixedCount, message: `${fixedCount} trazas emparejadas correctamente como Ida y Vuelta.` });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+

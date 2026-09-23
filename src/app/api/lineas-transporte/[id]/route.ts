@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requirePermission } from '@/lib/authGuard';
 import { clipGeometryToLanus } from '@/utils/geo';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarLineas');
   if (guard.error) return guard.error;
 
   const { id } = await params;
@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarLineas');
   if (guard.error) return guard.error;
 
   const { id } = await params;

@@ -399,6 +399,7 @@ export default function MapComponent() {
           PROVINCIAL: 'Líneas Provinciales',
           MUNICIPAL: 'Líneas Municipales',
         };
+        const seenLineRamal: Record<string, number> = {};
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
@@ -909,19 +910,28 @@ export default function MapComponent() {
               style={(feature: any) => {
                 const properties = feature?.properties || {};
                 const isCollectiveLine = Boolean(
-                  properties.network || properties._tipo === 'linea' || properties.sentido
+                  properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo
                 );
                 const isReturn = String(
-                  properties.direction || properties.sentido || properties._sentido || ''
-                ).toUpperCase() === 'VUELTA';
-                const routeColor = String(
-                  properties.color_hex || properties.color || properties._color || capa.color
-                );
+                  properties.direction || properties.sentido || properties._sentido || capa.nombre || ''
+                ).toUpperCase().includes('VUELTA');
+
+                let routeColor: string;
+                if (isCollectiveLine) {
+                  routeColor = capa.color || properties._color || stableTransitColor(
+                    `${properties._linea || capa.subGrupo?.nombre || capa.nombre}-${properties._ramal || capa.subSubGrupo?.nombre || ''}`,
+                    isReturn ? 'VUELTA' : 'IDA',
+                    isReturn ? '#ea580c' : '#2563eb'
+                  );
+                } else {
+                  routeColor = String(capa.color || properties.color_hex || properties.color || '#3b82f6');
+                }
+
                 return {
                   color: routeColor,
-                  weight: isCollectiveLine ? 2.5 : 5,
-                  opacity: isCollectiveLine ? 0.9 : 0.9,
-                  dashArray: isCollectiveLine && isReturn ? '7 8' : undefined,
+                  weight: isCollectiveLine ? 3.5 : 5,
+                  opacity: 0.95,
+                  dashArray: isCollectiveLine && isReturn ? '8 6' : undefined,
                   lineCap: 'round',
                   lineJoin: 'round',
                 };
