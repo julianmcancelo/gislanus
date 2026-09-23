@@ -28,13 +28,15 @@ L.Icon.Default.mergeOptions({
 
 const center: [number, number] = [-34.7042, -58.3961];
 
-const transitPalette = ['#2563eb', '#e11d48', '#059669', '#d97706', '#7c3aed', '#0891b2', '#db2777', '#65a30d', '#ea580c', '#4f46e5'];
+const idaPalette = ['#2563eb', '#059669', '#0891b2', '#7c3aed', '#4f46e5', '#0284c7', '#16a34a'];
+const vueltaPalette = ['#e11d48', '#ea580c', '#db2777', '#d97706', '#dc2626', '#c026d3', '#b91c1c'];
 
-function stableTransitColor(value: string, fallback: string) {
-  if (!value) return fallback;
+function stableTransitColor(seed: string, sentido: string = 'IDA', fallback: string = '#2563eb') {
+  if (!seed) return fallback;
   let hash = 0;
-  for (let index = 0; index < value.length; index += 1) hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  return transitPalette[hash % transitPalette.length];
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  const palette = sentido.toUpperCase() === 'VUELTA' ? vueltaPalette : idaPalette;
+  return palette[hash % palette.length];
 }
 
 const controlBtnStyle = {
@@ -419,7 +421,7 @@ export default function MapComponent() {
             if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
           }
           const sentido = sentidoRaw;
-          const lineColor = stableTransitColor(`${cat}-${lineaLabel}`, '#2563eb');
+          const lineColor = stableTransitColor(`${cat}-${lineaLabel}-${ramalLabel || ''}`, sentido, '#2563eb');
           const nombre = sentido
             ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
             : lineaLabel;
@@ -430,12 +432,13 @@ export default function MapComponent() {
             _sentido: sentido || null,
             _operador: l.descripcion || null,
             _color: lineColor,
+            sentido: sentido || null,
           };
           let geoConProps = geo;
           if (geo?.type === 'Feature') {
-            geoConProps = { ...geo, properties: lineaProps };
+            geoConProps = { ...geo, properties: { ...geo.properties, ...lineaProps } };
           } else if (geo?.features) {
-            geoConProps = { ...geo, features: geo.features.map((f: any) => ({ ...f, properties: lineaProps })) };
+            geoConProps = { ...geo, features: geo.features.map((f: any) => ({ ...f, properties: { ...f.properties, ...lineaProps } })) };
           }
           return {
             id: `linea-${l.id}`,
@@ -457,7 +460,7 @@ export default function MapComponent() {
           const ramalLabel = `Ramal ${props.branch || 'Principal'}`;
           const sentido = String(props.direction || '').toUpperCase();
           const idPart = `${props.network}-${props.line}-${props.branch}-${sentido}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
-          const lineColor = stableTransitColor(`${props.network || 'TRANSPORTE'}-${lineaLabel}`, '#2563eb');
+          const lineColor = stableTransitColor(`${props.network || 'TRANSPORTE'}-${lineaLabel}-${ramalLabel}`, sentido, '#2563eb');
           const lineaProps = {
             ...props,
             _tipo: 'linea',
