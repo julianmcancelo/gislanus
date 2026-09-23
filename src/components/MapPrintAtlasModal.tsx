@@ -27,6 +27,7 @@ export default function MapPrintAtlasModal({
   const [paperFormat, setPaperFormat] = useState<'A4' | 'A3' | 'A2' | 'A1' | 'A0'>('A4');
   const [orientacion, setOrientacion] = useState<'landscape' | 'portrait'>('landscape');
   const [renderScale, setRenderScale] = useState<number>(3); // 2: Standard, 3: HD, 4: Ultra HD
+  const [modoEncuadre, setModoEncuadre] = useState<'exacto' | 'autofit'>('exacto'); // 'exacto': tal cual se ve en pantalla, 'autofit': centrar en trazos
   const [incluirCuadricula, setIncluirCuadricula] = useState<boolean>(true);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
@@ -147,9 +148,11 @@ export default function MapPrintAtlasModal({
     try {
       const mapElement = mapInstance.getContainer();
 
-      // Ajustar la vista del mapa a todos los trazos seleccionados perfectamente
-      const fullBounds = L.latLngBounds(allCoords);
-      mapInstance.fitBounds(fullBounds, { padding: [50, 50], animate: false });
+      // Si se eligió 'autofit', centrar el mapa en los trazos; si es 'exacto', mantener la vista que eligió el usuario
+      if (modoEncuadre === 'autofit') {
+        const fullBounds = L.latLngBounds(allCoords);
+        mapInstance.fitBounds(fullBounds, { padding: [50, 50], animate: false });
+      }
 
       // Esperar descarga limpia de las imágenes/tiles de Mapbox/OpenStreetMap
       mapInstance.invalidateSize({ animate: false });
@@ -434,6 +437,38 @@ export default function MapPrintAtlasModal({
                   }}
                 >
                   Hoja {fmt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Encuadre del Plano */}
+          <div>
+            <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b', display: 'block', marginBottom: '8px' }}>
+              🎯 Encuadre del Plano:
+            </label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {[
+                { label: '🎯 Vista Pantalla Exacta (Tal cual se ve)', val: 'exacto' },
+                { label: '📐 Auto-Centrar en Trazos Elegidos', val: 'autofit' },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  type="button"
+                  onClick={() => setModoEncuadre(item.val as any)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 6px',
+                    borderRadius: '8px',
+                    border: modoEncuadre === item.val ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                    background: modoEncuadre === item.val ? '#eff6ff' : '#fff',
+                    color: modoEncuadre === item.val ? '#1d4ed8' : '#475569',
+                    fontWeight: 700,
+                    fontSize: '0.76rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {item.label}
                 </button>
               ))}
             </div>
