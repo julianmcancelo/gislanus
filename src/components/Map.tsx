@@ -64,17 +64,27 @@ const dividerStyle = {
   margin: '0 4px'
 };
 
-function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin: boolean }) {
+function MapToolbar({
+  activeTab,
+  isAdmin,
+  abrirImpresionAtlas,
+  capasConfig,
+}: {
+  activeTab: string | null;
+  isAdmin: boolean;
+  abrirImpresionAtlas?: (lineaNombre: string, capasLinea: any[]) => void;
+  capasConfig?: any[];
+}) {
   const map = useMap();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
 
   const handleZoomIn = () => map.zoomIn();
   const handleZoomOut = () => map.zoomOut();
   const handleHome = () => map.setView(center, 14);
-  
+
   const handleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
+      document.documentElement.requestFullscreen().catch((err) => {
         console.error(`Error al intentar entrar en pantalla completa: ${err.message}`);
       });
     } else {
@@ -82,17 +92,26 @@ function MapToolbar({ activeTab, isAdmin }: { activeTab: string | null, isAdmin:
     }
   };
 
-  const handlePrintFull = () => {
-    window.onafterprint = () => {
-      window.onafterprint = null;
-      // Force Leaflet to recalculate size after print dialog closes
-      setTimeout(() => map?.invalidateSize(), 100);
-    };
-    window.print();
+  const handlePrintFull = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setShowPrintMenu(false);
+    if (abrirImpresionAtlas && capasConfig) {
+      const activeCapas = capasConfig.filter((c) => c.active);
+      abrirImpresionAtlas('Mapa General de Lanús', activeCapas.length > 0 ? activeCapas : capasConfig);
+    } else {
+      window.print();
+    }
   };
 
-  const handlePrintZone = () => {
-    toast('Funcionalidad en desarrollo', { duration: 2500 });
+  const handlePrintZone = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setShowPrintMenu(false);
+    if (abrirImpresionAtlas && capasConfig) {
+      const activeCapas = capasConfig.filter((c) => c.active);
+      abrirImpresionAtlas('Selección por Zonas y Ramales', activeCapas.length > 0 ? activeCapas : capasConfig);
+    } else {
+      window.print();
+    }
   };
 
   const handleSave = async () => {
@@ -839,11 +858,6 @@ export default function MapComponent() {
           <MapContainer 
             center={center} 
             zoom={14}
-            minZoom={12}
-            maxBounds={[
-              [-34.7505, -58.4519], // Sur-Oeste
-              [-34.6537, -58.3284]  // Nor-Este
-            ]}
             style={{ width: '100%', height: '100%' }}
             zoomControl={false}
             ref={setMapInstance}
@@ -1104,7 +1118,12 @@ export default function MapComponent() {
         })}
 
         <TrackingLayer markers={trackingMarkers} />
-        <MapToolbar activeTab={activeTab} isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
+        <MapToolbar 
+          activeTab={activeTab} 
+          isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} 
+          abrirImpresionAtlas={handleOpenAtlasPrint}
+          capasConfig={capasConfig}
+        />
       </MapContainer>
         </div>
       </div>

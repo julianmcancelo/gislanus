@@ -23,9 +23,21 @@ export default function MapPrintAtlasModal({
   mapInstance,
 }: MapPrintAtlasModalProps) {
   const [step, setStep] = useState<number>(1);
-  const [ramalesSeleccionados, setRamalesSeleccionados] = useState<string[]>(capasLinea.map(c => c.id));
+  const [ramalesSeleccionados, setRamalesSeleccionados] = useState<string[]>([]);
   const [modoVarita, setModoVarita] = useState<boolean>(false);
-  const [paperFormat, setPaperFormat] = useState<'A4' | 'A3' | 'A2'>('A4');
+
+  // Sincronizar ramales seleccionados cada vez que se abre el modal o cambian las capas recibidas
+  React.useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      setModoVarita(false);
+      if (capasLinea && capasLinea.length > 0) {
+        setRamalesSeleccionados(capasLinea.map((c) => c.id));
+      }
+    }
+  }, [isOpen, capasLinea]);
+  const [paperFormat, setPaperFormat] = useState<'A4' | 'A3' | 'A2' | 'A1' | 'A0'>('A4');
+  const [renderScale, setRenderScale] = useState<number>(3); // 2: Normal, 3: Alta (HD), 4: Ultra HD
   const [zoomLevel, setZoomLevel] = useState<number>(16);
   const [numSegmentos, setNumSegmentos] = useState<number>(6);
   const [incluirVistaGeneral, setIncluirVistaGeneral] = useState<boolean>(true);
@@ -170,7 +182,7 @@ export default function MapPrintAtlasModal({
       const captureOptions = {
         useCORS: true,
         allowTaint: false,
-        scale: 2,
+        scale: renderScale,
         logging: false,
         ignoreElements: (el: Element) => {
           if (
@@ -239,7 +251,7 @@ export default function MapPrintAtlasModal({
 
       // 3. Ensamblar documento PDF en formato profesional tipo Nakarte / Field Papers
       const isLandscape = orientacion === 'landscape';
-      const pdf = new jsPDF({ orientation: orientacion, unit: 'mm', format: 'a4' });
+      const pdf = new jsPDF({ orientation: orientacion, unit: 'mm', format: paperFormat.toLowerCase() as any });
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
@@ -459,13 +471,15 @@ export default function MapPrintAtlasModal({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: 'rgba(15, 23, 42, 0.82)',
-        backdropFilter: 'blur(10px)',
+        background: modoVarita ? 'rgba(15, 23, 42, 0.35)' : 'rgba(15, 23, 42, 0.82)',
+        backdropFilter: modoVarita ? 'none' : 'blur(10px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
         fontFamily: "'Inter', system-ui, sans-serif",
+        pointerEvents: modoVarita ? 'none' : 'auto',
+        transition: 'all 0.3s ease',
       }}
     >
       <div
@@ -477,6 +491,7 @@ export default function MapPrintAtlasModal({
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
           overflow: 'hidden',
           border: '1px solid #e2e8f0',
+          pointerEvents: 'auto',
         }}
       >
         {/* Modal Header */}
@@ -656,9 +671,16 @@ export default function MapPrintAtlasModal({
                           }}
                           style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }}
                         />
-                        <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-                          {capa.nombre}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
+                            {capa.subGrupo?.nombre ? `${capa.subGrupo.nombre} - ` : ''}{capa.nombre}
+                          </span>
+                          {capa.grupo?.nombre && (
+                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                              {capa.grupo.nombre}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: capa.color || '#2563eb' }} />
                     </label>
@@ -675,15 +697,15 @@ export default function MapPrintAtlasModal({
                 <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
                   1. Formato de Papel:
                 </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {['A4', 'A3', 'A2'].map((fmt) => (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {['A4', 'A3', 'A2', 'A1', 'A0'].map((fmt) => (
                     <button
                       key={fmt}
                       type="button"
                       onClick={() => setPaperFormat(fmt as any)}
                       style={{
                         flex: 1,
-                        padding: '8px',
+                        padding: '8px 4px',
                         borderRadius: '8px',
                         border: paperFormat === fmt ? '2px solid #2563eb' : '1px solid #cbd5e1',
                         background: paperFormat === fmt ? '#eff6ff' : '#fff',
@@ -701,7 +723,39 @@ export default function MapPrintAtlasModal({
 
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
-                  2. Orientación de Página:
+                  2. Calidad de Renderizado / Resolución:
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[
+                    { label: 'Normal (2x)', val: 2 },
+                    { label: 'Alta HD (3x)', val: 3 },
+                    { label: 'Máxima Ultra HD (4x)', val: 4 },
+                  ].map((item) => (
+                    <button
+                      key={item.val}
+                      type="button"
+                      onClick={() => setRenderScale(item.val)}
+                      style={{
+                        flex: 1,
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: renderScale === item.val ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                        background: renderScale === item.val ? '#eff6ff' : '#fff',
+                        color: renderScale === item.val ? '#1d4ed8' : '#475569',
+                        fontWeight: 700,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                  3. Orientación de Página:
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {[
