@@ -205,24 +205,8 @@ export default function MapPrintAtlasModal({
 
       const imgData = canvas.toDataURL('image/png');
       const imgProps = pdf.getImageProperties(imgData);
-      const imgAspect = imgProps.width / imgProps.height;
-      const pageAspect = pdfWidth / pdfHeight;
-
-      let renderW = pdfWidth;
-      let renderH = pdfHeight;
-      let offsetX = 0;
-      let offsetY = 0;
-
-      if (imgAspect > pageAspect) {
-        renderH = pdfWidth / imgAspect;
-        offsetY = (pdfHeight - renderH) / 2;
-      } else {
-        renderW = pdfHeight * imgAspect;
-        offsetX = (pdfWidth - renderW) / 2;
-      }
-
-      // 1. Imagen del mapa en alta resolución sin deformación
-      pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderW, renderH);
+      // 1. Imagen del mapa en alta resolución cubriendo toda la hoja manteniendo la proporción exacta
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
       // 2. Cuadrícula cartográfica opcional estilo profesional
       if (incluirCuadricula) {
