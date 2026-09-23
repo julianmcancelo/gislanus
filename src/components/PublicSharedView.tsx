@@ -19,16 +19,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const idaPalette = ['#2563eb', '#059669', '#0891b2', '#7c3aed', '#4f46e5', '#0284c7', '#16a34a'];
-const vueltaPalette = ['#e11d48', '#ea580c', '#db2777', '#d97706', '#dc2626', '#c026d3', '#b91c1c'];
+const RAMAL_PALETTE = [
+  '#2563eb', // Azul real
+  '#059669', // Verde esmeralda
+  '#d97706', // Ámbar / Dorado
+  '#7c3aed', // Púrpura / Violeta
+  '#dc2626', // Rojo
+  '#0891b2', // Cian / Turquesa
+  '#ea580c', // Naranja
+  '#db2777', // Rosa
+  '#4f46e5', // Índigo
+  '#16a34a', // Verde bosque
+  '#ca8a04', // Amarillo mostaza
+  '#9333ea', // Morado
+  '#e11d48', // Carmesí
+  '#0284c7', // Celeste
+  '#0d9488', // Verde azulado
+  '#c026d3', // Fucsia
+];
 
-function stableTransitColor(seed: string, sentido: string = 'IDA', fallback: string = '#2563eb') {
+function stableRamalColor(seed: string, fallback: string = '#2563eb') {
   if (!seed) return fallback;
   let hash = 0;
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  const palette = sentido.toUpperCase() === 'VUELTA' ? vueltaPalette : idaPalette;
-  return palette[hash % palette.length];
+  return RAMAL_PALETTE[hash % RAMAL_PALETTE.length];
 }
+
+const stableTransitColor = (seed: string, _sentido?: string, fallback?: string) => stableRamalColor(seed, fallback);
 
 export default function PublicSharedView({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
@@ -95,6 +112,49 @@ export default function PublicSharedView({ token }: { token: string }) {
           MUNICIPAL: 'Líneas Municipales',
         };
 
+        // Group line records by ramal key to detect and pair duplicate sentidos (e.g. 523 with 2 Vueltas, or 520 with 2 Idas)
+        const ramalBuckets: Record<string, any[]> = {};
+        validLineas.forEach((l: any) => {
+          const cat = l.categoria || 'NACIONAL';
+          const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
+          let ramalLabel = l.subcategoria || null;
+          if (!ramalLabel) {
+            let geo = null;
+            try { geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo; } catch (e) {}
+            const fp = (geo?.type === 'Feature' ? geo : geo?.features?.[0])?.properties || {};
+            if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
+            else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
+            else if (fp.subgrupo) ramalLabel = fp.subgrupo;
+            else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
+          }
+          const key = `${cat}-${lineaLabel}-${ramalLabel || 'principal'}`;
+          if (!ramalBuckets[key]) ramalBuckets[key] = [];
+          ramalBuckets[key].push(l);
+        });
+
+        // Determine effective sentido for each record to guarantee 1 IDA and 1 VUELTA for pairs
+        const resolvedSentidos: Record<string, 'IDA' | 'VUELTA'> = {};
+        Object.values(ramalBuckets).forEach((records: any[]) => {
+          if (records.length === 2) {
+            const [r1, r2] = records;
+            const s1 = (r1.sentido || '').trim().toUpperCase();
+            const s2 = (r2.sentido || '').trim().toUpperCase();
+            // If both are identical (e.g. 523 with 2 VUELTAS, or lines with 2 IDAS, or both null)
+            if (s1 === s2 || (!s1 && !s2) || (s1 === 'VUELTA' && s2 === 'VUELTA') || (s1 === 'IDA' && s2 === 'IDA')) {
+              resolvedSentidos[r1.id] = 'IDA';
+              resolvedSentidos[r2.id] = 'VUELTA';
+            } else {
+              resolvedSentidos[r1.id] = s1 === 'VUELTA' ? 'VUELTA' : 'IDA';
+              resolvedSentidos[r2.id] = s2 === 'VUELTA' ? 'VUELTA' : 'IDA';
+            }
+          } else {
+            records.forEach((r: any) => {
+              const s = (r.sentido || '').trim().toUpperCase();
+              resolvedSentidos[r.id] = s === 'VUELTA' ? 'VUELTA' : 'IDA';
+            });
+          }
+        });
+
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
@@ -112,19 +172,11 @@ export default function PublicSharedView({ token }: { token: string }) {
             else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
           }
 
-          // STRICT: Admin setting (l.sentido from database) is the absolute authority!
-          let sentido = (l.sentido || '').trim().toUpperCase();
-          if (!sentido) {
-            if (fp.sentido) sentido = String(fp.sentido).trim().toUpperCase();
-            else if (fp.direction) {
-              const d = String(fp.direction).trim().toUpperCase();
-              if (d === 'VUELTA' || d === 'BACKWARD' || d === 'RETURN') sentido = 'VUELTA';
-              else if (d === 'IDA' || d === 'FORWARD') sentido = 'IDA';
-            }
-          }
-          if (sentido !== 'VUELTA') sentido = 'IDA';
+          // Effective sentido: resolved pair ensures 1 IDA and 1 VUELTA
+          const sentido = resolvedSentidos[l.id] || ((l.sentido || '').trim().toUpperCase() === 'VUELTA' ? 'VUELTA' : 'IDA');
 
-          const lineColor = stableTransitColor(`${cat}-${lineaLabel}-${ramalLabel || ''}`, sentido, '#2563eb');
+          // CADA RAMAL MANTIENE EL MISMO COLOR (tanto IDA como VUELTA usan el mismo color del ramal)
+          const ramalColor = stableRamalColor(`${cat}-${lineaLabel}-${ramalLabel || ''}`, '#2563eb');
           const nombre = sentido === 'VUELTA' ? 'Vuelta' : 'Ida';
 
           const lineaProps = {
@@ -133,7 +185,7 @@ export default function PublicSharedView({ token }: { token: string }) {
             _linea: lineaLabel,
             _ramal: ramalLabel || null,
             _sentido: sentido,
-            _color: lineColor,
+            _color: ramalColor,
             direction: sentido,
             sentido: sentido,
           };
@@ -155,7 +207,7 @@ export default function PublicSharedView({ token }: { token: string }) {
             id: `linea-${l.id}`,
             nombre,
             datosGeo: geoConProps,
-            color: lineColor,
+            color: ramalColor,
             visibilidad: 'PUBLIC',
             grupo: { nombre: grupoNombre },
             subGrupo: { nombre: lineaLabel },
@@ -445,10 +497,10 @@ export default function PublicSharedView({ token }: { token: string }) {
 
                     let routeColor: string;
                     if (isCollectiveLine) {
-                      routeColor = capa.color || properties._color || stableTransitColor(
+                      // Cada ramal mantiene el MISMO color para Ida y Vuelta
+                      routeColor = capa.color || properties._color || stableRamalColor(
                         `${properties._linea || capa.subGrupo?.nombre || capa.nombre}-${properties._ramal || capa.subSubGrupo?.nombre || ''}`,
-                        isReturn ? 'VUELTA' : 'IDA',
-                        isReturn ? '#ea580c' : '#2563eb'
+                        '#2563eb'
                       );
                     } else {
                       routeColor = String(capa.color || properties.color_hex || properties.color || '#3b82f6');
