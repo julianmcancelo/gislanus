@@ -129,6 +129,7 @@ export default function AdminPage() {
   const [lineaFormDescripcion, setLineaFormDescripcion] = useState('');
   const [lineaFormCategoria, setLineaFormCategoria] = useState('NACIONAL');
   const [lineaFormSubcategoria, setLineaFormSubcategoria] = useState('');
+  const [lineaFormSentido, setLineaFormSentido] = useState('IDA');
   const [lineaFormSaving, setLineaFormSaving] = useState(false);
   const [selectedLineas, setSelectedLineas] = useState<string[]>([]);
   const [lineaFiltro, setLineaFiltro] = useState('');

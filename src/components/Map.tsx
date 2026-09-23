@@ -399,48 +399,62 @@ export default function MapComponent() {
           PROVINCIAL: 'Líneas Provinciales',
           MUNICIPAL: 'Líneas Municipales',
         };
-        const seenLineRamal: Record<string, number> = {};
         const formatedLineas = validLineas.map((l: any) => {
           const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
           const cat = l.categoria || 'NACIONAL';
-          // Level 1 grupo  = categoría  ("Líneas Nacionales")
           const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
-          // Level 2 subGrupo = línea  ("Línea 45")
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
-          // Level 3 subSubGrupo = ramal — fallback to GeoJSON feature properties for old records
           let ramalLabel = l.subcategoria || null;
-          let sentidoRaw = (l.sentido || '').toUpperCase();
-          if (!ramalLabel || !sentidoRaw) {
-            const firstFeature = geo?.type === 'Feature' ? geo : geo?.features?.[0];
-            const fp = firstFeature?.properties || {};
-            if (!ramalLabel) {
-              if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
-              else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
-              else if (fp.subgrupo) ramalLabel = fp.subgrupo;
-              else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
-            }
-            if (!sentidoRaw && fp.sentido) sentidoRaw = String(fp.sentido).toUpperCase();
+
+          const firstFeature = geo?.type === 'Feature' ? geo : geo?.features?.[0];
+          const fp = firstFeature?.properties || {};
+
+          if (!ramalLabel) {
+            if (fp.ramal) ramalLabel = `Ramal ${fp.ramal}`;
+            else if (fp.subgrupo_detalle) ramalLabel = fp.subgrupo_detalle;
+            else if (fp.subgrupo) ramalLabel = fp.subgrupo;
+            else if (fp.ramal_nombre) ramalLabel = fp.ramal_nombre;
           }
-          const sentido = sentidoRaw;
+
+          // STRICT: Admin setting (l.sentido from database) is the absolute authority!
+          let sentido = (l.sentido || '').trim().toUpperCase();
+          if (!sentido) {
+            if (fp.sentido) sentido = String(fp.sentido).trim().toUpperCase();
+            else if (fp.direction) {
+              const d = String(fp.direction).trim().toUpperCase();
+              if (d === 'VUELTA' || d === 'BACKWARD' || d === 'RETURN') sentido = 'VUELTA';
+              else if (d === 'IDA' || d === 'FORWARD') sentido = 'IDA';
+            }
+          }
+          if (sentido !== 'VUELTA') sentido = 'IDA';
+
           const lineColor = stableTransitColor(`${cat}-${lineaLabel}-${ramalLabel || ''}`, sentido, '#2563eb');
-          const nombre = sentido
-            ? sentido.charAt(0) + sentido.slice(1).toLowerCase().replace(/_/g, ' ')
-            : lineaLabel;
+          const nombre = sentido === 'VUELTA' ? 'Vuelta' : 'Ida';
+
           const lineaProps = {
+            ...fp,
             _tipo: 'linea',
             _linea: lineaLabel,
             _ramal: ramalLabel || null,
-            _sentido: sentido || null,
-            _operador: l.descripcion || null,
+            _sentido: sentido,
             _color: lineColor,
-            sentido: sentido || null,
+            direction: sentido,
+            sentido: sentido,
           };
+
           let geoConProps = geo;
           if (geo?.type === 'Feature') {
-            geoConProps = { ...geo, properties: { ...geo.properties, ...lineaProps } };
+            geoConProps = { ...geo, properties: { ...(geo.properties || {}), ...lineaProps } };
           } else if (geo?.features) {
-            geoConProps = { ...geo, features: geo.features.map((f: any) => ({ ...f, properties: { ...f.properties, ...lineaProps } })) };
+            geoConProps = {
+              ...geo,
+              features: geo.features.map((f: any) => ({
+                ...f,
+                properties: { ...(f.properties || {}), ...lineaProps }
+              }))
+            };
           }
+
           return {
             id: `linea-${l.id}`,
             nombre,
@@ -912,9 +926,12 @@ export default function MapComponent() {
                 const isCollectiveLine = Boolean(
                   properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo
                 );
-                const isReturn = String(
-                  properties.direction || properties.sentido || properties._sentido || capa.nombre || ''
-                ).toUpperCase().includes('VUELTA');
+                const isReturn = (
+                      properties._sentido === 'VUELTA' ||
+                      properties.sentido === 'VUELTA' ||
+                      properties.direction === 'VUELTA' ||
+                      (capa.nombre && capa.nombre.toLowerCase().includes('vuelta'))
+                    );
 
                 let routeColor: string;
                 if (isCollectiveLine) {

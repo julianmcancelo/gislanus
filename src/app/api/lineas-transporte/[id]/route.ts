@@ -31,6 +31,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (body.subcategoria !== undefined) data.subcategoria = body.subcategoria;
     if (body.sentido !== undefined) data.sentido = body.sentido;
     if (body.activo !== undefined) data.activo = body.activo;
+
     if (body.datosGeo !== undefined) {
       let parsedGeo = typeof body.datosGeo === 'string' ? JSON.parse(body.datosGeo) : body.datosGeo;
       if (parsedGeo.type === 'FeatureCollection') {
@@ -44,6 +45,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         parsedGeo = clipGeometryToLanus(parsedGeo);
       }
       data.datosGeo = JSON.stringify(parsedGeo);
+    } else if (body.sentido !== undefined) {
+      // Sincronizar sentido dentro del JSON de datosGeo existente
+      try {
+        const current = await prisma.lineaTransporte.findUnique({ where: { id }, select: { datosGeo: true } });
+        if (current?.datosGeo) {
+          let parsedGeo = typeof current.datosGeo === 'string' ? JSON.parse(current.datosGeo) : current.datosGeo;
+          const nextSentido = String(body.sentido || '').toUpperCase();
+          if (parsedGeo.type === 'Feature') {
+            parsedGeo.properties = { ...parsedGeo.properties, sentido: nextSentido, direction: nextSentido, _sentido: nextSentido };
+          } else if (parsedGeo.type === 'FeatureCollection' && Array.isArray(parsedGeo.features)) {
+            parsedGeo.features = parsedGeo.features.map((f: any) => ({
+              ...f,
+              properties: { ...f.properties, sentido: nextSentido, direction: nextSentido, _sentido: nextSentido }
+            }));
+          }
+          data.datosGeo = JSON.stringify(parsedGeo);
+        }
+      } catch (e) {
+        console.error('Error sincronizando datosGeo con sentido:', e);
+      }
     }
 
     const linea = await prisma.lineaTransporte.update({ where: { id }, data });
