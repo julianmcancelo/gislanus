@@ -579,12 +579,38 @@ export default function Sidebar({
         {/* ── Capas ── */}
         {activeTab === 'layers' && (
           <div className={styles.panelContent}>
-            <div className={styles.panelHeader}>
-              <div className={styles.panelHeaderIcon}>
-                <Layers size={14} color="#64748b" />
+            <div className={styles.panelHeader} style={{ justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className={styles.panelHeaderIcon}>
+                  <Layers size={14} color="#64748b" />
+                </div>
+                <h3 className={styles.panelTitle}>Capas</h3>
+                <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
               </div>
-              <h3 className={styles.panelTitle}>Capas</h3>
-              <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
+              {abrirCompartir && (
+                <button
+                  type="button"
+                  onClick={() => abrirCompartir()}
+                  style={{
+                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '5px 10px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.25)'
+                  }}
+                  title="Generar Enlace Público y QR"
+                >
+                  <Share2 size={13} />
+                  <span>Compartir / QR</span>
+                </button>
+              )}
             </div>
 
             <div className={styles.panelBody}>
