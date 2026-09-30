@@ -47,6 +47,10 @@ next-env.d.ts
 *.db-journal
 
 # Scratch / Test files
-scratch_*.js
+scratch_*
+scripts/check_and_create_table.js
 *.geojson
 !public/*.geojson
+
+# Flutter mobile app clone
+mobile_bustracker/

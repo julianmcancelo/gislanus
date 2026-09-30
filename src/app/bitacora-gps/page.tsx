@@ -44,6 +44,8 @@ export default function BitacoraGPSPage() {
 
   // Modals
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [selectedServerMode, setSelectedServerMode] = useState<'wifi' | 'emulator' | 'origin'>('wifi');
+  const [customServerUrl, setCustomServerUrl] = useState('');
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -306,7 +308,13 @@ export default function BitacoraGPSPage() {
     }
   };
 
-  const syncApiUrl = typeof window !== 'undefined' ? `${window.location.origin}/api/bitacora-gps` : '/api/bitacora-gps';
+  const localWifiUrl = 'http://192.168.0.229:3000';
+  const emulatorUrl = 'http://10.0.2.2:3000';
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  
+  const activeServerBase = customServerUrl.trim() 
+    || (selectedServerMode === 'wifi' ? localWifiUrl : selectedServerMode === 'emulator' ? emulatorUrl : currentOrigin);
+  const syncApiUrl = `${activeServerBase}/api/bitacora-gps`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', background: '#f1f5f9', fontFamily: 'Inter, system-ui, sans-serif', overflow: 'hidden' }}>
@@ -1302,29 +1310,131 @@ export default function BitacoraGPSPage() {
             </div>
 
             <div style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', gap: 20, alignItems: 'center', marginBottom: 20, background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                <div style={{ background: '#fff', padding: 8, borderRadius: 8, boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
-                  <QRCodeSVG value={syncApiUrl} size={110} />
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ background: '#2563eb', color: '#fff', fontSize: '0.72rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6 }}>
+                    RELEASE v1.0.10
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#1e3a8a', fontWeight: 600 }}>
+                    Snap-to-Roads · Filtro Kalman 2D · URL Editable en Ajustes
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <a
+                  href="https://github.com/julianmcancelo/BusTrackerGPS/releases/download/v1.0.10/app-release.apk"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    background: '#2563eb',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    borderRadius: 7,
+                    padding: '6px 12px',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Download size={13} /> Descargar APK v1.0.10
+                </a>
+              </div>
+
+              {/* Selector de Entorno de Conexión */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                  Elegí la red donde corre tu servidor GIS:
+                </label>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                  <button
+                    onClick={() => { setSelectedServerMode('wifi'); setCustomServerUrl(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '7px 8px',
+                      borderRadius: 7,
+                      fontSize: '0.73rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: selectedServerMode === 'wifi' && !customServerUrl ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      background: selectedServerMode === 'wifi' && !customServerUrl ? '#e0f2fe' : '#f8fafc',
+                      color: selectedServerMode === 'wifi' && !customServerUrl ? '#0369a1' : '#475569',
+                    }}
+                  >
+                    📶 Wi-Fi Local (192.168.0.229)
+                  </button>
+                  <button
+                    onClick={() => { setSelectedServerMode('origin'); setCustomServerUrl(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '7px 8px',
+                      borderRadius: 7,
+                      fontSize: '0.73rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: selectedServerMode === 'origin' && !customServerUrl ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      background: selectedServerMode === 'origin' && !customServerUrl ? '#e0f2fe' : '#f8fafc',
+                      color: selectedServerMode === 'origin' && !customServerUrl ? '#0369a1' : '#475569',
+                    }}
+                  >
+                    🌐 Este Navegador ({currentOrigin.replace('http://', '').replace('https://', '')})
+                  </button>
+                  <button
+                    onClick={() => { setSelectedServerMode('emulator'); setCustomServerUrl(''); }}
+                    style={{
+                      flex: 1,
+                      padding: '7px 8px',
+                      borderRadius: 7,
+                      fontSize: '0.73rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      border: selectedServerMode === 'emulator' && !customServerUrl ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      background: selectedServerMode === 'emulator' && !customServerUrl ? '#e0f2fe' : '#f8fafc',
+                      color: selectedServerMode === 'emulator' && !customServerUrl ? '#0369a1' : '#475569',
+                    }}
+                  >
+                    💻 Emulador (10.0.2.2)
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 18, alignItems: 'center', marginBottom: 18, background: '#f8fafc', padding: 14, borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#fff', padding: 8, borderRadius: 8, boxShadow: '0 2px 6px rgba(0,0,0,0.06)', flexShrink: 0 }}>
+                  <QRCodeSVG value={activeServerBase} size={110} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h4 style={{ margin: '0 0 4px', fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
-                    Sincronización Automática
+                    URL del Servidor Municipal
                   </h4>
-                  <p style={{ margin: '0 0 8px', fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
-                    Escaneá el código QR desde la app móvil o configurá el endpoint de recepción en los ajustes de BusTrackerGPS.
+                  <p style={{ margin: '0 0 8px', fontSize: '0.74rem', color: '#64748b', lineHeight: 1.4 }}>
+                    Copiá esta URL en <strong>Ajustes &gt; Sincronización Lanús Digital</strong> en tu celular:
                   </p>
                   <div style={{
                     background: '#0f172a',
                     color: '#38bdf8',
                     fontFamily: 'monospace',
-                    fontSize: '0.72rem',
-                    padding: '6px 8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    padding: '8px 10px',
                     borderRadius: 6,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}>
-                    {syncApiUrl}
+                    <span>{activeServerBase}</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(activeServerBase);
+                        toast.success('URL copiada al portapapeles');
+                      }}
+                      style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 4, padding: '2px 6px', fontSize: '0.7rem', cursor: 'pointer' }}
+                    >
+                      Copiar
+                    </button>
                   </div>
                 </div>
               </div>

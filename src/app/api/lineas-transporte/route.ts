@@ -3,6 +3,12 @@ import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/authGuard';
 import { clipGeometryToLanus } from '@/utils/geo';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-App-Client, X-API-Key',
+};
+
 export async function GET() {
   try {
     const lineas = await prisma.lineaTransporte.findMany({
@@ -22,10 +28,17 @@ export async function GET() {
         actualizadoEn: true,
       },
     });
-    return NextResponse.json(lineas);
+    return NextResponse.json(lineas, { headers: corsHeaders });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
 }
 
 export async function POST(req: Request) {

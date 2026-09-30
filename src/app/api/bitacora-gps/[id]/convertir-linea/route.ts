@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { clipGeometryToLanus } from '@/utils/geo';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-App-Client, X-API-Key',
+};
+
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -12,14 +18,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     });
 
     if (!trip) {
-      return NextResponse.json({ error: 'Relevamiento GPS no encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Relevamiento GPS no encontrado' }, { status: 404, headers: corsHeaders });
     }
 
     let parsedGeo: any;
     try {
       parsedGeo = typeof trip.datosGeo === 'string' ? JSON.parse(trip.datosGeo) : trip.datosGeo;
     } catch {
-      return NextResponse.json({ error: 'Los datos geográficos del relevamiento están corruptos' }, { status: 400 });
+      return NextResponse.json({ error: 'Los datos geográficos del relevamiento están corruptos' }, { status: 400, headers: corsHeaders });
     }
 
     // Find the LineString or MultiLineString representing the route
@@ -43,7 +49,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!routeGeometry) {
       return NextResponse.json(
         { error: 'No se encontró una geometría LineString válida en este relevamiento' },
-        { status: 400 }
+        { status: 400, headers: corsHeaders }
       );
     }
 
@@ -118,9 +124,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       success: true,
       linea: nuevaLinea,
       message: `Relevamiento promovido exitosamente a Línea de Transporte Oficial (#${nuevaLinea.id})`,
-    });
+    }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error promoting relevamiento to linea:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders });
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
 }
