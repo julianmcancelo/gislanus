@@ -6,6 +6,26 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '50mb',
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/bitacora-gps/api/bitacora-gps',
+        destination: '/api/bitacora-gps',
+      },
+      {
+        source: '/api/bitacora-gps/',
+        destination: '/api/bitacora-gps',
+      },
+      {
+        source: '/api/lineas-transporte/api/lineas-transporte',
+        destination: '/api/lineas-transporte',
+      },
+      {
+        source: '/api/lineas-transporte/',
+        destination: '/api/lineas-transporte',
+      },
+    ];
+  },
   async headers() {
     return [
       {
