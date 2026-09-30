@@ -38,6 +38,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       'chofer',
       'notas',
       'estado',
+      'distanciaMeters',
+      'duracionMs',
+      'velocidadProm',
+      'velocidadMax',
+      'puntosCount',
+      'paradasCount',
+      'incidenciasCount',
+      'datosGeo',
     ];
 
     const dataToUpdate: any = {};
@@ -50,6 +58,37 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (dataToUpdate.sentido) {
       const s = dataToUpdate.sentido.toUpperCase();
       dataToUpdate.sentido = s.includes('VUELTA') ? 'VUELTA' : s.includes('IDA') ? 'IDA' : null;
+    }
+
+    if (dataToUpdate.datosGeo !== undefined) {
+      let geoObj = dataToUpdate.datosGeo;
+      if (typeof geoObj === 'string') {
+        try {
+          geoObj = JSON.parse(geoObj);
+        } catch {
+          return NextResponse.json({ error: 'datosGeo no es un JSON válido' }, { status: 400, headers: corsHeaders });
+        }
+      }
+
+      dataToUpdate.datosGeo = JSON.stringify(geoObj);
+
+      // Recompute counts if available in GeoJSON
+      if (geoObj?.type === 'FeatureCollection' && Array.isArray(geoObj.features)) {
+        const lineFeat = geoObj.features.find((f: any) => f.geometry?.type === 'LineString' || f.geometry?.type === 'MultiLineString');
+        if (lineFeat && lineFeat.geometry?.type === 'LineString') {
+          if (dataToUpdate.puntosCount === undefined) {
+            dataToUpdate.puntosCount = lineFeat.geometry.coordinates?.length || 0;
+          }
+        }
+        const stops = geoObj.features.filter((f: any) => f.properties?.type === 'stop');
+        if (dataToUpdate.paradasCount === undefined) {
+          dataToUpdate.paradasCount = stops.length;
+        }
+        const incidents = geoObj.features.filter((f: any) => f.properties?.type === 'incident');
+        if (dataToUpdate.incidenciasCount === undefined) {
+          dataToUpdate.incidenciasCount = incidents.length;
+        }
+      }
     }
 
     const updated = await prisma.relevamientoGPS.update({

@@ -6,12 +6,19 @@ import {
   Smartphone, MapPin, Bus, Route, ArrowLeft, Download, Upload, Plus, Trash2,
   RefreshCw, CheckCircle2, AlertTriangle, Clock, Gauge, Navigation, Share2,
   SlidersHorizontal, Search, Eye, Sparkles, Shield, ChevronRight, Layers,
-  ExternalLink, QrCode, FileText, Check, HelpCircle
+  ExternalLink, QrCode, FileText, Check, HelpCircle, Edit3, Sliders, FileCode, X
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/context/AuthContext';
 import JSZip from 'jszip';
+import GpsTraceEditorModal from '@/components/GpsTraceEditorModal';
+import {
+  downloadGeoJson,
+  downloadGpx,
+  downloadKml,
+  downloadAllRelevamientosGeoJson
+} from '@/utils/exportGps';
 
 const StaticMapPreview = dynamic(() => import('@/components/StaticMapPreview'), {
   ssr: false,
@@ -49,6 +56,8 @@ export default function BitacoraGPSPage() {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<any | null>(null);
+  const [exportModalTrip, setExportModalTrip] = useState<any | null>(null);
 
   // Promotion form state
   const [promoteNombre, setPromoteNombre] = useState('');
@@ -432,6 +441,38 @@ export default function BitacoraGPSPage() {
           </button>
 
           <button
+            onClick={() => {
+              try {
+                downloadAllRelevamientosGeoJson(relevamientos);
+                toast.success(`Descargando ${relevamientos.length} relevamientos en GeoJSON`);
+              } catch (e: any) {
+                toast.error(e.message || 'Error al exportar');
+              }
+            }}
+            disabled={relevamientos.length === 0}
+            style={{
+              background: 'rgba(255,255,255,0.09)',
+              color: '#f8fafc',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 8,
+              padding: '7px 14px',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: relevamientos.length === 0 ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              transition: 'all 0.2s',
+            }}
+            title="Descargar todos los recorridos registrados en un archivo GeoJSON unificado"
+            onMouseOver={e => { if (relevamientos.length > 0) e.currentTarget.style.background = 'rgba(255,255,255,0.16)'; }}
+            onMouseOut={e => { if (relevamientos.length > 0) e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; }}
+          >
+            <Download size={14} color="#38bdf8" />
+            <span>Descargar Todos ({relevamientos.length})</span>
+          </button>
+
+          <button
             onClick={() => setShowConnectModal(true)}
             style={{
               background: 'rgba(255,255,255,0.09)',
@@ -720,8 +761,31 @@ export default function BitacoraGPSPage() {
                         </button>
 
                         <button
-                          onClick={e => handleDownloadGeoJson(trip, e)}
-                          title="Descargar GeoJSON"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setEditingTrip(trip);
+                          }}
+                          title="Editar trazo cartográfico y datos del viaje"
+                          style={{
+                            background: '#f0f9ff',
+                            border: '1px solid #bae6fd',
+                            borderRadius: 5,
+                            padding: '3px 6px',
+                            color: '#0284c7',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Sliders size={12} />
+                        </button>
+
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setExportModalTrip(trip);
+                          }}
+                          title="Descargar recorrido (GeoJSON / GPX / KML)"
                           style={{
                             background: '#f8fafc',
                             border: '1px solid #e2e8f0',
@@ -831,6 +895,50 @@ export default function BitacoraGPSPage() {
                   >
                     <Layers size={14} color="#0284c7" /> Ver en Mapa GIS
                   </button>
+                  <button
+                    onClick={() => setEditingTrip(selectedTrip)}
+                    style={{
+                      background: '#f0f9ff',
+                      color: '#0284c7',
+                      border: '1px solid #bae6fd',
+                      borderRadius: 8,
+                      padding: '8px 14px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      boxShadow: '0 1px 4px rgba(2,132,199,0.1)',
+                      transition: 'all 0.2s',
+                    }}
+                    title="Editar trazo cartográfico, suavizar curvas y actualizar datos municipales"
+                    onMouseOver={e => e.currentTarget.style.background = '#e0f2fe'}
+                    onMouseOut={e => e.currentTarget.style.background = '#f0f9ff'}
+                  >
+                    <Sliders size={14} color="#0284c7" /> Editar Trazo & Info
+                  </button>
+
+                  <button
+                    onClick={() => setExportModalTrip(selectedTrip)}
+                    style={{
+                      background: '#f8fafc',
+                      color: '#334155',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                    title="Descargar este recorrido en GeoJSON, GPX o KML"
+                  >
+                    <Download size={14} color="#0284c7" /> Descargar
+                  </button>
+
                   <button
                     onClick={() => openPromote(selectedTrip)}
                     style={{
@@ -1482,6 +1590,209 @@ export default function BitacoraGPSPage() {
                   Entendido
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDICIÓN Y ESTILIZACIÓN DE TRAZO GPS */}
+      {editingTrip && (
+        <GpsTraceEditorModal
+          isOpen={!!editingTrip}
+          trip={editingTrip}
+          onClose={() => setEditingTrip(null)}
+          onSaved={(updatedTrip) => {
+            setRelevamientos(prev => prev.map(r => r.id === updatedTrip.id ? updatedTrip : r));
+            if (selectedId === updatedTrip.id) {
+              setSelectedId(updatedTrip.id);
+            }
+          }}
+        />
+      )}
+
+      {/* MODAL DE DESCARGA EN FORMATOS CARTOGRÁFICOS */}
+      {exportModalTrip && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: 14,
+            maxWidth: 480,
+            width: '100%',
+            padding: 22,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+            border: '1px solid #e2e8f0',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ background: '#e0f2fe', color: '#0284c7', padding: 8, borderRadius: 8 }}>
+                  <Download size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                    Descargar Relevamiento GPS
+                  </h3>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    {exportModalTrip.lineaNumero ? `Línea ${exportModalTrip.lineaNumero}` : 'Relevamiento'} — {exportModalTrip.ramal || 'Principal'} ({exportModalTrip.sentido || 'IDA'})
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setExportModalTrip(null)}
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <p style={{ margin: '0 0 16px 0', fontSize: '0.78rem', color: '#64748b' }}>
+              Elegí el formato cartográfico en el que deseás descargar el recorrido con sus paradas e incidencias:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {/* GeoJSON Option */}
+              <button
+                onClick={() => {
+                  try {
+                    downloadGeoJson(exportModalTrip);
+                    toast.success('Archivo GeoJSON generado');
+                    setExportModalTrip(null);
+                  } catch (e: any) {
+                    toast.error(e.message);
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.borderColor = '#0284c7'}
+                onMouseOut={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.84rem', color: '#0f172a' }}>
+                    GeoJSON (.geojson)
+                  </strong>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Estándar cartográfico para web, Leaflet, Mapbox y APIs GIS
+                  </span>
+                </div>
+                <span style={{ background: '#e0f2fe', color: '#0284c7', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4 }}>
+                  Recomendado
+                </span>
+              </button>
+
+              {/* GPX Option */}
+              <button
+                onClick={() => {
+                  try {
+                    downloadGpx(exportModalTrip);
+                    toast.success('Archivo GPX generado');
+                    setExportModalTrip(null);
+                  } catch (e: any) {
+                    toast.error(e.message);
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.borderColor = '#10b981'}
+                onMouseOut={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.84rem', color: '#0f172a' }}>
+                    GPX Exchange Format (.gpx)
+                  </strong>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Compatible con GPS Garmin, Strava, QGIS y OpenStreetMap
+                  </span>
+                </div>
+                <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4 }}>
+                  GPS Track
+                </span>
+              </button>
+
+              {/* KML Option */}
+              <button
+                onClick={() => {
+                  try {
+                    downloadKml(exportModalTrip);
+                    toast.success('Archivo KML generado');
+                    setExportModalTrip(null);
+                  } catch (e: any) {
+                    toast.error(e.message);
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => e.currentTarget.style.borderColor = '#f59e0b'}
+                onMouseOut={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: '0.84rem', color: '#0f172a' }}>
+                    Google Earth (.kml)
+                  </strong>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                    Visualización 3D y trazado de recorridos en Google Earth Pro
+                  </span>
+                </div>
+                <span style={{ background: '#fef3c7', color: '#d97706', fontSize: '0.7rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4 }}>
+                  Google Earth
+                </span>
+              </button>
+            </div>
+
+            <div style={{ marginTop: 18, display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setExportModalTrip(null)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#475569',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
