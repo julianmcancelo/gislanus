@@ -234,3 +234,40 @@ model EnlaceCompartido {
   expiraEn        DateTime?
   creadoEn        DateTime  @default(now())
 }
+
+model RelevamientoGPS {
+  id               String    @id @default(cuid())
+  uuid             String?   // UUID original de BusTrackerGPS
+  lineaNumero      String?   // Ej: "523", "158"
+  ramal            String?   // Ej: "Ramal A"
+  sentido          String?   // "IDA" | "VUELTA"
+  interno          String?   // Número de interno del colectivo
+  patente          String?   // Patente / Dominio
+  chofer           String?   // Conductor o inspector
+  notas            String?
+  estado           String    @default("FINALIZADO") // "ACTIVO" | "PAUSADO" | "FINALIZADO"
+
+  fechaInicio      DateTime?
+  fechaFin         DateTime?
+  duracionMs       Int       @default(0)
+  distanciaMeters  Float     @default(0)
+  movingTimeMs     Int       @default(0)
+  stoppedTimeMs    Int       @default(0)
+  velocidadProm    Float     @default(0)
+  velocidadMax     Float     @default(0)
+
+  puntosCount      Int       @default(0)
+  paradasCount     Int       @default(0)
+  incidenciasCount Int       @default(0)
+
+  datosGeo         String    @db.Text // GeoJSON FeatureCollection (LineString, Stops, Incidents)
+
+  origen           String    @default("APP_MOBILE") // "APP_MOBILE" | "IMPORTACION_GEOJSON" | "IMPORTACION_GPX" | "IMPORTACION_ZIP"
+  dispositivo      String?
+  creadoEn         DateTime  @default(now())
+  actualizadoEn    DateTime  @updatedAt
+
+  @@index([lineaNumero])
+  @@index([sentido])
+  @@index([creadoEn])
+}

@@ -395,7 +395,8 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas, resLineas, resTransportBase] = await Promise.all([
+        const [resCapas, resRutas, resLineas, resTransportBase, resBitacora] = await Promise.all([
+          fetch('/api/bitacora-gps?limit=100').catch(() => ({ ok: false, json: async () => ({ items: [] }) })),
           fetch('/api/capas'),
           fetch('/api/rutas-transporte'),
           fetch('/api/lineas-transporte'),
@@ -406,6 +407,8 @@ export default function MapComponent() {
         const dataRutas = await resRutas.json();
         const dataLineas = await resLineas.json();
         const dataTransportBase = resTransportBase.ok ? await resTransportBase.json() : { features: [] };
+        const dataBitacora = resBitacora && resBitacora.ok ? await resBitacora.json() : { items: [] };
+        const validBitacora = Array.isArray(dataBitacora?.items) ? dataBitacora.items : [];
 
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
@@ -608,7 +611,30 @@ export default function MapComponent() {
           };
         });
 
-        const allData = [...validCapas, ...formatedRutas, ...formatedLineas, ...formatedTransportBase];
+                const formatedBitacora = validBitacora.map((b: any) => {
+          let geo = null;
+          try { geo = typeof b.datosGeo === 'string' ? JSON.parse(b.datosGeo) : b.datosGeo; } catch (e) {}
+          if (!geo) return null;
+          const lineaLabel = b.lineaNumero ? ('Línea ' + b.lineaNumero) : 'Relevamiento General';
+          const ramalLabel = b.ramal ? ('Ramal ' + b.ramal) : 'Sin Ramal';
+          const sentido = (b.sentido || 'IDA').toUpperCase();
+          const color = sentido === 'VUELTA' ? '#8b5cf6' : '#0284c7';
+          const distKm = (b.distanciaMeters / 1000).toFixed(1);
+
+          return {
+            id: 'bitacora-' + b.id,
+            nombre: (sentido === 'VUELTA' ? 'Vuelta' : 'Ida') + ' · Int. ' + (b.interno || 'S/D') + ' (' + distKm + ' km)',
+            datosGeo: geo,
+            color,
+            visibilidad: 'PUBLIC',
+            rolesPermitidos: [],
+            grupo: { nombre: 'Relevamientos GPS Móviles' },
+            subGrupo: { nombre: lineaLabel },
+            subSubGrupo: { nombre: ramalLabel },
+          };
+        }).filter(Boolean);
+
+        const allData = [...validCapas, ...formatedRutas, ...formatedLineas, ...formatedTransportBase, ...formatedBitacora];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {

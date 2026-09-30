@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download, Printer,
-  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2
+  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2, Smartphone
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -488,6 +488,11 @@ export default function Sidebar({
         {canAccessLineas && (
           <div className={styles.navIcon} onClick={() => router.push('/transporte-publico')} title="Transporte Público">
             <Bus size={16} />
+          </div>
+        )}
+        {canAccessLineas && (
+          <div className={styles.navIcon} onClick={() => router.push('/bitacora-gps')} title="Bitácora GPS — Relevamientos">
+            <Smartphone size={16} color="#38bdf8" />
           </div>
         )}
         {canAccessAdmin && (

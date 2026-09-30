@@ -1510,6 +1510,11 @@ export default function AdminPage() {
               <Train size={14} /> <span className="hidden xl:inline">Colectivos</span>
             </button>
           )}
+          {canVerLineas && (
+            <button className={styles.menuItem} onClick={() => router.push('/bitacora-gps')} title="Bitácora GPS — Relevamientos Móviles">
+              <Smartphone size={14} color="#38bdf8" /> <span className="hidden xl:inline">Bitácora GPS</span>
+            </button>
+          )}
           {canVerReclamos && (
             <button className={`${styles.menuItem} ${activeTab === 'reclamos' ? styles.active : ''}`} onClick={() => setActiveTab('reclamos')} title="Reclamos SAT">
               <ClipboardList size={14} /> <span className="hidden xl:inline">Reclamos</span>

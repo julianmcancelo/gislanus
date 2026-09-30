@@ -6,7 +6,7 @@ import {
   MapPin, Truck, CheckCircle, ArrowRight, Loader2, Plus, Edit2, ArrowLeft, 
   List, LayoutDashboard, User, Shield, Info, Search, Filter, ExternalLink, 
   FileText, Route, Navigation, ClipboardList, Clock, Zap, ChevronUp, ChevronDown, 
-  Bot, AlertTriangle, Wand2, Trash2, Pencil, Sparkles, Eye, EyeOff, RefreshCw
+  Bot, AlertTriangle, Wand2, Trash2, Pencil, Sparkles, Eye, EyeOff, RefreshCw, Smartphone
 } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
 import toast from 'react-hot-toast';
@@ -33,7 +33,13 @@ export default function TransportePublicoPage() {
   const { user, dbUser, loading, getIdToken } = useAuth();
   
   // Navigation mode: 'gestionar' or 'crear'
-  const [activeTab, setActiveTab] = useState<'gestionar' | 'crear'>('gestionar');
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'gestionar' | 'crear' | 'relevamientos'>(
+    tabParam === 'relevamientos' ? 'relevamientos' : 'gestionar'
+  );
+  const [relevamientos, setRelevamientos] = useState<any[]>([]);
+  const [loadingRelevamientos, setLoadingRelevamientos] = useState(false);
+  const [isPromotingId, setIsPromotingId] = useState<string | null>(null);
 
   // Lines list state for management mode
   const [lineas, setLineas] = useState<any[]>([]);
@@ -90,8 +96,58 @@ export default function TransportePublicoPage() {
     }
   };
 
+  const fetchRelevamientos = async () => {
+    setLoadingRelevamientos(true);
+    try {
+      const res = await fetch('/api/bitacora-gps');
+      if (res.ok) {
+        const data = await res.json();
+        setRelevamientos(data.items || []);
+      }
+    } catch (e) {
+      console.error('Error fetching relevamientos:', e);
+    } finally {
+      setLoadingRelevamientos(false);
+    }
+  };
+
+  const handlePromoverRelevamiento = async (relId: string) => {
+    setIsPromotingId(relId);
+    try {
+      const res = await fetch(`/api/bitacora-gps/${relId}/convertir-linea`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clipToLanus: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al promover');
+      toast.success(data.message || 'Relevamiento promovido a Línea Oficial');
+      emitirCambioMapa('lineas');
+      fetchLineas();
+      fetchRelevamientos();
+    } catch (e: any) {
+      toast.error(e.message || 'Error al promover a línea oficial');
+    } finally {
+      setIsPromotingId(null);
+    }
+  };
+
+  const handleDeleteRelevamiento = async (relId: string) => {
+    if (!confirm('¿Eliminar este relevamiento GPS?')) return;
+    try {
+      const res = await fetch(`/api/bitacora-gps/${relId}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Relevamiento eliminado');
+        fetchRelevamientos();
+      }
+    } catch {
+      toast.error('Error al eliminar');
+    }
+  };
+
   useEffect(() => {
     fetchLineas();
+    fetchRelevamientos();
   }, []);
 
   const handleToggleSentido = async (id: string, currentSentido: string) => {
@@ -370,30 +426,42 @@ export default function TransportePublicoPage() {
         </div>
 
         {/* Tab selector */}
-        <div style={{ display: 'flex', padding: '8px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', gap: '8px' }}>
+        <div style={{ display: 'flex', padding: '8px 16px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9', gap: '6px' }}>
           <button
             onClick={() => setActiveTab('gestionar')}
             style={{
-              flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
-              cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              flex: 1, padding: '8px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               border: activeTab === 'gestionar' ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
               background: activeTab === 'gestionar' ? '#eff6ff' : '#fff',
               color: activeTab === 'gestionar' ? '#1d4ed8' : '#64748b'
             }}
           >
-            <List size={14} /> Gestionar Trazas ({lineas.length})
+            <List size={13} /> Líneas ({lineas.length})
+          </button>
+          <button
+            onClick={() => { setActiveTab('relevamientos'); fetchRelevamientos(); }}
+            style={{
+              flex: 1, padding: '8px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              border: activeTab === 'relevamientos' ? '1.5px solid #0284c7' : '1px solid #e2e8f0',
+              background: activeTab === 'relevamientos' ? '#e0f2fe' : '#fff',
+              color: activeTab === 'relevamientos' ? '#0369a1' : '#64748b'
+            }}
+          >
+            <Smartphone size={13} /> GPS Móvil ({relevamientos.length})
           </button>
           <button
             onClick={() => setActiveTab('crear')}
             style={{
-              flex: 1, padding: '8px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
-              cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              flex: 1, padding: '8px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
               border: activeTab === 'crear' ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
               background: activeTab === 'crear' ? '#eff6ff' : '#fff',
               color: activeTab === 'crear' ? '#1d4ed8' : '#64748b'
             }}
           >
-            <Plus size={14} /> Nueva Línea
+            <Plus size={13} /> Nueva
           </button>
         </div>
 
