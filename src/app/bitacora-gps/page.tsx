@@ -1421,14 +1421,14 @@ export default function BitacoraGPSPage() {
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{ background: '#2563eb', color: '#fff', fontSize: '0.72rem', fontWeight: 800, padding: '3px 8px', borderRadius: 6 }}>
-                    RELEASE v1.0.10
+                    RELEASE v1.0.23
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#1e3a8a', fontWeight: 600 }}>
-                    Snap-to-Roads · Filtro Kalman 2D · URL Editable en Ajustes
+                    Shorebird OTA · Mapbox Streets-v12 · Lanús Digital
                   </div>
                 </div>
                 <a
-                  href="https://github.com/julianmcancelo/BusTrackerGPS/releases/download/v1.0.10/app-release.apk"
+                  href="https://github.com/julianmcancelo/BusTrackerGPS/releases/download/v1.0.23/BitacoraGPS-v1.0.23.apk"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
