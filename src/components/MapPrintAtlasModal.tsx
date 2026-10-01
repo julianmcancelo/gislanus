@@ -159,6 +159,7 @@ export default function MapPrintAtlasModal({
       northArrowScale: number;
       outerBorderMm: number;
       innerBorderMm: number;
+      baseDpmm: number;
     }
   > = {
     A4: {
@@ -166,120 +167,125 @@ export default function MapPrintAtlasModal({
       h: 210,
       marginMm: 6.0,
       innerPaddingMm: 1.8,
-      headerHeightMm: 17,
-      caratureHeightMm: 27,
+      headerHeightMm: 20,
+      caratureHeightMm: 32,
       gapMm: 2.0,
-      titleFontMm: 3.8,
-      subFontMm: 2.6,
-      deptFontMm: 2.2,
-      caratureTitleMm: 3.2,
-      caratureValMm: 2.4,
-      badgeLineMm: 10,
-      crosshairArmMm: 2.0,
-      cornerMarkMm: 4.0,
-      haloStrokeMm: 1.6,
-      traceStrokeMm: 1.0,
-      stopRadiusMm: 1.2,
-      terminalRadiusMm: 2.2,
-      northArrowScale: 0.95,
-      outerBorderMm: 0.7,
-      innerBorderMm: 0.35,
+      titleFontMm: 5.0,
+      subFontMm: 3.5,
+      deptFontMm: 2.8,
+      caratureTitleMm: 4.5,
+      caratureValMm: 3.0,
+      badgeLineMm: 13,
+      crosshairArmMm: 2.5,
+      cornerMarkMm: 5.0,
+      haloStrokeMm: 2.0,
+      traceStrokeMm: 1.3,
+      stopRadiusMm: 1.4,
+      terminalRadiusMm: 2.5,
+      northArrowScale: 1.0,
+      outerBorderMm: 0.8,
+      innerBorderMm: 0.4,
+      baseDpmm: 11.0,
     },
     A3: {
       w: 420,
       h: 297,
       marginMm: 8.0,
-      innerPaddingMm: 2.2,
-      headerHeightMm: 21,
-      caratureHeightMm: 33,
-      gapMm: 2.4,
-      titleFontMm: 4.8,
-      subFontMm: 3.2,
-      deptFontMm: 2.7,
-      caratureTitleMm: 4.0,
-      caratureValMm: 2.8,
-      badgeLineMm: 13,
-      crosshairArmMm: 2.6,
-      cornerMarkMm: 5.5,
-      haloStrokeMm: 2.0,
-      traceStrokeMm: 1.3,
-      stopRadiusMm: 1.5,
-      terminalRadiusMm: 2.7,
-      northArrowScale: 1.15,
-      outerBorderMm: 0.9,
-      innerBorderMm: 0.45,
+      innerPaddingMm: 2.4,
+      headerHeightMm: 26,
+      caratureHeightMm: 44,
+      gapMm: 2.5,
+      titleFontMm: 6.8,
+      subFontMm: 4.8,
+      deptFontMm: 3.8,
+      caratureTitleMm: 6.0,
+      caratureValMm: 4.0,
+      badgeLineMm: 18,
+      crosshairArmMm: 3.2,
+      cornerMarkMm: 7.0,
+      haloStrokeMm: 2.8,
+      traceStrokeMm: 1.8,
+      stopRadiusMm: 1.8,
+      terminalRadiusMm: 3.4,
+      northArrowScale: 1.3,
+      outerBorderMm: 1.1,
+      innerBorderMm: 0.55,
+      baseDpmm: 9.2,
     },
     A2: {
       w: 594,
       h: 420,
       marginMm: 11.0,
-      innerPaddingMm: 2.8,
-      headerHeightMm: 28,
-      caratureHeightMm: 42,
-      gapMm: 3.0,
-      titleFontMm: 6.4,
-      subFontMm: 4.3,
-      deptFontMm: 3.6,
-      caratureTitleMm: 5.4,
-      caratureValMm: 3.7,
-      badgeLineMm: 17,
-      crosshairArmMm: 3.4,
-      cornerMarkMm: 7.5,
-      haloStrokeMm: 2.6,
-      traceStrokeMm: 1.7,
-      stopRadiusMm: 1.9,
-      terminalRadiusMm: 3.5,
-      northArrowScale: 1.45,
-      outerBorderMm: 1.2,
-      innerBorderMm: 0.6,
+      innerPaddingMm: 3.0,
+      headerHeightMm: 36,
+      caratureHeightMm: 60,
+      gapMm: 3.2,
+      titleFontMm: 9.5,
+      subFontMm: 6.8,
+      deptFontMm: 5.4,
+      caratureTitleMm: 8.5,
+      caratureValMm: 5.6,
+      badgeLineMm: 25,
+      crosshairArmMm: 4.2,
+      cornerMarkMm: 9.5,
+      haloStrokeMm: 4.0,
+      traceStrokeMm: 2.6,
+      stopRadiusMm: 2.4,
+      terminalRadiusMm: 4.6,
+      northArrowScale: 1.7,
+      outerBorderMm: 1.5,
+      innerBorderMm: 0.75,
+      baseDpmm: 7.6,
     },
     A1: {
       w: 841,
       h: 594,
       marginMm: 15.0,
-      innerPaddingMm: 3.6,
-      headerHeightMm: 38,
-      caratureHeightMm: 54,
-      gapMm: 4.0,
-      titleFontMm: 8.8,
-      subFontMm: 5.8,
-      deptFontMm: 4.8,
-      caratureTitleMm: 7.2,
-      caratureValMm: 5.0,
-      badgeLineMm: 22,
-      crosshairArmMm: 4.5,
-      cornerMarkMm: 10.5,
-      haloStrokeMm: 3.4,
-      traceStrokeMm: 2.2,
-      stopRadiusMm: 2.5,
-      terminalRadiusMm: 4.5,
-      northArrowScale: 1.9,
-      outerBorderMm: 1.6,
-      innerBorderMm: 0.8,
+      innerPaddingMm: 4.0,
+      headerHeightMm: 50,
+      caratureHeightMm: 84,
+      gapMm: 4.2,
+      titleFontMm: 13.5,
+      subFontMm: 9.5,
+      deptFontMm: 7.5,
+      caratureTitleMm: 11.5,
+      caratureValMm: 7.6,
+      badgeLineMm: 34,
+      crosshairArmMm: 5.5,
+      cornerMarkMm: 13.0,
+      haloStrokeMm: 5.5,
+      traceStrokeMm: 3.5,
+      stopRadiusMm: 3.2,
+      terminalRadiusMm: 6.0,
+      northArrowScale: 2.2,
+      outerBorderMm: 2.0,
+      innerBorderMm: 1.0,
+      baseDpmm: 6.4,
     },
     A0: {
       w: 1189,
       h: 841,
-      marginMm: 18.0,
-      innerPaddingMm: 4.5,
-      headerHeightMm: 48,
-      caratureHeightMm: 68,
-      gapMm: 5.0,
-      titleFontMm: 11.5,
-      subFontMm: 7.6,
-      deptFontMm: 6.2,
-      caratureTitleMm: 9.4,
-      caratureValMm: 6.4,
-      badgeLineMm: 27,
-      crosshairArmMm: 5.6,
-      cornerMarkMm: 13.5,
-      haloStrokeMm: 4.2,
-      traceStrokeMm: 2.8,
-      stopRadiusMm: 3.2,
-      terminalRadiusMm: 5.6,
-      northArrowScale: 2.4,
-      outerBorderMm: 2.0,
-      innerBorderMm: 1.0,
+      marginMm: 20.0,
+      innerPaddingMm: 5.0,
+      headerHeightMm: 68,
+      caratureHeightMm: 115,
+      gapMm: 5.5,
+      titleFontMm: 18.5,
+      subFontMm: 13.0,
+      deptFontMm: 10.5,
+      caratureTitleMm: 16.0,
+      caratureValMm: 10.5,
+      badgeLineMm: 46,
+      crosshairArmMm: 7.2,
+      cornerMarkMm: 17.0,
+      haloStrokeMm: 7.5,
+      traceStrokeMm: 4.8,
+      stopRadiusMm: 4.2,
+      terminalRadiusMm: 8.0,
+      northArrowScale: 2.8,
+      outerBorderMm: 2.6,
+      innerBorderMm: 1.3,
+      baseDpmm: 5.3,
     },
   };
 
@@ -300,11 +306,9 @@ export default function MapPrintAtlasModal({
       const pdfWidthMm = isLandscape ? config.w : config.h;
       const pdfHeightMm = isLandscape ? config.h : config.w;
 
-      // Resolución de render calibrada para máxima nitidez (DPI óptimo sin desbordar memoria)
-      // renderScale 2: ~2800px max, 3: ~3800px max (HD ultra nítido), 4: ~4800px max (Ultra HD)
-      const targetMaxPx = renderScale === 4 ? 4800 : renderScale === 3 ? 3800 : 2800;
-      const maxSheetDimMm = Math.max(pdfWidthMm, pdfHeightMm);
-      const dpmm = targetMaxPx / maxSheetDimMm;
+      // Densidad de píxeles por milímetro calibrada para cada formato (Ultra HD sin sobrecargar memoria)
+      const dpmmMultiplier = renderScale === 4 ? 1.25 : renderScale === 3 ? 1.0 : 0.8;
+      const dpmm = config.baseDpmm * dpmmMultiplier;
 
       // Conversor milímetros -> píxeles de canvas
       const toPx = (mm: number) => Math.max(1, Math.round(mm * dpmm));
@@ -315,7 +319,7 @@ export default function MapPrintAtlasModal({
       const marginPx = toPx(config.marginMm);
       const innerPaddingPx = toPx(config.innerPaddingMm);
 
-      // En modo vertical (portrait) ampliamos ligeramente la altura de carátula para holgura de textos
+      // En modo vertical (portrait) ampliamos la altura de carátula para holgura de textos
       const caratureHeightMm = isLandscape ? config.caratureHeightMm : config.caratureHeightMm * 1.15;
       const headerHeightMm = config.headerHeightMm;
 
@@ -475,7 +479,7 @@ export default function MapPrintAtlasModal({
 
       // Marcas de esquina en "L"
       const cornerMarkLen = toPx(config.cornerMarkMm);
-      const cornerMargin = toPx(2.5);
+      const cornerMargin = toPx(config.marginMm * 0.35);
       ctx.strokeStyle = '#0F172A';
       ctx.lineWidth = Math.max(1, toPx(0.55));
       ctx.beginPath();
@@ -760,8 +764,9 @@ export default function MapPrintAtlasModal({
       ctx.fillRect(headerX, headerY, headerW, headerH);
 
       // Escudo Oficial de Lanús (Crest)
-      const crestSize = Math.round(headerH * 0.74);
-      const crestX = headerX + toPx(3.0);
+      const crestSize = Math.round(headerH * 0.72);
+      const crestPad = toPx(config.marginMm * 0.4);
+      const crestX = headerX + crestPad;
       const crestY = headerY + (headerH - crestSize) / 2;
 
       ctx.beginPath();
@@ -788,15 +793,15 @@ export default function MapPrintAtlasModal({
       ctx.textBaseline = 'alphabetic';
 
       // Textos del Encabezado
-      const titleStartX = crestX + crestSize + toPx(4.0);
+      const titleStartX = crestX + crestSize + crestPad;
       const titleFontSize = toPx(config.titleFontMm);
       const subFontSize = toPx(config.subFontMm);
       const deptFontSize = toPx(config.deptFontMm);
 
       // Identificador Técnico de Plano (a la derecha)
-      const idBoxW = Math.round(headerW * (isLandscape ? 0.28 : 0.35));
+      const idBoxW = Math.round(headerW * (isLandscape ? 0.28 : 0.34));
       const idBoxH = Math.round(headerH * 0.78);
-      const idBoxX = headerX + headerW - idBoxW - toPx(3.0);
+      const idBoxX = headerX + headerW - idBoxW - crestPad;
       const idBoxY = headerY + (headerH - idBoxH) / 2;
 
       ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
@@ -811,19 +816,19 @@ export default function MapPrintAtlasModal({
       ctx.textAlign = 'right';
       ctx.font = `bold ${subFontSize * 0.95}px Inter, sans-serif`;
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillText('PLANO DE ORDENAMIENTO VIAL', idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.40);
+      ctx.fillText('PLANO DE ORDENAMIENTO VIAL', idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.38);
 
       ctx.font = `bold ${subFontSize * 0.85}px Inter, sans-serif`;
       ctx.fillStyle = '#00AEEF';
-      ctx.fillText(`CÓD: LAN-${lineaNombre}-${fechaCod}`, idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.72);
+      ctx.fillText(`CÓD: LAN-${lineaNombre}-${fechaCod}`, idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.70);
 
       ctx.font = `500 ${deptFontSize * 0.82}px Inter, sans-serif`;
       ctx.fillStyle = '#94A3B8';
-      ctx.fillText('EPSG:3857 ISOMÉTRICO 1:1', idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.95);
+      ctx.fillText('EPSG:3857 ISOMÉTRICO 1:1', idBoxX + idBoxW - toPx(3.0), idBoxY + idBoxH * 0.92);
       ctx.textAlign = 'start';
 
       // Ancho máximo disponible para los títulos principales
-      const maxTitleW = idBoxX - titleStartX - toPx(4.0);
+      const maxTitleW = idBoxX - titleStartX - toPx(3.0);
 
       // Línea 1: MUNICIPIO DE LANÚS + Badge PLANIFICACIÓN URBANA
       ctx.font = `800 ${titleFontSize}px Inter, sans-serif`;
@@ -832,12 +837,12 @@ export default function MapPrintAtlasModal({
       ctx.fillText(munTitleStr, titleStartX, headerY + headerH * 0.38);
 
       const munTitleW = ctx.measureText(munTitleStr).width;
-      const badgeX = titleStartX + munTitleW + toPx(2.5);
+      const badgeX = titleStartX + munTitleW + toPx(3.0);
       const badgeY = headerY + headerH * 0.16;
-      const badgeH = Math.round(headerH * 0.30);
+      const badgeH = Math.round(headerH * 0.28);
       const badgeText = 'PLANIFICACIÓN URBANA';
       ctx.font = `bold ${subFontSize * 0.85}px Inter, sans-serif`;
-      const badgeW = ctx.measureText(badgeText).width + toPx(3.5);
+      const badgeW = ctx.measureText(badgeText).width + toPx(4.0);
 
       if (badgeX + badgeW < idBoxX - toPx(2.0)) {
         ctx.fillStyle = '#7B1828';
@@ -846,7 +851,7 @@ export default function MapPrintAtlasModal({
         ctx.fill();
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(badgeText, badgeX + toPx(1.8), badgeY + badgeH * 0.72);
+        ctx.fillText(badgeText, badgeX + toPx(2.0), badgeY + badgeH * 0.72);
       }
 
       // Línea 2: SUBSECRETARÍA DE PLANIFICACIÓN URBANA
@@ -855,7 +860,7 @@ export default function MapPrintAtlasModal({
       ctx.fillText(
         fitText('SUBSECRETARÍA DE PLANIFICACIÓN URBANA', maxTitleW),
         titleStartX,
-        headerY + headerH * 0.65
+        headerY + headerH * 0.66
       );
 
       // Línea 3: DIRECCIÓN GENERAL DE MOVILIDAD Y TRANSPORTE · LANÚS DIGITAL
@@ -876,7 +881,7 @@ export default function MapPrintAtlasModal({
       ctx.lineWidth = Math.max(1, toPx(config.innerBorderMm));
       ctx.strokeRect(caratureX, caratureY, caratureW, caratureH);
 
-      // Proporción de columnas adaptada a apaisado vs vertical
+      // Proporción de columnas adaptada
       const col1Ratio = isLandscape ? 0.38 : 0.38;
       const col2Ratio = isLandscape ? 0.28 : 0.30;
       const col1W = Math.round(caratureW * col1Ratio);
@@ -897,47 +902,47 @@ export default function MapPrintAtlasModal({
       ctx.lineWidth = Math.max(1, toPx(config.innerBorderMm * 0.8));
       ctx.stroke();
 
-      const caraturePad = toPx(2.5);
+      const caraturePad = toPx(config.marginMm * 0.4);
       const valFontSize = toPx(config.caratureValMm);
       const titleFontCarature = toPx(config.caratureTitleMm);
 
       // ── COLUMNA 1: PROYECTO Y UBICACIÓN ──
       const col1InnerW = col1W - 2 * caraturePad;
-      ctx.font = `bold ${valFontSize * 0.92}px Inter, sans-serif`;
+      ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
       ctx.fillStyle = '#7B1828'; // Granate
       ctx.fillText(
         fitText('PROYECTO: RED DE TRANSPORTE PÚBLICO COLECTIVO', col1InnerW),
         col1X + caraturePad,
-        caratureY + toPx(4.5)
+        caratureY + caratureH * 0.14
       );
 
-      ctx.font = `600 ${valFontSize * 0.82}px Inter, sans-serif`;
+      ctx.font = `600 ${valFontSize * 0.85}px Inter, sans-serif`;
       ctx.fillStyle = '#475569';
       ctx.fillText(
         fitText('UBICACIÓN: PARTIDO DE LANÚS · PCIA. DE BUENOS AIRES', col1InnerW),
         col1X + caraturePad,
-        caratureY + toPx(8.5)
+        caratureY + caratureH * 0.26
       );
 
       // Línea divisoria tenue
       ctx.strokeStyle = '#E2E8F0';
-      ctx.lineWidth = Math.max(1, toPx(0.3));
+      ctx.lineWidth = Math.max(1, toPx(0.35));
       ctx.beginPath();
-      ctx.moveTo(col1X + caraturePad, caratureY + toPx(11.0));
-      ctx.lineTo(col1X + col1W - caraturePad, caratureY + toPx(11.0));
+      ctx.moveTo(col1X + caraturePad, caratureY + caratureH * 0.35);
+      ctx.lineTo(col1X + col1W - caraturePad, caratureY + caratureH * 0.35);
       ctx.stroke();
 
       // Badge con color oficial de línea
-      const badgeLineSize = toPx(config.badgeLineMm);
+      const badgeLineSize = Math.round(caratureH * 0.48);
       const badgeLineX = col1X + caraturePad;
-      const badgeLineY = caratureY + caratureH - badgeLineSize - caraturePad;
+      const badgeLineY = caratureY + caratureH * 0.44;
 
       ctx.beginPath();
       ctx.arc(badgeLineX + badgeLineSize / 2, badgeLineY + badgeLineSize / 2, badgeLineSize / 2, 0, Math.PI * 2);
       ctx.fillStyle = officialLineColor;
       ctx.fill();
 
-      ctx.font = `900 ${Math.round(badgeLineSize * 0.52)}px Inter, sans-serif`;
+      ctx.font = `900 ${Math.round(badgeLineSize * 0.50)}px Inter, sans-serif`;
       ctx.fillStyle = '#FFFFFF';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -945,8 +950,8 @@ export default function MapPrintAtlasModal({
       ctx.textAlign = 'start';
       ctx.textBaseline = 'alphabetic';
 
-      const lineTextX = badgeLineX + badgeLineSize + toPx(2.5);
-      const lineTextMaxW = col1X + col1W - lineTextX - toPx(1.5);
+      const lineTextX = badgeLineX + badgeLineSize + toPx(config.marginMm * 0.3);
+      const lineTextMaxW = col1X + col1W - lineTextX - caraturePad;
 
       ctx.font = `bold ${titleFontCarature}px Inter, sans-serif`;
       ctx.fillStyle = '#0F172A';
@@ -962,11 +967,11 @@ export default function MapPrintAtlasModal({
       ctx.fillText(
         fitText(`TRAZADO: ${capasFiltradas.length} ramal(es) relevado(s)`, lineTextMaxW),
         lineTextX,
-        badgeLineY + badgeLineSize * 0.88
+        badgeLineY + badgeLineSize * 0.85
       );
 
       // ── COLUMNA 2: FICHA TÉCNICA Y CÓMPUTO ──
-      const rowStep = (caratureH - 2 * caraturePad) / 5;
+      const rowStep = caratureH / 5.2;
       const metrics = [
         { label: 'Longitud de Traza:', val: `${totalRouteDistanceKm.toFixed(2)} km` },
         { label: 'Paradas Registradas:', val: `${stopCount > 0 ? stopCount : capasFiltradas.length * 2}` },
@@ -985,12 +990,12 @@ export default function MapPrintAtlasModal({
       ];
 
       metrics.forEach((m, idx) => {
-        const y = caratureY + caraturePad + (idx + 1) * rowStep - toPx(1.0);
-        ctx.font = `500 ${valFontSize * 0.85}px Inter, sans-serif`;
+        const y = caratureY + (idx + 0.85) * rowStep;
+        ctx.font = `500 ${valFontSize * 0.88}px Inter, sans-serif`;
         ctx.fillStyle = '#64748B';
         ctx.fillText(m.label, col2X + caraturePad, y);
 
-        ctx.font = `bold ${valFontSize * 0.92}px Inter, sans-serif`;
+        ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
         ctx.fillStyle = '#0F172A';
         ctx.textAlign = 'right';
         ctx.fillText(m.val, col2X + col2W - caraturePad, y);
@@ -999,7 +1004,10 @@ export default function MapPrintAtlasModal({
 
       // ── COLUMNA 3: CUADRO DE FIRMAS TÉCNICAS Y APROBACIÓN ──
       const sigCols = 3;
-      const sigColW = (col3W - 2 * caraturePad) / sigCols;
+      const sigPad = toPx(config.marginMm * 0.3);
+      const sigColW = (col3W - (sigCols + 1) * sigPad) / sigCols;
+      const boxH = caratureH - 2 * sigPad;
+      const sy = caratureY + sigPad;
       const sigs = [
         { role: 'RELEVÓ', name: 'Inspector Técnico', entity: 'Relevamiento Vial' },
         { role: 'REVISÓ', name: 'Dpto. de Movilidad', entity: 'Dirección General' },
@@ -1007,36 +1015,33 @@ export default function MapPrintAtlasModal({
       ];
 
       sigs.forEach((s, idx) => {
-        const sx = col3X + caraturePad + idx * sigColW;
-        const boxW = sigColW - toPx(1.2);
-        const boxH = caratureH - 2 * caraturePad;
-        const sy = caratureY + caraturePad;
+        const sx = col3X + sigPad + idx * (sigColW + sigPad);
 
         ctx.strokeStyle = '#E2E8F0';
-        ctx.lineWidth = Math.max(1, toPx(0.3));
-        ctx.strokeRect(sx, sy, boxW, boxH);
+        ctx.lineWidth = Math.max(1, toPx(0.35));
+        ctx.strokeRect(sx, sy, sigColW, boxH);
 
-        ctx.font = `bold ${valFontSize * 0.78}px Inter, sans-serif`;
+        ctx.font = `bold ${valFontSize * 0.82}px Inter, sans-serif`;
         ctx.fillStyle = '#7B1828';
         ctx.textAlign = 'center';
-        ctx.fillText(s.role, sx + boxW / 2, sy + toPx(3.2));
+        ctx.fillText(s.role, sx + sigColW / 2, sy + boxH * 0.22);
 
         // Línea para firma
-        const lineY = sy + boxH * 0.65;
+        const lineY = sy + boxH * 0.62;
         ctx.strokeStyle = '#94A3B8';
-        ctx.lineWidth = Math.max(1, toPx(0.3));
+        ctx.lineWidth = Math.max(1, toPx(0.35));
         ctx.beginPath();
-        ctx.moveTo(sx + toPx(1.5), lineY);
-        ctx.lineTo(sx + boxW - toPx(1.5), lineY);
+        ctx.moveTo(sx + sigColW * 0.1, lineY);
+        ctx.lineTo(sx + sigColW * 0.9, lineY);
         ctx.stroke();
 
         ctx.font = `600 ${valFontSize * 0.72}px Inter, sans-serif`;
         ctx.fillStyle = '#475569';
-        ctx.fillText(s.name, sx + boxW / 2, lineY + toPx(2.8));
+        ctx.fillText(s.name, sx + sigColW / 2, lineY + boxH * 0.16);
 
         ctx.font = `400 ${valFontSize * 0.62}px Inter, sans-serif`;
         ctx.fillStyle = '#94A3B8';
-        ctx.fillText(s.entity, sx + boxW / 2, lineY + toPx(5.5));
+        ctx.fillText(s.entity, sx + sigColW / 2, lineY + boxH * 0.30);
         ctx.textAlign = 'start';
       });
 
