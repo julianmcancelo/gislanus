@@ -97,10 +97,10 @@ export default function PublicSharedView({ token }: { token: string }) {
           fetch('/transporte-lanus.geojson'),
         ]);
 
-        const dataCapas = await resCapas.json();
-        const dataRutas = await resRutas.json();
-        const dataLineas = await resLineas.json();
-        const dataTransportBase = resTransportBase.ok ? await resTransportBase.json() : { features: [] };
+        const dataCapas = resCapas && resCapas.ok ? await resCapas.json().catch(() => []) : [];
+        const dataRutas = resRutas && resRutas.ok ? await resRutas.json().catch(() => []) : [];
+        const dataLineas = resLineas && resLineas.ok ? await resLineas.json().catch(() => []) : [];
+        const dataTransportBase = resTransportBase && resTransportBase.ok ? await resTransportBase.json().catch(() => ({ features: [] })) : { features: [] };
 
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
@@ -156,7 +156,10 @@ export default function PublicSharedView({ token }: { token: string }) {
         });
 
         const formatedLineas = validLineas.map((l: any) => {
-          const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+          if (!l) return null;
+          let geo = null;
+          try { geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo; } catch (e) {}
+          if (!geo) return null;
           const cat = l.categoria || 'NACIONAL';
           const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
@@ -216,9 +219,12 @@ export default function PublicSharedView({ token }: { token: string }) {
         });
 
         const formatedRutas = validRutas.map((r: any, index: number) => {
+          if (!r) return null;
           const hue = (index * 137.5) % 360;
           const colorUnico = `hsl(${hue}, 85%, 55%)`;
-          const parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo;
+          let parsedGeo = null;
+          try { parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo; } catch (e) {}
+          if (!parsedGeo) return null;
           return {
             id: r.id,
             nombre: `#${r.numeroSolicitud} (${r.nombreSolicitante})`,
@@ -264,7 +270,7 @@ export default function PublicSharedView({ token }: { token: string }) {
           };
         });
 
-        const allData = [...validCapas, ...formatedRutas, ...formatedLineas, ...formatedTransportBase];
+        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedTransportBase];
 
         // FILTRADO ESTRICTO: Solo las capas permitidas explícitamente en el token
         const idsPermitidos = new Set(metaData.capasPermitidas || []);

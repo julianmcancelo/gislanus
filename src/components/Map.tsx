@@ -396,23 +396,23 @@ export default function MapComponent() {
         }
 
         const [resCapas, resRutas, resLineas, resTransportBase, resBitacora] = await Promise.all([
+          fetch('/api/capas').catch(() => ({ ok: false, json: async () => [] })),
+          fetch('/api/rutas-transporte').catch(() => ({ ok: false, json: async () => [] })),
+          fetch('/api/lineas-transporte').catch(() => ({ ok: false, json: async () => [] })),
+          fetch('/transporte-lanus.geojson').catch(() => ({ ok: false, json: async () => ({ type: 'FeatureCollection', features: [] }) })),
           fetch('/api/bitacora-gps?limit=100').catch(() => ({ ok: false, json: async () => ({ items: [] }) })),
-          fetch('/api/capas'),
-          fetch('/api/rutas-transporte'),
-          fetch('/api/lineas-transporte'),
-          fetch('/transporte-lanus.geojson'),
         ]);
 
-        const dataCapas = await resCapas.json();
-        const dataRutas = await resRutas.json();
-        const dataLineas = await resLineas.json();
-        const dataTransportBase = resTransportBase.ok ? await resTransportBase.json() : { features: [] };
-        const dataBitacora = resBitacora && resBitacora.ok ? await resBitacora.json() : { items: [] };
+        const dataCapas = resCapas && resCapas.ok ? await resCapas.json().catch(() => []) : [];
+        const dataRutas = resRutas && resRutas.ok ? await resRutas.json().catch(() => []) : [];
+        const dataLineas = resLineas && resLineas.ok ? await resLineas.json().catch(() => []) : [];
+        const dataTransportBase = resTransportBase && resTransportBase.ok ? await resTransportBase.json().catch(() => ({ type: 'FeatureCollection', features: [] })) : { type: 'FeatureCollection', features: [] };
+        const dataBitacora = resBitacora && resBitacora.ok ? await resBitacora.json().catch(() => ({ items: [] })) : { items: [] };
         const validBitacora = Array.isArray(dataBitacora?.items) ? dataBitacora.items : [];
 
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
-        const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r.activo !== false) : [];
-        const validLineas = Array.isArray(dataLineas) ? dataLineas.filter((l: any) => l.activo !== false) : [];
+        const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r && r.activo !== false) : [];
+        const validLineas = Array.isArray(dataLineas) ? dataLineas.filter((l: any) => l && l.activo !== false) : [];
 
         const CAT_LABELS: Record<string, string> = {
           NACIONAL: 'Líneas Nacionales',
@@ -463,7 +463,10 @@ export default function MapComponent() {
         });
 
         const formatedLineas = validLineas.map((l: any) => {
-          const geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+          if (!l) return null;
+          let geo = null;
+          try { geo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo; } catch (e) {}
+          if (!geo) return null;
           const cat = l.categoria || 'NACIONAL';
           const grupoNombre = CAT_LABELS[cat] || 'Líneas de Transporte';
           const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
@@ -555,11 +558,16 @@ export default function MapComponent() {
         });
 
         const formatedRutas = validRutas.map((r: any, index: number) => {
+          if (!r) return null;
           // Generar un color único usando el ángulo dorado para máxima distinción visual
           const hue = (index * 137.5) % 360;
           const colorUnico = `hsl(${hue}, 85%, 55%)`;
 
-          const parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo;
+          let parsedGeo = null;
+          try {
+            parsedGeo = typeof r.datosGeo === 'string' ? JSON.parse(r.datosGeo) : r.datosGeo;
+          } catch (e) {}
+          if (!parsedGeo) return null;
           const transporteProps = {
             _tipo: 'transporte',
             _numeroSolicitud: r.numeroSolicitud,
@@ -634,7 +642,7 @@ export default function MapComponent() {
           };
         }).filter(Boolean);
 
-        const allData = [...validCapas, ...formatedRutas, ...formatedLineas, ...formatedTransportBase, ...formatedBitacora];
+        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedTransportBase, ...formatedBitacora];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {
