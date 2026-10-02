@@ -675,6 +675,11 @@ export default function MapComponent() {
           tipoCarga: l.tipoCarga || null,
           origenNombre: l.origenNombre || null,
           destinoNombre: l.destinoNombre || null,
+          datosGeo: l.datosGeo || null,
+          sentido: l.sentido || null,
+          numero: l.numero || null,
+          categoria: l.categoria || null,
+          subcategoria: l.subcategoria || null,
         }));
         setCapasConfig(config);
 
@@ -733,6 +738,14 @@ export default function MapComponent() {
   useEffect(() => {
     capasConfig.forEach(async (capa) => {
       if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
+        if (capa.datosGeo) {
+          let parsed = typeof capa.datosGeo === 'string' ? JSON.parse(capa.datosGeo) : capa.datosGeo;
+          setCacheDatosGeo(prev => ({ ...prev, [capa.id]: parsed }));
+          return;
+        }
+        if (capa.id.startsWith('linea-') || capa.id.startsWith('transporte-base-') || capa.id.startsWith('bitacora-')) {
+          return;
+        }
         fetchingRef.current[capa.id] = true;
         try {
           const token = user ? await getIdToken() : null;
@@ -1001,21 +1014,23 @@ export default function MapComponent() {
         )}
 
         {capasConfig.map(capa => {
-          if (!capaActiva(capa.id) || !cacheDatosGeo[capa.id]) return null;
+          const geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+          if (!capaActiva(capa.id) || !geo) return null;
           
           return (
             <GeoJSON 
               key={capa.id}
-              data={cacheDatosGeo[capa.id]} 
+              data={geo} 
               style={(feature: any) => {
                     const properties = feature?.properties || {};
                     const isCollectiveLine = Boolean(
-                      properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo
+                      properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo || capa.id.startsWith('linea-') || capa.id.startsWith('transporte-base-') || capa.id.startsWith('bitacora-')
                     );
                     const isReturn = (
                       properties._sentido === 'VUELTA' ||
                       properties.sentido === 'VUELTA' ||
                       properties.direction === 'VUELTA' ||
+                      capa.sentido === 'VUELTA' ||
                       (capa.nombre && capa.nombre.toLowerCase().includes('vuelta'))
                     );
 

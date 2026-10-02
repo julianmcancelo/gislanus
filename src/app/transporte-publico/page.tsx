@@ -91,6 +91,7 @@ export default function TransportePublicoPage() {
   const [categoriaFilter, setCategoriaFilter] = useState<'TODAS' | 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL'>('TODAS');
   const [isAutoPairing, setIsAutoPairing] = useState(false);
   const [expandedLineas, setExpandedLineas] = useState<Record<string, boolean>>({});
+  const [selectedLineaId, setSelectedLineaId] = useState<string | null>(null);
 
   // Wizard state for 'crear' mode
   const [step, setStep] = useState(1);
@@ -745,26 +746,30 @@ export default function TransportePublicoPage() {
                           const isIda = sentido === 'IDA';
                           const isVuelta = sentido === 'VUELTA';
                           const isActive = l.activo !== false;
+                          const isSelectedRow = selectedLineaId === l.id;
 
                           return (
                             <div
                               key={l.id}
+                              onClick={() => setSelectedLineaId(prev => prev === l.id ? null : l.id)}
                               style={{
                                 padding: '10px 14px',
                                 borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '10px',
-                                background: isActive ? '#fff' : '#f8fafc',
+                                background: isSelectedRow ? '#eff6ff' : isActive ? '#fff' : '#f8fafc',
+                                borderLeft: isSelectedRow ? `3px solid ${l.color || group.color || '#2563eb'}` : '3px solid transparent',
                                 opacity: isActive ? 1 : 0.65,
                                 minHeight: '44px',
                                 boxSizing: 'border-box',
+                                cursor: 'pointer',
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: l.color || group.color || '#2563eb', flexShrink: 0 }} />
-                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: '0.82rem', fontWeight: isSelectedRow ? 800 : 700, color: isSelectedRow ? '#1d4ed8' : '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {l.subcategoria || l.nombre || 'Ramal Principal'}
                                   </span>
                                 </div>
@@ -1044,6 +1049,8 @@ export default function TransportePublicoPage() {
           onComplete={handleGeoDataUpdate}
           initialWaypoints={savedWaypoints}
           initialFeatures={preTracedFeatures}
+          allLines={lineas.filter((l: any) => l.activo !== false)}
+          selectedLineId={selectedLineaId}
         />
       </div>
 

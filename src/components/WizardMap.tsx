@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
 
 const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#db2777', '#0891b2'];
 
-function WizardMapController({ onComplete, initialGeo, initialFeatures, initialWaypoints, defaultRouteName }: any) {
+function WizardMapController({ onComplete, initialGeo, initialFeatures, initialWaypoints, defaultRouteName, allLines = [], selectedLineId = null }: any) {
   const map = useMap();
   const { user, getIdToken } = useAuth();
   const [routingControl, setRoutingControl] = useState<any>(null);
@@ -568,6 +568,53 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
         />
       ))}
 
+      {/* ── Renderizar Líneas de Transporte Público activas ── */}
+      {allLines && allLines.length > 0 && allLines.map((l: any) => {
+        if (!l || !l.datosGeo) return null;
+        let parsedGeo: any = null;
+        try {
+          parsedGeo = typeof l.datosGeo === 'string' ? JSON.parse(l.datosGeo) : l.datosGeo;
+        } catch (e) {
+          return null;
+        }
+        if (!parsedGeo) return null;
+
+        const isSelected = selectedLineId === l.id;
+        const sRaw = (l.sentido || '').trim().toUpperCase();
+        const isVuelta = sRaw === 'VUELTA' || (l.nombre && l.nombre.toLowerCase().includes('vuelta'));
+        const lineColor = l.color || '#2563eb';
+        const lineTitle = l.numero ? `Línea ${l.numero}` : (l.nombre || 'Línea de Colectivo');
+        const ramalText = l.subcategoria ? `Ramal: ${l.subcategoria}` : '';
+
+        return (
+          <GeoJSON
+            key={`bus-line-${l.id}`}
+            data={parsedGeo}
+            style={() => ({
+              color: lineColor,
+              weight: isSelected ? 5.5 : 3.5,
+              opacity: isSelected ? 1 : 0.85,
+              dashArray: isVuelta ? '8 6' : undefined,
+              lineCap: 'round',
+              lineJoin: 'round',
+            })}
+            onEachFeature={(_feature, layer) => {
+              layer.bindPopup(`
+                <div style="font-family:system-ui,sans-serif;padding:6px 4px;min-width:160px">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+                    <div style="width:10px;height:10px;border-radius:50%;background:${lineColor}"></div>
+                    <strong style="color:#0f172a;font-size:13px">${lineTitle}</strong>
+                  </div>
+                  ${ramalText ? `<div style="font-size:11px;color:#475569;margin-bottom:2px"><strong>${ramalText}</strong></div>` : ''}
+                  <div style="font-size:11px;color:#64748b">Sentido: <strong>${isVuelta ? 'Vuelta (Trazos ╌)' : 'Ida (Continua ━)'}</strong></div>
+                  ${l.categoria ? `<div style="font-size:10px;color:#94a3b8;margin-top:2px">Categoría: ${l.categoria}</div>` : ''}
+                </div>
+              `);
+            }}
+          />
+        );
+      })}
+
       {/* ── Capas de Red de Tránsito Pesado ── */}
       {mostrarCapasRed && capasTransporte.map((capa) => {
         const parsedGeo = typeof capa.datosGeo === 'string' ? JSON.parse(capa.datosGeo) : capa.datosGeo;
@@ -594,14 +641,16 @@ function WizardMapController({ onComplete, initialGeo, initialFeatures, initialW
 }
 
 interface WizardMapProps {
-  onComplete: (geoJson: any, streets: string[], waypoints: any[]) => void;
+  onComplete?: (geoJson: any, streets: string[], waypoints: any[]) => void;
   initialGeo?: any;
   initialWaypoints?: any[];
   initialFeatures?: any[];
   defaultRouteName?: string;
+  allLines?: any[];
+  selectedLineId?: string | null;
 }
 
-export default function WizardMap({ onComplete, initialGeo, initialWaypoints, initialFeatures, defaultRouteName }: WizardMapProps) {
+export default function WizardMap({ onComplete, initialGeo, initialWaypoints, initialFeatures, defaultRouteName, allLines, selectedLineId }: WizardMapProps) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <MapContainer
@@ -619,7 +668,15 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints, in
           zIndex={0}
         />
         <MapSearch />
-        <WizardMapController onComplete={onComplete} initialGeo={initialGeo} initialWaypoints={initialWaypoints} initialFeatures={initialFeatures} defaultRouteName={defaultRouteName} />
+        <WizardMapController 
+          onComplete={onComplete} 
+          initialGeo={initialGeo} 
+          initialWaypoints={initialWaypoints} 
+          initialFeatures={initialFeatures} 
+          defaultRouteName={defaultRouteName} 
+          allLines={allLines}
+          selectedLineId={selectedLineId}
+        />
       </MapContainer>
       
       {/* Ocultar el panel de indicaciones por defecto de Leaflet Routing Machine */}

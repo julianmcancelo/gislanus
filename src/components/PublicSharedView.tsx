@@ -304,6 +304,14 @@ export default function PublicSharedView({ token }: { token: string }) {
   useEffect(() => {
     capasConfig.forEach(async (capa) => {
       if (capa.active && !cacheDatosGeo[capa.id] && !capa.numeroSolicitud && !fetchingRef.current[capa.id]) {
+        if (capa.datosGeo) {
+          let parsed = typeof capa.datosGeo === 'string' ? JSON.parse(capa.datosGeo) : capa.datosGeo;
+          setCacheDatosGeo((prev) => ({ ...prev, [capa.id]: parsed }));
+          return;
+        }
+        if (capa.id.startsWith('linea-') || capa.id.startsWith('transporte-base-')) {
+          return;
+        }
         fetchingRef.current[capa.id] = true;
         try {
           const res = await fetch(`/api/capas/${capa.id}`);
@@ -484,20 +492,22 @@ export default function PublicSharedView({ token }: { token: string }) {
             {baseLayer && <GeoJSON data={baseLayer} style={{ color: '#3B82F6', weight: 4, fillColor: '#3B82F6', fillOpacity: 0.08, dashArray: '10, 8' }} interactive={false} />}
 
             {capasConfig.map((capa) => {
-              if (!capaActiva(capa.id) || !cacheDatosGeo[capa.id]) return null;
+              const geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+              if (!capaActiva(capa.id) || !geo) return null;
               return (
                 <GeoJSON
                   key={capa.id}
-                  data={cacheDatosGeo[capa.id]}
+                  data={geo}
                   style={(feature: any) => {
                     const properties = feature?.properties || {};
                     const isCollectiveLine = Boolean(
-                      properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo
+                      properties.network || properties._tipo === 'linea' || properties.sentido || capa.subGrupo || capa.subSubGrupo || capa.id.startsWith('linea-') || capa.id.startsWith('transporte-base-')
                     );
                     const isReturn = (
                       properties._sentido === 'VUELTA' ||
                       properties.sentido === 'VUELTA' ||
                       properties.direction === 'VUELTA' ||
+                      capa.sentido === 'VUELTA' ||
                       (capa.nombre && capa.nombre.toLowerCase().includes('vuelta'))
                     );
 
