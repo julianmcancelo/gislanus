@@ -31,7 +31,9 @@ export type MapboxStaticStyle =
   | 'dark-v11'
   | 'outdoors-v12'
   | 'satellite-streets-v12'
-  | 'navigation-day-v1';
+  | 'navigation-day-v1'
+  | 'navigation-night-v1'
+  | string;
 
 /**
  * Calcula límites seguros envolventes con padding porcentual simétrico
