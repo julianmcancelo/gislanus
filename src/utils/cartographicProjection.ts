@@ -38,7 +38,7 @@ export type MapboxStaticStyle =
 /**
  * Calcula límites seguros envolventes con padding porcentual simétrico
  */
-export function calculateSafeBounds(points: LatLng[], paddingFraction: number = 0.12): LatLngBounds {
+export function calculateSafeBounds(points: LatLng[], paddingFraction: number = 0.07): LatLngBounds {
   if (points.length === 0) {
     const center = { lat: -34.7044, lng: -58.3899 };
     return {
@@ -64,8 +64,8 @@ export function calculateSafeBounds(points: LatLng[], paddingFraction: number = 
   const latSpan = maxLat - minLat;
   const lngSpan = maxLng - minLng;
 
-  const latPad = latSpan === 0 ? 0.005 : latSpan * paddingFraction;
-  const lonPad = lngSpan === 0 ? 0.005 : lngSpan * paddingFraction;
+  const latPad = latSpan === 0 ? 0.005 : Math.max(0.003, latSpan * paddingFraction);
+  const lonPad = lngSpan === 0 ? 0.005 : Math.max(0.003, lngSpan * paddingFraction);
 
   return {
     south: minLat - latPad,
@@ -96,7 +96,7 @@ export class MercatorViewportProjection {
     input: LatLng[] | LatLngBounds,
     width: number,
     height: number,
-    paddingFraction: number = 0.12
+    paddingFraction: number = 0.07
   ) {
     if (width <= 0 || height <= 0) {
       throw new Error('Las dimensiones del viewport (width y height) deben ser mayores a 0');
