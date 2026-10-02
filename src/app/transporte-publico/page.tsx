@@ -45,6 +45,7 @@ export default function TransportePublicoPage() {
   const [lineas, setLineas] = useState<any[]>([]);
   const [loadingLineas, setLoadingLineas] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const [categoriaFilter, setCategoriaFilter] = useState<'TODAS' | 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL'>('TODAS');
   const [isAutoPairing, setIsAutoPairing] = useState(false);
   const [expandedLineas, setExpandedLineas] = useState<Record<string, boolean>>({});
 
@@ -213,34 +214,62 @@ export default function TransportePublicoPage() {
     }
   };
 
+  const statsCategorias = useMemo(() => {
+    let nac = 0, prov = 0, mun = 0;
+    lineas.forEach(l => {
+      const cat = (l.categoria || 'NACIONAL').toUpperCase();
+      if (cat === 'NACIONAL') nac++;
+      else if (cat === 'PROVINCIAL') prov++;
+      else mun++;
+    });
+    return { todas: lineas.length, nacional: nac, provincial: prov, municipal: mun };
+  }, [lineas]);
+
   // Group lines by Line number / name & ramal
   const groupedLineas = useMemo(() => {
     const filtered = lineas.filter(l => {
+      const cat = (l.categoria || 'NACIONAL').toUpperCase();
+      if (categoriaFilter !== 'TODAS' && cat !== categoriaFilter) return false;
+
       if (!searchFilter.trim()) return true;
       const q = searchFilter.toLowerCase();
       return (
         (l.nombre && l.nombre.toLowerCase().includes(q)) ||
         (l.numero && String(l.numero).toLowerCase().includes(q)) ||
         (l.subcategoria && l.subcategoria.toLowerCase().includes(q)) ||
+        (l.descripcion && l.descripcion.toLowerCase().includes(q)) ||
+        (l.sentido && l.sentido.toLowerCase().includes(q)) ||
         (l.categoria && l.categoria.toLowerCase().includes(q))
       );
     });
 
-    const groups: Record<string, { lineaLabel: string; categoria: string; records: any[] }> = {};
+    const groups: Record<string, { lineaLabel: string; numero: string | null; color: string; categoria: string; records: any[] }> = {};
+    
     filtered.forEach(l => {
-      const lineaLabel = l.numero ? `Línea ${l.numero}` : l.nombre;
-      const key = `${l.categoria || 'MUNICIPAL'}|${lineaLabel}`;
+      const num = l.numero ? String(l.numero).replace(/^0+/, '') : '';
+      const lineaLabel = num ? `Línea ${num}` : (l.nombre || 'Línea de Transporte');
+      const cat = (l.categoria || 'NACIONAL').toUpperCase();
+      const key = `${cat}|${lineaLabel}`;
+      
       if (!groups[key]) {
         groups[key] = {
           lineaLabel,
-          categoria: l.categoria || 'MUNICIPAL',
+          numero: num || null,
+          color: l.color || '#2563eb',
+          categoria: cat,
           records: [],
         };
       }
       groups[key].records.push(l);
     });
-    return groups;
-  }, [lineas, searchFilter]);
+
+    return Object.entries(groups).sort(([, a], [, b]) => {
+      const numA = parseInt(a.numero || '99999', 10);
+      const numB = parseInt(b.numero || '99999', 10);
+      if (numA !== numB) return numA - numB;
+      return a.lineaLabel.localeCompare(b.lineaLabel);
+    });
+  }, [lineas, searchFilter, categoriaFilter]);
 
   const handleAITrace = async () => {
     if (!aiText.trim()) return;
@@ -469,8 +498,30 @@ export default function TransportePublicoPage() {
         {activeTab === 'gestionar' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             
-            {/* Toolbar: Search + Auto-pair button */}
-            <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', background: '#fff', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Category Filter Pills */}
+            <div style={{ padding: '8px 16px 0', background: '#fff', display: 'flex', gap: '6px', overflowX: 'auto' }}>
+              {(['TODAS', 'NACIONAL', 'PROVINCIAL', 'MUNICIPAL'] as const).map(cat => {
+                const count = cat === 'TODAS' ? statsCategorias.todas : (cat === 'NACIONAL' ? statsCategorias.nacional : (cat === 'PROVINCIAL' ? statsCategorias.provincial : statsCategorias.municipal));
+                const isSelected = categoriaFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoriaFilter(cat)}
+                    style={{
+                      padding: '5px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700,
+                      cursor: 'pointer', whiteSpace: 'nowrap', border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                      background: isSelected ? '#eff6ff' : '#f8fafc',
+                      color: isSelected ? '#1d4ed8' : '#64748b', transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {cat === 'TODAS' ? 'Todas' : cat.charAt(0) + cat.slice(1).toLowerCase()} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Toolbar: Search + Actions */}
+            <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', background: '#fff', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
                   <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
@@ -478,7 +529,7 @@ export default function TransportePublicoPage() {
                     type="text"
                     value={searchFilter}
                     onChange={e => setSearchFilter(e.target.value)}
-                    placeholder="Filtrar por línea o ramal..."
+                    placeholder="Filtrar por línea, ramal u operador..."
                     style={{
                       width: '100%', padding: '7px 10px 7px 30px', fontSize: '0.8rem',
                       borderRadius: '8px', border: '1px solid #e2e8f0', outline: 'none',
@@ -499,27 +550,46 @@ export default function TransportePublicoPage() {
                 </button>
               </div>
 
-              {/* Auto-pair magic button */}
-              <button
-                type="button"
-                onClick={handleAutoPair}
-                disabled={isAutoPairing}
-                title="Corrige automáticamente cualquier par de trazas que tengan doble Ida, asignando una a Ida y otra a Vuelta"
-                style={{
-                  width: '100%', padding: '8px 12px', borderRadius: '8px',
-                  border: '1px solid #ddd6fe', background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)',
-                  color: '#6d28d9', fontSize: '0.75rem', fontWeight: 700, cursor: isAutoPairing ? 'wait' : 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  boxShadow: '0 1px 3px rgba(109,40,217,0.08)'
-                }}
-              >
-                <Sparkles size={14} color="#7c3aed" />
-                {isAutoPairing ? 'Emparejando...' : '✨ Auto-corregir Pares Ida / Vuelta'}
-              </button>
+              {/* Action buttons bar */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  onClick={handleAutoPair}
+                  disabled={isAutoPairing}
+                  title="Corrige automáticamente cualquier par de trazas que tengan doble Ida, asignando una a Ida y otra a Vuelta"
+                  style={{
+                    flex: 1, padding: '7px 10px', borderRadius: '8px',
+                    border: '1px solid #ddd6fe', background: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)',
+                    color: '#6d28d9', fontSize: '0.72rem', fontWeight: 700, cursor: isAutoPairing ? 'wait' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                    boxShadow: '0 1px 2px rgba(109,40,217,0.06)'
+                  }}
+                >
+                  <Sparkles size={13} color="#7c3aed" />
+                  {isAutoPairing ? 'Emparejando...' : '✨ Auto-corregir Pares'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const allOpen = Object.keys(expandedLineas).length > 0 && Object.values(expandedLineas).every(v => v);
+                    const next: Record<string, boolean> = {};
+                    groupedLineas.forEach(([key]) => { next[key] = !allOpen; });
+                    setExpandedLineas(next);
+                  }}
+                  style={{
+                    padding: '7px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                    background: '#f8fafc', color: '#475569', fontSize: '0.72rem', fontWeight: 600,
+                    cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}
+                >
+                  {Object.values(expandedLineas).some(Boolean) ? 'Colapsar todo' : 'Expandir todo'}
+                </button>
+              </div>
             </div>
 
             {/* List of lines */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc' }}>
               {loadingLineas && (
                 <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                   <Loader2 className="animate-spin" size={24} style={{ margin: '0 auto 8px' }} />
@@ -527,39 +597,60 @@ export default function TransportePublicoPage() {
                 </div>
               )}
 
-              {!loadingLineas && Object.keys(groupedLineas).length === 0 && (
-                <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '0.82rem' }}>
-                  No se encontraron trazas de transporte registradas.
+              {!loadingLineas && groupedLineas.length === 0 && (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', background: '#fff', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  <Route size={28} color="#cbd5e1" style={{ margin: '0 auto 10px' }} />
+                  <div>No se encontraron líneas con los filtros actuales.</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: 4 }}>Probá cambiando la categoría o limpiando la búsqueda.</div>
                 </div>
               )}
 
-              {!loadingLineas && Object.entries(groupedLineas).map(([groupKey, group]) => {
-                const isOpen = expandedLineas[groupKey] !== false;
+              {!loadingLineas && groupedLineas.map(([groupKey, group]) => {
+                const isOpen = expandedLineas[groupKey] === true;
+                const catBadgeColor = group.categoria === 'NACIONAL' ? '#0284c7' : (group.categoria === 'PROVINCIAL' ? '#16a34a' : '#d97706');
+                const catBgColor = group.categoria === 'NACIONAL' ? '#e0f2fe' : (group.categoria === 'PROVINCIAL' ? '#dcfce7' : '#fef3c7');
+
                 return (
-                  <div key={groupKey} style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                  <div key={groupKey} style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                     {/* Line header */}
                     <div
                       onClick={() => setExpandedLineas(prev => ({ ...prev, [groupKey]: !isOpen }))}
                       style={{
-                        padding: '10px 14px', background: '#f8fafc', borderBottom: isOpen ? '1px solid #f1f5f9' : 'none',
-                        display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none'
+                        padding: '10px 12px', background: isOpen ? '#f8fafc' : '#fff', borderBottom: isOpen ? '1px solid #f1f5f9' : 'none',
+                        display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none', transition: 'background 0.15s ease'
                       }}
                     >
-                      <Route size={15} color="#2563eb" />
-                      <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1e293b' }}>
-                        {group.lineaLabel}
+                      {/* Number badge */}
+                      <div style={{
+                        width: 32, height: 26, borderRadius: 6, background: group.color || '#2563eb',
+                        color: '#fff', fontWeight: 900, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                      }}>
+                        {group.numero || '#'}
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>
+                            {group.lineaLabel}
+                          </span>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: catBadgeColor, background: catBgColor, padding: '1px 6px', borderRadius: 4, textTransform: 'uppercase' }}>
+                            {group.categoria}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '2px 7px', borderRadius: '10px', fontWeight: 600 }}>
+                        {group.records.length} ramal{group.records.length !== 1 ? 'es' : ''}
                       </span>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#e2e8f0', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
-                        {group.records.length} traza{group.records.length !== 1 ? 's' : ''}
-                      </span>
-                      <span style={{ marginLeft: 'auto', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
-                        {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
+                        {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                       </span>
                     </div>
 
                     {/* Traces inside this line */}
                     {isOpen && (
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', background: '#fafbfc' }}>
                         {group.records.map((l: any, idx: number) => {
                           const sentido = (l.sentido || '').toUpperCase();
                           const isIda = sentido === 'IDA';
@@ -570,20 +661,20 @@ export default function TransportePublicoPage() {
                             <div
                               key={l.id}
                               style={{
-                                padding: '10px 14px', borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
-                                display: 'flex', alignItems: 'center', gap: '10px', background: isActive ? '#fff' : '#fcfcfc',
-                                opacity: isActive ? 1 : 0.6
+                                padding: '9px 12px', borderTop: '1px solid #f1f5f9',
+                                display: 'flex', alignItems: 'center', gap: '8px', background: isActive ? '#fff' : '#f8fafc',
+                                opacity: isActive ? 1 : 0.65
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: l.color || '#2563eb', flexShrink: 0 }} />
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: l.color || group.color || '#2563eb', flexShrink: 0 }} />
                                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {l.subcategoria || l.nombre || 'Ramal Principal'}
                                   </span>
                                 </div>
                                 {l.descripcion && (
-                                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px', paddingLeft: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {l.descripcion}
                                   </div>
                                 )}
@@ -595,16 +686,16 @@ export default function TransportePublicoPage() {
                                 onClick={() => handleToggleSentido(l.id, l.sentido)}
                                 title="Clic para alternar entre IDA y VUELTA"
                                 style={{
-                                  display: 'inline-flex', alignItems: 'center', gap: '5px',
-                                  padding: '4px 8px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
+                                  display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                  padding: '4px 7px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
                                   background: isIda ? '#eff6ff' : isVuelta ? '#f5f3ff' : '#f8fafc',
                                   border: `1.5px solid ${isIda ? '#bfdbfe' : isVuelta ? '#ddd6fe' : '#e2e8f0'}`,
-                                  minWidth: '82px', justifyContent: 'center', flexShrink: 0
+                                  minWidth: '78px', justifyContent: 'center', flexShrink: 0
                                 }}
                               >
-                                {isIda ? <ArrowRight size={12} color="#2563eb" /> : isVuelta ? <ArrowLeft size={12} color="#7c3aed" /> : <Route size={12} color="#64748b" />}
-                                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: isIda ? '#1d4ed8' : isVuelta ? '#6d28d9' : '#475569' }}>
-                                  {isIda ? 'IDA —' : isVuelta ? 'VUELTA ╌' : 'SIN SENTIDO'}
+                                {isIda ? <ArrowRight size={11} color="#2563eb" /> : isVuelta ? <ArrowLeft size={11} color="#7c3aed" /> : <Route size={11} color="#64748b" />}
+                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: isIda ? '#1d4ed8' : isVuelta ? '#6d28d9' : '#475569' }}>
+                                  {isIda ? 'IDA —' : isVuelta ? 'VUELTA ╌' : 'S/SENTIDO'}
                                 </span>
                               </button>
 
@@ -615,10 +706,10 @@ export default function TransportePublicoPage() {
                                 title={isActive ? 'Visible (clic para ocultar)' : 'Oculta (clic para mostrar)'}
                                 style={{
                                   background: 'transparent', border: 'none', cursor: 'pointer',
-                                  color: isActive ? '#16a34a' : '#94a3b8', padding: '4px', display: 'flex', alignItems: 'center'
+                                  color: isActive ? '#16a34a' : '#94a3b8', padding: '3px', display: 'flex', alignItems: 'center'
                                 }}
                               >
-                                {isActive ? <Eye size={15} /> : <EyeOff size={15} />}
+                                {isActive ? <Eye size={14} /> : <EyeOff size={14} />}
                               </button>
 
                               {/* Delete button */}
@@ -628,12 +719,12 @@ export default function TransportePublicoPage() {
                                 title="Eliminar traza"
                                 style={{
                                   background: 'transparent', border: 'none', cursor: 'pointer',
-                                  color: '#cbd5e1', padding: '4px', display: 'flex', alignItems: 'center'
+                                  color: '#cbd5e1', padding: '3px', display: 'flex', alignItems: 'center'
                                 }}
                                 onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
                                 onMouseLeave={e => (e.currentTarget.style.color = '#cbd5e1')}
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                               </button>
                             </div>
                           );

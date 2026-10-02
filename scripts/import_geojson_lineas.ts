@@ -1,6 +1,5 @@
-// Script universal de importación de GeoJSON de Líneas de Colectivo a PostgreSQL (LineaTransporte)
-// Uso: npx tsx scripts/import_geojson_lineas.ts [ruta-al-archivo.geojson]
-// Ejemplo: npx tsx scripts/import_geojson_lineas.ts
+// Script universal de importación y limpieza de Líneas de Colectivo a PostgreSQL (LineaTransporte)
+// Uso: npx.cmd tsx scripts/import_geojson_lineas.ts
 
 import { PrismaClient } from '@prisma/client';
 import * as fs from 'fs';
@@ -8,7 +7,6 @@ import * as path from 'path';
 
 const prisma = new PrismaClient();
 
-// Paleta de colores distintivos por número de línea
 const DEFAULT_COLORS: Record<string, string> = {
   '9': '#0284c7',   // Celeste azulado
   '15': '#e11d48',  // Rojo carmesí
@@ -48,7 +46,6 @@ function parseLineMetadata(props: any, featureId?: any) {
   const desc = props.description || '';
   const title = props.title || props.name || props.nombre || '';
 
-  // 1. Extraer campos estructurados de la descripción si existen
   let rawLinea = '';
   let rawRecorrido = '';
   let rawSentido = '';
@@ -73,7 +70,7 @@ function parseLineMetadata(props: any, featureId?: any) {
     if (matchJ) rawJurisdiccion = matchJ[1].trim();
   }
 
-  // 2. Número de línea normalizado (ej: "009" -> "9")
+  // 1. Número de línea
   let numero = rawLinea ? rawLinea.replace(/^0+/, '') : '';
   if (!numero) {
     const matchNum = (title + ' ' + (props.ref || '')).match(/(?:LINEA|Línea|Linea)?\s*0*([0-9]{1,4})/i);
@@ -82,7 +79,7 @@ function parseLineMetadata(props: any, featureId?: any) {
     }
   }
 
-  // 3. Ramal / Recorrido / Subcategoría
+  // 2. Ramal / Subcategoría
   let subcategoria = '';
   if (rawRecorrido) {
     subcategoria = rawRecorrido.toUpperCase().startsWith('RAMAL') ? rawRecorrido : `Ramal ${rawRecorrido}`;
@@ -93,7 +90,7 @@ function parseLineMetadata(props: any, featureId?: any) {
     }
   }
 
-  // 4. Sentido (IDA vs VUELTA)
+  // 3. Sentido
   let sentido: 'IDA' | 'VUELTA' | null = null;
   const combinedSentido = `${rawSentido} ${title} ${props.sentido || ''} ${props.direction || ''}`.toUpperCase();
   if (combinedSentido.includes('VUELTA') || combinedSentido.includes('VUEKTA') || combinedSentido.includes('REGRESO') || combinedSentido.includes('INBOUND')) {
@@ -102,7 +99,7 @@ function parseLineMetadata(props: any, featureId?: any) {
     sentido = 'IDA';
   }
 
-  // 5. Jurisdicción / Categoría
+  // 4. Jurisdicción
   let categoria: 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL' = 'NACIONAL';
   if (rawJurisdiccion) {
     const jUpper = rawJurisdiccion.toUpperCase();
@@ -118,7 +115,7 @@ function parseLineMetadata(props: any, featureId?: any) {
     }
   }
 
-  // 6. Nombre amigable
+  // 5. Nombre amigable limpio
   let nombre = '';
   if (numero) {
     const parts = [`Línea ${numero}`];
@@ -131,10 +128,10 @@ function parseLineMetadata(props: any, featureId?: any) {
     nombre = `Línea ${featureId || 'S/N'}`;
   }
 
-  // 7. Color
+  // 6. Color
   const color = props.stroke || props.color || props.colour || (numero ? DEFAULT_COLORS[numero] : null) || '#2563eb';
 
-  // 8. Descripción / Operador
+  // 7. Descripción
   const descParts = [];
   if (rawRazon) descParts.push(`Operador: ${rawRazon}`);
   if (props.description && !rawRazon) descParts.push(props.description);
@@ -152,103 +149,78 @@ function parseLineMetadata(props: any, featureId?: any) {
 }
 
 async function main() {
-  const defaultPath = path.join(__dirname, '..', 'public', 'MovilidadyTransporteLanus-recorridos-lineas-de-transporte-lanus.geojson');
-  const filePath = process.argv[2] || (fs.existsSync(defaultPath) ? defaultPath : path.join(__dirname, '..', 'public', 'lineas_nacionales.geojson'));
+  const filePath = path.join(__dirname, '..', 'public', 'MovilidadyTransporteLanus-recorridos-lineas-de-transporte-lanus.geojson');
 
   console.log(`\n======================================================`);
-  console.log(`🚌 IMPORTADOR INTELIGENTE DE LÍNEAS DE TRANSPORTE GIS`);
+  console.log(`🚌 IMPORTADOR & OPTIMIZADOR DE LÍNEAS DE TRANSPORTE GIS`);
   console.log(`======================================================\n`);
-  console.log(`📂 Leyendo archivo: ${filePath}`);
 
   if (!fs.existsSync(filePath)) {
-    console.error(`\n❌ Error: El archivo no existe en la ruta: ${filePath}`);
-    console.log(`\n💡 Instrucciones:`);
-    console.log(`   1. Verificá que el archivo esté en 'public/MovilidadyTransporteLanus-recorridos-lineas-de-transporte-lanus.geojson'`);
-    console.log(`   2. O ejecutá: npx tsx scripts/import_geojson_lineas.ts "C:/ruta/a/tu/archivo.geojson"\n`);
+    console.error(`❌ Archivo no encontrado: ${filePath}`);
     process.exit(1);
   }
 
-  const rawContent = fs.readFileSync(filePath, 'utf8');
-  let geojson: any;
-  try {
-    geojson = JSON.parse(rawContent);
-  } catch (err: any) {
-    console.error(`❌ Error al parsear JSON:`, err.message);
-    process.exit(1);
-  }
+  const raw = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const features = raw.features || [];
 
-  const features = geojson.type === 'FeatureCollection' ? geojson.features : (geojson.type === 'Feature' ? [geojson] : []);
-  console.log(`📊 Se encontraron ${features.length} trazas / recorridos en el archivo.\n`);
+  // Filtrar solo trazas geométricas reales (LineString o MultiLineString)
+  const lineFeatures = features.filter((f: any) => 
+    f.geometry && (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString')
+  );
 
-  let creadas = 0;
-  let actualizadas = 0;
-  let omitidas = 0;
+  console.log(`📂 Total features en GeoJSON: ${features.length}`);
+  console.log(`🛣️  Trazas de recorrido (LineString): ${lineFeatures.length}\n`);
 
-  for (let i = 0; i < features.length; i++) {
-    const f = features[i];
-    if (!f.geometry || !f.geometry.coordinates || f.geometry.coordinates.length === 0) {
-      omitidas++;
-      continue;
+  // Limpiar posibles puntos huérfanos que se guardaron erróneamente como paradas
+  const deletedOldPoints = await prisma.lineaTransporte.deleteMany({
+    where: {
+      OR: [
+        { nombre: { contains: 'PARADA' } },
+        { nombre: '' },
+        { id: { startsWith: 'linea-feat-' } }
+      ]
     }
+  });
+  console.log(`🧹 Depuración previa de registros antiguos: ${deletedOldPoints.count} limpiados.`);
 
+  let insertadas = 0;
+  for (let i = 0; i < lineFeatures.length; i++) {
+    const f = lineFeatures[i];
     const meta = parseLineMetadata(f.properties || {}, f.id || i + 1);
-
-    // Guardar el Feature completo como datosGeo
+    const customId = f.id ? `linea-feat-${f.id}` : `linea-auto-${i + 1}`;
     const datosGeo = JSON.stringify(f);
 
-    try {
-      const customId = f.id ? `linea-feat-${f.id}` : `linea-auto-${i + 1}`;
-
-      await prisma.lineaTransporte.upsert({
-        where: { id: customId },
-        update: {
-          nombre: meta.nombre,
-          numero: meta.numero,
-          subcategoria: meta.subcategoria,
-          sentido: meta.sentido,
-          categoria: meta.categoria,
-          color: meta.color,
-          descripcion: meta.descripcion,
-          datosGeo,
-          activo: true,
-        },
-        create: {
-          id: customId,
-          nombre: meta.nombre,
-          numero: meta.numero,
-          subcategoria: meta.subcategoria,
-          sentido: meta.sentido,
-          categoria: meta.categoria,
-          color: meta.color,
-          descripcion: meta.descripcion,
-          datosGeo,
-          activo: true,
-        },
-      });
-      actualizadas++;
-
-      if ((i + 1) % 50 === 0 || i === features.length - 1) {
-        console.log(`  ✓ Procesadas ${i + 1}/${features.length} trazas...`);
+    await prisma.lineaTransporte.upsert({
+      where: { id: customId },
+      update: {
+        nombre: meta.nombre,
+        numero: meta.numero,
+        subcategoria: meta.subcategoria,
+        sentido: meta.sentido,
+        categoria: meta.categoria,
+        color: meta.color,
+        descripcion: meta.descripcion,
+        datosGeo,
+        activo: true,
+      },
+      create: {
+        id: customId,
+        nombre: meta.nombre,
+        numero: meta.numero,
+        subcategoria: meta.subcategoria,
+        sentido: meta.sentido,
+        categoria: meta.categoria,
+        color: meta.color,
+        descripcion: meta.descripcion,
+        datosGeo,
+        activo: true,
       }
-    } catch (err: any) {
-      console.error(`  ⚠️ Error en feature #${i + 1} (${meta.nombre}):`, err.message);
-    }
+    });
+    insertadas++;
   }
 
   const total = await prisma.lineaTransporte.count();
-  console.log(`\n======================================================`);
-  console.log(`🎉 ÉXITO: Importación completada correctamente!`);
-  console.log(`   - Trazas importadas/actualizadas: ${actualizadas}`);
-  console.log(`   - Trazas omitidas (sin geometría): ${omitidas}`);
-  console.log(`   - Total de líneas en la Base de Datos: ${total}`);
-  console.log(`======================================================\n`);
+  console.log(`\n🎉 Finalizado! ${insertadas} trazas insertadas limpiamente. Total en DB: ${total}\n`);
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Error fatal:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(console.error).finally(() => prisma.$disconnect());
