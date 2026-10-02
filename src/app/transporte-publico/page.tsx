@@ -656,7 +656,7 @@ export default function TransportePublicoPage() {
             </div>
 
             {/* List of lines */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '10px', background: '#f8fafc' }}>
               {loadingLineas && (
                 <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                   <Loader2 className="animate-spin" size={24} style={{ margin: '0 auto 8px' }} />
@@ -678,27 +678,49 @@ export default function TransportePublicoPage() {
                 const catBgColor = group.categoria === 'NACIONAL' ? '#e0f2fe' : (group.categoria === 'PROVINCIAL' ? '#dcfce7' : '#fef3c7');
 
                 return (
-                  <div key={groupKey} style={{ background: '#fff', borderRadius: '10px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                  <div
+                    key={groupKey}
+                    style={{
+                      background: '#fff',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      overflow: 'hidden',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      flexShrink: 0,
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
                     {/* Line header */}
                     <div
                       onClick={() => setExpandedLineas(prev => ({ ...prev, [groupKey]: !isOpen }))}
                       style={{
-                        padding: '10px 12px', background: isOpen ? '#f8fafc' : '#fff', borderBottom: isOpen ? '1px solid #f1f5f9' : 'none',
-                        display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none', transition: 'background 0.15s ease'
+                        padding: '11px 14px',
+                        background: isOpen ? '#f8fafc' : '#fff',
+                        borderBottom: isOpen ? '1px solid #f1f5f9' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        transition: 'background 0.15s ease',
+                        minHeight: '48px',
+                        boxSizing: 'border-box',
                       }}
                     >
                       {/* Number badge */}
                       <div style={{
-                        width: 32, height: 26, borderRadius: 6, background: group.color || '#2563eb',
-                        color: '#fff', fontWeight: 900, fontSize: '0.78rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                        width: 34, height: 28, borderRadius: 6, background: group.color || '#2563eb',
+                        color: '#fff', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
                       }}>
                         {group.numero || '#'}
                       </div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0f172a' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
                             {group.lineaLabel}
                           </span>
                           <span style={{ fontSize: '0.65rem', fontWeight: 800, color: catBadgeColor, background: catBgColor, padding: '1px 6px', borderRadius: 4, textTransform: 'uppercase' }}>
@@ -707,17 +729,17 @@ export default function TransportePublicoPage() {
                         </div>
                       </div>
 
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '2px 7px', borderRadius: '10px', fontWeight: 600 }}>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '10px', fontWeight: 600, flexShrink: 0 }}>
                         {group.records.length} ramal{group.records.length !== 1 ? 'es' : ''}
                       </span>
-                      <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                        {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                      <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', marginLeft: 4, flexShrink: 0 }}>
+                        {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </span>
                     </div>
 
                     {/* Traces inside this line */}
                     {isOpen && (
-                      <div style={{ display: 'flex', flexDirection: 'column', background: '#fafbfc' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>
                         {group.records.map((l: any, idx: number) => {
                           const sentido = (l.sentido || '').toUpperCase();
                           const isIda = sentido === 'IDA';
@@ -728,20 +750,26 @@ export default function TransportePublicoPage() {
                             <div
                               key={l.id}
                               style={{
-                                padding: '9px 12px', borderTop: '1px solid #f1f5f9',
-                                display: 'flex', alignItems: 'center', gap: '8px', background: isActive ? '#fff' : '#f8fafc',
-                                opacity: isActive ? 1 : 0.65
+                                padding: '10px 14px',
+                                borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                background: isActive ? '#fff' : '#f8fafc',
+                                opacity: isActive ? 1 : 0.65,
+                                minHeight: '44px',
+                                boxSizing: 'border-box',
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: l.color || group.color || '#2563eb', flexShrink: 0 }} />
-                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {l.subcategoria || l.nombre || 'Ramal Principal'}
                                   </span>
                                 </div>
                                 {l.descripcion && (
-                                  <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px', paddingLeft: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px', paddingLeft: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {l.descripcion}
                                   </div>
                                 )}
@@ -754,14 +782,14 @@ export default function TransportePublicoPage() {
                                 title="Clic para alternar entre IDA y VUELTA"
                                 style={{
                                   display: 'inline-flex', alignItems: 'center', gap: '4px',
-                                  padding: '4px 7px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
+                                  padding: '5px 8px', borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s ease',
                                   background: isIda ? '#eff6ff' : isVuelta ? '#f5f3ff' : '#f8fafc',
                                   border: `1.5px solid ${isIda ? '#bfdbfe' : isVuelta ? '#ddd6fe' : '#e2e8f0'}`,
-                                  minWidth: '78px', justifyContent: 'center', flexShrink: 0
+                                  minWidth: '82px', justifyContent: 'center', flexShrink: 0
                                 }}
                               >
                                 {isIda ? <ArrowRight size={11} color="#2563eb" /> : isVuelta ? <ArrowLeft size={11} color="#7c3aed" /> : <Route size={11} color="#64748b" />}
-                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: isIda ? '#1d4ed8' : isVuelta ? '#6d28d9' : '#475569' }}>
+                                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: isIda ? '#1d4ed8' : isVuelta ? '#6d28d9' : '#475569' }}>
                                   {isIda ? 'IDA —' : isVuelta ? 'VUELTA ╌' : 'S/SENTIDO'}
                                 </span>
                               </button>
@@ -773,10 +801,10 @@ export default function TransportePublicoPage() {
                                 title={isActive ? 'Visible (clic para ocultar)' : 'Oculta (clic para mostrar)'}
                                 style={{
                                   background: 'transparent', border: 'none', cursor: 'pointer',
-                                  color: isActive ? '#16a34a' : '#94a3b8', padding: '3px', display: 'flex', alignItems: 'center'
+                                  color: isActive ? '#16a34a' : '#94a3b8', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0
                                 }}
                               >
-                                {isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                                {isActive ? <Eye size={15} /> : <EyeOff size={15} />}
                               </button>
 
                               {/* Delete button */}
@@ -786,12 +814,12 @@ export default function TransportePublicoPage() {
                                 title="Eliminar traza"
                                 style={{
                                   background: 'transparent', border: 'none', cursor: 'pointer',
-                                  color: '#cbd5e1', padding: '3px', display: 'flex', alignItems: 'center'
+                                  color: '#cbd5e1', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0
                                 }}
                                 onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
                                 onMouseLeave={e => (e.currentTarget.style.color = '#cbd5e1')}
                               >
-                                <Trash2 size={13} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           );
