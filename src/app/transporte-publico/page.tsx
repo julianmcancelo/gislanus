@@ -85,7 +85,7 @@ export default function TransportePublicoPage() {
   const fetchLineas = async () => {
     setLoadingLineas(true);
     try {
-      const res = await fetch('/api/lineas-transporte');
+      const res = await fetch('/api/lineas-transporte', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setLineas(Array.isArray(data) ? data : []);
