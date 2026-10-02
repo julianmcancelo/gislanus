@@ -48,7 +48,65 @@ export async function POST(req: Request) {
   if (guard.error) return guard.error;
 
   try {
-    const { nombre, numero, color, descripcion, categoria, subcategoria, sentido, datosGeo } = await req.json();
+    const body = await req.json();
+
+    // ── SOPORTE BATCH IMPORT: { lineas: [...] } o Array directo ──
+    const items = Array.isArray(body) ? body : (Array.isArray(body.lineas) ? body.lineas : null);
+    if (items && items.length > 0) {
+      let createdCount = 0;
+      for (const item of items) {
+        if (!item.nombre || !item.datosGeo) continue;
+        const customId = item.id || undefined;
+
+        if (customId) {
+          await prisma.lineaTransporte.upsert({
+            where: { id: customId },
+            update: {
+              nombre: item.nombre,
+              numero: item.numero || null,
+              color: item.color || '#2563eb',
+              descripcion: item.descripcion || null,
+              categoria: item.categoria || 'NACIONAL',
+              subcategoria: item.subcategoria || null,
+              sentido: item.sentido || null,
+              datosGeo: typeof item.datosGeo === 'string' ? item.datosGeo : JSON.stringify(item.datosGeo),
+              activo: item.activo ?? true,
+            },
+            create: {
+              id: customId,
+              nombre: item.nombre,
+              numero: item.numero || null,
+              color: item.color || '#2563eb',
+              descripcion: item.descripcion || null,
+              categoria: item.categoria || 'NACIONAL',
+              subcategoria: item.subcategoria || null,
+              sentido: item.sentido || null,
+              datosGeo: typeof item.datosGeo === 'string' ? item.datosGeo : JSON.stringify(item.datosGeo),
+              activo: item.activo ?? true,
+            },
+          });
+        } else {
+          await prisma.lineaTransporte.create({
+            data: {
+              nombre: item.nombre,
+              numero: item.numero || null,
+              color: item.color || '#2563eb',
+              descripcion: item.descripcion || null,
+              categoria: item.categoria || 'NACIONAL',
+              subcategoria: item.subcategoria || null,
+              sentido: item.sentido || null,
+              datosGeo: typeof item.datosGeo === 'string' ? item.datosGeo : JSON.stringify(item.datosGeo),
+              activo: item.activo ?? true,
+            },
+          });
+        }
+        createdCount++;
+      }
+      return NextResponse.json({ success: true, count: createdCount, message: `${createdCount} trazas importadas correctamente.` }, { status: 201 });
+    }
+
+    // ── CREACIÓN INDIVIDUAL ──
+    const { nombre, numero, color, descripcion, categoria, subcategoria, sentido, datosGeo, clipToLanus } = body;
 
     if (!nombre || !datosGeo) {
       return NextResponse.json({ error: 'Faltan campos obligatorios: nombre y datosGeo' }, { status: 400 });
@@ -65,22 +123,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'GeoJSON debe ser LineString, MultiLineString, Feature o FeatureCollection' }, { status: 400 });
     }
 
-    if (parsedGeo.type === 'FeatureCollection') {
-      parsedGeo.features = parsedGeo.features.map((f: any) => ({
-        ...f,
-        geometry: clipGeometryToLanus(f.geometry)
-      }));
-    } else if (parsedGeo.type === 'Feature') {
-      parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
-    } else if (parsedGeo.type === 'LineString' || parsedGeo.type === 'MultiLineString') {
-      parsedGeo = clipGeometryToLanus(parsedGeo);
+    if (clipToLanus === true) {
+      if (parsedGeo.type === 'FeatureCollection') {
+        parsedGeo.features = parsedGeo.features.map((f: any) => ({
+          ...f,
+          geometry: clipGeometryToLanus(f.geometry)
+        }));
+      } else if (parsedGeo.type === 'Feature') {
+        parsedGeo.geometry = clipGeometryToLanus(parsedGeo.geometry);
+      } else if (parsedGeo.type === 'LineString' || parsedGeo.type === 'MultiLineString') {
+        parsedGeo = clipGeometryToLanus(parsedGeo);
+      }
     }
 
     const linea = await prisma.lineaTransporte.create({
       data: {
         nombre,
         numero: numero || null,
-        color: color || '#E53E3E',
+        color: color || '#2563eb',
         descripcion: descripcion || null,
         categoria: categoria || 'NACIONAL',
         subcategoria: subcategoria || null,

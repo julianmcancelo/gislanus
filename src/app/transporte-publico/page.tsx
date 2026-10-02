@@ -9,6 +9,8 @@ import {
   Bot, AlertTriangle, Wand2, Trash2, Pencil, Sparkles, Eye, EyeOff, RefreshCw, Smartphone
 } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
+import { parseGeojsonToLines } from '@/utils/parseGeojsonLines';
+import { Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Dynamic import for Leaflet component to avoid SSR errors
@@ -28,6 +30,47 @@ import { emitirNuevaSolicitud, emitirCambioMapa } from '@/lib/rtdb';
 const ROUTE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#db2777', '#0891b2'];
 
 export default function TransportePublicoPage() {
+  const geojsonInputRef = React.useRef<HTMLInputElement>(null);
+  const [isImportingGeo, setIsImportingGeo] = useState(false);
+
+  const handleGeojsonFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImportingGeo(true);
+    const toastId = toast.loading(`Analizando ${file.name}...`);
+    try {
+      const text = await file.text();
+      const geojson = JSON.parse(text);
+      const parsedLines = parseGeojsonToLines(geojson, file.name);
+
+      if (parsedLines.length === 0) {
+        throw new Error('No se encontraron trazas de recorrido LineString en el archivo');
+      }
+
+      toast.loading(`Importando ${parsedLines.length} trazas con empresas y sentidos...`, { id: toastId });
+
+      const res = await authFetch('/api/lineas-transporte', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lineas: parsedLines })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar las líneas');
+
+      toast.success(`¡Éxito! ${parsedLines.length} líneas y ramales importados correctamente.`, { id: toastId });
+      emitirCambioMapa('lineas');
+      fetchLineas();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Error al importar archivo GeoJSON', { id: toastId });
+    } finally {
+      setIsImportingGeo(false);
+      if (geojsonInputRef.current) geojsonInputRef.current.value = '';
+    }
+  };
+
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, dbUser, loading, getIdToken } = useAuth();
@@ -552,7 +595,31 @@ export default function TransportePublicoPage() {
 
               {/* Action buttons bar */}
               <div style={{ display: 'flex', gap: '6px' }}>
-                <button
+                <input
+                type="file"
+                ref={geojsonInputRef}
+                accept=".geojson,.json"
+                style={{ display: 'none' }}
+                onChange={handleGeojsonFileUpload}
+              />
+              <button
+                type="button"
+                onClick={() => geojsonInputRef.current?.click()}
+                disabled={isImportingGeo}
+                title="Importar un archivo GeoJSON con recorridos de colectivos (detecta automáticamente empresas, líneas, ramales y sentidos)"
+                style={{
+                  padding: '7px 10px', borderRadius: '8px',
+                  border: '1.5px solid #bfdbfe', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  color: '#1d4ed8', fontSize: '0.72rem', fontWeight: 700, cursor: isImportingGeo ? 'wait' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+                  boxShadow: '0 1px 2px rgba(37,99,235,0.08)'
+                }}
+              >
+                <Upload size={13} color="#2563eb" />
+                {isImportingGeo ? 'Importando...' : '📥 Importar GeoJSON'}
+              </button>
+
+              <button
                   type="button"
                   onClick={handleAutoPair}
                   disabled={isAutoPairing}

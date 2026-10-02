@@ -14,6 +14,7 @@ import { ClipboardList, Clock, Map as MapIcon, Users, AlertTriangle, Bus, Smartp
 const StaticMapPreview = dynamic(() => import('../../components/StaticMapPreview'), { ssr: false });
 const LineaEditorMap = dynamic(() => import('../../components/LineaEditorMap'), { ssr: false });
 import CloneRutaModal from '../../components/CloneRutaModal';
+import { parseGeojsonToLines } from '@/utils/parseGeojsonLines';
 
 const ADMIN_NOTIFICATION_CACHE = 'lanusgis:admin-notifications:v1';
 
@@ -1161,64 +1162,18 @@ export default function AdminPage() {
           // Metadata de nivel raíz (formato profesional)
           const meta = geo.metadata || {};
 
-          // ── Formato profesional (grupo/subgrupo/ramal/sentido) ─────────
-          const tieneGrupos = features.some((f: any) => f.properties?.subgrupo);
-          if (tieneGrupos) {
-            // 1 registro por feature (ramal+sentido) para control granular
-            // Ignorar features de vehículos/puntos — solo importar trazas LineString/MultiLineString
-            features.forEach((f: any) => {
-              if (!f.geometry) return;
-              const gtype = f.geometry.type;
-              if (gtype !== 'LineString' && gtype !== 'MultiLineString') return;
-              if (f.properties?.tipo === 'vehiculo_activo') return;
-              const p = f.properties || {};
-              const numero = p.linea || meta.linea || p.ref || '';
-              const nombre = p.linea_nombre || p.grupo || meta.nombre_linea
-                || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
-              const ramalNombre = p.ramal ? `Ramal ${p.ramal}` : (p.subgrupo_detalle || p.subgrupo || '');
-              const sentidoRaw = (p.sentido || p.sentido_label || '').trim();
-              // Normalize to uppercase, strip emoji prefixes, preserve any value
-              const sentidoNorm = sentidoRaw.replace(/^[\p{Emoji}\s]+/u, '').trim().toUpperCase() || null;
-              const color = resolveColor(p.color_hex || p.color_ramal_orig || p.stroke);
-              const partsDesc: string[] = [];
-              if (p.operador) partsDesc.push(p.operador);
-              if (p.ciudad) partsDesc.push(p.ciudad);
-              if (p.cabecera_inicio && p.cabecera_fin) partsDesc.push(`${p.cabecera_inicio} ↔ ${p.cabecera_fin}`);
-              if (p.distancia_km) partsDesc.push(`${p.distancia_km} km`);
-              previews.push({
-                nombre,
-                numero,
-                color,
-                descripcion: partsDesc.join(' · '),
-                subcategoriaAuto: ramalNombre,
-                sentido: sentidoNorm,
-                datosGeo: JSON.stringify(f),
-              });
+          const parsedLines = parseGeojsonToLines(geo, file.name);
+          parsedLines.forEach(item => {
+            previews.push({
+              nombre: item.nombre,
+              numero: item.numero,
+              color: item.color,
+              descripcion: item.descripcion,
+              subcategoriaAuto: item.subcategoria,
+              sentido: item.sentido,
+              datosGeo: item.datosGeo,
             });
-          } else {
-            // ── Formato simple ──────────────────────────────────────────────
-            features.forEach((f: any) => {
-              if (!f.geometry) return;
-              const gtype = f.geometry.type;
-              if (gtype !== 'LineString' && gtype !== 'MultiLineString') return;
-              const p = f.properties || {};
-              const numero = p.ref || p.linea || p.numero || meta.linea || '';
-              const nombre = p.name || p.nombre || p.linea_nombre
-                || (numero ? `Línea ${numero}` : file.name.replace(/\.geojson$/i, ''));
-              const partsDesc: string[] = [];
-              if (p.operator || p.operador) partsDesc.push(p.operator || p.operador);
-              if (p.from && p.to) partsDesc.push(`${p.from} ↔ ${p.to}`);
-              if (p.network) partsDesc.push(p.network);
-              previews.push({
-                nombre,
-                numero,
-                color: resolveColor(p.colour || p.color || p.stroke || p.color_hex),
-                descripcion: partsDesc.join(' · ') || p.descripcion || '',
-                subcategoriaAuto: '',
-                datosGeo: JSON.stringify(f),
-              });
-            });
-          }
+          });
         } catch { toast.error(`Error leyendo ${file.name}`); }
         pending--;
         if (pending === 0) setLineaImportPreview(prev => [...prev, ...previews]);

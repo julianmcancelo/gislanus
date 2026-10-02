@@ -19,6 +19,7 @@ import {
   downloadKml,
   downloadAllRelevamientosGeoJson
 } from '@/utils/exportGps';
+import { parseGeojsonToLines } from '@/utils/parseGeojsonLines';
 
 const StaticMapPreview = dynamic(() => import('@/components/StaticMapPreview'), {
   ssr: false,
@@ -287,14 +288,35 @@ export default function BitacoraGPSPage() {
         toast.success('Paquete ZIP de Bitácora GPS importado con éxito', { id: toastId });
         fetchRelevamientos();
       } else {
-        // Standard JSON / GeoJSON
+        // Standard JSON / GeoJSON: parse lines intelligently
         const text = await file.text();
         const parsed = JSON.parse(text);
+        const parsedLines = parseGeojsonToLines(parsed, file.name);
 
+        if (parsedLines.length > 1) {
+          // If it's a multi-route collection (e.g. 256 lines), import them into official lines!
+          const res = await fetch('/api/lineas-transporte', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lineas: parsedLines }),
+          });
+
+          if (!res.ok) throw new Error('Error al importar las líneas de transporte');
+          toast.success(`${parsedLines.length} líneas de transporte importadas con sus empresas y ramales!`, { id: toastId });
+          fetchRelevamientos();
+          return;
+        }
+
+        // Single line relevamiento
+        const single = parsedLines[0];
         const res = await fetch('/api/bitacora-gps', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            lineaNumero: single?.numero || null,
+            ramal: single?.subcategoria || null,
+            sentido: single?.sentido || null,
+            notas: single?.descripcion || null,
             origen: 'IMPORTACION_GEOJSON',
             datosGeo: parsed,
           }),
