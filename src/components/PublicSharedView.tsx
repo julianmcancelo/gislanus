@@ -528,7 +528,15 @@ export default function PublicSharedView({ token }: { token: string }) {
         </div>
       </div>
 
-      <MapPrintAtlasModal isOpen={atlasModalOpen} onClose={() => setAtlasModalOpen(false)} lineaNombre={atlasLineaNombre} capasLinea={atlasCapasLinea} cacheDatosGeo={cacheDatosGeo} mapInstance={mapInstance} />
+      <MapPrintAtlasModal
+        isOpen={atlasModalOpen}
+        onClose={() => setAtlasModalOpen(false)}
+        lineaNombre={atlasLineaNombre}
+        capasLinea={atlasCapasLinea}
+        todasCapas={capasConfig}
+        cacheDatosGeo={cacheDatosGeo}
+        mapInstance={mapInstance}
+      />
     </div>
   );
 }

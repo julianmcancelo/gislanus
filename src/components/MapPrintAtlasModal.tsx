@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Printer,
   X,
@@ -15,6 +15,10 @@ import {
   ArrowRight,
   ArrowLeft,
   ZoomIn,
+  Globe,
+  CheckSquare,
+  Square,
+  Eye,
 } from 'lucide-react';
 import L from 'leaflet';
 import html2canvas from 'html2canvas';
@@ -27,6 +31,7 @@ interface MapPrintAtlasModalProps {
   onClose: () => void;
   lineaNombre: string;
   capasLinea: any[];
+  todasCapas?: any[];
   cacheDatosGeo: Record<string, any>;
   mapInstance: L.Map | null;
 }
@@ -39,6 +44,7 @@ export default function MapPrintAtlasModal({
   onClose,
   lineaNombre,
   capasLinea,
+  todasCapas = [],
   cacheDatosGeo,
   mapInstance,
 }: MapPrintAtlasModalProps) {
@@ -56,6 +62,39 @@ export default function MapPrintAtlasModal({
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
 
+  // 🇦🇷 Estados para Superposición de Líneas Nacionales (1-199)
+  const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
+  const [nacionalesSeleccionadas, setNacionalesSeleccionadas] = useState<string[]>([]);
+  const [modoEstiloNacionales, setModoEstiloNacionales] = useState<'sutil' | 'color'>('color');
+
+  // Filtrar todas las líneas nacionales disponibles en el sistema (excluyendo la línea activa)
+  const capasNacionalesDisponibles = useMemo(() => {
+    if (!todasCapas || todasCapas.length === 0) return [];
+    const lineaActualIds = new Set(capasLinea.map((c) => c.id));
+
+    return todasCapas.filter((c) => {
+      if (!c || lineaActualIds.has(c.id)) return false;
+      const cat = (c.categoria || c.subGrupo?.categoria || '').toUpperCase();
+      const grupo = (c.grupo?.nombre || '').toLowerCase();
+      const nombre = (c.nombre || '').toLowerCase();
+      const subGrupo = (c.subGrupo?.nombre || '').toLowerCase();
+
+      if (cat === 'NACIONAL' || grupo.includes('nacional') || subGrupo.includes('nacional')) {
+        return true;
+      }
+
+      const num = parseInt(
+        normalizeLineNumber(c.nombre) || normalizeLineNumber(c.subGrupo?.nombre || '') || '0',
+        10
+      );
+      if (num > 0 && num < 200) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [todasCapas, capasLinea]);
+
   // Sincronizar ramales seleccionados cada vez que se abre el modal
   React.useEffect(() => {
     if (isOpen) {
@@ -63,8 +102,12 @@ export default function MapPrintAtlasModal({
       if (capasLinea && capasLinea.length > 0) {
         setRamalesSeleccionados(capasLinea.map((c) => c.id));
       }
+      // Inicializar nacionales seleccionadas con todas las disponibles
+      if (capasNacionalesDisponibles.length > 0) {
+        setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id));
+      }
     }
-  }, [isOpen, capasLinea]);
+  }, [isOpen, capasLinea, capasNacionalesDisponibles]);
 
   const detectSentido = (capa: any, feature?: any): 'IDA' | 'VUELTA' => {
     const props = feature?.properties || {};
@@ -90,8 +133,16 @@ export default function MapPrintAtlasModal({
   };
 
   const getLayerFeatureSegments = (capa: any) => {
-    const geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+    let geo = cacheDatosGeo[capa.id] || capa.datosGeo;
     if (!geo) return [];
+    if (typeof geo === 'string') {
+      try {
+        geo = JSON.parse(geo);
+      } catch (e) {
+        return [];
+      }
+    }
+
     const features = geo.type === 'FeatureCollection' ? geo.features : [geo];
     const segments: { nombre: string; coords: [number, number][]; isVuelta: boolean }[] = [];
 
@@ -168,6 +219,9 @@ export default function MapPrintAtlasModal({
   if (!isOpen) return null;
 
   const capasFiltradas = capasLinea.filter((c) => ramalesSeleccionados.includes(c.id));
+  const capasNacionalesActivas = incluirNacionales
+    ? capasNacionalesDisponibles.filter((c) => nacionalesSeleccionadas.includes(c.id))
+    : [];
 
   const getCoordinatesForLayers = (layers: any[]): [number, number][] => {
     const allCoords: [number, number][] = [];
@@ -339,6 +393,7 @@ export default function MapPrintAtlasModal({
    */
   const renderSingleSheetCanvas = async ({
     targetCapas,
+    nationalCapas,
     pageTitle,
     pageSubtitle,
     pageNumber,
@@ -352,6 +407,7 @@ export default function MapPrintAtlasModal({
     logoImg,
   }: {
     targetCapas: any[];
+    nationalCapas: any[];
     pageTitle: string;
     pageSubtitle: string;
     pageNumber: number;
@@ -441,7 +497,7 @@ export default function MapPrintAtlasModal({
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, sheetWidthPx, sheetHeightPx);
 
-    // Proyector Isométrico Web Mercator (EPSG:3857) enfocado a las capas de esta hoja
+    // Proyector Isométrico Web Mercator (EPSG:3857) enfocado a la línea principal de la lámina
     const targetCoords = getCoordinatesForLayers(targetCapas);
     const points: LatLng[] = targetCoords.map(([lat, lng]) => ({ lat, lng }));
     const proj = new MercatorViewportProjection(points, mapViewportW, mapViewportH, paddingFraction);
@@ -530,19 +586,18 @@ export default function MapPrintAtlasModal({
     ctx.strokeStyle = '#0F172A';
     ctx.lineWidth = Math.max(1, toPx(0.55));
     ctx.beginPath();
-    // Top-Left
     ctx.moveTo(mapViewportX + cornerMargin, mapViewportY + cornerMargin + cornerMarkLen);
     ctx.lineTo(mapViewportX + cornerMargin, mapViewportY + cornerMargin);
     ctx.lineTo(mapViewportX + cornerMargin + cornerMarkLen, mapViewportY + cornerMargin);
-    // Top-Right
+
     ctx.moveTo(mapViewportX + mapViewportW - cornerMargin - cornerMarkLen, mapViewportY + cornerMargin);
     ctx.lineTo(mapViewportX + mapViewportW - cornerMargin, mapViewportY + cornerMargin);
     ctx.lineTo(mapViewportX + mapViewportW - cornerMargin, mapViewportY + cornerMargin + cornerMarkLen);
-    // Bottom-Left
+
     ctx.moveTo(mapViewportX + cornerMargin, mapViewportY + mapViewportH - cornerMargin - cornerMarkLen);
     ctx.lineTo(mapViewportX + cornerMargin, mapViewportY + mapViewportH - cornerMargin);
     ctx.lineTo(mapViewportX + cornerMargin + cornerMarkLen, mapViewportY + mapViewportH - cornerMargin);
-    // Bottom-Right
+
     ctx.moveTo(mapViewportX + mapViewportW - cornerMargin - cornerMarkLen, mapViewportY + mapViewportH - cornerMargin);
     ctx.lineTo(mapViewportX + mapViewportW - cornerMargin, mapViewportY + mapViewportH - cornerMargin);
     ctx.lineTo(mapViewportX + mapViewportW - cornerMargin, mapViewportY + mapViewportH - cornerMargin - cornerMarkLen);
@@ -584,7 +639,86 @@ export default function MapPrintAtlasModal({
       ctx.setLineDash([]);
     }
 
-    // Trazas Vectoriales con Halo de Contraste Proporcional
+    // ─────────────────────────────────────────────────────────────
+    // 🇦🇷 SUPERPOSICIÓN DE LÍNEAS NACIONALES (CAPA DE REFERENCIA Y COMPARACIÓN)
+    // ─────────────────────────────────────────────────────────────
+    const nationalSegments: { coords: Point2D[]; color: string; isVuelta: boolean; label: string }[] = [];
+    if (nationalCapas.length > 0) {
+      nationalCapas.forEach((capa) => {
+        const segs = getLayerFeatureSegments(capa);
+        const isVuelta = detectSentido(capa) === 'VUELTA';
+        const num = normalizeLineNumber(capa.nombre) || normalizeLineNumber(capa.subGrupo?.nombre || '') || '';
+        const rawColor = capa.color || getOfficialLineColor(capa.nombre);
+        const color =
+          modoEstiloNacionales === 'sutil'
+            ? '#64748B' // Gris pizarra técnico
+            : rawColor;
+
+        segs.forEach((seg) => {
+          if (seg.coords.length < 2) return;
+          const projectedPts: Point2D[] = seg.coords.map(([lat, lng]) => {
+            const pt = proj.project(lat, lng);
+            return {
+              x: mapViewportX + pt.x,
+              y: mapViewportY + pt.y,
+            };
+          });
+
+          nationalSegments.push({
+            coords: projectedPts,
+            color,
+            isVuelta: seg.isVuelta || isVuelta,
+            label: num ? `L.${num}` : capa.nombre,
+          });
+        });
+      });
+
+      // Halos para líneas nacionales
+      const natHaloPx = Math.max(2, toPx(config.traceStrokeMm * 1.1));
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = natHaloPx;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+
+      nationalSegments.forEach((seg) => {
+        if (seg.coords.length < 2) return;
+        if (seg.isVuelta) {
+          ctx.setLineDash([toPx(3.5), toPx(2.2)]);
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.beginPath();
+        ctx.moveTo(seg.coords[0].x, seg.coords[0].y);
+        for (let i = 1; i < seg.coords.length; i++) {
+          ctx.lineTo(seg.coords[i].x, seg.coords[i].y);
+        }
+        ctx.stroke();
+      });
+
+      // Trazo para líneas nacionales
+      const natStrokePx = Math.max(1.5, toPx(config.traceStrokeMm * 0.75));
+      ctx.lineWidth = natStrokePx;
+      nationalSegments.forEach((seg) => {
+        if (seg.coords.length < 2) return;
+        if (seg.isVuelta) {
+          ctx.setLineDash([toPx(3.5), toPx(2.2)]);
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.beginPath();
+        ctx.moveTo(seg.coords[0].x, seg.coords[0].y);
+        for (let i = 1; i < seg.coords.length; i++) {
+          ctx.lineTo(seg.coords[i].x, seg.coords[i].y);
+        }
+        ctx.strokeStyle = seg.color;
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // TRAZAS VECTORIALES PRINCIPALES (LÍNEA OBJETIVO)
+    // ─────────────────────────────────────────────────────────────
     const officialLineColor = getOfficialLineColor(lineaNombre);
     let globalStartPoint: Point2D | null = null;
     let globalEndPoint: Point2D | null = null;
@@ -627,7 +761,12 @@ export default function MapPrintAtlasModal({
       });
 
       // Paradas de la capa
-      const geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+      let geo = cacheDatosGeo[capa.id] || capa.datosGeo;
+      if (typeof geo === 'string') {
+        try {
+          geo = JSON.parse(geo);
+        } catch (e) {}
+      }
       if (geo) {
         const features = geo.type === 'FeatureCollection' ? geo.features : [geo];
         features.forEach((f: any) => {
@@ -645,17 +784,17 @@ export default function MapPrintAtlasModal({
       }
     });
 
-    const traceStrokePx = Math.max(2, toPx(config.traceStrokeMm));
+    const traceStrokePx = Math.max(2, toPx(config.traceStrokeMm * 1.15));
     const haloStrokePx = Math.max(traceStrokePx + 2, toPx(config.haloStrokeMm));
 
-    // ── CAPA 1: Todos los Halos de Contraste (Continuos para Ida, Discontinuos para Vuelta) ──
+    // ── CAPA 1: Halos de Contraste para la Línea Principal ──
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineWidth = haloStrokePx;
     ctx.strokeStyle =
       estiloMapbox.includes('dark') || estiloMapbox.includes('night')
         ? 'rgba(255, 255, 255, 0.95)'
-        : 'rgba(255, 255, 255, 0.92)';
+        : 'rgba(255, 255, 255, 0.94)';
 
     allSegments.forEach((seg) => {
       if (seg.coords.length < 2) return;
@@ -672,7 +811,7 @@ export default function MapPrintAtlasModal({
       ctx.stroke();
     });
 
-    // ── CAPA 2: Todas las Líneas de Trazado Oficial (Continuo = Ida, Discontinuo = Vuelta) ──
+    // ── CAPA 2: Trazado Principal (Continuo = Ida, Discontinuo = Vuelta) ──
     ctx.lineWidth = traceStrokePx;
     allSegments.forEach((seg) => {
       if (seg.coords.length < 2) return;
@@ -804,8 +943,8 @@ export default function MapPrintAtlasModal({
     const contextBoxPad = toPx(config.marginMm * 0.5);
     const contextBoxX = mapViewportX + contextBoxPad;
     const contextBoxY = mapViewportY + contextBoxPad;
-    const contextBoxW = Math.round(mapViewportW * 0.38);
-    const contextBoxH = toPx(config.headerHeightMm * 0.52);
+    const contextBoxW = Math.round(mapViewportW * 0.42);
+    const contextBoxH = toPx(config.headerHeightMm * 0.56);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
     ctx.strokeStyle = '#00AEEF';
@@ -816,7 +955,7 @@ export default function MapPrintAtlasModal({
     ctx.stroke();
 
     const ctxFontMain = toPx(config.caratureValMm * 0.88);
-    const ctxFontSub = toPx(config.caratureValMm * 0.74);
+    const ctxFontSub = toPx(config.caratureValMm * 0.72);
     ctx.font = `800 ${ctxFontMain}px Inter, sans-serif`;
     ctx.fillStyle = '#0F172A';
     ctx.fillText(
@@ -825,10 +964,15 @@ export default function MapPrintAtlasModal({
       contextBoxY + ctxFontMain + toPx(1.5)
     );
 
+    const natContextStr =
+      nationalCapas.length > 0 ? ` · ${nationalCapas.length} trazas nac. ref.` : '';
     ctx.font = `600 ${ctxFontSub}px Inter, sans-serif`;
     ctx.fillStyle = '#0284C7';
     ctx.fillText(
-      fitText(`LONGITUD: ${totalRouteDistanceKm.toFixed(2)} km · ${stopCount > 0 ? stopCount : targetCapas.length * 2} PARADAS · LANÚS`, contextBoxW - toPx(4)),
+      fitText(
+        `LONGITUD: ${totalRouteDistanceKm.toFixed(2)} km · ${stopCount > 0 ? stopCount : targetCapas.length * 2} PARADAS${natContextStr}`,
+        contextBoxW - toPx(4)
+      ),
       contextBoxX + toPx(2.5),
       contextBoxY + ctxFontMain + ctxFontSub + toPx(3.2)
     );
@@ -1129,10 +1273,21 @@ export default function MapPrintAtlasModal({
 
     // ── COLUMNA 2: FICHA TÉCNICA Y CÓMPUTO ──
     const rowStep = caratureH / 5.2;
+    const nationalLineNumbers = Array.from(
+      new Set(
+        nationalCapas
+          .map((c) => normalizeLineNumber(c.nombre) || normalizeLineNumber(c.subGrupo?.nombre || ''))
+          .filter(Boolean)
+      )
+    ).join(', ');
+
     const metrics = [
       { label: 'Longitud de Traza:', val: `${totalRouteDistanceKm.toFixed(2)} km` },
       { label: 'Paradas Registradas:', val: `${stopCount > 0 ? stopCount : targetCapas.length * 2}` },
-      { label: 'Coordenadas GPS:', val: `${targetCoords.length} pts (WGS-84)` },
+      {
+        label: 'Red Nac. Referencia:',
+        val: nationalCapas.length > 0 ? `${nationalCapas.length} trazas (L.${nationalLineNumbers})` : 'Sin superposición',
+      },
       {
         label: 'Fecha de Emisión:',
         val: new Date().toLocaleDateString('es-AR', {
@@ -1155,7 +1310,7 @@ export default function MapPrintAtlasModal({
       ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
       ctx.fillStyle = '#0F172A';
       ctx.textAlign = 'right';
-      ctx.fillText(m.val, col2X + col2W - caraturePad, y);
+      ctx.fillText(fitText(m.val, col2W * 0.55), col2X + col2W - caraturePad, y);
       ctx.textAlign = 'start';
     });
 
@@ -1207,26 +1362,44 @@ export default function MapPrintAtlasModal({
     ctx.fillStyle = '#334155';
     ctx.fillText(fitText('Trazo Vuelta (Discontinuo ╌)', col3InnerW - toPx(15)), iconX + toPx(9), y2 + toPx(1.0));
 
-    // Item 3: Cabecera Inicial / Terminal
+    // Item 3: Cabecera Inicial / Terminal / Trazas Nacionales
     const y3 = legStartY + 2 * legStep;
-    ctx.beginPath();
-    ctx.arc(iconX - toPx(2.2), y3 - toPx(1.0), toPx(2.0), 0, Math.PI * 2);
-    ctx.fillStyle = '#16A34A';
-    ctx.fill();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = Math.max(1, toPx(0.4));
-    ctx.stroke();
+    if (nationalCapas.length > 0) {
+      // Mostrar muestra de traza nacional de referencia
+      ctx.beginPath();
+      ctx.moveTo(iconX - toPx(5), y3);
+      ctx.lineTo(iconX + toPx(6), y3);
+      ctx.lineWidth = Math.max(1.8, toPx(config.traceStrokeMm * 0.85));
+      ctx.strokeStyle = modoEstiloNacionales === 'sutil' ? '#64748B' : '#0284C7';
+      ctx.lineCap = 'round';
+      ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(iconX + toPx(3.2), y3 - toPx(1.0), toPx(2.0), 0, Math.PI * 2);
-    ctx.fillStyle = '#7B1828';
-    ctx.fill();
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = Math.max(1, toPx(0.4));
-    ctx.stroke();
+      ctx.fillStyle = '#334155';
+      ctx.fillText(
+        fitText(`Líneas Nac. Ref (${nationalLineNumbers || '1-199'})`, col3InnerW - toPx(15)),
+        iconX + toPx(9),
+        y3 + toPx(1.0)
+      );
+    } else {
+      ctx.beginPath();
+      ctx.arc(iconX - toPx(2.2), y3 - toPx(1.0), toPx(2.0), 0, Math.PI * 2);
+      ctx.fillStyle = '#16A34A';
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = Math.max(1, toPx(0.4));
+      ctx.stroke();
 
-    ctx.fillStyle = '#334155';
-    ctx.fillText(fitText('Cabecera (●) / Terminal (●)', col3InnerW - toPx(15)), iconX + toPx(9), y3 + toPx(1.0));
+      ctx.beginPath();
+      ctx.arc(iconX + toPx(3.2), y3 - toPx(1.0), toPx(2.0), 0, Math.PI * 2);
+      ctx.fillStyle = '#7B1828';
+      ctx.fill();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.lineWidth = Math.max(1, toPx(0.4));
+      ctx.stroke();
+
+      ctx.fillStyle = '#334155';
+      ctx.fillText(fitText('Cabecera (●) / Terminal (●)', col3InnerW - toPx(15)), iconX + toPx(9), y3 + toPx(1.0));
+    }
 
     // Item 4: Parada Registrada + Escala
     const y4 = legStartY + 3 * legStep;
@@ -1342,6 +1515,7 @@ export default function MapPrintAtlasModal({
 
         const canvas = await renderSingleSheetCanvas({
           targetCapas: page.capas,
+          nationalCapas: capasNacionalesActivas,
           pageTitle: page.title,
           pageSubtitle: page.subtitle,
           pageNumber: i + 1,
@@ -1405,7 +1579,7 @@ export default function MapPrintAtlasModal({
           background: '#ffffff',
           borderRadius: '20px',
           width: '100%',
-          maxWidth: '580px',
+          maxWidth: '600px',
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)',
           overflow: 'hidden',
           border: '1px solid #e2e8f0',
@@ -1448,6 +1622,7 @@ export default function MapPrintAtlasModal({
               </h3>
               <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: '#94a3b8' }}>
                 Motor Isométrico Web Mercator (EPSG:3857) · {capasFiltradas.length} trazos seleccionados
+                {incluirNacionales && ` · +${capasNacionalesActivas.length} nacionales`}
               </p>
             </div>
           </div>
@@ -1599,6 +1774,216 @@ export default function MapPrintAtlasModal({
                 );
               })}
             </div>
+          </div>
+
+          {/* 🇦🇷 SECCIÓN: Superposición de Líneas Nacionales (1-199) */}
+          <div
+            style={{
+              background: incluirNacionales ? '#f0f9ff' : '#f8fafc',
+              border: `1.5px solid ${incluirNacionales ? '#38bdf8' : '#e2e8f0'}`,
+              borderRadius: '12px',
+              padding: '12px 14px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '9px',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={incluirNacionales}
+                  onChange={(e) => setIncluirNacionales(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#0284c7' }}
+                />
+                <div>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
+                      color: incluirNacionales ? '#0369a1' : '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    🇦🇷 Superponer Líneas Nacionales (1-199)
+                  </span>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                    Compará referencias, corredores e idas/vueltas de la red nacional
+                  </span>
+                </div>
+              </label>
+
+              {incluirNacionales && (
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setModoEstiloNacionales('color')}
+                    style={{
+                      padding: '3px 7px',
+                      borderRadius: '6px',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      border: modoEstiloNacionales === 'color' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      background: modoEstiloNacionales === 'color' ? '#e0f2fe' : '#fff',
+                      color: modoEstiloNacionales === 'color' ? '#0369a1' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Color Vivo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoEstiloNacionales('sutil')}
+                    style={{
+                      padding: '3px 7px',
+                      borderRadius: '6px',
+                      fontSize: '0.66rem',
+                      fontWeight: 700,
+                      border: modoEstiloNacionales === 'sutil' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      background: modoEstiloNacionales === 'sutil' ? '#e0f2fe' : '#fff',
+                      color: modoEstiloNacionales === 'sutil' ? '#0369a1' : '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Gris Sutil
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {incluirNacionales && (
+              <div style={{ marginTop: '10px', borderTop: '1px solid #e0f2fe', paddingTop: '8px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0369a1' }}>
+                    Trazas seleccionadas ({nacionalesSeleccionadas.length} de {capasNacionalesDisponibles.length}):
+                  </span>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id))}
+                      style={{
+                        background: '#e0f2fe',
+                        border: 'none',
+                        color: '#0284c7',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Todas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNacionalesSeleccionadas([])}
+                      style={{
+                        background: '#f1f5f9',
+                        border: 'none',
+                        color: '#64748b',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Ninguna
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '4px',
+                    maxHeight: '90px',
+                    overflowY: 'auto',
+                    paddingRight: '2px',
+                  }}
+                >
+                  {capasNacionalesDisponibles.map((capa) => {
+                    const isChecked = nacionalesSeleccionadas.includes(capa.id);
+                    const sentido = detectSentido(capa);
+                    const isVuelta = sentido === 'VUELTA';
+                    return (
+                      <label
+                        key={capa.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '4px 7px',
+                          borderRadius: '6px',
+                          background: isChecked ? '#e0f2fe' : '#ffffff',
+                          border: `1px solid ${isChecked ? '#7dd3fc' : '#e2e8f0'}`,
+                          cursor: 'pointer',
+                          fontSize: '0.68rem',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNacionalesSeleccionadas([...nacionalesSeleccionadas, capa.id]);
+                              } else {
+                                setNacionalesSeleccionadas(
+                                  nacionalesSeleccionadas.filter((id) => id !== capa.id)
+                                );
+                              }
+                            }}
+                            style={{ width: '12px', height: '12px', accentColor: '#0284c7' }}
+                          />
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              color: '#1e293b',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {capa.subGrupo?.nombre ? `${capa.subGrupo.nombre} - ` : ''}
+                            {capa.nombre}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            fontSize: '0.6rem',
+                            fontWeight: 800,
+                            padding: '1px 4px',
+                            borderRadius: '3px',
+                            background: isVuelta ? '#f3e8ff' : '#dbeafe',
+                            color: isVuelta ? '#7e22ce' : '#1d4ed8',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isVuelta ? 'V' : 'I'}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 2. Encuadre y Escala */}
@@ -1927,7 +2312,7 @@ export default function MapPrintAtlasModal({
               }}
             >
               <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1e293b' }}>
-                🗺️ Trazos y Ramales ({capasFiltradas.length} de {capasLinea.length}):
+                🗺️ Trazos y Ramales Principales ({capasFiltradas.length} de {capasLinea.length}):
               </label>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button
@@ -1970,7 +2355,7 @@ export default function MapPrintAtlasModal({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '5px',
-                maxHeight: '140px',
+                maxHeight: '130px',
                 overflowY: 'auto',
                 paddingRight: '4px',
               }}

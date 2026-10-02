@@ -1260,6 +1260,7 @@ export default function MapComponent() {
         onClose={() => setAtlasModalOpen(false)}
         lineaNombre={atlasLineaNombre}
         capasLinea={atlasCapasLinea}
+        todasCapas={capasConfig}
         cacheDatosGeo={cacheDatosGeo}
         mapInstance={mapInstance}
       />
