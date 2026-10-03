@@ -1086,6 +1086,160 @@ export default function MapPrintAtlasModal({
       ctx.strokeRect(barStartX, barStartY, barW, barH);
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // CUADRO DE REFERENCIAS CARTOGRÁFICAS DETALLADO POR TRAZA (BOTTOM-RIGHT)
+    // ─────────────────────────────────────────────────────────────
+    const allUniqueLegendItems: {
+      id: string;
+      color: string;
+      lineNum: string;
+      ramal: string;
+      sentido: 'IDA' | 'VUELTA';
+      isNational: boolean;
+    }[] = [];
+
+    const seenKeys = new Set<string>();
+
+    // 1. Trazas principales seleccionadas
+    targetCapas.forEach((c) => {
+      const sentido = detectSentido(c);
+      const color = c.color || officialLineColor;
+      const num = c.numero || normalizeLineNumber(c.subGrupo?.nombre || '') || normalizeLineNumber(c.nombre) || '';
+      const lineNum = num ? `L.${num}` : (c.subGrupo?.nombre || c.nombre || 'Línea');
+      const ramal = c.subSubGrupo?.nombre || c.subcategoria || (c.subGrupo?.nombre && c.nombre ? c.nombre : '');
+      const key = `${lineNum}-${ramal}-${sentido}-${color}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        allUniqueLegendItems.push({
+          id: c.id,
+          color,
+          lineNum,
+          ramal,
+          sentido,
+          isNational: false,
+        });
+      }
+    });
+
+    // 2. Trazas nacionales superpuestas
+    nationalCapas.forEach((c) => {
+      const sentido = detectSentido(c);
+      const num = c.numero || normalizeLineNumber(c.subGrupo?.nombre || '') || normalizeLineNumber(c.nombre) || '';
+      const lineNum = num ? `L.${num}` : (c.subGrupo?.nombre || c.nombre || 'L. Nac.');
+      const rawColor = c.color || getOfficialLineColor(c.nombre);
+      const color = modoEstiloNacionales === 'sutil' ? '#64748B' : rawColor;
+      const ramal = c.subSubGrupo?.nombre || c.subcategoria || '';
+      const key = `${lineNum}-${ramal}-${sentido}-${color}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        allUniqueLegendItems.push({
+          id: c.id,
+          color,
+          lineNum,
+          ramal,
+          sentido,
+          isNational: true,
+        });
+      }
+    });
+
+    if (allUniqueLegendItems.length > 0) {
+      const maxDisplay = Math.min(8, allUniqueLegendItems.length);
+      const itemsToDisplay = allUniqueLegendItems.slice(0, maxDisplay);
+      const remainingCount = allUniqueLegendItems.length - maxDisplay;
+
+      const legBoxPad = toPx(config.marginMm * 0.45);
+      const legFontSize = toPx(config.caratureValMm * 0.72);
+      const legTitleSize = toPx(config.caratureValMm * 0.82);
+      const itemRowH = toPx(config.caratureValMm * 1.32);
+
+      const legBoxW = Math.round(mapViewportW * (isLandscape ? 0.36 : 0.44));
+      const legBoxH =
+        legTitleSize +
+        toPx(4) +
+        itemsToDisplay.length * itemRowH +
+        (remainingCount > 0 ? toPx(6) : toPx(3)) +
+        toPx(2.5);
+
+      const legBoxX = mapViewportX + mapViewportW - legBoxW - legBoxPad;
+      const legBoxY = mapViewportY + mapViewportH - legBoxH - legBoxPad;
+
+      // Fondo semitransparente con borde nítido
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = '#0F172A';
+      ctx.lineWidth = Math.max(1, toPx(0.4));
+      ctx.beginPath();
+      drawRoundRect(legBoxX, legBoxY, legBoxW, legBoxH, toPx(1.5));
+      ctx.fill();
+      ctx.stroke();
+
+      // Franja superior de título
+      ctx.fillStyle = '#0F172A';
+      ctx.beginPath();
+      drawRoundRect(legBoxX, legBoxY, legBoxW, legTitleSize + toPx(4), toPx(1.5));
+      ctx.fill();
+
+      ctx.font = `800 ${legTitleSize}px Inter, sans-serif`;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(
+        fitText('REFERENCIAS · TRAZAS & RAMALES', legBoxW - toPx(6)),
+        legBoxX + toPx(3.5),
+        legBoxY + legTitleSize + toPx(0.8)
+      );
+
+      // Renderizar cada traza con su muestra de línea (continua o discontinua) y nombre
+      itemsToDisplay.forEach((item, i) => {
+        const itemY = legBoxY + legTitleSize + toPx(6) + (i + 0.65) * itemRowH;
+        const swatchStartX = legBoxX + toPx(3.5);
+        const swatchW = toPx(9.0);
+
+        // Muestra de traza
+        ctx.beginPath();
+        ctx.moveTo(swatchStartX, itemY);
+        ctx.lineTo(swatchStartX + swatchW, itemY);
+        ctx.lineWidth = Math.max(2.2, toPx(config.traceStrokeMm * 1.15));
+        ctx.strokeStyle = item.color;
+        ctx.lineCap = 'round';
+        if (item.sentido === 'VUELTA') {
+          ctx.setLineDash([toPx(2.5), toPx(1.8)]);
+        } else {
+          ctx.setLineDash([]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset
+
+        // Badge de Línea
+        const lineBadgeW = toPx(12.0);
+        ctx.fillStyle = item.color;
+        ctx.beginPath();
+        drawRoundRect(swatchStartX + swatchW + toPx(2.0), itemY - toPx(3.2), lineBadgeW, toPx(6.4), toPx(0.8));
+        ctx.fill();
+
+        ctx.font = `800 ${toPx(config.caratureValMm * 0.65)}px Inter, sans-serif`;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.fillText(item.lineNum, swatchStartX + swatchW + toPx(2.0) + lineBadgeW / 2, itemY + toPx(1.0));
+        ctx.textAlign = 'start';
+
+        // Texto del Ramal + Sentido
+        const textStartX = swatchStartX + swatchW + toPx(2.0) + lineBadgeW + toPx(2.5);
+        const maxTextW = legBoxX + legBoxW - textStartX - toPx(3);
+        const sentidoLabel = item.sentido === 'VUELTA' ? '(Vuelta ╌)' : '(Ida —)';
+        const fullLabel = `${item.ramal ? `${item.ramal} ` : ''}${sentidoLabel}`;
+
+        ctx.font = `600 ${legFontSize}px Inter, sans-serif`;
+        ctx.fillStyle = '#1E293B';
+        ctx.fillText(fitText(fullLabel, maxTextW), textStartX, itemY + toPx(1.2));
+      });
+
+      if (remainingCount > 0) {
+        const extraY = legBoxY + legTitleSize + toPx(6) + itemsToDisplay.length * itemRowH + toPx(2.5);
+        ctx.font = `italic 600 ${toPx(config.caratureValMm * 0.65)}px Inter, sans-serif`;
+        ctx.fillStyle = '#64748B';
+        ctx.fillText(`+ ${remainingCount} traza(s) adicional(es) en plano`, legBoxX + toPx(4), extraY);
+      }
+    }
+
     ctx.restore(); // Fin del clip del viewport del mapa
 
     // Borde técnico del viewport del mapa

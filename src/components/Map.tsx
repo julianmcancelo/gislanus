@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
@@ -18,6 +18,7 @@ import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
 import MapPrintAtlasModal from './MapPrintAtlasModal';
 import CompartirModal from './CompartirModal';
+import { normalizeLineNumber } from '@/utils/transportUtils';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -336,6 +337,21 @@ export default function MapComponent() {
   const [atlasLineaNombre, setAtlasLineaNombre] = useState('');
   const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
   const [compartirModalOpen, setCompartirModalOpen] = useState(false);
+  const [leyendaOpen, setLeyendaOpen] = useState(true);
+
+  // Líneas de transporte activas en el mapa con sus datos y sentidos
+  const activeLineas = useMemo(() => {
+    return capasConfig.filter(
+      (c) =>
+        c.active &&
+        (c.id.startsWith('linea-') ||
+          c.id.startsWith('transporte-base-') ||
+          c.subGrupo ||
+          c.categoria === 'NACIONAL' ||
+          c.categoria === 'PROVINCIAL' ||
+          c.categoria === 'MUNICIPAL')
+    );
+  }, [capasConfig]);
 
   const handleOpenAtlasPrint = (lineaNombre: string, capasLinea: any[]) => {
     const capaIds = new Set(capasLinea.map((c) => c.id));
@@ -1267,6 +1283,155 @@ export default function MapComponent() {
           capasConfig={capasConfig}
         />
       </MapContainer>
+
+      {/* ── CUADRO FLOTANTE DE REFERENCIAS EN VIVO (LÍNEAS Y SENTIDOS) ── */}
+      {activeLineas.length > 0 && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '24px',
+            left: '20px',
+            zIndex: 1500,
+            background: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(12px)',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+            fontFamily: "'Inter', system-ui, sans-serif",
+            width: '280px',
+            maxHeight: leyendaOpen ? '340px' : '42px',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          {/* Header del cuadro de referencias */}
+          <div
+            onClick={() => setLeyendaOpen(!leyendaOpen)}
+            style={{
+              padding: '10px 14px',
+              background: '#0f172a',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              userSelect: 'none',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px' }}>🗺️</span>
+              <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.2px' }}>
+                Referencias en Mapa ({activeLineas.length})
+              </span>
+            </div>
+            <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+              {leyendaOpen ? '▲ Ocultar' : '▼ Ver'}
+            </span>
+          </div>
+
+          {/* Listado de trazas activas con sus colores y sentidos */}
+          {leyendaOpen && (
+            <div
+              style={{
+                padding: '8px 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                overflowY: 'auto',
+                flex: 1,
+              }}
+            >
+              {activeLineas.map((capa) => {
+                const isVuelta =
+                  capa.sentido === 'VUELTA' ||
+                  (capa.nombre && capa.nombre.toLowerCase().includes('vuelta'));
+                const num = capa.numero || normalizeLineNumber(capa.subGrupo?.nombre || '') || '';
+                const lineTitle = num ? `Línea ${num}` : capa.subGrupo?.nombre || capa.nombre;
+                const ramalTitle =
+                  capa.subSubGrupo?.nombre || capa.subcategoria || (isVuelta ? 'Vuelta' : 'Ida');
+
+                return (
+                  <div
+                    key={capa.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '5px 8px',
+                      background: '#f8fafc',
+                      borderRadius: '6px',
+                      border: '1px solid #f1f5f9',
+                      gap: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        overflow: 'hidden',
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      {/* Muestra gráfica de la traza (continua o punteada) */}
+                      <div
+                        style={{
+                          width: '20px',
+                          height: '0px',
+                          borderTop: `3px ${isVuelta ? 'dashed' : 'solid'} ${capa.color || '#2563eb'}`,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {lineTitle}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            color: '#64748b',
+                            whiteSpace: 'nowrap',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {ramalTitle}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '9px',
+                        fontWeight: 800,
+                        padding: '1px 5px',
+                        borderRadius: '4px',
+                        background: isVuelta ? '#f3e8ff' : '#dbeafe',
+                        color: isVuelta ? '#7e22ce' : '#1d4ed8',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isVuelta ? 'Vuelta ╌' : 'Ida —'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
         </div>
       </div>
 
