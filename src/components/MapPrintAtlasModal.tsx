@@ -66,32 +66,54 @@ export default function MapPrintAtlasModal({
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
   const [nacionalesSeleccionadas, setNacionalesSeleccionadas] = useState<string[]>([]);
   const [modoEstiloNacionales, setModoEstiloNacionales] = useState<'sutil' | 'color'>('color');
+  const [busquedaNacionales, setBusquedaNacionales] = useState<string>('');
 
-  // Filtrar todas las líneas nacionales disponibles en el sistema (excluyendo la línea activa)
+  // Filtrar todas las líneas nacionales disponibles en el sistema (1-199)
   const capasNacionalesDisponibles = useMemo(() => {
     if (!todasCapas || todasCapas.length === 0) return [];
-    const lineaActualIds = new Set(capasLinea.map((c) => c.id));
 
-    return todasCapas.filter((c) => {
-      if (!c || lineaActualIds.has(c.id)) return false;
+    // Solo si el modal fue abierto para una línea específica pequeña (<= 4 capas), excluimos las de esa misma línea
+    // Si fue abierto para una selección amplia o mapa general, permitimos todas
+    const excluirIds =
+      capasLinea && capasLinea.length <= 4 ? new Set(capasLinea.map((c) => c.id)) : new Set();
+
+    const filtered = todasCapas.filter((c) => {
+      if (!c || excluirIds.has(c.id)) return false;
       const cat = (c.categoria || c.subGrupo?.categoria || '').toUpperCase();
       const grupo = (c.grupo?.nombre || '').toLowerCase();
       const nombre = (c.nombre || '').toLowerCase();
       const subGrupo = (c.subGrupo?.nombre || '').toLowerCase();
+      const rawNum =
+        c.numero ||
+        normalizeLineNumber(c.subGrupo?.nombre || '') ||
+        normalizeLineNumber(c.nombre) ||
+        '0';
+      const num = parseInt(rawNum, 10);
 
-      if (cat === 'NACIONAL' || grupo.includes('nacional') || subGrupo.includes('nacional')) {
-        return true;
-      }
-
-      const num = parseInt(
-        normalizeLineNumber(c.nombre) || normalizeLineNumber(c.subGrupo?.nombre || '') || '0',
-        10
-      );
-      if (num > 0 && num < 200) {
+      if (
+        cat === 'NACIONAL' ||
+        grupo.includes('nacional') ||
+        subGrupo.includes('nacional') ||
+        (num > 0 && num < 200)
+      ) {
         return true;
       }
 
       return false;
+    });
+
+    // Ordenar numéricamente por número de línea
+    return filtered.sort((a, b) => {
+      const numA = parseInt(
+        a.numero || normalizeLineNumber(a.subGrupo?.nombre || '') || normalizeLineNumber(a.nombre) || '999',
+        10
+      );
+      const numB = parseInt(
+        b.numero || normalizeLineNumber(b.subGrupo?.nombre || '') || normalizeLineNumber(b.nombre) || '999',
+        10
+      );
+      if (numA !== numB) return numA - numB;
+      return (a.subGrupo?.nombre || a.nombre || '').localeCompare(b.subGrupo?.nombre || b.nombre || '');
     });
   }, [todasCapas, capasLinea]);
 
@@ -1866,40 +1888,86 @@ export default function MapPrintAtlasModal({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    marginBottom: '6px',
+                    marginBottom: '8px',
+                    gap: '6px',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0369a1' }}>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0369a1' }}>
                     Trazas seleccionadas ({nacionalesSeleccionadas.length} de {capasNacionalesDisponibles.length}):
                   </span>
-                  <div style={{ display: 'flex', gap: '5px' }}>
+                  <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id))}
                       style={{
                         background: '#e0f2fe',
-                        border: 'none',
+                        border: '1px solid #bae6fd',
                         color: '#0284c7',
                         fontSize: '0.66rem',
                         fontWeight: 700,
-                        borderRadius: '4px',
-                        padding: '2px 6px',
+                        borderRadius: '5px',
+                        padding: '3px 7px',
                         cursor: 'pointer',
                       }}
                     >
-                      Todas
+                      Todas ({capasNacionalesDisponibles.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNacionalesSeleccionadas(
+                          capasNacionalesDisponibles
+                            .filter((c) => detectSentido(c) === 'IDA')
+                            .map((c) => c.id)
+                        )
+                      }
+                      style={{
+                        background: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        color: '#16a34a',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        borderRadius: '5px',
+                        padding: '3px 7px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Solo Idas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNacionalesSeleccionadas(
+                          capasNacionalesDisponibles
+                            .filter((c) => detectSentido(c) === 'VUELTA')
+                            .map((c) => c.id)
+                        )
+                      }
+                      style={{
+                        background: '#faf5ff',
+                        border: '1px solid #e9d5ff',
+                        color: '#7e22ce',
+                        fontSize: '0.66rem',
+                        fontWeight: 700,
+                        borderRadius: '5px',
+                        padding: '3px 7px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Solo Vueltas
                     </button>
                     <button
                       type="button"
                       onClick={() => setNacionalesSeleccionadas([])}
                       style={{
                         background: '#f1f5f9',
-                        border: 'none',
+                        border: '1px solid #e2e8f0',
                         color: '#64748b',
                         fontSize: '0.66rem',
                         fontWeight: 700,
-                        borderRadius: '4px',
-                        padding: '2px 6px',
+                        borderRadius: '5px',
+                        padding: '3px 7px',
                         cursor: 'pointer',
                       }}
                     >
@@ -1908,82 +1976,324 @@ export default function MapPrintAtlasModal({
                   </div>
                 </div>
 
+                {/* Buscador de líneas nacionales */}
+                <div style={{ marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    value={busquedaNacionales}
+                    onChange={(e) => setBusquedaNacionales(e.target.value)}
+                    placeholder="🔍 Filtrar línea nacional (ej: 9, 45, 158, 160)..."
+                    style={{
+                      width: '100%',
+                      padding: '5px 10px',
+                      fontSize: '0.72rem',
+                      borderRadius: '6px',
+                      border: '1px solid #bae6fd',
+                      background: '#fff',
+                      color: '#0f172a',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+
                 <div
                   style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '4px',
-                    maxHeight: '90px',
+                    maxHeight: '160px',
                     overflowY: 'auto',
-                    paddingRight: '2px',
+                    paddingRight: '3px',
                   }}
                 >
-                  {capasNacionalesDisponibles.map((capa) => {
-                    const isChecked = nacionalesSeleccionadas.includes(capa.id);
-                    const sentido = detectSentido(capa);
-                    const isVuelta = sentido === 'VUELTA';
-                    return (
-                      <label
-                        key={capa.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '4px 7px',
-                          borderRadius: '6px',
-                          background: isChecked ? '#e0f2fe' : '#ffffff',
-                          border: `1px solid ${isChecked ? '#7dd3fc' : '#e2e8f0'}`,
-                          cursor: 'pointer',
-                          fontSize: '0.68rem',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden' }}>
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setNacionalesSeleccionadas([...nacionalesSeleccionadas, capa.id]);
-                              } else {
-                                setNacionalesSeleccionadas(
-                                  nacionalesSeleccionadas.filter((id) => id !== capa.id)
-                                );
-                              }
-                            }}
-                            style={{ width: '12px', height: '12px', accentColor: '#0284c7' }}
-                          />
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              color: '#1e293b',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {capa.subGrupo?.nombre ? `${capa.subGrupo.nombre} - ` : ''}
-                            {capa.nombre}
-                          </span>
-                        </div>
-                        <span
+                  {capasNacionalesDisponibles
+                    .filter((c) => {
+                      if (!busquedaNacionales.trim()) return true;
+                      const q = busquedaNacionales.toLowerCase();
+                      const num = (
+                        c.numero ||
+                        normalizeLineNumber(c.subGrupo?.nombre || '') ||
+                        normalizeLineNumber(c.nombre) ||
+                        ''
+                      ).toLowerCase();
+                      const name = (c.subGrupo?.nombre || c.nombre || '').toLowerCase();
+                      const ramal = (c.subSubGrupo?.nombre || c.subcategoria || '').toLowerCase();
+                      return num.includes(q) || name.includes(q) || ramal.includes(q);
+                    })
+                    .map((capa) => {
+                      const isChecked = nacionalesSeleccionadas.includes(capa.id);
+                      const sentido = detectSentido(capa);
+                      const isVuelta = sentido === 'VUELTA';
+                      const num =
+                        capa.numero ||
+                        normalizeLineNumber(capa.subGrupo?.nombre || '') ||
+                        normalizeLineNumber(capa.nombre) ||
+                        '';
+                      const lineName = num ? `Línea ${num}` : capa.subGrupo?.nombre || capa.nombre;
+                      const ramalName =
+                        capa.subSubGrupo?.nombre || capa.subcategoria || (isVuelta ? 'Vuelta' : 'Ida');
+
+                      return (
+                        <label
+                          key={capa.id}
                           style={{
-                            fontSize: '0.6rem',
-                            fontWeight: 800,
-                            padding: '1px 4px',
-                            borderRadius: '3px',
-                            background: isVuelta ? '#f3e8ff' : '#dbeafe',
-                            color: isVuelta ? '#7e22ce' : '#1d4ed8',
-                            flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '4px 7px',
+                            borderRadius: '6px',
+                            background: isChecked ? '#e0f2fe' : '#ffffff',
+                            border: `1.5px solid ${isChecked ? '#38bdf8' : '#e2e8f0'}`,
+                            cursor: 'pointer',
+                            fontSize: '0.68rem',
+                            transition: 'all 0.15s ease',
                           }}
                         >
-                          {isVuelta ? 'V' : 'I'}
-                        </span>
-                      </label>
-                    );
-                  })}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              overflow: 'hidden',
+                              flex: 1,
+                              minWidth: 0,
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setNacionalesSeleccionadas([...nacionalesSeleccionadas, capa.id]);
+                                } else {
+                                  setNacionalesSeleccionadas(
+                                    nacionalesSeleccionadas.filter((id) => id !== capa.id)
+                                  );
+                                }
+                              }}
+                              style={{ width: '13px', height: '13px', accentColor: '#0284c7', flexShrink: 0 }}
+                            />
+                            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                              <span
+                                style={{
+                                  fontWeight: 800,
+                                  color: '#0f172a',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {lineName}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '0.62rem',
+                                  color: '#64748b',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {ramalName}
+                              </span>
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '0.6rem',
+                              fontWeight: 800,
+                              padding: '1px 4px',
+                              borderRadius: '3px',
+                              background: isVuelta ? '#f3e8ff' : '#dbeafe',
+                              color: isVuelta ? '#7e22ce' : '#1d4ed8',
+                              flexShrink: 0,
+                              marginLeft: '4px',
+                            }}
+                          >
+                            {isVuelta ? 'Vuelta ╌' : 'Ida —'}
+                          </span>
+                        </label>
+                      );
+                    })}
                 </div>
               </div>
             )}
+          </div>
+
+          {/* 📖 Cuadro de Referencias Cartográficas y Simbología */}
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '12px 14px',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                color: '#1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '8px',
+              }}
+            >
+              📖 Referencias Cartográficas y Simbología:
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '6px',
+                fontSize: '0.7rem',
+                color: '#334155',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 20,
+                    height: 3,
+                    background: '#2563eb',
+                    borderRadius: 2,
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Trazo de Ida</strong> (Continuo)</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 20,
+                    height: 0,
+                    borderTop: '2.5px dashed #2563eb',
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Trazo de Vuelta</strong> (Trazos ╌)</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: '#16a34a',
+                    border: '1.5px solid #fff',
+                    boxShadow: '0 0 0 1px #16a34a',
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Cabecera</strong> (Inicio)</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: '#7b1828',
+                    border: '1.5px solid #fff',
+                    boxShadow: '0 0 0 1px #7b1828',
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Terminal</strong> (Destino)</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    border: '1.5px solid #0f172a',
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Paradas</strong> Intermedias</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#fff',
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid #f1f5f9',
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 20,
+                    height: 2,
+                    background: '#64748b',
+                    flexShrink: 0,
+                  }}
+                />
+                <span><strong>Red Nacional</strong> (1-199)</span>
+              </div>
+            </div>
           </div>
 
           {/* 2. Encuadre y Escala */}
