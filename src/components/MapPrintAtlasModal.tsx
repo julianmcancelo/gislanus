@@ -1187,22 +1187,23 @@ export default function MapPrintAtlasModal({
     });
 
     if (allUniqueLegendItems.length > 0) {
-      const maxDisplay = Math.min(8, allUniqueLegendItems.length);
+      // Leyenda compacta: máximo 5 filas visibles, el resto se resume en "+ N trazas"
+      const maxDisplay = Math.min(5, allUniqueLegendItems.length);
       const itemsToDisplay = allUniqueLegendItems.slice(0, maxDisplay);
       const remainingCount = allUniqueLegendItems.length - maxDisplay;
 
       const legBoxPad = toPx(config.marginMm * 0.45);
-      const legFontSize = toPx(config.caratureValMm * 0.72);
-      const legTitleSize = toPx(config.caratureValMm * 0.82);
-      const itemRowH = toPx(config.caratureValMm * 1.32);
+      const legFontSize = toPx(config.caratureValMm * 0.62);
+      const legTitleSize = toPx(config.caratureValMm * 0.72);
+      const itemRowH = toPx(config.caratureValMm * 1.05);
 
-      const legBoxW = Math.round(mapViewportW * (isLandscape ? 0.36 : 0.44));
+      const legBoxW = Math.round(mapViewportW * (isLandscape ? 0.28 : 0.34));
       const legBoxH =
         legTitleSize +
-        toPx(4) +
+        toPx(2.5) +
         itemsToDisplay.length * itemRowH +
-        (remainingCount > 0 ? toPx(6) : toPx(3)) +
-        toPx(2.5);
+        (remainingCount > 0 ? toPx(4) : toPx(2)) +
+        toPx(2);
 
       const legBoxX = mapViewportX + mapViewportW - legBoxW - legBoxPad;
       const legBoxY = mapViewportY + mapViewportH - legBoxH - legBoxPad;
@@ -1219,7 +1220,7 @@ export default function MapPrintAtlasModal({
       // Franja superior de título
       ctx.fillStyle = '#0F172A';
       ctx.beginPath();
-      drawRoundRect(legBoxX, legBoxY, legBoxW, legTitleSize + toPx(4), toPx(1.5));
+      drawRoundRect(legBoxX, legBoxY, legBoxW, legTitleSize + toPx(3), toPx(1.5));
       ctx.fill();
 
       ctx.font = `800 ${legTitleSize}px Inter, sans-serif`;
@@ -1232,9 +1233,9 @@ export default function MapPrintAtlasModal({
 
       // Renderizar cada traza con su muestra de línea (continua o discontinua) y nombre
       itemsToDisplay.forEach((item, i) => {
-        const itemY = legBoxY + legTitleSize + toPx(6) + (i + 0.65) * itemRowH;
+        const itemY = legBoxY + legTitleSize + toPx(4) + (i + 0.65) * itemRowH;
         const swatchStartX = legBoxX + toPx(3.5);
-        const swatchW = toPx(9.0);
+        const swatchW = toPx(7.0);
 
         // Muestra de traza
         ctx.beginPath();
@@ -1252,7 +1253,7 @@ export default function MapPrintAtlasModal({
         ctx.setLineDash([]); // Reset
 
         // Badge de Línea
-        const lineBadgeW = toPx(12.0);
+        const lineBadgeW = toPx(10.0);
         ctx.fillStyle = item.color;
         ctx.beginPath();
         drawRoundRect(swatchStartX + swatchW + toPx(2.0), itemY - toPx(3.2), lineBadgeW, toPx(6.4), toPx(0.8));
@@ -1276,7 +1277,7 @@ export default function MapPrintAtlasModal({
       });
 
       if (remainingCount > 0) {
-        const extraY = legBoxY + legTitleSize + toPx(6) + itemsToDisplay.length * itemRowH + toPx(2.5);
+        const extraY = legBoxY + legTitleSize + toPx(4) + itemsToDisplay.length * itemRowH + toPx(2);
         ctx.font = `italic 600 ${toPx(config.caratureValMm * 0.65)}px Inter, sans-serif`;
         ctx.fillStyle = '#64748B';
         ctx.fillText(`+ ${remainingCount} traza(s) adicional(es) en plano`, legBoxX + toPx(4), extraY);
