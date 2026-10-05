@@ -62,13 +62,44 @@ export default function MapPrintAtlasModal({
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
 
-  // 🇦🇷 Estados para Superposición de Líneas Nacionales (1-199)
+  // 🗺️ Estados para Superposición de Líneas por jurisdicción (Nacional / Provincial / Municipal)
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
+  const [jurisdiccionOverlay, setJurisdiccionOverlay] = useState<'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL'>('NACIONAL');
   const [nacionalesSeleccionadas, setNacionalesSeleccionadas] = useState<string[]>([]);
   const [modoEstiloNacionales, setModoEstiloNacionales] = useState<'sutil' | 'color'>('color');
   const [busquedaNacionales, setBusquedaNacionales] = useState<string>('');
 
-  // Filtrar todas las líneas nacionales disponibles en el sistema (1-199)
+  // Metadatos de etiqueta según la jurisdicción elegida para superponer
+  const overlayMeta = {
+    NACIONAL: {
+      titulo: 'Nacionales (1-199)',
+      plural: 'nacionales',
+      corta: 'Nac.',
+      buscar: '🔍 Filtrar línea nacional (ej: 9, 45, 158, 160)...',
+      subtitulo: 'Compará referencias, corredores e idas/vueltas de la red nacional',
+      emoji: '🇦🇷',
+    },
+    PROVINCIAL: {
+      titulo: 'Provinciales (200-499)',
+      plural: 'provinciales',
+      corta: 'Prov.',
+      buscar: '🔍 Filtrar línea provincial (ej: 203, 271, 354)...',
+      subtitulo: 'Compará referencias, corredores e idas/vueltas de la red provincial',
+      emoji: '🗺️',
+    },
+    MUNICIPAL: {
+      titulo: 'Municipales (500+)',
+      plural: 'municipales',
+      corta: 'Mun.',
+      buscar: '🔍 Filtrar línea municipal (ej: 501, 520, 543)...',
+      subtitulo: 'Compará referencias, corredores e idas/vueltas de la red municipal',
+      emoji: '🏘️',
+    },
+  } as const;
+  const metaOverlay = overlayMeta[jurisdiccionOverlay];
+
+  // Filtrar las líneas disponibles para superponer según la jurisdicción elegida
+  // Convención argentina: Nacionales 1-199 · Provinciales 200-499 · Municipales 500+
   const capasNacionalesDisponibles = useMemo(() => {
     if (!todasCapas || todasCapas.length === 0) return [];
 
@@ -81,7 +112,6 @@ export default function MapPrintAtlasModal({
       if (!c || excluirIds.has(c.id)) return false;
       const cat = (c.categoria || c.subGrupo?.categoria || '').toUpperCase();
       const grupo = (c.grupo?.nombre || '').toLowerCase();
-      const nombre = (c.nombre || '').toLowerCase();
       const subGrupo = (c.subGrupo?.nombre || '').toLowerCase();
       const rawNum =
         c.numero ||
@@ -90,16 +120,29 @@ export default function MapPrintAtlasModal({
         '0';
       const num = parseInt(rawNum, 10);
 
-      if (
+      if (jurisdiccionOverlay === 'PROVINCIAL') {
+        return (
+          cat === 'PROVINCIAL' ||
+          grupo.includes('provincial') ||
+          subGrupo.includes('provincial') ||
+          (num >= 200 && num < 500)
+        );
+      }
+      if (jurisdiccionOverlay === 'MUNICIPAL') {
+        return (
+          cat === 'MUNICIPAL' ||
+          grupo.includes('municipal') ||
+          subGrupo.includes('municipal') ||
+          num >= 500
+        );
+      }
+      // NACIONAL (por defecto)
+      return (
         cat === 'NACIONAL' ||
         grupo.includes('nacional') ||
         subGrupo.includes('nacional') ||
         (num > 0 && num < 200)
-      ) {
-        return true;
-      }
-
-      return false;
+      );
     });
 
     // Ordenar numéricamente por número de línea
@@ -115,7 +158,7 @@ export default function MapPrintAtlasModal({
       if (numA !== numB) return numA - numB;
       return (a.subGrupo?.nombre || a.nombre || '').localeCompare(b.subGrupo?.nombre || b.nombre || '');
     });
-  }, [todasCapas, capasLinea]);
+  }, [todasCapas, capasLinea, jurisdiccionOverlay]);
 
   // Sincronizar ramales seleccionados cada vez que se abre el modal
   React.useEffect(() => {
@@ -987,7 +1030,7 @@ export default function MapPrintAtlasModal({
     );
 
     const natContextStr =
-      nationalCapas.length > 0 ? ` · ${nationalCapas.length} trazas nac. ref.` : '';
+      nationalCapas.length > 0 ? ` · ${nationalCapas.length} trazas ref. ${metaOverlay.corta}` : '';
     ctx.font = `600 ${ctxFontSub}px Inter, sans-serif`;
     ctx.fillStyle = '#0284C7';
     ctx.fillText(
@@ -1461,7 +1504,7 @@ export default function MapPrintAtlasModal({
       { label: 'Longitud de Traza:', val: `${totalRouteDistanceKm.toFixed(2)} km` },
       { label: 'Paradas Registradas:', val: `${stopCount > 0 ? stopCount : targetCapas.length * 2}` },
       {
-        label: 'Red Nac. Referencia:',
+        label: `Red ${metaOverlay.corta} Referencia:`,
         val: nationalCapas.length > 0 ? `${nationalCapas.length} trazas (L.${nationalLineNumbers})` : 'Sin superposición',
       },
       {
@@ -1538,7 +1581,7 @@ export default function MapPrintAtlasModal({
     ctx.fillStyle = '#334155';
     ctx.fillText(fitText('Trazo Vuelta (Discontinuo ╌)', col3InnerW - toPx(15)), iconX + toPx(9), y2 + toPx(1.0));
 
-    // Item 3: Cabecera Inicial / Terminal / Trazas Nacionales
+    // Item 3: Cabecera Inicial / Terminal / Trazas superpuestas de referencia
     const y3 = legStartY + 2 * legStep;
     if (nationalCapas.length > 0) {
       // Mostrar muestra de traza nacional de referencia
@@ -1552,7 +1595,7 @@ export default function MapPrintAtlasModal({
 
       ctx.fillStyle = '#334155';
       ctx.fillText(
-        fitText(`Líneas Nac. Ref (${nationalLineNumbers || '1-199'})`, col3InnerW - toPx(15)),
+        fitText(`Líneas ${metaOverlay.corta} Ref (${nationalLineNumbers || '—'})`, col3InnerW - toPx(15)),
         iconX + toPx(9),
         y3 + toPx(1.0)
       );
@@ -1798,7 +1841,7 @@ export default function MapPrintAtlasModal({
               </h3>
               <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: '#94a3b8' }}>
                 Motor Isométrico Web Mercator (EPSG:3857) · {capasFiltradas.length} trazos seleccionados
-                {incluirNacionales && ` · +${capasNacionalesActivas.length} nacionales`}
+                {incluirNacionales && ` · +${capasNacionalesActivas.length} ${metaOverlay.plural}`}
               </p>
             </div>
           </div>
@@ -1952,7 +1995,7 @@ export default function MapPrintAtlasModal({
             </div>
           </div>
 
-          {/* 🇦🇷 SECCIÓN: Superposición de Líneas Nacionales (1-199) */}
+          {/* 🗺️ SECCIÓN: Superposición de Líneas por jurisdicción */}
           <div
             style={{
               background: incluirNacionales ? '#f0f9ff' : '#f8fafc',
@@ -1989,10 +2032,10 @@ export default function MapPrintAtlasModal({
                       gap: '6px',
                     }}
                   >
-                    🇦🇷 Superponer Líneas Nacionales (1-199)
+                    {metaOverlay.emoji} Superponer Líneas · {metaOverlay.titulo}
                   </span>
                   <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
-                    Compará referencias, corredores e idas/vueltas de la red nacional
+                    {metaOverlay.subtitulo}
                   </span>
                 </div>
               </label>
@@ -2037,6 +2080,41 @@ export default function MapPrintAtlasModal({
 
             {incluirNacionales && (
               <div style={{ marginTop: '10px', borderTop: '1px solid #e0f2fe', paddingTop: '8px' }}>
+                {/* Selector de jurisdicción: Nacional / Provincial / Municipal */}
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  {(['NACIONAL', 'PROVINCIAL', 'MUNICIPAL'] as const).map((j) => {
+                    const active = jurisdiccionOverlay === j;
+                    const accent = j === 'NACIONAL' ? '#0284c7' : j === 'PROVINCIAL' ? '#16a34a' : '#d97706';
+                    const bg = j === 'NACIONAL' ? '#e0f2fe' : j === 'PROVINCIAL' ? '#dcfce7' : '#fef3c7';
+                    return (
+                      <button
+                        key={j}
+                        type="button"
+                        onClick={() => {
+                          setJurisdiccionOverlay(j);
+                          setBusquedaNacionales('');
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          border: active ? `2px solid ${accent}` : '1px solid #e2e8f0',
+                          background: active ? bg : '#fff',
+                          color: active ? accent : '#64748b',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {overlayMeta[j].emoji} {j.charAt(0) + j.slice(1).toLowerCase()}
+                      </button>
+                    );
+                  })}
+                  <span style={{ fontSize: '0.66rem', color: '#64748b', alignSelf: 'center', marginLeft: '2px' }}>
+                    {capasNacionalesDisponibles.length} traza(s) disponible(s)
+                  </span>
+                </div>
                 <div
                   style={{
                     display: 'flex',
@@ -2130,13 +2208,13 @@ export default function MapPrintAtlasModal({
                   </div>
                 </div>
 
-                {/* Buscador de líneas nacionales */}
+                {/* Buscador de líneas */}
                 <div style={{ marginBottom: '8px' }}>
                   <input
                     type="text"
                     value={busquedaNacionales}
                     onChange={(e) => setBusquedaNacionales(e.target.value)}
-                    placeholder="🔍 Filtrar línea nacional (ej: 9, 45, 158, 160)..."
+                    placeholder={metaOverlay.buscar}
                     style={{
                       width: '100%',
                       padding: '5px 10px',
