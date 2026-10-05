@@ -1197,10 +1197,11 @@ export default function MapPrintAtlasModal({
       const remainingCount = allUniqueLegendItems.length - maxDisplay;
 
       // ── CAPA 5: Badges numerados de referencia cruzada plano ↔ leyenda ──
-      // Cada traza lleva su número (①②③…) en el punto medio, igual que en la leyenda
+      // Cada traza lleva su número (①②③…) en el punto medio, igual que en la leyenda.
+      // Tamaño proporcional al grosor de traza para no tapar el recorrido.
       if (numerarTrazas) {
-        const numR = toPx(config.caratureValMm * 0.85);
-        const numFont = toPx(config.caratureValMm * 0.8);
+        const numR = toPx(config.traceStrokeMm * 1.3);
+        const numFont = toPx(config.traceStrokeMm * 1.15);
         allUniqueLegendItems.forEach((item, i) => {
           const seg =
             allSegments.find((s) => s.capaId === item.id) ||
@@ -1272,15 +1273,16 @@ export default function MapPrintAtlasModal({
         let swatchStartX = legBoxX + toPx(3.5);
         const swatchW = toPx(7.0);
 
-        // Badge con el número de referencia cruzada (igual que en el plano)
+        // Badge con el número de referencia cruzada (igual que en el plano).
+        // Radio menor que la altura de fila para que no se solapen entre filas.
         if (numerarTrazas) {
-          const numRLeg = toPx(1.7);
+          const numRLeg = toPx(config.caratureValMm * 0.36);
           const numCX = swatchStartX + numRLeg;
           ctx.beginPath();
           ctx.arc(numCX, itemY, numRLeg, 0, Math.PI * 2);
           ctx.fillStyle = '#0F172A';
           ctx.fill();
-          ctx.font = `800 ${toPx(config.caratureValMm * 0.6)}px Inter, sans-serif`;
+          ctx.font = `800 ${toPx(config.caratureValMm * 0.38)}px Inter, sans-serif`;
           ctx.fillStyle = '#FFFFFF';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
