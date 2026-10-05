@@ -9,6 +9,8 @@ import {
   Bot, AlertTriangle, Wand2, Trash2, Pencil, Sparkles, Eye, EyeOff, RefreshCw, Smartphone
 } from 'lucide-react';
 import AccessDenied from '@/components/AccessDenied';
+import VerRamalesLineaModal from '@/components/VerRamalesLineaModal';
+import FrecuenciasInspectorForm from '@/components/FrecuenciasInspectorForm';
 import { parseGeojsonToLines } from '@/utils/parseGeojsonLines';
 import { Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -77,7 +79,7 @@ export default function TransportePublicoPage() {
   
   // Navigation mode: 'gestionar' or 'crear'
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'gestionar' | 'crear' | 'relevamientos'>(
+  const [activeTab, setActiveTab] = useState<'gestionar' | 'crear' | 'relevamientos' | 'frecuencias'>(
     tabParam === 'relevamientos' ? 'relevamientos' : 'gestionar'
   );
   const [relevamientos, setRelevamientos] = useState<any[]>([]);
@@ -92,6 +94,8 @@ export default function TransportePublicoPage() {
   const [isAutoPairing, setIsAutoPairing] = useState(false);
   const [expandedLineas, setExpandedLineas] = useState<Record<string, boolean>>({});
   const [selectedLineaId, setSelectedLineaId] = useState<string | null>(null);
+  const [ramalesModalKey, setRamalesModalKey] = useState<string | null>(null);
+  const [inspectorLinea, setInspectorLinea] = useState<{ id: string; label: string } | null>(null);
 
   // Wizard state for 'crear' mode
   const [step, setStep] = useState(1);
@@ -187,6 +191,56 @@ export default function TransportePublicoPage() {
       }
     } catch {
       toast.error('Error al eliminar');
+    }
+  };
+
+  // Imprime la ficha técnica de todos los ramales de una línea (ventana imprimible)
+  const handlePrintRamales = (records: any[], lineaLabel: string) => {
+    try {
+      const fecha = new Date().toLocaleString('es-AR');
+      const filas = records.map((l: any, i: number) => {
+        const sentido = (l.sentido || 'SIN DEFINIR').toUpperCase();
+        const freq = l.frecuenciaCalculada != null && Number(l.frecuenciaCalculada) > 0
+          ? `${Number(l.frecuenciaCalculada).toFixed(1)} vi/h`
+          : '—';
+        const demora = l.tiempoDemoraPromedio != null && Number(l.tiempoDemoraPromedio) !== 0
+          ? `${l.tiempoDemoraPromedio} min`
+          : '—';
+        return `<tr>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;">${i + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;"><strong>${l.subcategoria || l.nombre || 'Ramal Principal'}</strong>${l.descripcion ? `<br/><small style="color:#64748b;">${l.descripcion}</small>` : ''}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;">${sentido}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;">${l.categoria || '—'}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;">${freq}</td>
+          <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;">${demora}</td>
+        </tr>`;
+      }).join('');
+      const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/>
+        <title>Ficha de ramales - ${lineaLabel}</title>
+        <style>
+          body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;margin:24px;}
+          h1{font-size:20px;margin:0 0 4px;} h2{font-size:13px;color:#64748b;font-weight:normal;margin:0 0 16px;}
+          table{border-collapse:collapse;width:100%;font-size:12px;} th{background:#0f172a;color:#fff;padding:8px;}
+          @media print{button{display:none;}}
+        </style></head><body>
+        <h1>🚌 ${lineaLabel} — Todos los ramales (${records.length})</h1>
+        <h2>Municipalidad de Lanús · Dirección General de Movilidad y Transporte · Emitido: ${fecha}</h2>
+        <table><thead><tr>
+          <th>#</th><th>Ramal</th><th>Sentido</th><th>Categoría</th><th>Frecuencia</th><th>Demora prom.</th>
+        </tr></thead><tbody>${filas}</tbody></table>
+        <br/><button onclick="window.print()" style="padding:10px 20px;font-size:14px;cursor:pointer;">🖨️ Imprimir</button>
+        </body></html>`;
+      const w = window.open('', '_blank', 'width=900,height=700');
+      if (!w) {
+        toast.error('El navegador bloqueó la ventana de impresión');
+        return;
+      }
+      w.document.write(html);
+      w.document.close();
+      w.focus();
+    } catch (e) {
+      console.error('Error al imprimir ramales:', e);
+      toast.error('No se pudo generar la ficha de impresión');
     }
   };
 
@@ -536,7 +590,19 @@ export default function TransportePublicoPage() {
           >
             <Plus size={13} /> Nueva
           </button>
-        </div>
+        <button
+          onClick={() => setActiveTab('frecuencias')}
+          style={{
+            flex: 1, padding: '8px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700,
+            cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            border: activeTab === 'frecuencias' ? '1.5px solid #10b981' : '1px solid #e2e8f0',
+            background: activeTab === 'frecuencias' ? '#f0fdf4' : '#fff',
+            color: activeTab === 'frecuencias' ? '#059669' : '#64748b'
+          }}
+        >
+          <Clock size={13} /> Frecuencias
+        </button>
+       </div>
 
         {/* ── MODE: GESTIONAR TRAZAS Y SENTIDOS ── */}
         {activeTab === 'gestionar' && (
@@ -547,15 +613,17 @@ export default function TransportePublicoPage() {
               {(['TODAS', 'NACIONAL', 'PROVINCIAL', 'MUNICIPAL'] as const).map(cat => {
                 const count = cat === 'TODAS' ? statsCategorias.todas : (cat === 'NACIONAL' ? statsCategorias.nacional : (cat === 'PROVINCIAL' ? statsCategorias.provincial : statsCategorias.municipal));
                 const isSelected = categoriaFilter === cat;
+                const catColor = cat === 'NACIONAL' ? '#0284c7' : (cat === 'PROVINCIAL' ? '#16a34a' : cat === 'MUNICIPAL' ? '#d97706' : '#64748b');
+                const catBg = cat === 'NACIONAL' ? '#e0f2fe' : (cat === 'PROVINCIAL' ? '#dcfce7' : cat === 'MUNICIPAL' ? '#fef3c7' : '#f8fafc');
                 return (
                   <button
                     key={cat}
                     onClick={() => setCategoriaFilter(cat)}
                     style={{
                       padding: '5px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 700,
-                      cursor: 'pointer', whiteSpace: 'nowrap', border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                      background: isSelected ? '#eff6ff' : '#f8fafc',
-                      color: isSelected ? '#1d4ed8' : '#64748b', transition: 'all 0.15s ease'
+                      cursor: 'pointer', whiteSpace: 'nowrap', border: isSelected ? `2px solid ${catColor}` : '1px solid #e2e8f0',
+                      background: isSelected ? catBg : '#f8fafc',
+                      color: isSelected ? (cat === 'NACIONAL' ? '#0369a1' : (cat === 'PROVINCIAL' ? '#064e3b' : (cat === 'MUNICIPAL' ? '#92400e' : '#1e293b'))) : '#64748b', transition: 'all 0.15s ease'
                     }}
                   >
                     {cat === 'TODAS' ? 'Todas' : cat.charAt(0) + cat.slice(1).toLowerCase()} ({count})
@@ -675,8 +743,8 @@ export default function TransportePublicoPage() {
 
               {!loadingLineas && groupedLineas.map(([groupKey, group]) => {
                 const isOpen = expandedLineas[groupKey] === true;
-                const catBadgeColor = group.categoria === 'NACIONAL' ? '#0284c7' : (group.categoria === 'PROVINCIAL' ? '#16a34a' : '#d97706');
-                const catBgColor = group.categoria === 'NACIONAL' ? '#e0f2fe' : (group.categoria === 'PROVINCIAL' ? '#dcfce7' : '#fef3c7');
+                const catBadgeColor = group.categoria === 'NACIONAL' ? '#0369a1' : (group.categoria === 'PROVINCIAL' ? '#064e3b' : (group.categoria === 'MUNICIPAL' ? '#92400e' : '#64748b'));
+                const catBgColor = group.categoria === 'NACIONAL' ? '#e0f2fe' : (group.categoria === 'PROVINCIAL' ? '#dcfce7' : (group.categoria === 'MUNICIPAL' ? '#fef3c7' : '#f8fafc'));
 
                 return (
                   <div
@@ -733,6 +801,19 @@ export default function TransportePublicoPage() {
                       <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '10px', fontWeight: 600, flexShrink: 0 }}>
                         {group.records.length} ramal{group.records.length !== 1 ? 'es' : ''}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setRamalesModalKey(groupKey); }}
+                        title="Ver todos los ramales de esta línea en el plano e imprimir"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          padding: '5px 9px', borderRadius: '6px', cursor: 'pointer',
+                          background: '#0f172a', border: 'none',
+                          color: '#fff', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0
+                        }}
+                      >
+                        <Eye size={12} /> Ver ramales
+                      </button>
                       <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', marginLeft: 4, flexShrink: 0 }}>
                         {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                       </span>
@@ -1044,6 +1125,177 @@ export default function TransportePublicoPage() {
       </div>
 
       {/* MAP AREA */}
+      {/* FRECUENCIAS CONTENT WOULD GO HERE */}
+      
+      {/* ── MODE: FRECUENCIAS ── */}
+      {activeTab === 'frecuencias' && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#f8fafc' }}>
+          <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', background: '#fff' }}>
+            <h2 style={{ margin: '0', fontSize: '1.25rem', color: '#0f172a' }}>Análisis de Frecuencias y Demora</h2>
+            <p style={{ margin: '8px 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+              Cálculo de frecuencias reales con inspección humana y análisis de tiempos de demora
+            </p>
+          </div>
+
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+            <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Total Líneas</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{lineas.length}</div>
+                </div>
+                <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Frecuencia Promedio</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{/* calcular promedio */}0.0</div>
+                </div>
+                <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Inspecciones Realizadas</div>
+                  <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0f172a' }}>{/* contador */}0</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {!loadingLineas && groupedLineas.map(([groupKey, group]) => {
+                const isOpen = expandedLineas[groupKey] === true;
+
+                return (
+                  <div
+                    key={groupKey}
+                    style={{
+                      background: '#fff',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      overflow: 'hidden',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      flexShrink: 0,
+                      width: '100%',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div
+                      onClick={() => setExpandedLineas(prev => ({ ...prev, [groupKey]: !isOpen }))}
+                      style={{
+                        padding: '12px 16px',
+                        background: isOpen ? '#f8fafc' : '#fff',
+                        borderBottom: isOpen ? '1px solid #f1f5f9' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        transition: 'background 0.15s ease',
+                        minHeight: '56px',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div style={{ width: 40, height: 30, borderRadius: '8px', background: group.color || '#2563eb', color: '#fff', fontWeight: 900, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}>
+                        {group.numero || '#'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
+                            {group.lineaLabel}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '10px', fontWeight: 600, flexShrink: 0 }}>
+                            {group.records.length} ramal{group.records.length !== 1 ? 'es' : ''}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Ver frecuencias</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setRamalesModalKey(groupKey); }}
+                        title="Ver todos los ramales de esta línea en el plano e imprimir"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          padding: '5px 9px', borderRadius: '6px', cursor: 'pointer',
+                          background: '#0f172a', border: 'none',
+                          color: '#fff', fontSize: '0.68rem', fontWeight: 700, flexShrink: 0
+                        }}
+                      >
+                        <Eye size={12} /> Ver ramales
+                      </button>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#64748b', flexShrink: 0 }}>
+                        <path d="M18 6L6 18m0-5l5.5 5.5M6 6l-3 3m7.5-7.5l3.5 3.5" />
+                      </svg>
+                    </div>
+                    {isOpen && (
+                      <div style={{ padding: '0 16px', background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>
+                        {group.records.map((l: any, idx: number) => {
+                          const sentido = (l.sentido || '').toUpperCase();
+                          const freqCalculada = l.frecuenciaCalculada || 0;
+                          const freqEsperada = l.frecuenciaEsperada || 0;
+                          const tiempoDemora = l.tiempoDemoraPromedio || 0;
+                          const isActive = l.activo !== false;
+
+                          return (
+                            <div
+                              key={l.id}
+                              style={{
+                                padding: '10px 16px',
+                                borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                background: isActive ? '#fff' : '#f8fafc',
+                                minHeight: '48px',
+                                boxSizing: 'border-box',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <div style={{ width: 36, height: 24, borderRadius: '6px', background: l.color || group.color || '#2563eb', color: '#fff', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                {l.numero || ''}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: isActive ? '#0f172a' : '#64748b' }}>
+                                  {l.subcategoria || l.nombre || 'Ramal Principal'}
+                                </div>
+                                <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
+                                  {sentido === 'IDA' ? 'IDA' : sentido === 'VUELTA' ? 'VUELTA' : 'Sin definir'}
+                                </div>
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                                {freqCalculada > 0 ? (`${freqCalculada.toFixed(1)} vi/h` + (freqEsperada > 0 ? ` (prog. ${freqEsperada.toFixed(1)})` : '')) : 'Sin dato'}
+                              </div>
+                              <div style={{ 
+                                width: '80px', 
+                                fontSize: '0.7rem', 
+                                color: tiempoDemora !== 0 ? (tiempoDemora > 0 ? '#f87171' : '#34d399') : '#64748b',
+                                fontWeight: 500
+                              }}>
+                                {tiempoDemora !== 0 ? `${tiempoDemora} min` : '—'}
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setInspectorLinea({ id: l.id, label: `${group.lineaLabel} · ${l.subcategoria || l.nombre || 'Ramal Principal'} (${sentido || 'S/S'})` }); }}
+                                title="Registrar inspección humana de frecuencia para este ramal"
+                                style={{
+                                  marginLeft: 'auto', 
+                                  background: 'rgba(59, 130, 246, 0.1)', 
+                                  color: '#3b82f6', 
+                                  border: '1px solid rgba(59, 130, 246, 0.3)', 
+                                  borderRadius: '6px', 
+                                  padding: '4px 8px', 
+                                  fontSize: '0.65rem', 
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Inspeccionar
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MAP AREA */}
       <div style={{ flex: 1, position: 'relative', background: '#f1f5f9' }}>
         <WizardMap 
           onComplete={handleGeoDataUpdate}
@@ -1053,6 +1305,36 @@ export default function TransportePublicoPage() {
           selectedLineId={selectedLineaId}
         />
       </div>
+
+      {/* Modal: ver todos los ramales de la línea seleccionada + imprimir */}
+      {(() => {
+        const found = (groupedLineas || []).find(([key]) => key === ramalesModalKey) as any;
+        if (!found) return null;
+        const [, group] = found;
+        return (
+          <VerRamalesLineaModal
+            isOpen={!!ramalesModalKey}
+            onClose={() => setRamalesModalKey(null)}
+            lineaLabel={group.lineaLabel}
+            numero={group.numero}
+            color={group.color}
+            categoria={group.categoria}
+            records={group.records}
+            onPrint={handlePrintRamales}
+          />
+        );
+      })()}
+
+      {/* Modal: inspección humana de frecuencia para un ramal */}
+      {inspectorLinea && (
+        <FrecuenciasInspectorForm
+          lineaId={inspectorLinea.id}
+          lineaLabel={inspectorLinea.label}
+          inspectorId={dbUser?.id || user?.uid}
+          onGuardado={() => { fetchLineas(); }}
+          onCancelar={() => setInspectorLinea(null)}
+        />
+      )}
 
       <style dangerouslySetInnerHTML={{__html: `
         .fade-in {

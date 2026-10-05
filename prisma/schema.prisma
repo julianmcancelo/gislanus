@@ -65,6 +65,12 @@ model LineaTransporte {
   sentido       String?                          // IDA | VUELTA | null
   activo        Boolean  @default(true)
   datosGeo      String
+  // Frecuencias y tiempo de demora (relevamiento con inspector humano)
+  frecuenciaCalculada Float?   // Frecuencia calculada por inspector (viajes/hora)
+  frecuenciaEsperada  Float?   // Frecuencia programada/teórica (viajes/hora)
+  tiempoDemoraPromedio Float?  // Promedio de retrasos en minutos
+  ultimaInspeccion  DateTime? // Última vez que un inspector revisó/actualizó
+  inspectorId       String?   // ID del inspector que realizó la última revisión
   creadoEn      DateTime @default(now())
   actualizadoEn DateTime @updatedAt
 }
