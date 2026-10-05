@@ -61,6 +61,7 @@ export default function MapPrintAtlasModal({
   const [incluirEscalaNorte, setIncluirEscalaNorte] = useState<boolean>(true);
   const [numerarTrazas, setNumerarTrazas] = useState<boolean>(true);
   const [leyendaCompleta, setLeyendaCompleta] = useState<boolean>(false);
+  const [grosorTraza, setGrosorTraza] = useState<'fina' | 'normal' | 'gruesa'>('normal');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
 
@@ -489,6 +490,11 @@ export default function MapPrintAtlasModal({
   }): Promise<HTMLCanvasElement> => {
     const toPx = (mm: number) => Math.max(1, Math.round(mm * dpmm));
 
+    // Factor de grosor de traza elegido por el usuario (Fina 0.7× / Normal 1× / Gruesa 1.35×)
+    const factorGrosor = grosorTraza === 'fina' ? 0.7 : grosorTraza === 'gruesa' ? 1.35 : 1;
+    const trazoMm = config.traceStrokeMm * factorGrosor;
+    const haloMm = config.haloStrokeMm * factorGrosor;
+
     const sheetWidthPx = toPx(pdfWidthMm);
     const sheetHeightPx = toPx(pdfHeightMm);
 
@@ -742,7 +748,7 @@ export default function MapPrintAtlasModal({
       });
 
       // Halos para líneas nacionales
-      const natHaloPx = Math.max(2, toPx(config.traceStrokeMm * 1.1));
+      const natHaloPx = Math.max(2, toPx(trazoMm * 1.1));
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.lineWidth = natHaloPx;
@@ -764,7 +770,7 @@ export default function MapPrintAtlasModal({
       });
 
       // Trazo para líneas nacionales
-      const natStrokePx = Math.max(1.5, toPx(config.traceStrokeMm * 0.75));
+      const natStrokePx = Math.max(1.5, toPx(trazoMm * 0.75));
       ctx.lineWidth = natStrokePx;
       nationalSegments.forEach((seg) => {
         if (seg.coords.length < 2) return;
@@ -853,8 +859,8 @@ export default function MapPrintAtlasModal({
       }
     });
 
-    const traceStrokePx = Math.max(2, toPx(config.traceStrokeMm * 1.15));
-    const haloStrokePx = Math.max(traceStrokePx + 2, toPx(config.haloStrokeMm));
+    const traceStrokePx = Math.max(2, toPx(trazoMm * 1.15));
+    const haloStrokePx = Math.max(traceStrokePx + 2, toPx(haloMm));
 
     // ── CAPA 1: Halos de Contraste para la Línea Principal ──
     ctx.lineCap = 'round';
@@ -1200,8 +1206,8 @@ export default function MapPrintAtlasModal({
       // Cada traza lleva su número (①②③…) en el punto medio, igual que en la leyenda.
       // Tamaño proporcional al grosor de traza para no tapar el recorrido.
       if (numerarTrazas) {
-        const numR = toPx(config.traceStrokeMm * 1.3);
-        const numFont = toPx(config.traceStrokeMm * 1.15);
+        const numR = toPx(trazoMm * 1.3);
+        const numFont = toPx(trazoMm * 1.15);
         allUniqueLegendItems.forEach((item, i) => {
           const seg =
             allSegments.find((s) => s.capaId === item.id) ||
@@ -1296,7 +1302,7 @@ export default function MapPrintAtlasModal({
         ctx.beginPath();
         ctx.moveTo(swatchStartX, itemY);
         ctx.lineTo(swatchStartX + swatchW, itemY);
-        ctx.lineWidth = Math.max(2.2, toPx(config.traceStrokeMm * 1.15));
+        ctx.lineWidth = Math.max(2.2, toPx(trazoMm * 1.15));
         ctx.strokeStyle = item.color;
         ctx.lineCap = 'round';
         if (item.sentido === 'VUELTA') {
@@ -1619,7 +1625,7 @@ export default function MapPrintAtlasModal({
     ctx.beginPath();
     ctx.moveTo(iconX - toPx(5), y1);
     ctx.lineTo(iconX + toPx(6), y1);
-    ctx.lineWidth = Math.max(2.5, toPx(config.traceStrokeMm * 1.2));
+    ctx.lineWidth = Math.max(2.5, toPx(trazoMm * 1.2));
     ctx.strokeStyle = officialLineColor;
     ctx.lineCap = 'round';
     ctx.setLineDash([]);
@@ -1634,7 +1640,7 @@ export default function MapPrintAtlasModal({
     ctx.beginPath();
     ctx.moveTo(iconX - toPx(5), y2);
     ctx.lineTo(iconX + toPx(6), y2);
-    ctx.lineWidth = Math.max(2.5, toPx(config.traceStrokeMm * 1.2));
+    ctx.lineWidth = Math.max(2.5, toPx(trazoMm * 1.2));
     ctx.strokeStyle = officialLineColor;
     ctx.lineCap = 'round';
     ctx.setLineDash([toPx(2.5), toPx(1.8)]);
@@ -1651,7 +1657,7 @@ export default function MapPrintAtlasModal({
       ctx.beginPath();
       ctx.moveTo(iconX - toPx(5), y3);
       ctx.lineTo(iconX + toPx(6), y3);
-      ctx.lineWidth = Math.max(1.8, toPx(config.traceStrokeMm * 0.85));
+      ctx.lineWidth = Math.max(1.8, toPx(trazoMm * 0.85));
       ctx.strokeStyle = modoEstiloNacionales === 'sutil' ? '#64748B' : '#0284C7';
       ctx.lineCap = 'round';
       ctx.stroke();
@@ -2733,6 +2739,51 @@ export default function MapPrintAtlasModal({
                     <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '1px' }}>
                       {style.sub}
                     </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Grosor de Traza */}
+          <div>
+            <label
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                color: '#1e293b',
+                display: 'block',
+                marginBottom: '6px',
+              }}
+            >
+              ✏️ Grosor de Traza:
+            </label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              {[
+                { id: 'fina', label: 'Fina', sub: '0.7×' },
+                { id: 'normal', label: 'Normal', sub: '1×' },
+                { id: 'gruesa', label: 'Gruesa', sub: '1.35×' },
+              ].map((g) => {
+                const active = grosorTraza === g.id;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => setGrosorTraza(g.id as 'fina' | 'normal' | 'gruesa')}
+                    style={{
+                      flex: 1,
+                      padding: '6px 4px',
+                      borderRadius: '8px',
+                      border: active ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      background: active ? '#eff6ff' : '#fff',
+                      color: active ? '#1d4ed8' : '#475569',
+                      fontWeight: 700,
+                      fontSize: '0.74rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {g.label}
+                    <div style={{ fontSize: '0.62rem', color: '#64748b', fontWeight: 600 }}>{g.sub}</div>
                   </button>
                 );
               })}
