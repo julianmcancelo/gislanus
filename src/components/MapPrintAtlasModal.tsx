@@ -59,6 +59,8 @@ export default function MapPrintAtlasModal({
   const [estiloMapbox, setEstiloMapbox] = useState<MapboxStaticStyle>('streets-v12');
   const [incluirCuadricula, setIncluirCuadricula] = useState<boolean>(true);
   const [incluirEscalaNorte, setIncluirEscalaNorte] = useState<boolean>(true);
+  const [numerarTrazas, setNumerarTrazas] = useState<boolean>(true);
+  const [leyendaCompleta, setLeyendaCompleta] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
 
@@ -707,7 +709,7 @@ export default function MapPrintAtlasModal({
     // ─────────────────────────────────────────────────────────────
     // 🇦🇷 SUPERPOSICIÓN DE LÍNEAS NACIONALES (CAPA DE REFERENCIA Y COMPARACIÓN)
     // ─────────────────────────────────────────────────────────────
-    const nationalSegments: { coords: Point2D[]; color: string; isVuelta: boolean; label: string }[] = [];
+    const nationalSegments: { coords: Point2D[]; color: string; isVuelta: boolean; label: string; capaId: string }[] = [];
     if (nationalCapas.length > 0) {
       nationalCapas.forEach((capa) => {
         const segs = getLayerFeatureSegments(capa);
@@ -734,6 +736,7 @@ export default function MapPrintAtlasModal({
             color,
             isVuelta: seg.isVuelta || isVuelta,
             label: num ? `L.${num}` : capa.nombre,
+            capaId: capa.id,
           });
         });
       });
@@ -790,7 +793,7 @@ export default function MapPrintAtlasModal({
     let totalRouteDistanceKm = 0;
     let stopCount = 0;
 
-    const allSegments: { coords: Point2D[]; color: string; isVuelta: boolean }[] = [];
+    const allSegments: { coords: Point2D[]; color: string; isVuelta: boolean; capaId: string }[] = [];
     const allStops: Point2D[] = [];
 
     targetCapas.forEach((capa) => {
@@ -822,6 +825,7 @@ export default function MapPrintAtlasModal({
           coords: projectedPts,
           color,
           isVuelta: seg.isVuelta || isVueltaCapa,
+          capaId: capa.id,
         });
       });
 
@@ -1187,10 +1191,41 @@ export default function MapPrintAtlasModal({
     });
 
     if (allUniqueLegendItems.length > 0) {
-      // Leyenda compacta: máximo 5 filas visibles, el resto se resume en "+ N trazas"
-      const maxDisplay = Math.min(5, allUniqueLegendItems.length);
+      // Leyenda: compacta (5 filas + resumen numerado) o completa (hasta 12 filas)
+      const maxDisplay = Math.min(leyendaCompleta ? 12 : 5, allUniqueLegendItems.length);
       const itemsToDisplay = allUniqueLegendItems.slice(0, maxDisplay);
       const remainingCount = allUniqueLegendItems.length - maxDisplay;
+
+      // ── CAPA 5: Badges numerados de referencia cruzada plano ↔ leyenda ──
+      // Cada traza lleva su número (①②③…) en el punto medio, igual que en la leyenda
+      if (numerarTrazas) {
+        const numR = toPx(config.caratureValMm * 0.85);
+        const numFont = toPx(config.caratureValMm * 0.8);
+        allUniqueLegendItems.forEach((item, i) => {
+          const seg =
+            allSegments.find((s) => s.capaId === item.id) ||
+            nationalSegments.find((s) => s.capaId === item.id);
+          if (!seg || seg.coords.length < 2) return;
+          const mid = seg.coords[Math.floor(seg.coords.length / 2)];
+          // Halo blanco para legibilidad sobre el mapa base
+          ctx.beginPath();
+          ctx.arc(mid.x, mid.y, numR + toPx(0.5), 0, Math.PI * 2);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fill();
+          // Círculo oscuro con el número
+          ctx.beginPath();
+          ctx.arc(mid.x, mid.y, numR, 0, Math.PI * 2);
+          ctx.fillStyle = '#0F172A';
+          ctx.fill();
+          ctx.font = `800 ${numFont}px Inter, sans-serif`;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(i + 1), mid.x, mid.y + toPx(0.2));
+          ctx.textAlign = 'start';
+          ctx.textBaseline = 'alphabetic';
+        });
+      }
 
       const legBoxPad = toPx(config.marginMm * 0.45);
       const legFontSize = toPx(config.caratureValMm * 0.62);
@@ -1234,8 +1269,26 @@ export default function MapPrintAtlasModal({
       // Renderizar cada traza con su muestra de línea (continua o discontinua) y nombre
       itemsToDisplay.forEach((item, i) => {
         const itemY = legBoxY + legTitleSize + toPx(4) + (i + 0.65) * itemRowH;
-        const swatchStartX = legBoxX + toPx(3.5);
+        let swatchStartX = legBoxX + toPx(3.5);
         const swatchW = toPx(7.0);
+
+        // Badge con el número de referencia cruzada (igual que en el plano)
+        if (numerarTrazas) {
+          const numRLeg = toPx(1.7);
+          const numCX = swatchStartX + numRLeg;
+          ctx.beginPath();
+          ctx.arc(numCX, itemY, numRLeg, 0, Math.PI * 2);
+          ctx.fillStyle = '#0F172A';
+          ctx.fill();
+          ctx.font = `800 ${toPx(config.caratureValMm * 0.6)}px Inter, sans-serif`;
+          ctx.fillStyle = '#FFFFFF';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(i + 1), numCX, itemY + toPx(0.2));
+          ctx.textAlign = 'start';
+          ctx.textBaseline = 'alphabetic';
+          swatchStartX = numCX + numRLeg + toPx(1.5);
+        }
 
         // Muestra de traza
         ctx.beginPath();
@@ -1280,7 +1333,14 @@ export default function MapPrintAtlasModal({
         const extraY = legBoxY + legTitleSize + toPx(4) + itemsToDisplay.length * itemRowH + toPx(2);
         ctx.font = `italic 600 ${toPx(config.caratureValMm * 0.65)}px Inter, sans-serif`;
         ctx.fillStyle = '#64748B';
-        ctx.fillText(`+ ${remainingCount} traza(s) adicional(es) en plano`, legBoxX + toPx(4), extraY);
+        const hiddenNums = allUniqueLegendItems
+          .slice(maxDisplay)
+          .map((_, k) => maxDisplay + k + 1)
+          .join(', ');
+        const resumen = numerarTrazas
+          ? `+ ${remainingCount} más en plano: Nº ${hiddenNums}`
+          : `+ ${remainingCount} traza(s) adicional(es) en plano`;
+        ctx.fillText(fitText(resumen, legBoxW - toPx(8)), legBoxX + toPx(4), extraY);
       }
     }
 
@@ -2840,6 +2900,52 @@ export default function MapPrintAtlasModal({
               />
               <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                 Escalímetro gráfico métrico proporcional y Rosa de los Vientos (Norte)
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={numerarTrazas}
+                onChange={(e) => setNumerarTrazas(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#16a34a' }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
+                Numerar trazas en el plano (①②③) con referencia cruzada en la leyenda
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={leyendaCompleta}
+                onChange={(e) => setLeyendaCompleta(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#2563eb' }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
+                Leyenda completa: mostrar todas las trazas (sin resumir en "+ N más")
               </span>
             </label>
           </div>
