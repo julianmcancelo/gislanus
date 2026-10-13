@@ -1001,6 +1001,7 @@ export default function MapComponent() {
           <MapContainer 
             center={center} 
             zoom={14}
+            preferCanvas={true}
             style={{ width: '100%', height: '100%' }}
             zoomControl={false}
             ref={setMapInstance}

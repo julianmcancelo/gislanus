@@ -657,6 +657,7 @@ export default function WizardMap({ onComplete, initialGeo, initialWaypoints, in
         center={center}
         zoom={14}
         minZoom={12}
+        preferCanvas={true}
         maxBounds={[[-34.7505, -58.4519], [-34.6537, -58.3284]]}
         style={{ width: '100%', height: '100%' }}
         zoomControl={true}

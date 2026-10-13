@@ -78,15 +78,31 @@ export function parseGeojsonToLines(geojsonObj: any, fileName: string = ''): Par
     if (gtype !== 'LineString' && gtype !== 'MultiLineString') return;
     if (f.properties?.tipo === 'vehiculo_activo') return;
 
+    const meta = geojsonObj.metadata || {};
     const props = f.properties || {};
-    const desc = props.description || '';
-    const title = props.title || props.name || props.nombre || '';
+    const desc = props.description || props.descripcion || meta.descripcion || '';
+    const title = props.title || props.name || props.nombre || props.Name || meta.ramal || '';
 
-    let rawLinea = props.linea || props.line || props.ref || props.numero || '';
-    let rawRecorrido = props.ramal || props.recorrido || props.subgrupo_detalle || props.subgrupo || '';
-    let rawSentido = props.sentido || props.direction || props.sentido_label || '';
-    let rawRazon = props.operador || props.operator || props.empresa || props.Razon_soci || '';
-    let rawJurisdiccion = props.jurisdiccion || props.jurisdicci || props.network || '';
+    let rawLinea = props.linea || props.line || props.ref || props.numero || props.lineaNumero || props.numero_linea || meta.lineaNumero || meta.linea || '';
+    let rawRecorrido = props.ramal || props.branch || props.ramal_letr || props.recorrido || props.numero_ramal || props.subgrupo_detalle || props.subgrupo || meta.ramal || '';
+    let rawSentido = props.sentido || props.direction || props.sentido_ci || props.sentido_label || meta.sentido || '';
+    let rawRazon = props.operador || props.operator || props.empresa || props.Razon_soci || meta.operador || meta.empresa || '';
+    let rawJurisdiccion = props.jurisdiccion || props.jurisdicci || props.network || meta.jurisdiccion || '';
+
+    // Si viene en formato oficial IDE Transporte "32 A IDA" o similar en 'Name' o 'title':
+    if (!rawRecorrido || !rawSentido) {
+      const matchIde = String(title).match(/^([0-9]{1,4})\s+([A-Z0-9]+)\s+(IDA|VUELTA)/i);
+      if (matchIde) {
+        if (!rawLinea) rawLinea = matchIde[1];
+        if (!rawRecorrido) rawRecorrido = matchIde[2];
+        if (!rawSentido) rawSentido = matchIde[3];
+      }
+    }
+
+    // Si viene de PBA con códigos terminados en 0 (IDA) o 1 (VUELTA):
+    if (!rawSentido && props.codigo_ramal_y_sentido) {
+      rawSentido = String(props.codigo_ramal_y_sentido).endsWith('1') ? 'VUELTA' : 'IDA';
+    }
 
     // Si la información viene en formato de texto multilinea en 'description':
     if (typeof desc === 'string' && desc.includes(':')) {
@@ -134,7 +150,7 @@ export function parseGeojsonToLines(geojsonObj: any, fileName: string = ''): Par
 
     // 3. Extraer Sentido
     let sentido: 'IDA' | 'VUELTA' | null = null;
-    const combinedSentido = `${rawSentido} ${title} ${props.direction || ''}`.toUpperCase();
+    const combinedSentido = `${rawSentido} ${title} ${props.direction || ''} ${fileName}`.toUpperCase();
     if (combinedSentido.includes('VUELTA') || combinedSentido.includes('VUEKTA') || combinedSentido.includes('REGRESO') || combinedSentido.includes('INBOUND')) {
       sentido = 'VUELTA';
     } else if (combinedSentido.includes('IDA') || combinedSentido.includes('OUTBOUND')) {

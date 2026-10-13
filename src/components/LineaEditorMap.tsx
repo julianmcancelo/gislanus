@@ -224,6 +224,7 @@ export default function LineaEditorMap({
         ]}
         style={{ width: '100%', height: '100%' }} 
         zoomControl
+        preferCanvas={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
