@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { 
   AlertTriangle, Plus, MapPin, Bus, Navigation, Calendar, Clock, 
   Trash2, Printer, Search, Filter, CheckCircle2, ChevronRight, ArrowLeft,
-  Loader2, RefreshCw, Layers, Shield, FileText, Info
+  Loader2, RefreshCw, Layers, Shield, FileText, Info, Sparkles, Wand2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import FichaDesvioModal from '@/components/FichaDesvioModal';
+import { sugerirPuntosDesvio } from '@/utils/autoDetour';
 
 // Carga dinámica del mapa de desvíos para evitar errores SSR con Leaflet
 const DesvioMapEditor = dynamic(() => import('@/components/DesvioMapEditor'), {
@@ -61,6 +62,7 @@ export default function DesviosPage() {
   const [lineaActivaParaTrazar, setLineaActivaParaTrazar] = useState<any | null>(null);
   const [lineaGeojsonFull, setLineaGeojsonFull] = useState<any | null>(null);
   const [modoMapa, setModoMapa] = useState<'marcar_corte' | 'trazar_desvio'>('marcar_corte');
+  const [waypointsAutoSugeridos, setWaypointsAutoSugeridos] = useState<[number, number][] | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -124,16 +126,55 @@ export default function DesviosPage() {
   const handleSeleccionarLineaParaTrazar = async (linea: any) => {
     setLineaActivaParaTrazar(linea);
     setModoMapa('trazar_desvio');
+    setWaypointsAutoSugeridos(null);
     try {
+      if (linea.datosGeo) {
+        const parsed = typeof linea.datosGeo === 'string' ? JSON.parse(linea.datosGeo) : linea.datosGeo;
+        setLineaGeojsonFull(parsed);
+        return parsed;
+      }
       const res = await fetch(`/api/lineas-transporte/${linea.id}`);
       if (res.ok) {
         const found = await res.json();
         if (found?.datosGeo) {
-          setLineaGeojsonFull(typeof found.datosGeo === 'string' ? JSON.parse(found.datosGeo) : found.datosGeo);
+          const parsed = typeof found.datosGeo === 'string' ? JSON.parse(found.datosGeo) : found.datosGeo;
+          setLineaGeojsonFull(parsed);
+          return parsed;
         }
       }
     } catch (e) {
       console.error(e);
+    }
+    return null;
+  };
+
+  // Cálculo inteligente de desvío automático evitando el corte
+  const handleAutoSugerirDesvio = async (linea: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!corteCoords) {
+      toast.error('Primero defina el punto del corte en el mapa');
+      return;
+    }
+
+    const toastId = toast.loading(`Calculando desvío automático para Línea ${linea.numero}...`);
+    try {
+      const geo = await handleSeleccionarLineaParaTrazar(linea);
+      if (!geo) {
+        toast.error('No se encontró la traza de la línea para desviar', { id: toastId });
+        return;
+      }
+
+      const puntos = sugerirPuntosDesvio(geo, corteCoords, radioMetros);
+      if (!puntos || puntos.length < 2) {
+        toast.error('No se pudo determinar un desvío automático con la traza disponible', { id: toastId });
+        return;
+      }
+
+      setWaypointsAutoSugeridos(puntos);
+      toast.success(`✨ Desvío automático calculado y proyectado en el mapa`, { id: toastId });
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Error al sugerir desvío automático', { id: toastId });
     }
   };
 
@@ -813,33 +854,62 @@ export default function DesviosPage() {
                             background: isSelected ? '#eff6ff' : '#fff',
                             cursor: 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            transition: 'all 0.15s ease',
                           }}
                         >
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ background: '#1e293b', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
-                                Línea {linea.numero}
-                              </span>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>
-                                {linea.ramal}
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ background: '#1e293b', color: '#fff', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                                  Línea {linea.numero}
+                                </span>
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>
+                                  {linea.ramal}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '10px', color: '#64748b' }}>
+                                Sentido: {linea.sentido}
                               </span>
                             </div>
-                            <span style={{ fontSize: '10px', color: '#64748b' }}>
-                              Sentido: {linea.sentido}
-                            </span>
+
+                            {hasDesvio ? (
+                              <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <CheckCircle2 size={13} /> Trazado
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 600 }}>
+                                Sin trazar
+                              </span>
+                            )}
                           </div>
 
-                          {hasDesvio ? (
-                            <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <CheckCircle2 size={13} /> Trazado
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 600 }}>
-                              Sin trazar
-                            </span>
-                          )}
+                          <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => handleAutoSugerirDesvio(linea, e)}
+                              style={{
+                                flex: 1,
+                                background: '#3b82f6',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '6px 8px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '5px',
+                                boxShadow: '0 1px 3px rgba(59, 130, 246, 0.3)'
+                              }}
+                              title="Calcular y desviar automáticamente evitando la zona del corte"
+                            >
+                              <Wand2 size={13} /> Sugerir Desvío Automático
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -848,9 +918,30 @@ export default function DesviosPage() {
                   {/* Formulario de indicaciones para la línea seleccionada */}
                   {lineaActivaParaTrazar && (
                     <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', marginTop: '6px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                        Indicaciones para Línea {lineaActivaParaTrazar.numero}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
+                          Indicaciones para Línea {lineaActivaParaTrazar.numero}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => handleAutoSugerirDesvio(lineaActivaParaTrazar, e)}
+                          style={{
+                            background: '#dbeafe',
+                            color: '#1d4ed8',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '6px',
+                            padding: '3px 8px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Sparkles size={11} /> Recalcular automático
+                        </button>
+                      </div>
                       
                       <div style={{ marginBottom: '8px' }}>
                         <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
@@ -960,6 +1051,7 @@ export default function DesviosPage() {
                 lineaOriginalGeo={lineaGeojsonFull}
                 onDesvioCalculado={handleDesvioCalculado}
                 modo={modoMapa}
+                waypointsForzados={waypointsAutoSugeridos}
               />
             </div>
 

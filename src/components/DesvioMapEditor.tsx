@@ -61,6 +61,7 @@ interface DesvioMapEditorProps {
   onDesvioCalculado: (geojson: any, callesText: string) => void;
   modo: 'marcar_corte' | 'trazar_desvio';
   todasLasLineas?: any[]; // Todas las líneas de transporte cargadas en el GIS para verlas en el mapa
+  waypointsForzados?: [number, number][] | null;
 }
 
 function MapEventsHandler({ 
@@ -94,6 +95,7 @@ export default function DesvioMapEditor({
   onDesvioCalculado,
   modo,
   todasLasLineas = [],
+  waypointsForzados = null,
 }: DesvioMapEditorProps) {
   const [waypoints, setWaypoints] = useState<L.LatLng[]>([]);
   const routingControlRef = useRef<any>(null);
@@ -105,6 +107,13 @@ export default function DesvioMapEditor({
   const [mostrarTodasLasLineas, setMostrarTodasLasLineas] = useState<boolean>(false);
   const [lineasDeFondo, setLineasDeFondo] = useState<any[]>([]);
   const [cargandoLineasFondo, setCargandoLineasFondo] = useState<boolean>(false);
+
+  // Inyectar waypoints sugeridos automáticamente si vienen por prop
+  useEffect(() => {
+    if (waypointsForzados && waypointsForzados.length >= 2) {
+      setWaypoints(waypointsForzados.map(wp => L.latLng(wp[0], wp[1])));
+    }
+  }, [waypointsForzados]);
 
   // Cargar líneas de fondo solo si el usuario prende el interruptor
   const handleToggleLineasFondo = async (activar: boolean) => {
@@ -382,26 +391,28 @@ export default function DesvioMapEditor({
         <MapSearch />
       </MapContainer>
 
-      {/* Barra de Instrucciones Superior */}
+      {/* Barra de Instrucciones Superior Centrada (para no colisionar con el panel lateral) */}
       <div style={{
         position: 'absolute',
         top: 14,
-        left: 56,
+        left: '50%',
+        transform: 'translateX(-50%)',
         zIndex: 1000,
         background: 'rgba(15, 23, 42, 0.92)',
         backdropFilter: 'blur(10px)',
         color: '#fff',
-        padding: '10px 16px',
-        borderRadius: '10px',
+        padding: '8px 18px',
+        borderRadius: '30px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
         display: 'flex',
         alignItems: 'center',
         gap: '12px',
         fontSize: '13px',
+        pointerEvents: 'none',
       }}>
         {modo === 'marcar_corte' ? (
           <>
-            <div style={{ background: '#ef4444', width: 28, height: 28, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: '#ef4444', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>
               🚧
             </div>
             <div>
@@ -411,8 +422,8 @@ export default function DesvioMapEditor({
           </>
         ) : (
           <>
-            <div style={{ background: '#10b981', width: 28, height: 28, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Navigation size={16} color="#fff" />
+            <div style={{ background: '#10b981', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Navigation size={14} color="#fff" />
             </div>
             <div>
               <p style={{ margin: 0, fontWeight: 800, fontSize: '13px' }}>Modo: Trazar recorrido de desvío provisorio ({waypoints.length} puntos)</p>

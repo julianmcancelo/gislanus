@@ -100,6 +100,7 @@ export async function POST(req: Request) {
             categoria: linea.categoria,
             ramal: linea.subcategoria || 'General',
             sentido: linea.sentido || (linea.nombre.toLowerCase().includes('vuelta') ? 'VUELTA' : 'IDA'),
+            datosGeo: linea.datosGeo,
           });
         }
       } catch (err) {
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
       afectadasCount: afectadas.length,
       lineasAfectadas: afectadas,
       radioMetros,
+      corteCenter: [lat, lng],
     }, { headers: corsHeaders });
   } catch (error: any) {
     console.error('Error analizando afectacion vial:', error);
