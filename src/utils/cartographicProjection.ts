@@ -106,9 +106,7 @@ export class MercatorViewportProjection {
     this.height = height;
 
     if (Array.isArray(input)) {
-      if (input.length === 0) {
-        throw new Error('Debe proveer al menos un punto geográfico para la proyección cartográfica');
-      }
+      // Si la lista de puntos está vacía, utilizamos límites seguros por defecto sobre el Municipio de Lanús
       this.bounds = calculateSafeBounds(input, paddingFraction);
     } else {
       this.bounds = input;

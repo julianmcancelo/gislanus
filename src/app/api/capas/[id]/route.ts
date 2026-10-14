@@ -66,6 +66,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (body.subGrupoId !== undefined) dataToUpdate.subGrupoId = body.subGrupoId;
     if (body.geoData) dataToUpdate.datosGeo = typeof body.geoData === 'string' ? body.geoData : JSON.stringify(body.geoData);
 
+    // Permite anexar una o varias features a una capa existente
+    if (body.appendFeatures && Array.isArray(body.appendFeatures)) {
+      const actual = await prisma.capa.findUnique({ where: { id }, select: { datosGeo: true } });
+      let currentGeo: any = { type: 'FeatureCollection', features: [] };
+      if (actual?.datosGeo) {
+        try {
+          currentGeo = typeof actual.datosGeo === 'string' ? JSON.parse(actual.datosGeo) : actual.datosGeo;
+          if (currentGeo.type === 'Feature') {
+            currentGeo = { type: 'FeatureCollection', features: [currentGeo] };
+          } else if (!Array.isArray(currentGeo.features)) {
+            currentGeo = { type: 'FeatureCollection', features: [] };
+          }
+        } catch {
+          currentGeo = { type: 'FeatureCollection', features: [] };
+        }
+      }
+      currentGeo.features.push(...body.appendFeatures);
+      dataToUpdate.datosGeo = JSON.stringify(currentGeo);
+    }
+
     const capaUpdate = await prisma.capa.update({
       where: { id },
       data: dataToUpdate

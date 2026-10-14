@@ -8,7 +8,7 @@ import '@geoman-io/leaflet-geoman-free';
 import HeatmapLayer from './HeatmapLayer';
 
 import { renderToString } from 'react-dom/server';
-import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building, Share2 } from 'lucide-react';
+import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building, Share2, Palette } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
@@ -18,6 +18,7 @@ import Sidebar from './Sidebar';
 import MapSearch from './MapSearch';
 import MapPrintAtlasModal from './MapPrintAtlasModal';
 import CompartirModal from './CompartirModal';
+import MapDrawingStudio from './MapDrawingStudio';
 import { normalizeLineNumber } from '@/utils/transportUtils';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -91,12 +92,16 @@ function MapToolbar({
   abrirImpresionAtlas,
   abrirCompartir,
   capasConfig,
+  isStudioOpen,
+  onToggleStudio,
 }: {
   activeTab: string | null;
   isAdmin: boolean;
   abrirImpresionAtlas?: (lineaNombre: string, capasLinea: any[]) => void;
   abrirCompartir?: () => void;
   capasConfig?: any[];
+  isStudioOpen?: boolean;
+  onToggleStudio?: () => void;
 }) {
   const map = useMap();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
@@ -245,6 +250,16 @@ function MapToolbar({
           <Share2 size={16} />
         </button>
 
+        <div className="map-divider" />
+        <button
+          onClick={() => onToggleStudio?.()}
+          className="map-tool-btn"
+          style={{ color: isStudioOpen ? '#38bdf8' : '#e2e8f0', background: isStudioOpen ? 'rgba(56, 189, 248, 0.2)' : 'transparent' }}
+          title="🎨 Estudio Cartográfico (Dibujar puntos, trazas y zonas)"
+        >
+          <Palette size={16} />
+        </button>
+
         {isAdmin && (
           <>
             <div className="map-divider" />
@@ -338,6 +353,7 @@ export default function MapComponent() {
   const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
   const [compartirModalOpen, setCompartirModalOpen] = useState(false);
   const [leyendaOpen, setLeyendaOpen] = useState(true);
+  const [studioOpen, setStudioOpen] = useState(false);
 
   // Líneas de transporte activas en el mapa con sus datos y sentidos
   const activeLineas = useMemo(() => {
@@ -1282,7 +1298,31 @@ export default function MapComponent() {
           abrirImpresionAtlas={handleOpenAtlasPrint}
           abrirCompartir={() => setCompartirModalOpen(true)}
           capasConfig={capasConfig}
+          isStudioOpen={studioOpen}
+          onToggleStudio={() => setStudioOpen(prev => !prev)}
         />
+
+        {/* ── ESTUDIO CARTOGRÁFICO DE DISEÑO & DIBUJO ── */}
+        {studioOpen && (
+          <MapDrawingStudio
+            capasDisponibles={capasConfig.filter(c => !c.id.startsWith('transporte-base-'))}
+            onCapaActualizada={() => {
+              // Refrescar capas
+              fetch('/api/capas').then(r => r.json()).then(data => {
+                if (Array.isArray(data)) {
+                  setCapasConfig(prev => {
+                    const existingActiveMap = new Map(prev.map(p => [p.id, p.active]));
+                    return [
+                      ...prev.filter(p => p.id.startsWith('transporte-base-') || p.id.startsWith('linea-')),
+                      ...data.map((c: any) => ({ ...c, active: existingActiveMap.get(c.id) ?? true }))
+                    ];
+                  });
+                }
+              }).catch(console.error);
+            }}
+            onClose={() => setStudioOpen(false)}
+          />
+        )}
       </MapContainer>
 
       {/* ── CUADRO FLOTANTE DE REFERENCIAS EN VIVO (LÍNEAS Y SENTIDOS) ── */}

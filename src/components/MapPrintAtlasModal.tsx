@@ -1788,6 +1788,16 @@ export default function MapPrintAtlasModal({
         });
       }
 
+      // Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
+      if (pagesToGenerate.length === 0) {
+        pagesToGenerate.push({
+          capas: capasLinea && capasLinea.length > 0 ? capasLinea : [],
+          title: lineaNombre.toUpperCase() || 'MAPA DE LANÚS',
+          subtitle: 'Cartografía Municipal Oficial · Subsecretaría de Transporte',
+          isConsolidated: true,
+        });
+      }
+
       // Inicializar Documento jsPDF
       const pdf = new jsPDF({
         orientation: orientacion,
