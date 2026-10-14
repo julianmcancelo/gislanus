@@ -602,6 +602,19 @@ export default function TransportePublicoPage() {
         >
           <Clock size={13} /> Frecuencias
         </button>
+        <button
+          onClick={() => router.push('/desvios')}
+          style={{
+            flex: 1, padding: '8px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700,
+            cursor: 'pointer', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            border: '1px solid #fde68a',
+            background: '#fffbeb',
+            color: '#b45309'
+          }}
+          title="Planificar desvíos viales por obras o eventos"
+        >
+          🚧 Planificar Desvíos
+        </button>
        </div>
 
         {/* ── MODE: GESTIONAR TRAZAS Y SENTIDOS ── */}

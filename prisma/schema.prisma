@@ -277,3 +277,59 @@ model RelevamientoGPS {
   @@index([sentido])
   @@index([creadoEn])
 }
+
+model IntervencionVial {
+  id               String             @id @default(cuid())
+  codigo           String             @unique // Ej: "CORTE-2026-0042"
+  titulo           String             // Ej: "Bacheo y repavimentación Av. 25 de Mayo"
+  tipo             String             // BACHEO | EVENTO | MANTENIMIENTO | AGUA_GAS | SINIESTRO | OTRO
+  tipoCorte        String             @default("TOTAL") // TOTAL | PARCIAL | REDUCCION_CALZADA
+  motivo           String?
+  areaResponsable  String?            // Obras Públicas, Tránsito, Espacio Público, etc.
+  callesAfectadas  String?            // "Av. 25 de Mayo e/ San Martín y Del Valle Iberlucea"
+  
+  fechaInicio      DateTime
+  fechaFinEstimada DateTime?
+  fechaFinReal     DateTime?
+  estado           String             @default("PLANIFICADO") // PLANIFICADO | EN_CURSO | FINALIZADO | CANCELADO
+  
+  // Geometría del corte (Point, LineString o Polygon en formato GeoJSON string)
+  datosGeo         String             @db.Text
+  
+  // Desvíos asociados a las líneas de transporte público
+  desvios          DesvioTransporte[]
+  
+  creadoPorId      String?
+  creadoPorNombre  String?
+  creadoEn         DateTime           @default(now())
+  actualizadoEn    DateTime           @updatedAt
+
+  @@index([estado])
+  @@index([fechaInicio])
+}
+
+model DesvioTransporte {
+  id                 String           @id @default(cuid())
+  intervencionId     String
+  intervencion       IntervencionVial @relation(fields: [intervencionId], references: [id], onDelete: Cascade)
+  
+  lineaId            String?          // Referencia a LineaTransporte
+  lineaNumero        String           // "520", "158", "9", etc.
+  ramal              String?          // "Ramal B", "Por Obon", etc.
+  sentido            String?          // IDA | VUELTA | AMBOS
+  
+  // Trazado del desvío alternativo (GeoJSON LineString o MultiPoint)
+  datosGeoDesvio     String           @db.Text
+  
+  // Indicaciones para inspectores, choferes y vecinos
+  callesDesvio       String?          @db.Text // "Desvía por Ministro Brin -> Carlos Tejedor -> retoma..."
+  paradasAnuladas    String?          @db.Text
+  paradasProvisorias String?          @db.Text
+  
+  activo             Boolean          @default(true)
+  creadoEn           DateTime         @default(now())
+  actualizadoEn      DateTime         @updatedAt
+
+  @@index([intervencionId])
+  @@index([lineaNumero])
+}
