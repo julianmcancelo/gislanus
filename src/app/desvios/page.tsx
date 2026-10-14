@@ -62,6 +62,7 @@ export default function DesviosPage() {
   const [lineaGeojsonFull, setLineaGeojsonFull] = useState<any | null>(null);
   const [modoMapa, setModoMapa] = useState<'marcar_corte' | 'trazar_desvio'>('marcar_corte');
 
+  const [allLineas, setAllLineas] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchIntervenciones = async () => {
@@ -83,6 +84,21 @@ export default function DesviosPage() {
   useEffect(() => {
     fetchIntervenciones();
   }, [filtroEstado]);
+
+  useEffect(() => {
+    async function loadAllLines() {
+      try {
+        const res = await fetch('/api/lineas-transporte');
+        if (res.ok) {
+          const data = await res.json();
+          setAllLineas(Array.isArray(data) ? data : []);
+        }
+      } catch (e) {
+        console.error('Error loading lines:', e);
+      }
+    }
+    loadAllLines();
+  }, []);
 
   // Al cambiar las coordenadas del corte, disparamos el análisis espacial automático
   useEffect(() => {
@@ -331,12 +347,12 @@ export default function DesviosPage() {
         </div>
       </header>
 
-      {/* Contenido Principal */}
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
+      {/* Contenido Principal Full-Screen */}
+      <main style={{ height: 'calc(100vh - 61px)', width: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         
         {/* SOLAPA 1: GESTIONAR CORTES EXISTENTES */}
         {activeTab === 'gestionar' && (
-          <div>
+          <div style={{ padding: '24px', overflowY: 'auto', flex: 1, maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
             {/* Barra de Filtros */}
             <div style={{
               background: '#fff',
@@ -512,14 +528,31 @@ export default function DesviosPage() {
           </div>
         )}
 
-        {/* SOLAPA 2: NUEVO CORTE & PLANIFICAR DESVÍOS (WIZARD) */}
+        {/* SOLAPA 2: NUEVO CORTE & PLANIFICAR DESVÍOS (WIZARD FULL-SCREEN MAP) */}
         {activeTab === 'nuevo' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: '24px', alignItems: 'start' }}>
+          <div style={{ position: 'relative', width: '100%', height: '100%', flex: 1, overflow: 'hidden' }}>
             
-            {/* Panel Lateral: Formulario y Pasos */}
-            <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            {/* Panel Lateral Flotante: Formulario y Pasos */}
+            <div style={{
+              position: 'absolute',
+              top: '16px',
+              left: '16px',
+              bottom: '16px',
+              width: '420px',
+              maxWidth: 'calc(100vw - 32px)',
+              zIndex: 1000,
+              background: 'rgba(255, 255, 255, 0.96)',
+              backdropFilter: 'blur(12px)',
+              padding: '22px',
+              borderRadius: '16px',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.22)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              display: 'flex',
+              flexDirection: 'column',
+              overflowY: 'auto',
+            }}>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
                 <span style={{ background: '#2563eb', color: '#fff', width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '13px' }}>
                   {step}
                 </span>
@@ -837,8 +870,8 @@ export default function DesviosPage() {
 
             </div>
 
-            {/* Panel Derecho: Mapa Interactivo de Planificación */}
-            <div style={{ height: '700px', background: '#fff', borderRadius: '16px', padding: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            {/* Mapa Interactivo de Pantalla Completa */}
+            <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
               <DesvioMapEditor
                 corteCoords={corteCoords}
                 setCorteCoords={setCorteCoords}
@@ -846,6 +879,7 @@ export default function DesviosPage() {
                 lineaOriginalGeo={lineaGeojsonFull}
                 onDesvioCalculado={handleDesvioCalculado}
                 modo={modoMapa}
+                todasLasLineas={allLineas}
               />
             </div>
 
