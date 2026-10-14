@@ -62,7 +62,6 @@ export default function DesviosPage() {
   const [lineaGeojsonFull, setLineaGeojsonFull] = useState<any | null>(null);
   const [modoMapa, setModoMapa] = useState<'marcar_corte' | 'trazar_desvio'>('marcar_corte');
 
-  const [allLineas, setAllLineas] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const fetchIntervenciones = async () => {
@@ -84,21 +83,6 @@ export default function DesviosPage() {
   useEffect(() => {
     fetchIntervenciones();
   }, [filtroEstado]);
-
-  useEffect(() => {
-    async function loadAllLines() {
-      try {
-        const res = await fetch('/api/lineas-transporte');
-        if (res.ok) {
-          const data = await res.json();
-          setAllLineas(Array.isArray(data) ? data : []);
-        }
-      } catch (e) {
-        console.error('Error loading lines:', e);
-      }
-    }
-    loadAllLines();
-  }, []);
 
   // Al cambiar las coordenadas del corte, disparamos el análisis espacial automático
   useEffect(() => {
@@ -136,17 +120,16 @@ export default function DesviosPage() {
     analizarAfectacion();
   }, [corteCoords, radioMetros]);
 
-  // Cargar geometría completa de la línea al seleccionarla para trazar el desvío
+  // Cargar geometría de la línea seleccionada bajo demanda (ultra rápido)
   const handleSeleccionarLineaParaTrazar = async (linea: any) => {
     setLineaActivaParaTrazar(linea);
     setModoMapa('trazar_desvio');
     try {
-      const res = await fetch('/api/lineas-transporte');
+      const res = await fetch(`/api/lineas-transporte/${linea.id}`);
       if (res.ok) {
-        const allLineas = await res.json();
-        const found = allLineas.find((l: any) => l.id === linea.id);
+        const found = await res.json();
         if (found?.datosGeo) {
-          setLineaGeojsonFull(JSON.parse(found.datosGeo));
+          setLineaGeojsonFull(typeof found.datosGeo === 'string' ? JSON.parse(found.datosGeo) : found.datosGeo);
         }
       }
     } catch (e) {
@@ -879,7 +862,6 @@ export default function DesviosPage() {
                 lineaOriginalGeo={lineaGeojsonFull}
                 onDesvioCalculado={handleDesvioCalculado}
                 modo={modoMapa}
-                todasLasLineas={allLineas}
               />
             </div>
 

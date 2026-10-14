@@ -102,7 +102,28 @@ export default function DesvioMapEditor({
   const corteMarkerRef = useRef<L.Marker | null>(null);
   const lineaOriginalLayerRef = useRef<L.GeoJSON | null>(null);
   const [baseLayer, setBaseLayer] = useState<any>(null);
-  const [mostrarTodasLasLineas, setMostrarTodasLasLineas] = useState<boolean>(true);
+  const [mostrarTodasLasLineas, setMostrarTodasLasLineas] = useState<boolean>(false);
+  const [lineasDeFondo, setLineasDeFondo] = useState<any[]>([]);
+  const [cargandoLineasFondo, setCargandoLineasFondo] = useState<boolean>(false);
+
+  // Cargar líneas de fondo solo si el usuario prende el interruptor
+  const handleToggleLineasFondo = async (activar: boolean) => {
+    setMostrarTodasLasLineas(activar);
+    if (activar && lineasDeFondo.length === 0) {
+      setCargandoLineasFondo(true);
+      try {
+        const res = await fetch('/api/lineas-transporte');
+        if (res.ok) {
+          const data = await res.json();
+          setLineasDeFondo(Array.isArray(data) ? data : []);
+        }
+      } catch (e) {
+        console.error('Error loading lines:', e);
+      } finally {
+        setCargandoLineasFondo(false);
+      }
+    }
+  };
 
   // Cargar polígono del Municipio de Lanús (mismo que en Map.tsx)
   useEffect(() => {
@@ -287,8 +308,8 @@ export default function DesvioMapEditor({
           />
         )}
 
-        {/* Líneas de Colectivo de Fondo (para ver la red en tiempo real) */}
-        {mostrarTodasLasLineas && todasLasLineas.map((linea: any) => {
+        {/* Líneas de Colectivo de Fondo (bajo demanda) */}
+        {mostrarTodasLasLineas && lineasDeFondo.map((linea: any) => {
           if (!linea.datosGeo) return null;
           let parsed = null;
           try {
@@ -302,15 +323,10 @@ export default function DesvioMapEditor({
               data={parsed}
               style={{
                 color: linea.color || '#2563eb',
-                weight: 3,
-                opacity: 0.45,
+                weight: 2.5,
+                opacity: 0.4,
               }}
-              onEachFeature={(f, layer) => {
-                layer.bindTooltip(`Línea ${linea.numero || linea.nombre} ${linea.subcategoria || ''}`, {
-                  sticky: true,
-                  direction: 'top',
-                });
-              }}
+              interactive={false}
             />
           );
         })}
@@ -384,12 +400,16 @@ export default function DesvioMapEditor({
       }}>
         <Bus size={15} color="#2563eb" />
         <span>Ver red de colectivos</span>
-        <input
-          type="checkbox"
-          checked={mostrarTodasLasLineas}
-          onChange={(e) => setMostrarTodasLasLineas(e.target.checked)}
-          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-        />
+        {cargandoLineasFondo ? (
+          <span style={{ fontSize: '10px', color: '#64748b' }}>Cargando...</span>
+        ) : (
+          <input
+            type="checkbox"
+            checked={mostrarTodasLasLineas}
+            onChange={(e) => handleToggleLineasFondo(e.target.checked)}
+            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+          />
+        )}
       </div>
 
       {/* Controles de desvío cuando está en modo trazado */}
