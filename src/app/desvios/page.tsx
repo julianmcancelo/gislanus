@@ -84,11 +84,11 @@ export default function DesviosPage() {
     fetchIntervenciones();
   }, [filtroEstado]);
 
-  // Al cambiar las coordenadas del corte, disparamos el análisis espacial automático
+  // Al cambiar las coordenadas del corte, disparamos el análisis espacial automático (con debounce para evitar llamadas redundantes)
   useEffect(() => {
     if (!corteCoords) return;
 
-    const analizarAfectacion = async () => {
+    const timer = setTimeout(async () => {
       setIsAnalizando(true);
       try {
         const res = await fetch('/api/desvios/analizar-afectacion', {
@@ -115,9 +115,9 @@ export default function DesviosPage() {
       } finally {
         setIsAnalizando(false);
       }
-    };
+    }, 250);
 
-    analizarAfectacion();
+    return () => clearTimeout(timer);
   }, [corteCoords, radioMetros]);
 
   // Cargar geometría de la línea seleccionada bajo demanda (ultra rápido)
@@ -137,18 +137,19 @@ export default function DesviosPage() {
     }
   };
 
-  const handleDesvioCalculado = (geojson: any, callesText: string) => {
-    if (!lineaActivaParaTrazar) return;
-
-    setDesviosMap(prev => ({
-      ...prev,
-      [lineaActivaParaTrazar.id]: {
-        ...(prev[lineaActivaParaTrazar.id] || { paradasAnuladas: '', paradasProvisorias: '' }),
-        geojson,
-        callesDesvio: callesText,
-      },
-    }));
-  };
+  const handleDesvioCalculado = React.useCallback((geojson: any, callesText: string) => {
+    setDesviosMap(prev => {
+      if (!lineaActivaParaTrazar) return prev;
+      return {
+        ...prev,
+        [lineaActivaParaTrazar.id]: {
+          ...(prev[lineaActivaParaTrazar.id] || { paradasAnuladas: '', paradasProvisorias: '' }),
+          geojson,
+          callesDesvio: callesText,
+        },
+      };
+    });
+  }, [lineaActivaParaTrazar]);
 
   const handleGuardarIntervencion = async () => {
     if (!titulo.trim() || !corteCoords) {

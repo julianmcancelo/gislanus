@@ -196,6 +196,11 @@ export default function DesvioMapEditor({
     }
   }, [lineaOriginalGeo]);
 
+  const onDesvioCalculadoRef = useRef(onDesvioCalculado);
+  useEffect(() => {
+    onDesvioCalculadoRef.current = onDesvioCalculado;
+  }, [onDesvioCalculado]);
+
   // Manejo de ruteo con Leaflet Routing Machine
   useEffect(() => {
     const map = mapRef.current;
@@ -289,13 +294,15 @@ export default function DesvioMapEditor({
             textoItinerario = streets.length > 0 ? `Desvía por: ${streets.join(' ➔ ')}` : 'Desvío trazado por calles paralelas';
           }
 
-          onDesvioCalculado(geojsonLine, textoItinerario);
+          if (onDesvioCalculadoRef.current) {
+            onDesvioCalculadoRef.current(geojsonLine, textoItinerario);
+          }
         }
       });
 
       routingControlRef.current = router;
     }
-  }, [waypoints, onDesvioCalculado]);
+  }, [waypoints]);
 
   const addWaypoint = (latlng: L.LatLng) => {
     setWaypoints(prev => [...prev, latlng]);
