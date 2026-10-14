@@ -1,6 +1,11 @@
-'use client';
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { X, Printer, Calendar, Clock, MapPin, Bus, AlertTriangle, ShieldCheck, QrCode } from 'lucide-react';
+
+const StaticMapPreview = dynamic(() => import('@/components/StaticMapPreview'), {
+  ssr: false,
+  loading: () => <div style={{ height: '160px', width: '100%', background: '#f1f5f9', borderRadius: '8px' }} />
+});
 
 interface FichaDesvioModalProps {
   intervencion: any;
@@ -246,6 +251,30 @@ export default function FichaDesvioModal({ intervencion, onClose }: FichaDesvioM
                         Sentido: {d.sentido}
                       </span>
                     </div>
+
+                    {/* Mini Mapa de la Traza del Desvío Provisorio */}
+                    {d.datosGeoDesvio && (() => {
+                      let parsedGeo = null;
+                      try {
+                        parsedGeo = typeof d.datosGeoDesvio === 'string' ? JSON.parse(d.datosGeoDesvio) : d.datosGeoDesvio;
+                      } catch {}
+                      if (!parsedGeo || (!parsedGeo.geometry && !parsedGeo.coordinates && !parsedGeo.features)) return null;
+
+                      return (
+                        <div style={{ marginTop: '10px', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '10px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                            🗺️ Mapa de la Traza del Desvío:
+                          </span>
+                          <StaticMapPreview
+                            geoData={parsedGeo}
+                            height="160px"
+                            strokeColor={d.sentido === 'VUELTA' ? '#e11d48' : '#059669'}
+                            strokeWeight={5}
+                            interactive={false}
+                          />
+                        </div>
+                      );
+                    })()}
 
                     {d.callesDesvio && (
                       <div style={{ marginTop: '6px' }}>

@@ -249,12 +249,47 @@ export default function DesvioMapEditor({
             },
           };
 
-          const instructions = (r.instructions || [])
-            .map((inst: any) => inst.text)
-            .filter((t: string) => t && t.trim().length > 0)
-            .join(' ➔ ');
+          // Función de traducción y limpieza a español de las instrucciones de tránsito
+          const cleanSpanishInstructions = (r.instructions || [])
+            .map((inst: any) => {
+              let text = (inst.text || '').trim();
+              if (!text) return null;
 
-          onDesvioCalculado(geojsonLine, instructions || 'Desvío alternativo trazado por calles adyacentes');
+              // Si es un cartel genérico de destino o llegada, omitirlo para dejar la lista limpia de calles
+              if (/you have arrived|destination|has llegado/i.test(text)) return null;
+
+              // Traducciones de maniobras y direcciones
+              text = text
+                .replace(/^Head\s+(northwest|north|northeast|southwest|south|southeast|east|west)\s+on\s+/i, 'Por ')
+                .replace(/^Turn\s+left\s+onto\s+/i, 'Girar a la izquierda en ')
+                .replace(/^Turn\s+right\s+onto\s+/i, 'Girar a la derecha en ')
+                .replace(/^Turn\s+slight\s+left\s+onto\s+/i, 'Girar levemente a la izquierda en ')
+                .replace(/^Turn\s+slight\s+right\s+onto\s+/i, 'Girar levemente a la derecha en ')
+                .replace(/^Make\s+a\s+U-turn\s+onto\s+/i, 'Girar en U por ')
+                .replace(/^Continue\s+onto\s+/i, 'Continuar por ')
+                .replace(/^Continue\s+on\s+/i, 'Continuar por ')
+                .replace(/^Take\s+the\s+ramp\s+onto\s+/i, 'Tomar la bajada hacia ')
+                .replace(/^At\s+the\s+roundabout,\s+take\s+the\s+(\d+)(st|nd|rd|th)?\s+exit\s+onto\s+/i, 'En la rotonda, tomar la salida $1 por ');
+
+              return text;
+            })
+            .filter((t: any) => t && t.length > 0);
+
+          // Si quedaron pasos, unir con flechas; si no, extraer las calles únicas
+          let textoItinerario = '';
+          if (cleanSpanishInstructions.length > 0) {
+            // Eliminar instrucciones duplicadas contiguas (ej: "Continuar por Pergamino ➔ Continuar por Pergamino")
+            const unicos = cleanSpanishInstructions.filter((val: string, idx: number, arr: string[]) => val !== arr[idx - 1]);
+            textoItinerario = unicos.join(' ➔ ');
+          } else {
+            // Fallback: listar las calles directas
+            const streets = Array.from(new Set(
+              (r.instructions || []).map((i: any) => i.road).filter(Boolean)
+            ));
+            textoItinerario = streets.length > 0 ? `Desvía por: ${streets.join(' ➔ ')}` : 'Desvío trazado por calles paralelas';
+          }
+
+          onDesvioCalculado(geojsonLine, textoItinerario);
         }
       });
 
