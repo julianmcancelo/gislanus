@@ -54,11 +54,12 @@ const desvioWaypointIcon = L.divIcon({
 });
 
 interface DesvioMapEditorProps {
+  lineaId?: string;
   corteCoords: [number, number] | null;
   setCorteCoords: (coords: [number, number]) => void;
   radioMetros: number;
   lineaOriginalGeo: any | null; // GeoJSON de la línea afectada para comparar
-  onDesvioCalculado: (geojson: any, callesText: string) => void;
+  onDesvioCalculado: (geojson: any, callesText: string, waypoints?: [number, number][]) => void;
   modo: 'marcar_corte' | 'trazar_desvio';
   todasLasLineas?: any[]; // Todas las líneas de transporte cargadas en el GIS para verlas en el mapa
   waypointsForzados?: [number, number][] | null;
@@ -88,6 +89,7 @@ function MapEventsHandler({
 }
 
 export default function DesvioMapEditor({
+  lineaId,
   corteCoords,
   setCorteCoords,
   radioMetros,
@@ -108,12 +110,21 @@ export default function DesvioMapEditor({
   const [lineasDeFondo, setLineasDeFondo] = useState<any[]>([]);
   const [cargandoLineasFondo, setCargandoLineasFondo] = useState<boolean>(false);
 
-  // Inyectar waypoints sugeridos automáticamente si vienen por prop
+  // Cuando cambia la línea activa a trazar, reiniciar o cargar sus waypoints
   useEffect(() => {
-    if (waypointsForzados && waypointsForzados.length >= 2) {
-      setWaypoints(waypointsForzados.map(wp => L.latLng(wp[0], wp[1])));
+    if (routingControlRef.current && mapRef.current) {
+      try {
+        mapRef.current.removeControl(routingControlRef.current);
+      } catch {}
+      routingControlRef.current = null;
     }
-  }, [waypointsForzados]);
+
+    if (waypointsForzados && waypointsForzados.length > 0) {
+      setWaypoints(waypointsForzados.map(wp => L.latLng(wp[0], wp[1])));
+    } else {
+      setWaypoints([]);
+    }
+  }, [lineaId, waypointsForzados]);
 
   // Cargar líneas de fondo solo si el usuario prende el interruptor
   const handleToggleLineasFondo = async (activar: boolean) => {
@@ -304,7 +315,8 @@ export default function DesvioMapEditor({
           }
 
           if (onDesvioCalculadoRef.current) {
-            onDesvioCalculadoRef.current(geojsonLine, textoItinerario);
+            const wpsArr = waypoints.map(w => [w.lat, w.lng] as [number, number]);
+            onDesvioCalculadoRef.current(geojsonLine, textoItinerario, wpsArr);
           }
         }
       });

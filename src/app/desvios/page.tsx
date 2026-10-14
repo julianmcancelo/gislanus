@@ -58,6 +58,7 @@ export default function DesviosPage() {
     callesDesvio: string;
     paradasAnuladas: string;
     paradasProvisorias: string;
+    waypoints?: [number, number][];
   }>>({});
   const [lineaActivaParaTrazar, setLineaActivaParaTrazar] = useState<any | null>(null);
   const [lineaGeojsonFull, setLineaGeojsonFull] = useState<any | null>(null);
@@ -126,7 +127,9 @@ export default function DesviosPage() {
   const handleSeleccionarLineaParaTrazar = async (linea: any) => {
     setLineaActivaParaTrazar(linea);
     setModoMapa('trazar_desvio');
-    setWaypointsAutoSugeridos(null);
+    // Si la línea ya tenía waypoints guardados, restaurarlos; sino inicializar vacío
+    const waypointsGuardados = desviosMap[linea.id]?.waypoints;
+    setWaypointsAutoSugeridos(waypointsGuardados && waypointsGuardados.length > 0 ? waypointsGuardados : null);
     try {
       if (linea.datosGeo) {
         const parsed = typeof linea.datosGeo === 'string' ? JSON.parse(linea.datosGeo) : linea.datosGeo;
@@ -178,7 +181,7 @@ export default function DesviosPage() {
     }
   };
 
-  const handleDesvioCalculado = React.useCallback((geojson: any, callesText: string) => {
+  const handleDesvioCalculado = React.useCallback((geojson: any, callesText: string, waypoints?: [number, number][]) => {
     setDesviosMap(prev => {
       if (!lineaActivaParaTrazar) return prev;
       return {
@@ -187,6 +190,7 @@ export default function DesviosPage() {
           ...(prev[lineaActivaParaTrazar.id] || { paradasAnuladas: '', paradasProvisorias: '' }),
           geojson,
           callesDesvio: callesText,
+          waypoints: waypoints || prev[lineaActivaParaTrazar.id]?.waypoints,
         },
       };
     });
@@ -1045,6 +1049,8 @@ export default function DesviosPage() {
             {/* Mapa Interactivo de Pantalla Completa */}
             <div style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
               <DesvioMapEditor
+                key={lineaActivaParaTrazar?.id || 'sin-linea'}
+                lineaId={lineaActivaParaTrazar?.id}
                 corteCoords={corteCoords}
                 setCorteCoords={setCorteCoords}
                 radioMetros={radioMetros}
