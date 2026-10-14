@@ -220,6 +220,18 @@ export default function DesviosPage() {
 
       const nueva = await res.json();
       toast.success('¡Corte y desvíos planificados exitosamente!', { id: toastId });
+      
+      // Reset de formulario
+      setTitulo('');
+      setMotivo('');
+      setCallesAfectadas('');
+      setCorteCoords(null);
+      setLineasAfectadas([]);
+      setDesviosMap({});
+      setLineaActivaParaTrazar(null);
+      setLineaGeojsonFull(null);
+      setStep(1);
+
       setActiveTab('gestionar');
       fetchIntervenciones();
       setSelectedIntervencion(nueva); // Abrir automáticamente para imprimir
@@ -228,6 +240,52 @@ export default function DesviosPage() {
       toast.error(e.message || 'Error al guardar', { id: toastId });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteIntervencion = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('¿Estás seguro de que querés eliminar esta intervención y todos sus desvíos?')) return;
+
+    const toastId = toast.loading('Eliminando intervención...');
+    try {
+      const token = await getIdToken();
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/desvios/${id}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) throw new Error('Error al eliminar');
+
+      toast.success('Intervención eliminada', { id: toastId });
+      fetchIntervenciones();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar', { id: toastId });
+    }
+  };
+
+  const handleCambiarEstado = async (id: string, nuevoEstado: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const token = await getIdToken();
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/desvios/${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ estado: nuevoEstado }),
+      });
+
+      if (!res.ok) throw new Error('Error al actualizar estado');
+
+      toast.success(`Estado actualizado a ${nuevoEstado}`);
+      fetchIntervenciones();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al cambiar estado');
     }
   };
 
@@ -481,7 +539,28 @@ export default function DesviosPage() {
                     </div>
 
                     {/* Acciones de la tarjeta */}
-                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px', alignItems: 'center' }}>
+                      <select
+                        value={item.estado}
+                        onChange={(e) => handleCambiarEstado(item.id, e.target.value, e as any)}
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          background: '#f8fafc',
+                          color: '#334155',
+                          cursor: 'pointer',
+                        }}
+                        title="Cambiar estado de la intervención"
+                      >
+                        <option value="PLANIFICADO">PLANIFICADO</option>
+                        <option value="EN_CURSO">EN CURSO</option>
+                        <option value="FINALIZADO">FINALIZADO</option>
+                        <option value="CANCELADO">CANCELADO</option>
+                      </select>
+
                       <button
                         onClick={() => setSelectedIntervencion(item)}
                         style={{
@@ -490,7 +569,7 @@ export default function DesviosPage() {
                           color: '#fff',
                           border: 'none',
                           borderRadius: '8px',
-                          padding: '8px',
+                          padding: '7px 10px',
                           fontSize: '12px',
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -501,7 +580,25 @@ export default function DesviosPage() {
                         }}
                       >
                         <Printer size={14} />
-                        Ficha Técnica & Desvío
+                        Ficha Técnica & Mapa
+                      </button>
+
+                      <button
+                        onClick={(e) => handleDeleteIntervencion(item.id, e)}
+                        style={{
+                          background: '#fee2e2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: '8px',
+                          padding: '7px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                        title="Eliminar intervención y desvíos"
+                      >
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
