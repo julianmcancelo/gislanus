@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole } from '@/lib/authGuard';
+import { requireRole, requirePermission } from '@/lib/authGuard';
 
 // Allow large GeoJSON uploads (up to 50MB)
 export const maxDuration = 60;
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const guard = await requireRole(req, ['SUPER_ADMIN', 'ADMINISTRADOR']);
+  const guard = await requirePermission(req, 'editarCapas');
   if (guard.error) return guard.error;
 
   try {

@@ -10,6 +10,7 @@ import HeatmapLayer from './HeatmapLayer';
 import { renderToString } from 'react-dom/server';
 import { MapPin, Plus, Minus, Home, Maximize, Printer, Save, School, Hospital, Bus, Car, AlertTriangle, Info, TreePine, Building, Share2, Palette } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { escucharCambioMapa, escucharTracking } from '@/lib/rtdb';
 
@@ -103,6 +104,7 @@ function MapToolbar({
   isStudioOpen?: boolean;
   onToggleStudio?: () => void;
 }) {
+  const router = useRouter();
   const map = useMap();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
 
@@ -252,10 +254,10 @@ function MapToolbar({
 
         <div className="map-divider" />
         <button
-          onClick={() => onToggleStudio?.()}
+          onClick={() => router.push('/estudio-cartografico')}
           className="map-tool-btn"
-          style={{ color: isStudioOpen ? '#38bdf8' : '#e2e8f0', background: isStudioOpen ? 'rgba(56, 189, 248, 0.2)' : 'transparent' }}
-          title="🎨 Estudio Cartográfico (Dibujar puntos, trazas y zonas)"
+          style={{ color: '#38bdf8' }}
+          title="🎨 Abrir Estudio Cartográfico (Espacio de diseño y dibujo en pantalla completa)"
         >
           <Palette size={16} />
         </button>
@@ -427,18 +429,16 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas, resLineas, resTransportBase, resBitacora] = await Promise.all([
+        const [resCapas, resRutas, resLineas, resBitacora] = await Promise.all([
           fetch('/api/capas').catch(() => ({ ok: false, json: async () => [] })),
           fetch('/api/rutas-transporte').catch(() => ({ ok: false, json: async () => [] })),
           fetch('/api/lineas-transporte').catch(() => ({ ok: false, json: async () => [] })),
-          fetch('/transporte-lanus.geojson').catch(() => ({ ok: false, json: async () => ({ type: 'FeatureCollection', features: [] }) })),
           fetch('/api/bitacora-gps?limit=100').catch(() => ({ ok: false, json: async () => ({ items: [] }) })),
         ]);
 
         const dataCapas = resCapas && resCapas.ok ? await resCapas.json().catch(() => []) : [];
         const dataRutas = resRutas && resRutas.ok ? await resRutas.json().catch(() => []) : [];
         const dataLineas = resLineas && resLineas.ok ? await resLineas.json().catch(() => []) : [];
-        const dataTransportBase = resTransportBase && resTransportBase.ok ? await resTransportBase.json().catch(() => ({ type: 'FeatureCollection', features: [] })) : { type: 'FeatureCollection', features: [] };
         const dataBitacora = resBitacora && resBitacora.ok ? await resBitacora.json().catch(() => ({ items: [] })) : { items: [] };
         const validBitacora = Array.isArray(dataBitacora?.items) ? dataBitacora.items : [];
 
@@ -558,37 +558,6 @@ export default function MapComponent() {
           };
         });
 
-        const formatedTransportBase = (Array.isArray(dataTransportBase?.features) ? dataTransportBase.features : []).map((feature: any, index: number) => {
-          const props = feature?.properties || {};
-          const red = props.network === 'PROVINCIAL' ? 'Provincial' : 'Municipal';
-          const lineaLabel = `Línea ${props.line || 's/n'}`;
-          const ramalLabel = `Ramal ${props.branch || 'Principal'}`;
-          const sentido = String(props.direction || '').toUpperCase();
-          const idPart = `${props.network}-${props.line}-${props.branch}-${sentido}-${index}`.replace(/[^a-zA-Z0-9_-]+/g, '-');
-          const lineColor = stableTransitColor(`${props.network || 'TRANSPORTE'}-${lineaLabel}-${ramalLabel}`, sentido, '#2563eb');
-          const lineaProps = {
-            ...props,
-            _tipo: 'linea',
-            _linea: lineaLabel,
-            _ramal: ramalLabel,
-            _sentido: sentido,
-            _operador: props.operator || props.description || null,
-            _color: lineColor,
-          };
-
-          return {
-            id: `transporte-base-${idPart}`,
-            nombre: sentido === 'VUELTA' ? 'Vuelta' : 'Ida',
-            datosGeo: { ...feature, properties: lineaProps },
-            color: lineColor,
-            visibilidad: 'PUBLIC',
-            rolesPermitidos: [],
-            grupo: { nombre: `Red ${red} de Transporte` },
-            subGrupo: { nombre: lineaLabel },
-            subSubGrupo: { nombre: ramalLabel },
-          };
-        });
-
         const formatedRutas = validRutas.map((r: any, index: number) => {
           if (!r) return null;
           // Generar un color único usando el ángulo dorado para máxima distinción visual
@@ -674,7 +643,7 @@ export default function MapComponent() {
           };
         }).filter(Boolean);
 
-        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedTransportBase, ...formatedBitacora];
+        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedBitacora];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {

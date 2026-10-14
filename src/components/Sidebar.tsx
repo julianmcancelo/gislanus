@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download, Printer,
-  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2, Smartphone, Construction
+  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2, Smartphone, Construction, Palette
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -493,6 +493,11 @@ export default function Sidebar({
         {canAccessLineas && (
           <div className={styles.navIcon} onClick={() => router.push('/desvios')} title="Planificador de Desvíos Viales (Obras y Eventos)">
             <Construction size={16} color="#f59e0b" />
+          </div>
+        )}
+        {canAccessLineas && (
+          <div className={styles.navIcon} onClick={() => router.push('/estudio-cartografico')} title="Estudio Cartográfico — Diseño y Trazado de Capas">
+            <Palette size={16} color="#38bdf8" />
           </div>
         )}
         {canAccessLineas && (
