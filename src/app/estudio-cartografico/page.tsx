@@ -11,6 +11,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { emitirCambioMapa } from '@/lib/rtdb';
 
+import ImportadorPlanObrasModal from '@/components/ImportadorPlanObrasModal';
+
 const StandaloneStudioMap = dynamic(() => import('@/components/StandaloneStudioMap'), {
   ssr: false,
   loading: () => (
@@ -33,6 +35,9 @@ const CATEGORIAS = [
 export default function EstudioCartograficoPage() {
   const router = useRouter();
   const { getIdToken } = useAuth();
+
+  // Modal de Importador de Obras Inteligente
+  const [showImportadorObras, setShowImportadorObras] = useState(false);
 
   // Estados de dibujo
   const [activeDrawMode, setActiveDrawMode] = useState<'marker' | 'line' | 'polygon' | null>(null);
@@ -267,16 +272,41 @@ export default function EstudioCartograficoPage() {
           </div>
         </div>
 
-        {/* Interruptor Red de Transporte de Fondo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.06)', padding: '6px 14px', borderRadius: '8px' }}>
-          <Bus size={15} color="#38bdf8" />
-          <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>Ver red de colectivos de fondo</span>
-          <input
-            type="checkbox"
-            checked={mostrarRedTransporte}
-            onChange={(e) => setMostrarRedTransporte(e.target.checked)}
-            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Botón de Importación Inteligente de Obras */}
+          <button
+            type="button"
+            onClick={() => setShowImportadorObras(true)}
+            style={{
+              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              color: '#fff',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '8px',
+              padding: '7px 14px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(37,99,235,0.4)',
+            }}
+          >
+            <Sparkles size={14} color="#fef08a" />
+            Importar Plan de Obras (IA)
+          </button>
+
+          {/* Interruptor Red de Transporte de Fondo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.06)', padding: '6px 14px', borderRadius: '8px' }}>
+            <Bus size={15} color="#38bdf8" />
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#e2e8f0' }}>Ver colectivos</span>
+            <input
+              type="checkbox"
+              checked={mostrarRedTransporte}
+              onChange={(e) => setMostrarRedTransporte(e.target.checked)}
+              style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+            />
+          </div>
         </div>
       </header>
 
@@ -596,6 +626,27 @@ export default function EstudioCartograficoPage() {
         </div>
 
       </main>
+
+      <ImportadorPlanObrasModal
+        isOpen={showImportadorObras}
+        onClose={() => setShowImportadorObras(false)}
+        onImportadoExitoso={(geojson, titulo) => {
+          // Si el usuario quiere continuar trabajando sobre los elementos en la sesión del estudio
+          if (geojson?.features) {
+            const nuevos = geojson.features.map((f: any, i: number) => ({
+              shape: f.geometry.type === 'LineString' ? 'Line' : 'Marker',
+              geo: f,
+              nombre: f.properties?.nombre || `Obra ${i + 1}`,
+              descripcion: f.properties?.observaciones || f.properties?.descripcionOriginal || '',
+              categoria: 'OBRAS',
+              color: f.properties?.color || '#ea580c',
+              icono: 'AlertTriangle',
+            }));
+            setElementosDibujados(prev => [...prev, ...nuevos]);
+            setNombreNuevaCapa(titulo);
+          }
+        }}
+      />
     </div>
   );
 }
