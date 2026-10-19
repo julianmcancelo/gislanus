@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Layers, Info, LogIn, LogOut, Truck, Bus, Settings, MapPin, Download, Printer,
-  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2, Smartphone, Construction, Palette
+  Shield, User, ExternalLink, ChevronDown, ChevronRight, ClipboardList, RefreshCw, Share2, Smartphone, Construction, Palette,
+  Search, X
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -315,6 +316,7 @@ export default function Sidebar({
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [capaSearch, setCapaSearch] = useState('');
 
   const handleSyncSAT = async () => {
     setIsSyncing(true);
@@ -403,10 +405,24 @@ export default function Sidebar({
   const toggleSol  = (k: string) => setExpandedSols(p => ({ ...p, [k]: p[k] === false }));
   const toggleNode = (k: string) => setExpandedNodes(p => ({ ...p, [k]: !p[k] }));
 
+  const capasFiltradas = useMemo(() => {
+    if (!capaSearch.trim()) return capas;
+    const term = capaSearch.toLowerCase().trim();
+    return capas.filter(c =>
+      (c.nombre && c.nombre.toLowerCase().includes(term)) ||
+      (c.grupo?.nombre && c.grupo.nombre.toLowerCase().includes(term)) ||
+      (c.subGrupo?.nombre && c.subGrupo.nombre.toLowerCase().includes(term)) ||
+      (c.subSubGrupo?.nombre && c.subSubGrupo.nombre.toLowerCase().includes(term)) ||
+      (c.numeroSolicitud && c.numeroSolicitud.toLowerCase().includes(term)) ||
+      (c.empresaSolicitante && c.empresaSolicitante.toLowerCase().includes(term)) ||
+      (c.nombreSolicitante && c.nombreSolicitante.toLowerCase().includes(term))
+    );
+  }, [capas, capaSearch]);
+
   const { grupos, general } = useMemo(() => {
     const groups: Record<string, GroupedData> = {};
     const generalCapas: Capa[] = [];
-    capas.forEach(capa => {
+    capasFiltradas.forEach(capa => {
       if (capa.grupo?.nombre) {
         const gn = capa.grupo.nombre;
         if (!groups[gn]) groups[gn] = { capasDirectas: [], subgrupos: {} };
@@ -428,7 +444,7 @@ export default function Sidebar({
       }
     });
     return { grupos: groups, general: generalCapas };
-  }, [capas]);
+  }, [capasFiltradas]);
 
   const flattenGroup    = (gn: string) => {
     const d = grupos[gn];
@@ -617,41 +633,133 @@ export default function Sidebar({
         {/* ── Capas ── */}
         {activeTab === 'layers' && (
           <div className={styles.panelContent}>
-            <div className={styles.panelHeader} style={{ justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div className={styles.panelHeaderIcon}>
-                  <Layers size={14} color="#64748b" />
+            <div className={styles.panelHeader} style={{ flexDirection: 'column', gap: '10px', alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className={styles.panelHeaderIcon}>
+                    <Layers size={14} color="#64748b" />
+                  </div>
+                  <h3 className={styles.panelTitle}>Capas</h3>
+                  <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
                 </div>
-                <h3 className={styles.panelTitle}>Capas</h3>
-                <span className={`${styles.badge} ${styles.badgeGray}`}>{capas.length}</span>
+                {abrirCompartir && (
+                  <button
+                    type="button"
+                    onClick={() => abrirCompartir()}
+                    style={{
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 2px 8px rgba(37,99,235,0.25)'
+                    }}
+                    title="Generar Enlace Público y QR"
+                  >
+                    <Share2 size={13} />
+                    <span>Compartir</span>
+                  </button>
+                )}
               </div>
-              {abrirCompartir && (
-                <button
-                  type="button"
-                  onClick={() => abrirCompartir()}
+
+              {/* Buscador de capas instantáneo */}
+              <div style={{
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '4px 8px',
+                transition: 'border-color 0.2s',
+              }}>
+                <Search size={13} style={{ color: '#94a3b8', flexShrink: 0, marginRight: '6px' }} />
+                <input
+                  type="text"
+                  placeholder="Filtrar capas o líneas..."
+                  value={capaSearch}
+                  onChange={(e) => setCapaSearch(e.target.value)}
                   style={{
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    color: '#fff',
                     border: 'none',
-                    borderRadius: '8px',
-                    padding: '5px 10px',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    boxShadow: '0 2px 8px rgba(37,99,235,0.25)'
+                    outline: 'none',
+                    background: 'transparent',
+                    fontSize: '11px',
+                    width: '100%',
+                    color: '#1e293b',
+                    fontFamily: 'inherit'
                   }}
-                  title="Generar Enlace Público y QR"
-                >
-                  <Share2 size={13} />
-                  <span>Compartir / QR</span>
-                </button>
-              )}
+                />
+                {capaSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setCapaSearch('')}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      padding: 0,
+                      cursor: 'pointer',
+                      color: '#94a3b8',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className={styles.panelBody}>
+              {/* Controles rápidos de capas */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px 4px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  {capaSearch ? `Resultados (${capasFiltradas.length})` : 'Grupos y Trazas'}
+                </span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => capasFiltradas.forEach(c => { if (!c.active) alternarCapa(c.id); })}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#2563eb',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: '4px'
+                    }}
+                    title="Activar todas las capas visibles"
+                  >
+                    Activar
+                  </button>
+                  <span style={{ color: '#cbd5e1', fontSize: '10px' }}>•</span>
+                  <button
+                    type="button"
+                    onClick={() => capasFiltradas.forEach(c => { if (c.active) alternarCapa(c.id); })}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#64748b',
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: '2px 4px',
+                      borderRadius: '4px'
+                    }}
+                    title="Desactivar todas las capas visibles"
+                  >
+                    Desactivar
+                  </button>
+                </div>
+              </div>
+
               {Object.entries(grupos).map(([gName, gData]) => {
                 const isOpen      = expandedNodes[gName];
                 const allCapas    = flattenGroup(gName);
@@ -1049,25 +1157,52 @@ export default function Sidebar({
               {/* Controles de Visualización */}
               <div style={{
                 background: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '12px 14px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: '10px',
+                boxShadow: '0 1px 3px rgba(15,23,42,0.03)'
               }}>
-                <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 600 }}>CAPAS DE MAPA</p>
-                
-                {/* Toggle Mapa de Calor */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
-                  <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>Mapa de Calor</span>
-                  <Toggle active={verReclamosCalor} color="#ef4444" onChange={() => setVerReclamosCalor(!verReclamosCalor)} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <p style={{ margin: 0, fontSize: '10px', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Visualización en Mapa
+                  </p>
+                  <span style={{
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '999px',
+                    background: (verReclamosMarcadores || verReclamosCalor) ? '#dcfce7' : '#f1f5f9',
+                    color: (verReclamosMarcadores || verReclamosCalor) ? '#15803d' : '#94a3b8'
+                  }}>
+                    {(verReclamosMarcadores || verReclamosCalor) ? 'Activo' : 'Oculto'}
+                  </span>
                 </div>
                 
                 {/* Toggle Marcadores */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
-                  <span style={{ fontSize: '11px', color: '#334155', fontWeight: 500 }}>Marcadores</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>📍</span>
+                    <div>
+                      <span style={{ fontSize: '11px', color: '#1e293b', fontWeight: 650, display: 'block' }}>Marcadores Individuales</span>
+                      <span style={{ fontSize: '9px', color: '#94a3b8' }}>Muestra puntos con detalle y expediente</span>
+                    </div>
+                  </div>
                   <Toggle active={verReclamosMarcadores} color="#2563eb" onChange={() => setVerReclamosMarcadores(!verReclamosMarcadores)} />
+                </div>
+
+                {/* Toggle Mapa de Calor */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>🔥</span>
+                    <div>
+                      <span style={{ fontSize: '11px', color: '#1e293b', fontWeight: 650, display: 'block' }}>Mapa de Calor</span>
+                      <span style={{ fontSize: '9px', color: '#94a3b8' }}>Densidad térmica de incidentes</span>
+                    </div>
+                  </div>
+                  <Toggle active={verReclamosCalor} color="#ef4444" onChange={() => setVerReclamosCalor(!verReclamosCalor)} />
                 </div>
               </div>
 

@@ -187,7 +187,7 @@ function MapToolbar({
     <div style={{
       position: 'absolute',
       top: '14px',
-      left: activeTab ? '360px' : '60px',
+      left: activeTab ? '386px' : '66px',
       zIndex: 1000,
       transition: 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       display: 'flex',
@@ -381,11 +381,11 @@ export default function MapComponent() {
     setAtlasModalOpen(true);
   };
 
-  // Estados para el módulo de Reclamos SAT
+  // Estados para el módulo de Reclamos SAT (por defecto invisibles / destildados)
   const [reclamos, setReclamos] = useState<any[]>([]);
   const [loadingReclamos, setLoadingReclamos] = useState(false);
   const [verReclamosCalor, setVerReclamosCalor] = useState(false);
-  const [verReclamosMarcadores, setVerReclamosMarcadores] = useState(true);
+  const [verReclamosMarcadores, setVerReclamosMarcadores] = useState(false);
   const [motivosSeleccionados, setMotivosSeleccionados] = useState<number[]>([33, 38, 81, 83, 84]);
   const [estadoFiltro, setEstadoFiltro] = useState<string>('TODOS');
   const [prioridadFiltro, setPrioridadFiltro] = useState<string>('TODAS');
@@ -997,7 +997,7 @@ export default function MapComponent() {
           maxZoom={19}
           zIndex={0}
         />
-        <MapSearch />
+        <MapSearch activeTab={activeTab} />
 
         <GeomanController isAdmin={dbUser?.rol === 'SUPER_ADMIN' || (dbUser?.permisos?.editarCapas ?? false)} />
 
@@ -1300,20 +1300,20 @@ export default function MapComponent() {
           style={{
             position: 'absolute',
             bottom: '24px',
-            left: '20px',
+            right: '20px',
             zIndex: 1500,
-            background: 'rgba(255, 255, 255, 0.96)',
-            backdropFilter: 'blur(12px)',
-            border: '1.5px solid #cbd5e1',
-            borderRadius: '12px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            borderRadius: '14px',
+            boxShadow: '0 12px 35px -4px rgba(15, 23, 42, 0.18), 0 4px 12px -2px rgba(15, 23, 42, 0.08)',
             fontFamily: "'Inter', system-ui, sans-serif",
             width: '280px',
-            maxHeight: leyendaOpen ? '340px' : '42px',
+            maxHeight: leyendaOpen ? '360px' : '44px',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'all 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
           {/* Header del cuadro de referencias */}

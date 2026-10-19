@@ -3,7 +3,7 @@ import { useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Search, MapPin, X, Loader2 } from 'lucide-react';
 
-export default function MapSearch() {
+export default function MapSearch({ activeTab }: { activeTab?: 'layers' | 'info' | 'reclamos' | null }) {
   const map = useMap();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -93,14 +93,15 @@ export default function MapSearch() {
       className="map-search-box hide-on-print"
       style={{ 
         position: 'absolute', 
-        top: '12px', 
-        left: '52px', 
+        top: '14px', 
+        left: activeTab ? '434px' : '114px', 
         zIndex: 1000,
         pointerEvents: 'auto',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        transition: 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      <div style={{ position: 'relative', width: '310px' }}>
+      <div style={{ position: 'relative', width: '280px' }}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
