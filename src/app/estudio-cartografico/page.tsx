@@ -525,15 +525,24 @@ export default function EstudioCartograficoPage() {
                 {elementosDibujados.map((el, idx) => (
                   <div
                     key={idx}
+                    onClick={() => {
+                      setSelectedElementoIdx(idx);
+                      setFormNombre(el.nombre || '');
+                      setFormDescripcion(el.descripcion || '');
+                      setFormColor(el.color || '#ea580c');
+                    }}
                     style={{
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      background: '#fff',
-                      border: '1px solid #e2e8f0',
+                      background: selectedElementoIdx === idx ? '#eff6ff' : '#fff',
+                      border: '1px solid',
+                      borderColor: selectedElementoIdx === idx ? '#3b82f6' : '#e2e8f0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
@@ -548,7 +557,10 @@ export default function EstudioCartograficoPage() {
 
                     <button
                       type="button"
-                      onClick={() => handleRemoveElemento(idx)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveElemento(idx);
+                      }}
                       style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px' }}
                       title="Eliminar elemento"
                     >

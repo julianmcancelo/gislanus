@@ -20,6 +20,110 @@ interface StandaloneStudioMapProps {
   onSelectElemento: (idx: number) => void;
 }
 
+// Subcomponente que renderiza en el mapa todos los elementos dibujados o importados
+function DrawnElementsRenderer({
+  elementosDibujados,
+  selectedElementoIdx,
+  onSelectElemento,
+}: {
+  elementosDibujados: any[];
+  selectedElementoIdx: number | null;
+  onSelectElemento: (idx: number) => void;
+}) {
+  const map = useMap();
+  const layerGroupRef = useRef<L.FeatureGroup | null>(null);
+
+  useEffect(() => {
+    if (!layerGroupRef.current) {
+      layerGroupRef.current = new L.FeatureGroup().addTo(map);
+    }
+    const group = layerGroupRef.current;
+    group.clearLayers();
+
+    elementosDibujados.forEach((el, idx) => {
+      if (!el.geo) return;
+      const isSelected = selectedElementoIdx === idx;
+      const color = el.color || '#ea580c';
+
+      try {
+        const geoLayer = L.geoJSON(el.geo, {
+          pointToLayer: (_geoJsonPoint, latlng) => {
+            // Icono de marcador visual estilizado
+            const iconHtml = `
+              <div style="
+                background: ${color};
+                width: ${isSelected ? '32px' : '26px'};
+                height: ${isSelected ? '32px' : '26px'};
+                border-radius: 50%;
+                border: 2px solid #ffffff;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffffff;
+                font-size: ${isSelected ? '14px' : '11px'};
+                font-weight: 800;
+                cursor: pointer;
+                transition: transform 0.15s ease;
+              ">
+                🚧
+              </div>
+            `;
+            const customIcon = L.divIcon({
+              html: iconHtml,
+              className: 'custom-studio-marker',
+              iconSize: [isSelected ? 32 : 26, isSelected ? 32 : 26],
+              iconAnchor: [isSelected ? 16 : 13, isSelected ? 16 : 13],
+            });
+            return L.marker(latlng, { icon: customIcon });
+          },
+          style: () => ({
+            color: color,
+            weight: isSelected ? 7 : 5,
+            opacity: 0.9,
+            fillColor: color,
+            fillOpacity: 0.35,
+          }),
+        });
+
+        geoLayer.on('click', () => {
+          onSelectElemento(idx);
+        });
+
+        // Popup con datos de la obra
+        const p = el.geo.properties || {};
+        const popupContent = `
+          <div style="font-family: Inter, sans-serif; min-width: 180px;">
+            <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 4px;">
+              ${el.nombre || 'Obra / Intervención'}
+            </div>
+            ${p.empresa ? `<div style="font-size: 11px; font-weight: 700; color: ${color};">Empresa: ${p.empresa}</div>` : ''}
+            ${p.zona ? `<div style="font-size: 11px; color: #475569;">${p.zona} · ${p.tipoMaterial || ''}</div>` : ''}
+            ${el.descripcion ? `<div style="font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic;">${el.descripcion}</div>` : ''}
+          </div>
+        `;
+        geoLayer.bindPopup(popupContent);
+
+        group.addLayer(geoLayer);
+      } catch (err) {
+        console.error('Error dibujando elemento en mapa:', err);
+      }
+    });
+
+    // Si se acaban de importar elementos, ajustar la vista del mapa a ellos
+    if (elementosDibujados.length > 0 && group.getLayers().length > 0) {
+      try {
+        const bounds = group.getBounds();
+        if (bounds.isValid()) {
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+        }
+      } catch {}
+    }
+  }, [elementosDibujados, selectedElementoIdx, map, onSelectElemento]);
+
+  return null;
+}
+
 function GeomanController({
   activeDrawMode,
   formColor,
@@ -37,7 +141,6 @@ function GeomanController({
   const onDrawModeEndedRef = useRef(onDrawModeEnded);
   onDrawModeEndedRef.current = onDrawModeEnded;
 
-  // Registrar listeners de Geoman
   useEffect(() => {
     if (!map || !(map as any).pm) return;
 
@@ -62,7 +165,6 @@ function GeomanController({
     };
   }, [map, formColor]);
 
-  // Actualizar modo de dibujo
   useEffect(() => {
     if (!map || !(map as any).pm) return;
 
@@ -102,9 +204,7 @@ export default function StandaloneStudioMap({
   const mapRef = useRef<L.Map | null>(null);
   const [baseLayer, setBaseLayer] = useState<any>(null);
   const [lineasDeFondo, setLineasDeFondo] = useState<any[]>([]);
-  const drawnGroupRef = useRef<L.FeatureGroup | null>(null);
 
-  // Cargar límite municipal
   useEffect(() => {
     async function loadBase() {
       try {
@@ -120,7 +220,6 @@ export default function StandaloneStudioMap({
     loadBase();
   }, []);
 
-  // Cargar líneas de transporte de fondo cuando el usuario las prende
   useEffect(() => {
     if (mostrarRedTransporte && lineasDeFondo.length === 0) {
       fetch('/api/lineas-transporte')
@@ -183,6 +282,13 @@ export default function StandaloneStudioMap({
             />
           );
         })}
+
+        {/* Renderizado de elementos dibujados e importados por IA */}
+        <DrawnElementsRenderer
+          elementosDibujados={elementosDibujados}
+          selectedElementoIdx={selectedElementoIdx}
+          onSelectElemento={onSelectElemento}
+        />
 
         <GeomanController
           activeDrawMode={activeDrawMode}
