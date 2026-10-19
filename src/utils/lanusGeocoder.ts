@@ -62,6 +62,24 @@ async function queryJson(url: string, timeoutMs: number = 7000): Promise<any> {
 /**
  * Geocodifica una intersección de dos calles en Lanús
  */
+// Bounding box estricto del Partido de Lanús:
+// Lng Oeste: -58.4600, Lng Este: -58.3200, Lat Sur: -34.7550, Lat Norte: -34.6500
+export const LANUS_BBOX = {
+  minLng: -58.4600,
+  maxLng: -58.3200,
+  minLat: -34.7550,
+  maxLat: -34.6500,
+};
+
+export function isInsideLanus(lat: number, lng: number): boolean {
+  return (
+    lat >= LANUS_BBOX.minLat &&
+    lat <= LANUS_BBOX.maxLat &&
+    lng >= LANUS_BBOX.minLng &&
+    lng <= LANUS_BBOX.maxLng
+  );
+}
+
 export async function geocodeIntersection(streetA: string, streetB: string): Promise<Coordinates | null> {
   const cleanA = cleanStreetName(streetA);
   const cleanB = cleanStreetName(streetB);
@@ -71,23 +89,31 @@ export async function geocodeIntersection(streetA: string, streetB: string): Pro
     const usigUrl = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB + ', Lanus')}&geocodificar=true`;
     const data = await queryJson(usigUrl);
     if (data?.direccionesNormalizadas?.length > 0) {
-      const match = data.direccionesNormalizadas[0];
-      if (match.coordenadas?.x && match.coordenadas?.y) {
-        return { lat: match.coordenadas.y, lng: match.coordenadas.x };
+      for (const match of data.direccionesNormalizadas) {
+        if (match.coordenadas?.x && match.coordenadas?.y) {
+          const lat = match.coordenadas.y;
+          const lng = match.coordenadas.x;
+          if (isInsideLanus(lat, lng)) {
+            return { lat, lng };
+          }
+        }
       }
     }
   } catch (e) {}
 
-  // Intento 2: USIG sin forzar partido Lanús (si las calles ya son únicas del conurbano sur)
+  // Intento 2: USIG sin forzar partido Lanús (filtrando que caiga dentro de Lanús)
   try {
     const usigUrl2 = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB)}&geocodificar=true`;
     const data = await queryJson(usigUrl2);
     if (data?.direccionesNormalizadas?.length > 0) {
-      const match = data.direccionesNormalizadas.find((d: any) => 
-        (d.nombre_partido || '').toLowerCase().includes('lanús') || (d.nombre_partido || '').toLowerCase().includes('lanus')
-      ) || data.direccionesNormalizadas[0];
-      if (match.coordenadas?.x && match.coordenadas?.y) {
-        return { lat: match.coordenadas.y, lng: match.coordenadas.x };
+      for (const match of data.direccionesNormalizadas) {
+        if (match.coordenadas?.x && match.coordenadas?.y) {
+          const lat = match.coordenadas.y;
+          const lng = match.coordenadas.x;
+          if (isInsideLanus(lat, lng)) {
+            return { lat, lng };
+          }
+        }
       }
     }
   } catch (e) {}
@@ -97,23 +123,29 @@ export async function geocodeIntersection(streetA: string, streetB: string): Pro
     const georefUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB)}&departamento=Lanus`;
     const data = await queryJson(georefUrl);
     if (data?.direcciones?.length > 0) {
-      const match = data.direcciones[0];
-      if (match.ubicacion?.lat && match.ubicacion?.lon) {
-        return { lat: match.ubicacion.lat, lng: match.ubicacion.lon };
+      for (const match of data.direcciones) {
+        if (match.ubicacion?.lat && match.ubicacion?.lon) {
+          const lat = match.ubicacion.lat;
+          const lng = match.ubicacion.lon;
+          if (isInsideLanus(lat, lng)) {
+            return { lat, lng };
+          }
+        }
       }
     }
   } catch (e) {}
 
-  // Intento 4: Georef API con filtro provincia Buenos Aires
+  // Intento 4: Mapbox Geocoding restringido por bounding box de Lanús
   try {
-    const georefProvUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB)}&provincia=06`;
-    const data = await queryJson(georefProvUrl);
-    if (data?.direcciones?.length > 0) {
-      const match = data.direcciones.find((d: any) => 
-        (d.departamento?.nombre || '').toLowerCase().includes('lanús') || (d.departamento?.nombre || '').toLowerCase().includes('lanus')
-      ) || data.direcciones[0];
-      if (match.ubicacion?.lat && match.ubicacion?.lon) {
-        return { lat: match.ubicacion.lat, lng: match.ubicacion.lon };
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (token) {
+      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cleanA + ' y ' + cleanB + ', Lanús')}.json?access_token=${token}&bbox=-58.4519,-34.7505,-58.3284,-34.6537&country=ar&language=es&types=address,poi`;
+      const data = await queryJson(mapboxUrl);
+      if (data?.features?.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        if (isInsideLanus(lat, lng)) {
+          return { lat, lng };
+        }
       }
     }
   } catch (e) {}

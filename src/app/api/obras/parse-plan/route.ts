@@ -146,17 +146,24 @@ export async function POST(req: Request) {
       if (item.tipoForma === 'tramo' && item.callePrincipal && item.entreCalle1 && item.entreCalle2) {
         const seg = await geocodeSegment(item.callePrincipal, item.entreCalle1, item.entreCalle2);
 
-        if (seg.geometry) {
+        // Si tenemos ambas esquinas, calculamos el punto medio exacto de la cuadra/tramo
+        if (seg.startCoords && seg.endCoords) {
+          const midLat = (seg.startCoords.lat + seg.endCoords.lat) / 2;
+          const midLng = (seg.startCoords.lng + seg.endCoords.lng) / 2;
+
           features.push({
             type: 'Feature',
-            geometry: seg.geometry,
+            geometry: {
+              type: 'Point',
+              coordinates: [midLng, midLat],
+            },
             properties: {
               id: `obra_${idx + 1}`,
               nombre: `${item.callePrincipal} e/ ${item.entreCalle1} y ${item.entreCalle2}`,
               empresa: item.empresa,
               zona: item.zona,
               tipoMaterial: item.tipoMaterial,
-              tipoForma: 'tramo',
+              tipoForma: 'cruce',
               color,
               observaciones: item.observaciones,
               descripcionOriginal: item.descripcionOriginal,
@@ -174,7 +181,7 @@ export async function POST(req: Request) {
             },
             properties: {
               id: `obra_${idx + 1}`,
-              nombre: `${item.callePrincipal} e/ ${item.entreCalle1} y ${item.entreCalle2} (Punto aprox)`,
+              nombre: `${item.callePrincipal} e/ ${item.entreCalle1} y ${item.entreCalle2}`,
               empresa: item.empresa,
               zona: item.zona,
               tipoMaterial: item.tipoMaterial,
