@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   Palette, MapPin, Route, Square, Check, X,
   Trash2, Download, Save, Layers, Loader2, Sparkles, Plus, AlertCircle,
-  ArrowLeft, Eye, Shield, Bus, School, Hospital, AlertTriangle, RefreshCw
+  ArrowLeft, Eye, EyeOff, Shield, Bus, School, Hospital, AlertTriangle, RefreshCw, Filter
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -57,6 +57,23 @@ export default function EstudioCartograficoPage() {
   const [gruposExistentes, setGruposExistentes] = useState<any[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [mostrarRedTransporte, setMostrarRedTransporte] = useState(false);
+
+  // Filtro por empresa/contratista (LÁZARO, KAVOS, USIMIX, TODAS)
+  const [empresaFiltro, setEmpresaFiltro] = useState<string>('TODAS');
+
+  const handleToggleVisibilidadElemento = (idx: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setElementosDibujados(prev => prev.map((el, i) => {
+      if (i === idx) {
+        return { ...el, visible: el.visible === false ? true : false };
+      }
+      return el;
+    }));
+  };
+
+  const handleToggleAllVisibilidad = (visible: boolean) => {
+    setElementosDibujados(prev => prev.map(el => ({ ...el, visible })));
+  };
 
   // Cargar grupos existentes para clasificar ordenadamente la nueva capa
   useEffect(() => {
@@ -112,14 +129,15 @@ export default function EstudioCartograficoPage() {
 
   // Exportar directo como archivo GeoJSON
   const handleExportGeoJSON = () => {
-    if (elementosDibujados.length === 0) {
-      toast.error('Dibuje al menos un punto, traza o zona para exportar');
+    const aExportar = elementosDibujados.filter(el => el.visible !== false);
+    if (aExportar.length === 0) {
+      toast.error('No hay elementos tildados para exportar');
       return;
     }
 
     const featureCollection = {
       type: 'FeatureCollection',
-      features: elementosDibujados.map((el, i) => ({
+      features: aExportar.map((el, i) => ({
         type: 'Feature',
         geometry: el.geo.geometry,
         properties: {
@@ -141,18 +159,19 @@ export default function EstudioCartograficoPage() {
     a.download = `${(nombreNuevaCapa || 'estudio_cartografico').toLowerCase().replace(/\s+/g, '_')}_lanus.geojson`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Archivo GeoJSON exportado con éxito');
+    toast.success(`Archivo GeoJSON exportado con éxito (${aExportar.length} elementos)`);
   };
 
   // Guardar como NUEVA Capa en la Base de Datos Municipal (aislado)
   const handleGuardarComoNuevaCapa = async () => {
-    if (elementosDibujados.length === 0) {
-      toast.error('Debe diseñar al menos un elemento en el mapa');
+    const aGuardar = elementosDibujados.filter(el => el.visible !== false);
+    if (aGuardar.length === 0) {
+      toast.error('Debe tener al menos un elemento tildado para guardar');
       return;
     }
 
     if (!nombreNuevaCapa.trim()) {
-      toast.error('Por favor indique el nombre de la nueva capa (ej: "Escuelas y Circuitos Laborales")');
+      toast.error('Por favor indique el nombre de la nueva capa (ej: "Bacheo y Pavimentación Lanús")');
       return;
     }
 
@@ -164,7 +183,7 @@ export default function EstudioCartograficoPage() {
       const headers: HeadersInit = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const newFeatures = elementosDibujados.map((el, i) => ({
+      const newFeatures = aGuardar.map((el, i) => ({
         type: 'Feature',
         geometry: el.geo.geometry,
         properties: {
@@ -521,54 +540,140 @@ export default function EstudioCartograficoPage() {
                 </span>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
-                {elementosDibujados.map((el, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      setSelectedElementoIdx(idx);
-                      setFormNombre(el.nombre || '');
-                      setFormDescripcion(el.descripcion || '');
-                      setFormColor(el.color || '#ea580c');
-                    }}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      background: selectedElementoIdx === idx ? '#eff6ff' : '#fff',
-                      border: '1px solid',
-                      borderColor: selectedElementoIdx === idx ? '#3b82f6' : '#e2e8f0',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                      <span style={{ width: 12, height: 12, borderRadius: '50%', background: el.color, flexShrink: 0 }} />
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {el.nombre}
-                      </span>
-                      <span style={{ fontSize: '10px', background: '#f1f5f9', color: '#64748b', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                        {el.shape}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveElemento(idx);
-                      }}
-                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px' }}
-                      title="Eliminar elemento"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+              <>
+                {/* Filtro por empresa y acciones rápidas */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+                  {/* Chips de filtro */}
+                  <div style={{ display: 'flex', gap: '4px', overflowX: 'auto', paddingBottom: '2px' }}>
+                    {['TODAS', 'LÁZARO', 'KAVOS', 'USIMIX'].map(emp => (
+                      <button
+                        key={emp}
+                        type="button"
+                        onClick={() => setEmpresaFiltro(emp)}
+                        style={{
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid',
+                          borderColor: empresaFiltro === emp ? '#2563eb' : '#e2e8f0',
+                          background: empresaFiltro === emp ? '#eff6ff' : '#ffffff',
+                          color: empresaFiltro === emp ? '#1d4ed8' : '#64748b',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {emp}
+                      </button>
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  {/* Acciones tildar / destildar todas */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2px' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>
+                      Mostrando {elementosDibujados.filter(el => el.visible !== false && (empresaFiltro === 'TODAS' || el.geo?.properties?.empresa === empresaFiltro)).length} de {elementosDibujados.length}
+                    </span>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAllVisibilidad(true)}
+                        style={{ border: 'none', background: 'transparent', color: '#2563eb', fontSize: '10px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                      >
+                        Tildar todas
+                      </button>
+                      <span style={{ color: '#cbd5e1', fontSize: '10px' }}>•</span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleAllVisibilidad(false)}
+                        style={{ border: 'none', background: 'transparent', color: '#64748b', fontSize: '10px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                      >
+                        Destildar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista de elementos interactivos con checkbox individual */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '220px', overflowY: 'auto' }}>
+                  {elementosDibujados.map((el, idx) => {
+                    const emp = el.geo?.properties?.empresa || '';
+                    if (empresaFiltro !== 'TODAS' && emp !== empresaFiltro) return null;
+                    const isVisible = el.visible !== false;
+
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          setSelectedElementoIdx(idx);
+                          setFormNombre(el.nombre || '');
+                          setFormDescripcion(el.descripcion || '');
+                          setFormColor(el.color || '#ea580c');
+                        }}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          background: selectedElementoIdx === idx ? '#eff6ff' : isVisible ? '#fff' : '#f8fafc',
+                          border: '1px solid',
+                          borderColor: selectedElementoIdx === idx ? '#3b82f6' : '#e2e8f0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          opacity: isVisible ? 1 : 0.5,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
+                          {/* Checkbox para tildar y destildar en el mapa */}
+                          <input
+                            type="checkbox"
+                            checked={isVisible}
+                            onChange={(e) => handleToggleVisibilidadElemento(idx, e as any)}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ cursor: 'pointer', width: '15px', height: '15px', accentColor: el.color || '#2563eb', flexShrink: 0 }}
+                            title={isVisible ? 'Destildar para ocultar del mapa' : 'Tildar para mostrar en el mapa'}
+                          />
+                          <span style={{ width: 10, height: 10, borderRadius: '50%', background: el.color, flexShrink: 0 }} />
+                          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {el.nombre}
+                            </span>
+                            {emp && (
+                              <span style={{ fontSize: '9px', fontWeight: 700, color: el.color || '#64748b' }}>
+                                {emp} {el.geo?.properties?.zona ? `· ${el.geo.properties.zona}` : ''}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleVisibilidadElemento(idx, e)}
+                            style={{ background: 'none', border: 'none', color: isVisible ? '#2563eb' : '#94a3b8', cursor: 'pointer', padding: '3px' }}
+                            title={isVisible ? 'Ocultar del mapa' : 'Mostrar en el mapa'}
+                          >
+                            {isVisible ? <Eye size={13} /> : <EyeOff size={13} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveElemento(idx);
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '3px' }}
+                            title="Eliminar elemento"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
 

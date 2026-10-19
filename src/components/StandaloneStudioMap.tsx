@@ -42,6 +42,7 @@ function DrawnElementsRenderer({
 
     elementosDibujados.forEach((el, idx) => {
       if (!el.geo) return;
+      if (el.visible === false) return; // Si fue destildado, no se renderiza en el mapa
       const isSelected = selectedElementoIdx === idx;
       const color = el.color || '#ea580c';
 
