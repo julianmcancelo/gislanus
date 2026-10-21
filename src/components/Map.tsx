@@ -98,7 +98,11 @@ function MapToolbar({
 }: {
   activeTab: string | null;
   isAdmin: boolean;
-  abrirImpresionAtlas?: (lineaNombre: string, capasLinea: any[]) => void;
+  abrirImpresionAtlas?: (
+    lineaNombre: string,
+    capasLinea: any[],
+    opts?: { general?: boolean; preseleccion?: string[] }
+  ) => void;
   abrirCompartir?: () => void;
   capasConfig?: any[];
   isStudioOpen?: boolean;
@@ -107,6 +111,22 @@ function MapToolbar({
   const router = useRouter();
   const map = useMap();
   const [showPrintMenu, setShowPrintMenu] = useState(false);
+  const printMenuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // El submenú de impresión no se cierra al instante: tolera el recorrido del mouse hasta las opciones
+  const openPrintMenu = () => {
+    if (printMenuTimer.current) clearTimeout(printMenuTimer.current);
+    setShowPrintMenu(true);
+  };
+  const closePrintMenuSoon = () => {
+    if (printMenuTimer.current) clearTimeout(printMenuTimer.current);
+    printMenuTimer.current = setTimeout(() => setShowPrintMenu(false), 450);
+  };
+  useEffect(() => {
+    return () => {
+      if (printMenuTimer.current) clearTimeout(printMenuTimer.current);
+    };
+  }, []);
 
   const handleZoomIn = () => map.zoomIn();
   const handleZoomOut = () => map.zoomOut();
@@ -126,8 +146,14 @@ function MapToolbar({
     e?.stopPropagation();
     setShowPrintMenu(false);
     if (abrirImpresionAtlas && capasConfig) {
-      const activeCapas = capasConfig.filter((c) => c.active);
-      abrirImpresionAtlas('Mapa General de Lanús', activeCapas.length > 0 ? activeCapas : capasConfig);
+      // Plano completo: todas las líneas de transporte, encuadrado en los límites del Partido de Lanús
+      const lineas = capasConfig.filter((c) => typeof c.id === 'string' && c.id.startsWith('linea-'));
+      const base = lineas.length > 0 ? lineas : capasConfig;
+      const activas = base.filter((c) => c.active);
+      abrirImpresionAtlas('Mapa General de Lanús', base, {
+        general: true,
+        preseleccion: (activas.length > 0 ? activas : base).map((c) => c.id),
+      });
     } else {
       window.print();
     }
@@ -218,31 +244,60 @@ function MapToolbar({
         <div className="map-divider" />
         <div
           style={{ position: 'relative' }}
-          onMouseEnter={() => setShowPrintMenu(true)}
-          onMouseLeave={() => setShowPrintMenu(false)}
+          onMouseEnter={openPrintMenu}
+          onMouseLeave={closePrintMenuSoon}
         >
-          <button className="map-tool-btn" title="Imprimir">
+          <button
+            className="map-tool-btn"
+            title="Imprimir"
+            onClick={() => (showPrintMenu ? setShowPrintMenu(false) : openPrintMenu())}
+          >
             <Printer size={16} />
           </button>
           {showPrintMenu && (
-            <div style={{
-              position: 'absolute',
-              left: '100%',
-              top: 0,
-              marginLeft: '8px',
-              display: 'flex',
-              background: 'rgba(15,23,42,0.92)',
-              backdropFilter: 'blur(12px)',
-              borderRadius: '8px',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-              overflow: 'hidden',
-              height: '36px',
-              whiteSpace: 'nowrap',
-            }}>
-              <button onClick={handlePrintFull} style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}>Completo</button>
-              <div style={{ width: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 0' }} />
-              <button onClick={handlePrintZone} style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}>Selección</button>
+            // El paddingLeft actúa como puente invisible: no hay hueco entre el botón y el menú
+            <div
+              style={{
+                position: 'absolute',
+                left: '100%',
+                top: 0,
+                paddingLeft: '10px',
+                zIndex: 1200,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  background: 'rgba(15,23,42,0.94)',
+                  backdropFilter: 'blur(12px)',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                  overflow: 'hidden',
+                  height: '36px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <button
+                  onClick={handlePrintFull}
+                  title="Plano completo del Partido de Lanús, centrado en sus límites"
+                  style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(56,189,248,0.14)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  Completo
+                </button>
+                <div style={{ width: '1px', background: 'rgba(255,255,255,0.08)', margin: '6px 0' }} />
+                <button
+                  onClick={handlePrintZone}
+                  title="Imprimir solo las capas seleccionadas / visibles"
+                  style={{ ...printBtnStyle, color: '#cbd5e1', fontSize: '0.78rem' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(56,189,248,0.14)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  Selección
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -353,6 +408,8 @@ export default function MapComponent() {
   const [atlasModalOpen, setAtlasModalOpen] = useState(false);
   const [atlasLineaNombre, setAtlasLineaNombre] = useState('');
   const [atlasCapasLinea, setAtlasCapasLinea] = useState<any[]>([]);
+  const [atlasModoGeneral, setAtlasModoGeneral] = useState(false);
+  const [atlasPreseleccion, setAtlasPreseleccion] = useState<string[] | null>(null);
   const [compartirModalOpen, setCompartirModalOpen] = useState(false);
   const [leyendaOpen, setLeyendaOpen] = useState(true);
   const [studioOpen, setStudioOpen] = useState(false);
@@ -371,13 +428,23 @@ export default function MapComponent() {
     );
   }, [capasConfig]);
 
-  const handleOpenAtlasPrint = (lineaNombre: string, capasLinea: any[]) => {
-    const capaIds = new Set(capasLinea.map((c) => c.id));
-    setCapasConfig((prev) =>
-      prev.map((l) => (capaIds.has(l.id) ? { ...l, active: true } : l))
-    );
+  const handleOpenAtlasPrint = (
+    lineaNombre: string,
+    capasLinea: any[],
+    opts?: { general?: boolean; preseleccion?: string[] }
+  ) => {
+    // En el modo general (Completo) las líneas traen su geometría embebida: no hace falta
+    // encenderlas en el mapa principal (evita cargar cientos de capas de golpe).
+    if (!opts?.general) {
+      const capaIds = new Set(capasLinea.map((c) => c.id));
+      setCapasConfig((prev) =>
+        prev.map((l) => (capaIds.has(l.id) ? { ...l, active: true } : l))
+      );
+    }
     setAtlasLineaNombre(lineaNombre);
     setAtlasCapasLinea(capasLinea);
+    setAtlasModoGeneral(!!opts?.general);
+    setAtlasPreseleccion(opts?.preseleccion ?? null);
     setAtlasModalOpen(true);
   };
 
@@ -1453,6 +1520,8 @@ export default function MapComponent() {
         todasCapas={capasConfig}
         cacheDatosGeo={cacheDatosGeo}
         mapInstance={mapInstance}
+        modoGeneral={atlasModoGeneral}
+        idsPreseleccionados={atlasPreseleccion ?? undefined}
       />
 
       <CompartirModal

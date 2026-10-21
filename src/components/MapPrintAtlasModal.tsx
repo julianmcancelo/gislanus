@@ -34,10 +34,55 @@ interface MapPrintAtlasModalProps {
   todasCapas?: any[];
   cacheDatosGeo: Record<string, any>;
   mapInstance: L.Map | null;
+  /** Modo "Completo": plano del Partido de Lanús centrado en sus límites, con selección por jurisdicción */
+  modoGeneral?: boolean;
+  /** IDs de capas que arrancan seleccionadas al abrir el modal (si no se informa, se seleccionan todas) */
+  idsPreseleccionados?: string[];
 }
 
 export type PageLayoutMode = 'individual' | 'all-in-one' | 'both';
 export type FramingMode = 'tight' | 'optimal' | 'relaxed';
+
+type Jurisdiccion = 'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL' | 'OTRA';
+
+const JURISDICCION_UI: Record<Jurisdiccion, { label: string; emoji: string; accent: string; bg: string }> = {
+  NACIONAL: { label: 'Nacionales', emoji: '🇦🇷', accent: '#0284c7', bg: '#e0f2fe' },
+  PROVINCIAL: { label: 'Provinciales', emoji: '🗺️', accent: '#16a34a', bg: '#dcfce7' },
+  MUNICIPAL: { label: 'Municipales', emoji: '🏘️', accent: '#d97706', bg: '#fef3c7' },
+  OTRA: { label: 'Otras', emoji: '📍', accent: '#64748b', bg: '#f1f5f9' },
+};
+
+/**
+ * Clasifica una capa de transporte en su jurisdicción.
+ * Prioridad: categoría / grupo explícito; si no, convención por número (1-199 Nac · 200-499 Prov · 500+ Mun).
+ */
+const clasificarJurisdiccion = (c: any): Jurisdiccion => {
+  const cat = (c?.categoria || c?.subGrupo?.categoria || '').toString().toUpperCase();
+  const texto = `${c?.grupo?.nombre || ''} ${c?.subGrupo?.nombre || ''}`.toLowerCase();
+  if (cat === 'PROVINCIAL' || texto.includes('provincial')) return 'PROVINCIAL';
+  if (cat === 'MUNICIPAL' || texto.includes('municipal')) return 'MUNICIPAL';
+  if (cat === 'NACIONAL' || texto.includes('nacional')) return 'NACIONAL';
+  const num = parseInt(
+    c?.numero || normalizeLineNumber(c?.subGrupo?.nombre || '') || normalizeLineNumber(c?.nombre || '') || '0',
+    10
+  );
+  if (num >= 500) return 'MUNICIPAL';
+  if (num >= 200) return 'PROVINCIAL';
+  if (num > 0) return 'NACIONAL';
+  return 'OTRA';
+};
+
+/** Ítem de referencia (leyenda) deduplicado por línea + ramal + sentido + color */
+interface LegendItem {
+  key: string;
+  id: string;
+  color: string;
+  lineNum: string;
+  ramal: string;
+  sentido: 'IDA' | 'VUELTA';
+  isNational: boolean;
+  jurisdiccion: Jurisdiccion;
+}
 
 export default function MapPrintAtlasModal({
   isOpen,
@@ -47,6 +92,8 @@ export default function MapPrintAtlasModal({
   todasCapas = [],
   cacheDatosGeo,
   mapInstance,
+  modoGeneral = false,
+  idsPreseleccionados,
 }: MapPrintAtlasModalProps) {
   const [ramalesSeleccionados, setRamalesSeleccionados] = useState<string[]>([]);
   const [modoVarita, setModoVarita] = useState<boolean>(false);
@@ -64,6 +111,13 @@ export default function MapPrintAtlasModal({
   const [grosorTraza, setGrosorTraza] = useState<'fina' | 'normal' | 'gruesa'>('normal');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [printStatus, setPrintStatus] = useState<string>('');
+
+  // 🏛️ Encuadre en el Partido de Lanús, trazado de límites y referencias en hoja aparte
+  const [encuadreLanus, setEncuadreLanus] = useState<boolean>(false);
+  const [dibujarLimites, setDibujarLimites] = useState<boolean>(false);
+  const [referenciasHojaAparte, setReferenciasHojaAparte] = useState<boolean>(false);
+  const [limitesLanus, setLimitesLanus] = useState<[number, number][][] | null>(null); // anillos [lat, lng]
+  const [busquedaRamales, setBusquedaRamales] = useState<string>('');
 
   // 🗺️ Estados para Superposición de Líneas por jurisdicción (Nacional / Provincial / Municipal)
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
@@ -168,14 +222,63 @@ export default function MapPrintAtlasModal({
     if (isOpen) {
       setModoVarita(false);
       if (capasLinea && capasLinea.length > 0) {
-        setRamalesSeleccionados(capasLinea.map((c) => c.id));
-      }
-      // Inicializar nacionales seleccionadas con todas las disponibles
-      if (capasNacionalesDisponibles.length > 0) {
-        setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id));
+        if (idsPreseleccionados && idsPreseleccionados.length > 0) {
+          const validos = new Set(capasLinea.map((c) => c.id));
+          setRamalesSeleccionados(idsPreseleccionados.filter((id) => validos.has(id)));
+        } else {
+          setRamalesSeleccionados(capasLinea.map((c) => c.id));
+        }
       }
     }
-  }, [isOpen, capasLinea, capasNacionalesDisponibles]);
+  }, [isOpen, capasLinea, idsPreseleccionados]);
+
+  // Inicializar nacionales seleccionadas con todas las disponibles
+  React.useEffect(() => {
+    if (isOpen && capasNacionalesDisponibles.length > 0) {
+      setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id));
+    }
+  }, [isOpen, capasNacionalesDisponibles]);
+
+  // Al abrir: configurar los valores por defecto según el modo (general "Completo" o línea puntual)
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setEncuadreLanus(modoGeneral);
+    setDibujarLimites(modoGeneral);
+    setReferenciasHojaAparte(modoGeneral);
+    setBusquedaRamales('');
+    if (modoGeneral) {
+      setIncluirNacionales(false);
+      setPageLayout('all-in-one');
+    }
+  }, [isOpen, modoGeneral]);
+
+  // Cargar los límites del Partido de Lanús (una sola vez) para encuadrar y dibujar el contorno
+  React.useEffect(() => {
+    if (!isOpen || limitesLanus) return;
+    let cancelled = false;
+    fetch('/lanus-base.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((geo) => {
+        if (cancelled || !geo) return;
+        const rings: [number, number][][] = [];
+        const feats = geo.type === 'FeatureCollection' ? geo.features : [geo];
+        feats.forEach((f: any) => {
+          const g = f?.geometry;
+          if (!g) return;
+          const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+          polys.forEach((poly: any) =>
+            poly.forEach((ring: any) => {
+              rings.push(ring.map((p: number[]) => [p[1], p[0]] as [number, number]));
+            })
+          );
+        });
+        if (rings.length > 0) setLimitesLanus(rings);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, limitesLanus]);
 
   const detectSentido = (capa: any, feature?: any): 'IDA' | 'VUELTA' => {
     const props = feature?.properties || {};
