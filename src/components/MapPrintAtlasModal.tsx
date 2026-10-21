@@ -560,6 +560,224 @@ export default function MapPrintAtlasModal({
   };
 
   /**
+   * 📄 Renderiza la hoja aparte de referencias con catálogo completo de trazas
+   */
+  const renderReferencePageCanvas = async ({
+    allCapas,
+    pageNumber,
+    totalPages,
+    config,
+    isLandscape,
+    pdfWidthMm,
+    pdfHeightMm,
+    dpmm,
+    logoImg,
+    lineaNombre,
+    cleanLineNumber,
+  }: {
+    allCapas: any[];
+    pageNumber: number;
+    totalPages: number;
+    config: (typeof SHEET_CONFIGS)['A4'];
+    isLandscape: boolean;
+    pdfWidthMm: number;
+    pdfHeightMm: number;
+    dpmm: number;
+    logoImg: HTMLImageElement | null;
+    lineaNombre: string;
+    cleanLineNumber: string;
+  }): Promise<HTMLCanvasElement> => {
+    const toPx = (mm: number) => Math.max(1, Math.round(mm * dpmm));
+    const canvas = document.createElement('canvas');
+    canvas.width = toPx(pdfWidthMm);
+    canvas.height = toPx(pdfHeightMm);
+    const ctx = canvas.getContext('2d')!;
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // Fondo blanco
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, W, H);
+
+    const marginPx = toPx(config.marginMm);
+    const innerX = marginPx;
+    const innerY = marginPx;
+    const innerW = W - marginPx * 2;
+    const innerH = H - marginPx * 2;
+
+    // Marco interior técnico
+    ctx.strokeStyle = '#0F172A';
+    ctx.lineWidth = toPx(config.innerBorderMm);
+    ctx.strokeRect(innerX, innerY, innerW, innerH);
+
+    // ── HEADER ──
+    const headerH = toPx(config.headerHeightMm);
+    ctx.fillStyle = '#0F172A';
+    ctx.fillRect(innerX, innerY, innerW, headerH);
+
+    // Logo si está disponible
+    if (logoImg) {
+      const logoH = headerH * 0.7;
+      const logoW = (logoImg.width / logoImg.height) * logoH;
+      ctx.drawImage(logoImg, innerX + toPx(4), innerY + (headerH - logoH) / 2, logoW, logoH);
+    }
+
+    // Título
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = `900 ${toPx(5)}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('REFERENCIAS Y LEYENDA COMPLETA', innerX + innerW / 2, innerY + headerH * 0.35);
+
+    ctx.font = `600 ${toPx(3)}px Inter, sans-serif`;
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText(
+      `Línea ${cleanLineNumber} · ${lineaNombre} · Sistema Lanús`,
+      innerX + innerW / 2,
+      innerY + headerH * 0.7
+    );
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+
+    // ── CUERPO: Catálogo de trazas ──
+    let currentY = innerY + headerH + toPx(6);
+    const contentX = innerX + toPx(6);
+    const contentW = innerW - toPx(12);
+
+    // Título de sección
+    ctx.fillStyle = '#0F172A';
+    ctx.font = `800 ${toPx(4)}px Inter, sans-serif`;
+    ctx.fillText('Catálogo de Trazas', contentX, currentY);
+    currentY += toPx(6);
+
+    // Detectar jurisdicción y agregar trazas
+    interface RefItem {
+      num: number;
+      color: string;
+      label: string;
+      jurisdiccion: string;
+    }
+
+    const refItems: RefItem[] = [];
+    const seenLabels = new Set<string>();
+
+    allCapas.forEach((capa, idx) => {
+      const num = capa.numero || normalizeLineNumber(capa.subGrupo?.nombre || '') || normalizeLineNumber(capa.nombre) || '';
+      const lineNum = num ? `L.${num}` : (capa.subGrupo?.nombre || capa.nombre || `T.${idx + 1}`);
+      const ramal = capa.subSubGrupo?.nombre || capa.subcategoria || '';
+      const sentido = detectSentido(capa);
+      const label = `${lineNum}${ramal ? ` · ${ramal}` : ''}${sentido ? ` · ${sentido}` : ''}`;
+      const color = capa.color || getOfficialLineColor(capa.nombre);
+
+      if (seenLabels.has(label)) return;
+      seenLabels.add(label);
+
+      // Clasificar jurisdicción
+      const numVal = parseInt(String(num).replace(/\D/g, ''), 10);
+      let jurisdiccion = 'Municipal';
+      if (!isNaN(numVal)) {
+        if (numVal >= 1 && numVal <= 199) jurisdiccion = 'Nacional';
+        else if (numVal >= 200 && numVal <= 499) jurisdiccion = 'Provincial';
+        else if (numVal >= 500) jurisdiccion = 'Municipal';
+      }
+
+      refItems.push({ num: refItems.length + 1, color, label, jurisdiccion });
+    });
+
+    // Renderizar items en columnas
+    const colCount = isLandscape ? 3 : 2;
+    const colWidth = contentW / colCount;
+    const itemH = toPx(7);
+    let col = 0;
+    let row = 0;
+    const maxRows = Math.ceil(refItems.length / colCount);
+
+    refItems.forEach((item, idx) => {
+      col = idx % colCount;
+      row = Math.floor(idx / colCount);
+      const x = contentX + col * colWidth;
+      const y = currentY + row * itemH;
+
+      if (y > innerY + innerH - toPx(20)) return; // No salir del marco
+
+      // Badge numerado
+      const badgeR = toPx(2.5);
+      ctx.beginPath();
+      ctx.arc(x + badgeR, y, badgeR, 0, Math.PI * 2);
+      ctx.fillStyle = '#0F172A';
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `800 ${toPx(2.5)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(item.num), x + badgeR, y);
+      ctx.textAlign = 'start';
+      ctx.textBaseline = 'alphabetic';
+
+      // Línea de color
+      ctx.fillStyle = item.color;
+      ctx.fillRect(x + badgeR * 2 + toPx(2), y - toPx(1), toPx(8), toPx(2));
+
+      // Label
+      ctx.fillStyle = '#1E293B';
+      ctx.font = `600 ${toPx(2.4)}px Inter, sans-serif`;
+      ctx.fillText(item.label, x + badgeR * 2 + toPx(12), y + toPx(1));
+
+      // Jurisdicción
+      ctx.fillStyle = '#64748B';
+      ctx.font = `500 ${toPx(1.8)}px Inter, sans-serif`;
+      ctx.fillText(item.jurisdiccion, x + badgeR * 2 + toPx(12), y + toPx(4));
+    });
+
+    currentY += (maxRows + 1) * itemH + toPx(6);
+
+    // ── LEYENDA DE JURISDICCIONES ──
+    if (currentY < innerY + innerH - toPx(30)) {
+      ctx.fillStyle = '#0F172A';
+      ctx.font = `800 ${toPx(3.5)}px Inter, sans-serif`;
+      ctx.fillText('Jurisdicciones', contentX, currentY);
+      currentY += toPx(5);
+
+      const jurisdictions = [
+        { label: 'Nacional (1-199)', color: '#DC2626' },
+        { label: 'Provincial (200-499)', color: '#2563EB' },
+        { label: 'Municipal (500+)', color: '#16A34A' },
+      ];
+
+      jurisdictions.forEach((j) => {
+        ctx.fillStyle = j.color;
+        ctx.fillRect(contentX, currentY - toPx(2), toPx(10), toPx(3));
+        ctx.fillStyle = '#1E293B';
+        ctx.font = `600 ${toPx(2.4)}px Inter, sans-serif`;
+        ctx.fillText(j.label, contentX + toPx(14), currentY);
+        currentY += toPx(5);
+      });
+    }
+
+    // ── FOOTER ──
+    const footerY = innerY + innerH - toPx(8);
+    ctx.fillStyle = '#F1F5F9';
+    ctx.fillRect(innerX, footerY, innerW, toPx(8));
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = `500 ${toPx(2)}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(
+      'Gobierno del Partido de Lanús · Subsecretaría de Transporte · Sistema GIS Lanús',
+      innerX + innerW / 2,
+      footerY + toPx(4)
+    );
+    ctx.fillText(
+      `Página ${pageNumber} de ${totalPages}`,
+      innerX + innerW / 2,
+      footerY + toPx(6.5)
+    );
+    ctx.textAlign = 'start';
+
+    return canvas;
+  };
+
+  /**
    * Renderiza una lámina individual en un canvas maestro de alta resolución
    */
   const renderSingleSheetCanvas = async ({
@@ -1863,6 +2081,7 @@ export default function MapPrintAtlasModal({
         title: string;
         subtitle: string;
         isConsolidated: boolean;
+        isReferencePage?: boolean;
       }
 
       const pagesToGenerate: PagePlan[] = [];
@@ -1901,6 +2120,17 @@ export default function MapPrintAtlasModal({
         });
       }
 
+      // 📄 Hoja aparte de referencias: catálogo completo al final del PDF
+      if (referenciasHojaAparte) {
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: 'REFERENCIAS Y LEYENDA COMPLETA',
+          subtitle: `Catálogo de trazas · Línea ${cleanLineNumber} · Sistema Lanús`,
+          isConsolidated: true,
+          isReferencePage: true,
+        });
+      }
+
       // Inicializar Documento jsPDF
       const pdf = new jsPDF({
         orientation: orientacion,
@@ -1913,6 +2143,29 @@ export default function MapPrintAtlasModal({
         setPrintStatus(
           `Generando lámina ${i + 1} de ${pagesToGenerate.length}: ${page.title}...`
         );
+
+        // 📄 Página de referencias: renderizar hoja de catálogo completo
+        if (page.isReferencePage) {
+          const refCanvas = await renderReferencePageCanvas({
+            allCapas: [...capasFiltradas, ...capasNacionalesActivas],
+            pageNumber: i + 1,
+            totalPages: pagesToGenerate.length,
+            config,
+            isLandscape,
+            pdfWidthMm,
+            pdfHeightMm,
+            dpmm,
+            logoImg,
+            lineaNombre,
+            cleanLineNumber,
+          });
+          if (i > 0) {
+            pdf.addPage(paperFormat.toLowerCase() as any, orientacion);
+          }
+          const refImgData = refCanvas.toDataURL('image/jpeg', 0.98);
+          pdf.addImage(refImgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
+          continue;
+        }
 
         const canvas = await renderSingleSheetCanvas({
           targetCapas: page.capas,
@@ -3112,6 +3365,75 @@ export default function MapPrintAtlasModal({
               />
               <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                 Leyenda completa: mostrar todas las trazas (sin resumir en "+ N más")
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#fef3c7',
+                border: '1px solid #fcd34d',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={referenciasHojaAparte}
+                onChange={(e) => setReferenciasHojaAparte(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#d97706' }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
+                📄 Referencias en hoja aparte (catálogo completo al final del PDF)
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#e0f2fe',
+                border: '1px solid #bae6fd',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={encuadreLanus}
+                onChange={(e) => setEncuadreLanus(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#0284c7' }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
+                🎯 Encuadre fijo en Partido de Lanús
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#fce7f3',
+                border: '1px solid #f9a8d4',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={dibujarLimites}
+                onChange={(e) => setDibujarLimites(e.target.checked)}
+                style={{ width: '15px', height: '15px', accentColor: '#db2777' }}
+              />
+              <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
+                🏛️ Dibujar límites del Partido de Lanús
               </span>
             </label>
           </div>
