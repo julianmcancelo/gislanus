@@ -195,6 +195,7 @@ export default function TransportePublicoPage() {
   };
 
   // Imprime la ficha técnica de todos los ramales de una línea (ventana imprimible)
+  // Incluye una HOJA APARTE con referencias/leyenda completa al final (page-break-before).
   const handlePrintRamales = (records: any[], lineaLabel: string) => {
     try {
       const fecha = new Date().toLocaleString('es-AR');
@@ -215,12 +216,71 @@ export default function TransportePublicoPage() {
           <td style="border:1px solid #cbd5e1;padding:6px 8px;text-align:center;">${demora}</td>
         </tr>`;
       }).join('');
+
+      // 📄 Hoja aparte de referencias: simbología + jurisdicciones + catálogo de ramales
+      const filasReferencias = records.map((l: any, i: number) => {
+        const sentido = (l.sentido || 'SIN DEFINIR').toUpperCase();
+        return `<tr>
+          <td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:center;font-weight:700;">${i + 1}</td>
+          <td style="border:1px solid #cbd5e1;padding:5px 8px;">${l.subcategoria || l.nombre || 'Ramal Principal'}</td>
+          <td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:center;">${sentido}</td>
+          <td style="border:1px solid #cbd5e1;padding:5px 8px;text-align:center;">${l.categoria || '—'}</td>
+        </tr>`;
+      }).join('');
+
+      const hojaReferencias = `
+        <div class="hoja-referencias">
+          <h1>📖 Referencias y Leyenda Completa</h1>
+          <h2>${lineaLabel} · Catálogo de ramales · Emitido: ${fecha}</h2>
+
+          <h3>Simbología del plano</h3>
+          <table class="ref-table"><tbody>
+            <tr><td class="sim"><span class="linea continua"></span></td><td>Trazo de Ida (continuo)</td></tr>
+            <tr><td class="sim"><span class="linea discontinua"></span></td><td>Trazo de Vuelta (discontinuo)</td></tr>
+            <tr><td class="sim"><span class="punto cabecera"></span></td><td>Cabecera (inicio de recorrido)</td></tr>
+            <tr><td class="sim"><span class="punto terminal"></span></td><td>Terminal (destino de recorrido)</td></tr>
+            <tr><td class="sim"><span class="punto parada"></span></td><td>Paradas intermedias</td></tr>
+          </tbody></table>
+
+          <h3>Jurisdicciones (numeración argentina de líneas)</h3>
+          <table class="ref-table"><tbody>
+            <tr><td class="sim"><span class="pill nacional"></span></td><td><strong>Nacional</strong> — líneas 1 a 199</td></tr>
+            <tr><td class="sim"><span class="pill provincial"></span></td><td><strong>Provincial</strong> — líneas 200 a 499</td></tr>
+            <tr><td class="sim"><span class="pill municipal"></span></td><td><strong>Municipal</strong> — líneas 500 en adelante</td></tr>
+          </tbody></table>
+
+          <h3>Campos de la ficha</h3>
+          <table class="ref-table"><tbody>
+            <tr><td><strong>Frecuencia</strong></td><td>Viajes por hora calculados o relevados por inspector humano</td></tr>
+            <tr><td><strong>Demora prom.</strong></td><td>Tiempo promedio de demora en minutos</td></tr>
+            <tr><td><strong>Categoría</strong></td><td>Tipo de servicio (regular, expreso, etc.)</td></tr>
+          </tbody></table>
+
+          <h3>Catálogo de ramales (${records.length})</h3>
+          <table class="ref-table"><thead><tr>
+            <th>#</th><th>Ramal</th><th>Sentido</th><th>Categoría</th>
+          </tr></thead><tbody>${filasReferencias}</tbody></table>
+
+          <p class="pie">Municipalidad de Lanús · Dirección General de Movilidad y Transporte · Sistema GIS Lanús</p>
+        </div>`;
+
       const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/>
         <title>Ficha de ramales - ${lineaLabel}</title>
         <style>
           body{font-family:Arial,Helvetica,sans-serif;color:#0f172a;margin:24px;}
           h1{font-size:20px;margin:0 0 4px;} h2{font-size:13px;color:#64748b;font-weight:normal;margin:0 0 16px;}
+          h3{font-size:14px;margin:18px 0 8px;color:#0f172a;}
           table{border-collapse:collapse;width:100%;font-size:12px;} th{background:#0f172a;color:#fff;padding:8px;}
+          .hoja-referencias{page-break-before:always;break-before:page;margin-top:0;padding-top:8px;}
+          .ref-table th{background:#334155;}
+          .sim{width:64px;text-align:center;}
+          .linea{display:inline-block;width:44px;height:0;border-top:3px solid #2563eb;vertical-align:middle;}
+          .linea.discontinua{border-top-style:dashed;border-top-color:#dc2626;}
+          .punto{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:middle;}
+          .punto.cabecera{background:#16a34a;} .punto.terminal{background:#dc2626;} .punto.parada{background:#2563eb;width:8px;height:8px;}
+          .pill{display:inline-block;width:38px;height:14px;border-radius:7px;vertical-align:middle;}
+          .pill.nacional{background:#dc2626;} .pill.provincial{background:#2563eb;} .pill.municipal{background:#16a34a;}
+          .pie{margin-top:22px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px;}
           @media print{button{display:none;}}
         </style></head><body>
         <h1>🚌 ${lineaLabel} — Todos los ramales (${records.length})</h1>
@@ -228,7 +288,8 @@ export default function TransportePublicoPage() {
         <table><thead><tr>
           <th>#</th><th>Ramal</th><th>Sentido</th><th>Categoría</th><th>Frecuencia</th><th>Demora prom.</th>
         </tr></thead><tbody>${filas}</tbody></table>
-        <br/><button onclick="window.print()" style="padding:10px 20px;font-size:14px;cursor:pointer;">🖨️ Imprimir</button>
+        ${hojaReferencias}
+        <br/><button onclick="window.print()" style="padding:10px 20px;font-size:14px;cursor:pointer;">🖨️ Imprimir (ficha + hoja de referencias)</button>
         </body></html>`;
       const w = window.open('', '_blank', 'width=900,height=700');
       if (!w) {

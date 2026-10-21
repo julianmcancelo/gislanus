@@ -115,7 +115,7 @@ export default function MapPrintAtlasModal({
   // 🏛️ Encuadre en el Partido de Lanús, trazado de límites y referencias en hoja aparte
   const [encuadreLanus, setEncuadreLanus] = useState<boolean>(false);
   const [dibujarLimites, setDibujarLimites] = useState<boolean>(false);
-  const [referenciasHojaAparte, setReferenciasHojaAparte] = useState<boolean>(false);
+  const [referenciasHojaAparte, setReferenciasHojaAparte] = useState<boolean>(true);
   const [limitesLanus, setLimitesLanus] = useState<[number, number][][] | null>(null); // anillos [lat, lng]
   const [busquedaRamales, setBusquedaRamales] = useState<string>('');
 
@@ -893,7 +893,22 @@ export default function MapPrintAtlasModal({
 
     // Proyector Isométrico Web Mercator (EPSG:3857) enfocado a la línea principal de la lámina
     const targetCoords = getCoordinatesForLayers(targetCapas);
-    const points: LatLng[] = targetCoords.map(([lat, lng]) => ({ lat, lng }));
+    let points: LatLng[] = targetCoords.map(([lat, lng]) => ({ lat, lng }));
+
+    // 🎯 Encuadre fijo en el Partido de Lanús: inyectamos los vértices de sus límites
+    // para que el encuadre nunca se salga del partido, sin importar la traza activa.
+    if (encuadreLanus && limitesLanus && limitesLanus.length > 0) {
+      const lanusPoints: LatLng[] = [];
+      limitesLanus.forEach((ring) => {
+        // Submuestreo defensivo para no inflar el array en anillos muy densos
+        const step = Math.max(1, Math.floor(ring.length / 400));
+        for (let i = 0; i < ring.length; i += step) {
+          lanusPoints.push({ lat: ring[i][0], lng: ring[i][1] });
+        }
+      });
+      points = points.concat(lanusPoints);
+    }
+
     const proj = new MercatorViewportProjection(points, mapViewportW, mapViewportH, paddingFraction);
 
     // Cargar mapa base ráster
@@ -1671,6 +1686,91 @@ export default function MapPrintAtlasModal({
           : `+ ${remainingCount} traza(s) adicional(es) en plano`;
         ctx.fillText(fitText(resumen, legBoxW - toPx(8)), legBoxX + toPx(4), extraY);
       }
+    }
+
+    // 🏛️ Dibujar el contorno del Partido de Lanús sobre el mapa (recortado al viewport)
+    if (dibujarLimites && limitesLanus && limitesLanus.length > 0) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(mapViewportX, mapViewportY, mapViewportW, mapViewportH);
+      ctx.clip();
+
+      const trazoLimite = Math.max(2, toPx(0.9));
+      // Halo blanco para que el límite sea visible sobre cualquier mapa base
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      // Pasada 1: halo blanco ancho
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = trazoLimite + toPx(1.6);
+      limitesLanus.forEach((ring) => {
+        if (ring.length < 2) return;
+        ctx.beginPath();
+        ring.forEach(([lat, lng], idx) => {
+          const pt = proj.project(lat, lng);
+          if (idx === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      });
+
+      // Pasada 2: trazo magenta oficial (#DB2777) discontinuo estilo límite administrativo
+      ctx.setLineDash([toPx(4), toPx(2.5)]);
+      ctx.strokeStyle = '#DB2777';
+      ctx.lineWidth = trazoLimite;
+      limitesLanus.forEach((ring) => {
+        if (ring.length < 2) return;
+        ctx.beginPath();
+        ring.forEach(([lat, lng], idx) => {
+          const pt = proj.project(lat, lng);
+          if (idx === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // Etiqueta "PARTIDO DE LANÚS" sobre el centroide del primer anillo
+      try {
+        const mainRing = limitesLanus.reduce((a, b) => (b.length > a.length ? b : a));
+        let sx = 0;
+        let sy = 0;
+        let n = 0;
+        const labelStep = Math.max(1, Math.floor(mainRing.length / 60));
+        for (let i = 0; i < mainRing.length; i += labelStep) {
+          const pt = proj.project(mainRing[i][0], mainRing[i][1]);
+          sx += pt.x;
+          sy += pt.y;
+          n++;
+        }
+        if (n > 0) {
+          const lx = sx / n;
+          const ly = sy / n;
+          const labelFont = toPx(2.6);
+          ctx.font = `800 ${labelFont}px Inter, sans-serif`;
+          const labelText = 'PARTIDO DE LANÚS';
+          const tw = ctx.measureText(labelText).width;
+          const padX = toPx(1.4);
+          const padY = toPx(0.9);
+          ctx.fillStyle = 'rgba(219, 39, 119, 0.92)';
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(lx - tw / 2 - padX, ly - labelFont - padY, tw + padX * 2, labelFont + padY * 2, toPx(1));
+          else ctx.rect(lx - tw / 2 - padX, ly - labelFont - padY, tw + padX * 2, labelFont + padY * 2);
+          ctx.fill();
+          ctx.fillStyle = '#FFFFFF';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(labelText, lx, ly - labelFont * 0.4);
+          ctx.textAlign = 'start';
+          ctx.textBaseline = 'alphabetic';
+        }
+      } catch {
+        // El etiquetado es best-effort; nunca debe romper la generación
+      }
+
+      ctx.restore();
     }
 
     ctx.restore(); // Fin del clip del viewport del mapa
