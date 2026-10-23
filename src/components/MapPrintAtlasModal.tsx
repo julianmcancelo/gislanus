@@ -2604,7 +2604,7 @@ export default function MapPrintAtlasModal({
         // Una lámina por cada ramal, con ida + vuelta juntos
         const grupos = new Map<string, any[]>();
         capasFiltradas.forEach((capa) => {
-          const key = (capa.nombre || '').trim() || `Ramal`;
+          const key = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || 'Ramal').trim() || `Ramal`;
           if (!grupos.has(key)) grupos.set(key, []);
           grupos.get(key)!.push(capa);
         });
