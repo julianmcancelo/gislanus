@@ -2601,14 +2601,33 @@ export default function MapPrintAtlasModal({
       const hayAmbosSentidos = capasIda.length > 0 && capasVuelta.length > 0;
       // Modo JUNTOS: una sola lámina con todo, sin importar layout
       if (modoIdaVuelta === 'juntos') {
-        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
-        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
-        pagesToGenerate.push({
-          capas: capasFiltradas,
-          title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
-          subtitle: `Plano Consolidado · ${capasFiltradas.length} variante(s) · Sistema Lanús`,
-          isConsolidated: true,
+        // Una lámina por cada ramal, con ida + vuelta juntos
+        const grupos = new Map<string, any[]>();
+        capasFiltradas.forEach((capa) => {
+          const key = (capa.nombre || '').trim() || `Ramal`;
+          if (!grupos.has(key)) grupos.set(key, []);
+          grupos.get(key)!.push(capa);
         });
+        grupos.forEach((capasGrupo, nombreRamal) => {
+          const sentido = capasGrupo.map((c) => detectSentido(c)).join('/');
+          pagesToGenerate.push({
+            capas: capasGrupo,
+            title: `LÍNEA ${cleanLineNumber} · ${nombreRamal.toUpperCase()}`,
+            subtitle: `Variante · Sentido ${sentido} · Sistema Lanús`,
+            isConsolidated: capasGrupo.length > 1,
+          });
+        });
+        // Si no hay grupos (fallback), una sola lámina
+        if (grupos.size === 0) {
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          pagesToGenerate.push({
+            capas: capasFiltradas,
+            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+            subtitle: `Plano Consolidado · ${capasFiltradas.length} variante(s) · Sistema Lanús`,
+            isConsolidated: true,
+          });
+        }
       } else if (pageLayout === 'individual') {
         // Modo separados + individual: una página por capa
         capasFiltradas.forEach((capa, idx) => {
