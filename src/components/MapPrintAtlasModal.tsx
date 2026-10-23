@@ -2596,11 +2596,9 @@ export default function MapPrintAtlasModal({
 
       const pagesToGenerate: PagePlan[] = [];
 
-      // 🔀 Separar capas por sentido si el modo es "separados"
       const capasIda = capasFiltradas.filter((c) => detectSentido(c) === 'IDA');
       const capasVuelta = capasFiltradas.filter((c) => detectSentido(c) === 'VUELTA');
       const hayAmbosSentidos = capasIda.length > 0 && capasVuelta.length > 0;
-
       // Modo JUNTOS: una sola lámina con todo, sin importar layout
       if (modoIdaVuelta === 'juntos') {
         const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
@@ -2719,7 +2717,6 @@ export default function MapPrintAtlasModal({
         });
       }
 
-      // Inicializar Documento jsPDF
       const pdf = new jsPDF({
         orientation: orientacion,
         unit: 'mm',

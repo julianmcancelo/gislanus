@@ -1,0 +1,126 @@
+const pagesToGenerate: PagePlan[] = [];
+
+      // 🔀 Separar capas por sentido si el modo es "separados"
+      const capasIda = capasFiltradas.filter((c) => detectSentido(c) === 'IDA');
+      const capasVuelta = capasFiltradas.filter((c) => detectSentido(c) === 'VUELTA');
+      const hayAmbosSentidos = capasIda.length > 0 && capasVuelta.length > 0;
+
+      // Modo JUNTOS: una sola lámina con todo, sin importar layout
+      if (modoIdaVuelta === 'juntos') {
+        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+          subtitle: `Plano Consolidado · ${capasFiltradas.length} variante(s) · Sistema Lanús`,
+          isConsolidated: true,
+        });
+      } else if (pageLayout === 'individual') {
+        // Modo separados + individual: una página por capa
+        capasFiltradas.forEach((capa, idx) => {
+          const sentido = detectSentido(capa);
+          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          pagesToGenerate.push({
+            capas: [capa],
+            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
+            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            isConsolidated: false,
+          });
+        });
+      } else if (pageLayout === 'all-in-one') {
+        // Modo separados + all-in-one: una lámina por sentido
+        if (hayAmbosSentidos) {
+          if (capasIda.length > 0) {
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasIda,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
+              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+          if (capasVuelta.length > 0) {
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasVuelta,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
+              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+        } else {
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          pagesToGenerate.push({
+            capas: capasFiltradas,
+            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
+            isConsolidated: true,
+          });
+        }
+      } else {
+        // Modo separados + both: consolidado por sentido + individuales
+        if (hayAmbosSentidos) {
+          if (capasIda.length > 0) {
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasIda,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
+              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+          if (capasVuelta.length > 0) {
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasVuelta,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
+              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+        } else {
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          pagesToGenerate.push({
+            capas: capasFiltradas,
+            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
+            isConsolidated: true,
+          });
+        }
+        // Individuales
+        capasFiltradas.forEach((capa, idx) => {
+          const sentido = detectSentido(capa);
+          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          pagesToGenerate.push({
+            capas: [capa],
+            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
+            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            isConsolidated: false,
+          });
+        });
+      }
+
+      // Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
+      if (pagesToGenerate.length === 0) {
+        pagesToGenerate.push({
+          capas: capasLinea && capasLinea.length > 0 ? capasLinea : [],
+          title: lineaNombre.toUpperCase() || 'MAPA DE LANÚS',
+          subtitle: 'Cartografía Municipal Oficial · Subsecretaría de Transporte',
+          isConsolidated: true,
+        });
+      }
+
+      // 📄 Hoja aparte de referencias: catálogo completo al final del PDF
+      if (referenciasHojaAparte) {
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: 'REFERENCIAS Y LEYENDA COMPLETA',
+          subtitle: `Catálogo de trazas · Línea ${cleanLineNumber} · Sistema Lanús`,
+          isConsolidated: true,
+          isReferencePage: true,
+        });
+      }
+
+      
