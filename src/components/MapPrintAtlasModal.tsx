@@ -126,13 +126,27 @@ export default function MapPrintAtlasModal({
     operador: '',
     escalaNominal: '',
     observaciones: '',
+    tituloPlano: '',    // vacío = auto ("LÍNEA {nombre}")
+    subtitulo: '',      // vacío = auto ("Plano General Consolidado · X variantes...")
+    mostrarRedRef: true, // mostrar/ocultar métrica "Red X Referencia"
   });
-  const setDatoPlano = (campo: keyof typeof datosPlano, valor: string) =>
+  const setDatoPlano = (campo: keyof typeof datosPlano, valor: string | boolean) =>
     setDatosPlano((d) => ({ ...d, [campo]: valor }));
 
   // 👁️ Vista previa de la lámina antes de exportar
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewing, setIsPreviewing] = useState<boolean>(false);
+
+  // 📂 Secciones colapsables del modal (todas abiertas por defecto)
+  const [seccionesAbiertas, setSeccionesAbiertas] = useState<Record<string, boolean>>({
+    contenido: true,
+    lineas: true,
+    refs: true,
+    formato: true,
+    datos: true,
+  });
+  const toggleSeccion = (id: string) =>
+    setSeccionesAbiertas((s) => ({ ...s, [id]: !s[id] }));
 
   // 🗺️ Estados para Superposición de Líneas por jurisdicción (Nacional / Provincial / Municipal)
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
@@ -2103,13 +2117,17 @@ export default function MapPrintAtlasModal({
     const lineTextX = badgeLineX + badgeLineSize + toPx(config.marginMm * 0.35);
     const lineTextMaxW = col1X + col1W - lineTextX - caraturePad;
 
+    // 📝 Título personalizable: si el usuario escribió uno, lo usa; si no, el auto
+    const tituloFinal = datosPlano.tituloPlano.trim() || pageTitle;
+    const subtituloFinal = datosPlano.subtitulo.trim() || pageSubtitle;
+
     ctx.font = `bold ${titleFontCarature}px Inter, sans-serif`;
     ctx.fillStyle = '#0F172A';
-    ctx.fillText(fitText(pageTitle, lineTextMaxW), lineTextX, badgeLineY + badgeLineSize * 0.45);
+    ctx.fillText(fitText(tituloFinal, lineTextMaxW), lineTextX, badgeLineY + badgeLineSize * 0.45);
 
     ctx.font = `600 ${valFontSize * 0.88}px Inter, sans-serif`;
     ctx.fillStyle = '#64748B';
-    ctx.fillText(fitText(pageSubtitle, lineTextMaxW), lineTextX, badgeLineY + badgeLineSize * 0.85);
+    ctx.fillText(fitText(subtituloFinal, lineTextMaxW), lineTextX, badgeLineY + badgeLineSize * 0.85);
 
     // ── COLUMNA 2: FICHA TÉCNICA Y CÓMPUTO ──
     const nationalLineNumbers = Array.from(
@@ -2123,22 +2141,32 @@ export default function MapPrintAtlasModal({
     const metrics: { label: string; val: string }[] = [
       { label: 'Longitud de Traza:', val: `${totalRouteDistanceKm.toFixed(2)} km` },
       { label: 'Paradas Registradas:', val: `${stopCount > 0 ? stopCount : targetCapas.length * 2}` },
-      {
-        label: `Red ${metaOverlay.corta} Referencia:`,
-        val: nationalCapas.length > 0 ? `${nationalCapas.length} trazas (L.${nationalLineNumbers})` : 'Sin superposición',
-      },
-      {
-        label: 'Fecha de Emisión:',
-        val: new Date().toLocaleDateString('es-AR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      },
-      { label: 'Datum / Proyección:', val: 'EPSG:3857 Isométrico 1:1' },
     ];
+
+    // 🔘 "Red Referencia" solo si el usuario la quiere ver (a veces ensucia con 240+ trazas)
+    if (datosPlano.mostrarRedRef) {
+      const refTruncada = nationalLineNumbers.length > 30
+        ? nationalLineNumbers.substring(0, 27) + '…'
+        : nationalLineNumbers;
+      metrics.push({
+        label: `Red ${metaOverlay.corta} Referencia:`,
+        val: nationalCapas.length > 0
+          ? `${nationalCapas.length} trazas${refTruncada ? ` (L.${refTruncada})` : ''}`
+          : 'Sin superposición',
+      });
+    }
+
+    metrics.push({
+      label: 'Fecha de Emisión:',
+      val: new Date().toLocaleDateString('es-AR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+    });
+    metrics.push({ label: 'Datum / Proyección:', val: 'EPSG:3857 Isométrico 1:1' });
 
     // Filas opcionales solo si el usuario las completó (máx. 7 filas para no desbordar)
     if (datosPlano.operador.trim()) {
@@ -2151,16 +2179,23 @@ export default function MapPrintAtlasModal({
       metrics.push({ label: 'Observaciones:', val: datosPlano.observaciones.trim() });
     }
 
-    // Paso adaptativo: acomoda de 5 a 8 filas dentro de la altura de la carátula sin desbordar
-    const rowStep = caratureH / (metrics.length + 0.2);
+    // Paso adaptativo: acomoda de 4 a 8 filas dentro de la altura de la carátula
+    const rowStep = caratureH / (metrics.length + 0.3);
 
     metrics.forEach((m, idx) => {
       const y = caratureY + (idx + 0.85) * rowStep;
-      ctx.font = `500 ${valFontSize * 0.88}px Inter, sans-serif`;
+
+      // Zebra striping sutil para legibilidad
+      if (idx % 2 === 0) {
+        ctx.fillStyle = '#FAFBFC';
+        ctx.fillRect(col2X + caraturePad * 0.5, y - rowStep * 0.42, col2W - caraturePad, rowStep * 0.84);
+      }
+
+      ctx.font = `500 ${valFontSize * 0.85}px Inter, sans-serif`;
       ctx.fillStyle = '#64748B';
       ctx.fillText(m.label, col2X + caraturePad, y);
 
-      ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
+      ctx.font = `bold ${valFontSize * 0.92}px Inter, sans-serif`;
       ctx.fillStyle = '#0F172A';
       ctx.textAlign = 'right';
       ctx.fillText(fitText(m.val, col2W * 0.55), col2X + col2W - caraturePad, y);
@@ -2170,9 +2205,13 @@ export default function MapPrintAtlasModal({
     // ── COLUMNA 3: SIMBOLOGÍA Y REFERENCIAS TÉCNICAS ──
     const col3Pad = caraturePad;
     const col3InnerW = col3W - 2 * col3Pad;
-    ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
+
+    // Título con barra de color
     ctx.fillStyle = '#7B1828';
-    ctx.fillText(fitText('SIMBOLOGÍA & REFERENCIAS TÉCNICAS', col3InnerW), col3X + col3Pad, caratureY + caratureH * 0.15);
+    ctx.fillRect(col3X + col3Pad, caratureY + caratureH * 0.1, toPx(1.2), toPx(4));
+    ctx.font = `bold ${valFontSize * 0.92}px Inter, sans-serif`;
+    ctx.fillStyle = '#7B1828';
+    ctx.fillText(fitText('SIMBOLOGÍA & REFERENCIAS', col3InnerW - toPx(3)), col3X + col3Pad + toPx(2.5), caratureY + caratureH * 0.15);
 
     ctx.strokeStyle = '#F1F5F9';
     ctx.lineWidth = Math.max(1, toPx(0.35));
@@ -2494,6 +2533,146 @@ export default function MapPrintAtlasModal({
     }
   };
 
+  // ══════════════════════════════════════════════════════════════════
+  // 🧩 Componente interno: Sección colapsable con número, icono y tema
+  // ══════════════════════════════════════════════════════════════════
+  const Seccion = ({
+    id,
+    num,
+    icon,
+    titulo,
+    sub,
+    children,
+    accent = '#2563eb',
+    badge,
+  }: {
+    id: string;
+    num: number;
+    icon: React.ReactNode;
+    titulo: string;
+    sub?: string;
+    children: React.ReactNode;
+    accent?: string;
+    badge?: React.ReactNode;
+  }) => {
+    const abierta = seccionesAbiertas[id] !== false;
+    return (
+      <div
+        style={{
+          background: '#ffffff',
+          border: `1.5px solid ${abierta ? accent + '33' : '#f1f5f9'}`,
+          borderRadius: '14px',
+          overflow: 'hidden',
+          transition: 'border-color 0.2s ease',
+        }}
+      >
+        {/* Header clickeable */}
+        <button
+          type="button"
+          onClick={() => toggleSeccion(id)}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '11px 14px',
+            background: abierta ? `linear-gradient(135deg, ${accent}08, ${accent}04)` : 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'background 0.15s ease',
+          }}
+        >
+          {/* Número de paso */}
+          <div
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 9,
+              background: abierta ? accent : '#f1f5f9',
+              color: abierta ? '#fff' : '#94a3b8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.72rem',
+              fontWeight: 900,
+              flexShrink: 0,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {num}
+          </div>
+          {/* Icono */}
+          <span style={{ color: abierta ? accent : '#94a3b8', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}>
+            {icon}
+          </span>
+          {/* Título + sub */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: '0.79rem',
+                fontWeight: 800,
+                color: abierta ? '#0f172a' : '#64748b',
+                display: 'block',
+                lineHeight: 1.2,
+              }}
+            >
+              {titulo}
+            </span>
+            {sub && (
+              <span style={{ fontSize: '0.66rem', color: '#94a3b8', fontWeight: 600 }}>{sub}</span>
+            )}
+          </div>
+          {/* Badge opcional (ej: cantidad de trazos) */}
+          {badge && (
+            <span
+              style={{
+                background: accent + '15',
+                color: accent,
+                fontSize: '0.64rem',
+                fontWeight: 800,
+                padding: '2px 8px',
+                borderRadius: '99px',
+                flexShrink: 0,
+              }}
+            >
+              {badge}
+            </span>
+          )}
+          {/* Chevron */}
+          <span
+            style={{
+              color: '#cbd5e1',
+              display: 'flex',
+              flexShrink: 0,
+              transform: abierta ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.25s ease',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
+        </button>
+
+        {/* Contenido (animado) */}
+        {abierta && (
+          <div
+            style={{
+              padding: '4px 14px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              animation: 'fadeInDown 0.2s ease',
+            }}
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       className="hide-on-print"
@@ -2512,6 +2691,11 @@ export default function MapPrintAtlasModal({
         transition: 'all 0.3s ease',
       }}
     >
+      <style>{`
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .seccion-btn:hover { background: rgba(0,0,0,0.02) !important; }
+      `}</style>
       <div
         style={{
           background: '#ffffff',
@@ -2527,57 +2711,134 @@ export default function MapPrintAtlasModal({
           flexDirection: 'column',
         }}
       >
-        {/* Encabezado */}
+        {/* Encabezado rediseñado con indicador de flujo */}
         <div
           style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0c4a6e 100%)',
             color: '#f8fafc',
-            padding: '16px 22px',
+            padding: '14px 20px 12px',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            gap: '10px',
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 13,
+                  background: 'linear-gradient(135deg, rgba(56,189,248,0.2), rgba(37,99,235,0.15))',
+                  border: '1px solid rgba(56,189,248,0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 20px rgba(56,189,248,0.1)',
+                }}
+              >
+                <Printer size={20} color="#38bdf8" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.01em' }}>
+                  Estudio Cartográfico de Impresión
+                </h3>
+                <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                  Motor Isométrico EPSG:3857 ·{' '}
+                  <span style={{ color: '#38bdf8', fontWeight: 700 }}>{capasFiltradas.length} trazos</span>
+                  {incluirNacionales && (
+                    <>
+                      {' '} +{' '}
+                      <span style={{ color: '#86efac', fontWeight: 700 }}>
+                        {capasNacionalesActivas.length} {metaOverlay.plural}
+                      </span>
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              disabled={isGenerating}
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#94a3b8',
+                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                padding: '7px',
+                borderRadius: '10px',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                transition: 'all 0.15s',
               }}
+              onMouseEnter={(e) => { if (!isGenerating) { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#f8fafc'; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94a3b8'; }}
             >
-              <Printer size={20} color="#38bdf8" />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.02rem', fontWeight: 800, color: '#f8fafc' }}>
-                Estudio Cartográfico de Impresión
-              </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.74rem', color: '#94a3b8' }}>
-                Motor Isométrico Web Mercator (EPSG:3857) · {capasFiltradas.length} trazos seleccionados
-                {incluirNacionales && ` · +${capasNacionalesActivas.length} ${metaOverlay.plural}`}
-              </p>
-            </div>
+              <X size={18} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            disabled={isGenerating}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#94a3b8',
-              cursor: isGenerating ? 'not-allowed' : 'pointer',
-              padding: '6px',
-              borderRadius: '8px',
-            }}
-          >
-            <X size={20} />
-          </button>
+
+          {/* Indicador de flujo: 5 pasos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0px', paddingLeft: '2px' }}>
+            {[
+              { id: 'contenido', label: 'Contenido' },
+              { id: 'lineas', label: 'Líneas' },
+              { id: 'refs', label: 'Simbología' },
+              { id: 'formato', label: 'Formato' },
+              { id: 'datos', label: 'Datos' },
+            ].map((p, i, arr) => {
+              const activa = seccionesAbiertas[p.id] !== false;
+              return (
+                <React.Fragment key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => { if (seccionesAbiertas[p.id] === false) toggleSeccion(p.id); }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '2px 0',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 6,
+                        background: activa ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)',
+                        border: `1px solid ${activa ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.58rem',
+                        fontWeight: 800,
+                        color: activa ? '#38bdf8' : '#475569',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: '0.62rem',
+                        fontWeight: 700,
+                        color: activa ? '#cbd5e1' : '#475569',
+                        transition: 'color 0.2s',
+                      }}
+                    >
+                      {p.label}
+                    </span>
+                  </button>
+                  {i < arr.length - 1 && (
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 6px', minWidth: '8px' }} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* Cuerpo Principal con Scroll */}
@@ -2590,35 +2851,40 @@ export default function MapPrintAtlasModal({
             overflowY: 'auto',
           }}
         >
-          {/* Varita mágica banner */}
+          {/* Varita mágica — banner compacto */}
           <div
             style={{
-              background: modoVarita ? '#f0fdf4' : '#eff6ff',
-              border: modoVarita ? '1.5px solid #86efac' : '1px solid #bfdbfe',
+              background: modoVarita ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)' : 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+              border: `1.5px solid ${modoVarita ? '#86efac' : '#bfdbfe'}`,
               borderRadius: '12px',
-              padding: '9px 12px',
+              padding: '8px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              boxShadow: modoVarita ? '0 0 16px rgba(34,197,94,0.12)' : 'none',
+              transition: 'all 0.3s ease',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Sparkles size={18} color={modoVarita ? '#16a34a' : '#2563eb'} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 9,
+                  background: modoVarita ? 'rgba(22,163,74,0.12)' : 'rgba(37,99,235,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Sparkles size={15} color={modoVarita ? '#16a34a' : '#2563eb'} />
+              </div>
               <div>
-                <span
-                  style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
-                    color: modoVarita ? '#166534' : '#1d4ed8',
-                    display: 'block',
-                  }}
-                >
-                  {modoVarita ? '¡Selección por Clic Activa!' : 'Varita Mágica de Mapa'}
+                <span style={{ fontSize: '0.76rem', fontWeight: 800, color: modoVarita ? '#166534' : '#1d4ed8', display: 'block', lineHeight: 1.2 }}>
+                  {modoVarita ? '✓ Selección por Clic Activa' : 'Varita Mágica de Mapa'}
                 </span>
-                <span style={{ fontSize: '0.71rem', color: modoVarita ? '#15803d' : '#3b82f6' }}>
-                  {modoVarita
-                    ? 'Tocá cualquier trazo en el mapa para sumarlo/quitarlo'
-                    : 'Hacé clic en el mapa o elegí en la lista'}
+                <span style={{ fontSize: '0.66rem', color: modoVarita ? '#15803d' : '#3b82f6' }}>
+                  {modoVarita ? 'Tocá cualquier trazo para sumarlo/quitarlo' : 'Hacé clic en el mapa o elegí en la lista'}
                 </span>
               </div>
             </div>
@@ -2626,23 +2892,33 @@ export default function MapPrintAtlasModal({
               type="button"
               onClick={() => setModoVarita(!modoVarita)}
               style={{
-                background: modoVarita ? '#16a34a' : '#2563eb',
+                background: modoVarita ? 'linear-gradient(135deg, #16a34a, #15803d)' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
                 border: 'none',
                 color: '#fff',
-                borderRadius: '8px',
-                padding: '5px 11px',
-                fontSize: '0.74rem',
+                borderRadius: '9px',
+                padding: '6px 12px',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
             >
-              {modoVarita ? '✓ Seleccionando' : 'Activar Clic'}
+              {modoVarita ? '✓ Activa' : 'Activar Clic'}
             </button>
           </div>
 
-          {/* 1. Organización de Páginas en el PDF */}
-          <div>
+          {/* ═══ SECCIÓN 1: Contenido del PDF ═══ */}
+          <Seccion
+            id="contenido"
+            num={1}
+            icon={<Layers size={16} />}
+            titulo="Contenido del PDF"
+            sub="Elegí cómo organizar las páginas y qué trazos incluir"
+            accent="#2563eb"
+            badge={`${capasFiltradas.length} trazos`}
+          >
             <label
               style={{
                 fontSize: '0.78rem',
@@ -2712,8 +2988,18 @@ export default function MapPrintAtlasModal({
                 );
               })}
             </div>
-          </div>
+          </Seccion>
 
+          {/* ═══ SECCIÓN 2: Líneas y Jurisdicción ═══ */}
+          <Seccion
+            id="lineas"
+            num={2}
+            icon={<Globe size={16} />}
+            titulo="Líneas y Jurisdicción"
+            sub="Superponé la red nacional/provincial y seleccioná trazos"
+            accent="#0891b2"
+            badge={incluirNacionales ? `+${capasNacionalesActivas.length}` : undefined}
+          >
           {/* 🗺️ SECCIÓN: Superposición de Líneas por jurisdicción */}
           <div
             style={{
@@ -3071,7 +3357,17 @@ export default function MapPrintAtlasModal({
               </div>
             )}
           </div>
+          </Seccion>
 
+          {/* ═══ SECCIÓN 3: Simbología ═══ */}
+          <Seccion
+            id="refs"
+            num={3}
+            icon={<BookOpen size={16} />}
+            titulo="Simbología y Referencias"
+            sub="Cómo se representan las trazas en el plano"
+            accent="#7c3aed"
+          >
           {/* 📖 Cuadro de Referencias Cartográficas y Simbología */}
           <div
             style={{
@@ -3246,7 +3542,17 @@ export default function MapPrintAtlasModal({
               </div>
             </div>
           </div>
+          </Seccion>
 
+          {/* ═══ SECCIÓN 4: Formato y Motor ═══ */}
+          <Seccion
+            id="formato"
+            num={4}
+            icon={<Compass size={16} />}
+            titulo="Formato y Motor Cartográfico"
+            sub="Encuadre, escala, mapa base y calidad de impresión"
+            accent="#059669"
+          >
           {/* 2. Encuadre y Escala */}
           <div>
             <label
@@ -3557,12 +3863,22 @@ export default function MapPrintAtlasModal({
               </div>
             </div>
           </div>
+          </Seccion>
 
+          {/* ═══ SECCIÓN 5: Datos y Opciones ═══ */}
+          <Seccion
+            id="datos"
+            num={5}
+            icon={<FileText size={16} />}
+            titulo="Datos del Plano y Opciones"
+            sub="Personalizá la carátula y las opciones técnicas"
+            accent="#d97706"
+          >
           {/* ✏️ Datos editables del plano (personalización de la carátula) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1e293b' }}>
-                ✏️ Datos del Plano (editables antes de exportar):
+                ✏️ Datos del Plano:
               </label>
               <button
                 type="button"
@@ -3573,6 +3889,9 @@ export default function MapPrintAtlasModal({
                     operador: '',
                     escalaNominal: '',
                     observaciones: '',
+                    tituloPlano: '',
+                    subtitulo: '',
+                    mostrarRedRef: true,
                   })
                 }
                 style={{
@@ -3590,8 +3909,11 @@ export default function MapPrintAtlasModal({
               </button>
             </div>
 
+            {/* Campos principales */}
             {(
               [
+                { key: 'tituloPlano', label: 'Título del Plano', placeholder: `LÍNEA ${normalizeLineNumber(lineaNombre) || lineaNombre}` },
+                { key: 'subtitulo', label: 'Subtítulo', placeholder: 'Plano General Consolidado · Sistema Lanús' },
                 { key: 'proyecto', label: 'Proyecto', placeholder: 'SISTEMA INTEGRADO DE TRANSPORTE URBANO' },
                 { key: 'cobertura', label: 'Cobertura', placeholder: 'Partidos / localidades que abarca' },
                 { key: 'operador', label: 'Operador (opcional)', placeholder: 'Empresa operadora' },
@@ -3603,7 +3925,7 @@ export default function MapPrintAtlasModal({
                 <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>{campo.label}</span>
                 <input
                   type="text"
-                  value={datosPlano[campo.key]}
+                  value={datosPlano[campo.key] as string}
                   onChange={(e) => setDatoPlano(campo.key, e.target.value)}
                   placeholder={campo.placeholder}
                   style={{
@@ -3619,6 +3941,34 @@ export default function MapPrintAtlasModal({
                 />
               </div>
             ))}
+
+            {/* Toggle: mostrar/ocultar "Red Referencia" en la carátula */}
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 10px',
+                background: '#fffbeb',
+                border: '1px solid #fde68a',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginTop: '2px',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={datosPlano.mostrarRedRef}
+                onChange={(e) => setDatoPlano('mostrarRedRef', e.target.checked)}
+                style={{ width: '14px', height: '14px', accentColor: '#d97706' }}
+              />
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#92400e' }}>
+                Mostrar "Red Referencia" en ficha técnica
+              </span>
+              <span style={{ fontSize: '0.62rem', color: '#b45309', fontWeight: 500 }}>
+                (si hay muchas trazas, puede ensuciar)
+              </span>
+            </label>
           </div>
 
           {/* Opciones Cartográficas Técnicas */}
@@ -3923,6 +4273,7 @@ export default function MapPrintAtlasModal({
               })}
             </div>
           </div>
+          </Seccion>
 
           {isGenerating && (
             <div
