@@ -19,6 +19,17 @@ import {
   CheckSquare,
   Square,
   Eye,
+  HelpCircle,
+  Target,
+  Building2,
+  Search,
+  Palette,
+  Ruler,
+  Files,
+  Pencil,
+  Repeat,
+  Info,
+  ChevronDown,
 } from 'lucide-react';
 import L from 'leaflet';
 import html2canvas from 'html2canvas';
@@ -83,6 +94,148 @@ interface LegendItem {
   isNational: boolean;
   jurisdiccion: Jurisdiccion;
 }
+
+// ══════════════════════════════════════════════════════════════════
+// 🧩 Sección colapsable — definida FUERA del componente principal
+// con React.memo para evitar re-renders innecesarios al escribir
+// ══════════════════════════════════════════════════════════════════
+const Seccion = React.memo(function Seccion({
+  id,
+  num,
+  icon,
+  titulo,
+  sub,
+  children,
+  accent = '#2563eb',
+  badge,
+  abierta,
+  onToggle,
+}: {
+  id: string;
+  num: number;
+  icon: React.ReactNode;
+  titulo: string;
+  sub?: string;
+  children: React.ReactNode;
+  accent?: string;
+  badge?: React.ReactNode;
+  abierta: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div
+      style={{
+        background: '#ffffff',
+        border: `1.5px solid ${abierta ? accent + '30' : '#e8edf3'}`,
+        borderRadius: '14px',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+        boxShadow: abierta
+          ? `0 2px 8px ${accent}10, 0 0 0 1px ${accent}08`
+          : '0 1px 2px rgba(0,0,0,0.04)',
+        flexShrink: 0,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '9px',
+          padding: '11px 13px',
+          background: abierta ? `linear-gradient(135deg, ${accent}07, transparent 70%)` : 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          transition: 'background 0.15s ease',
+          borderTopLeftRadius: '13px',
+          borderTopRightRadius: '13px',
+        }}
+      >
+        <div
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 8,
+            background: abierta ? `linear-gradient(135deg, ${accent}, ${accent}cc)` : '#eef2f7',
+            color: abierta ? '#fff' : '#94a3b8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.68rem',
+            fontWeight: 900,
+            flexShrink: 0,
+            transition: 'all 0.2s ease',
+            boxShadow: abierta ? `0 2px 6px ${accent}35` : 'none',
+          }}
+        >
+          {num}
+        </div>
+        <span style={{ color: abierta ? accent : '#94a3b8', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}>
+          {icon}
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span
+            style={{
+              fontSize: '0.77rem',
+              fontWeight: 800,
+              color: abierta ? '#0f172a' : '#64748b',
+              display: 'block',
+              lineHeight: 1.3,
+            }}
+          >
+            {titulo}
+          </span>
+          {sub && (
+            <span style={{ fontSize: '0.63rem', color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{sub}</span>
+          )}
+        </div>
+        {badge && (
+          <span
+            style={{
+              background: accent + '12',
+              color: accent,
+              fontSize: '0.6rem',
+              fontWeight: 800,
+              padding: '2px 8px',
+              borderRadius: '99px',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {badge}
+          </span>
+        )}
+        <span
+          style={{
+            color: '#c1c9d4',
+            display: 'flex',
+            flexShrink: 0,
+            transform: abierta ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.25s ease, color 0.15s',
+          }}
+        >
+          <ChevronDown size={14} strokeWidth={2.5} />
+        </span>
+      </button>
+
+      {abierta && (
+        <div
+          style={{
+            padding: '0 13px 13px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${accent}20, transparent)`, marginBottom: '2px' }} />
+          {children}
+        </div>
+      )}
+    </div>
+  );
+});
 
 export default function MapPrintAtlasModal({
   isOpen,
@@ -267,12 +420,13 @@ export default function MapPrintAtlasModal({
     }
   }, [isOpen, capasLinea, idsPreseleccionados]);
 
-  // Inicializar nacionales seleccionadas con todas las disponibles
+  // No auto-seleccionar nacionales: el usuario elige manualmente o usa "Todos"
   React.useEffect(() => {
-    if (isOpen && capasNacionalesDisponibles.length > 0) {
-      setNacionalesSeleccionadas(capasNacionalesDisponibles.map((c) => c.id));
+    if (isOpen) {
+      setNacionalesSeleccionadas([]);
+      setIncluirNacionales(false);
     }
-  }, [isOpen, capasNacionalesDisponibles]);
+  }, [isOpen]);
 
   // Al abrir: configurar los valores por defecto según el modo (general "Completo" o línea puntual)
   React.useEffect(() => {
@@ -1068,21 +1222,28 @@ export default function MapPrintAtlasModal({
       const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
       const { url } = proj.getMapboxStaticUrl(token, estiloMapbox, true);
 
-      try {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error('Fallo al cargar imagen de Mapbox'));
-          img.src = url;
-          setTimeout(() => resolve(), 9000);
-        });
-        if (img.complete && img.naturalWidth > 0) {
-          ctx.drawImage(img, mapViewportX, mapViewportY, mapViewportW, mapViewportH);
-          mapboxLoaded = true;
+      // Reintentar hasta 3 veces con delay creciente para evitar rate limit de Mapbox
+      for (let attempt = 0; attempt < 3 && !mapboxLoaded; attempt++) {
+        if (attempt > 0) {
+          // Delay progresivo: 400ms, luego 1200ms
+          await new Promise((r) => setTimeout(r, 400 * attempt * 3));
         }
-      } catch (e) {
-        console.warn('Fallo Mapbox Static:', e);
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          const loaded = await new Promise<boolean>((resolve) => {
+            img.onload = () => resolve(true);
+            img.onerror = () => resolve(false);
+            img.src = url;
+            setTimeout(() => resolve(false), 10000);
+          });
+          if (loaded && img.complete && img.naturalWidth > 0) {
+            ctx.drawImage(img, mapViewportX, mapViewportY, mapViewportW, mapViewportH);
+            mapboxLoaded = true;
+          }
+        } catch (e) {
+          console.warn(`Fallo Mapbox Static (intento ${attempt + 1}):`, e);
+        }
       }
     } else if (mapInstance) {
       const mapElement = mapInstance.getContainer();
@@ -1106,8 +1267,25 @@ export default function MapPrintAtlasModal({
     }
 
     if (!mapboxLoaded) {
-      ctx.fillStyle = '#f8fafc';
+      // Fallback mejorado: fondo con grilla sutil para que no quede en blanco
+      ctx.fillStyle = '#f0f4f8';
       ctx.fillRect(mapViewportX, mapViewportY, mapViewportW, mapViewportH);
+      // Grilla técnica sutil
+      ctx.strokeStyle = '#d8e2ec';
+      ctx.lineWidth = 0.5;
+      const gridStep = Math.max(30, Math.min(mapViewportW, mapViewportH) / 12);
+      for (let gx = mapViewportX; gx <= mapViewportX + mapViewportW; gx += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(gx, mapViewportY);
+        ctx.lineTo(gx, mapViewportY + mapViewportH);
+        ctx.stroke();
+      }
+      for (let gy = mapViewportY; gy <= mapViewportY + mapViewportH; gy += gridStep) {
+        ctx.beginPath();
+        ctx.moveTo(mapViewportX, gy);
+        ctx.lineTo(mapViewportX + mapViewportW, gy);
+        ctx.stroke();
+      }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -2423,45 +2601,31 @@ export default function MapPrintAtlasModal({
       const capasVuelta = capasFiltradas.filter((c) => detectSentido(c) === 'VUELTA');
       const hayAmbosSentidos = capasIda.length > 0 && capasVuelta.length > 0;
 
-      if (pageLayout === 'individual' || pageLayout === 'both') {
-        if (modoIdaVuelta === 'separados' && hayAmbosSentidos) {
-          // 📄 Modo separados: una lámina para IDA, otra para VUELTA
-          if (capasIda.length > 0) {
-            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasIda,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
-              subtitle: `Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
-              isConsolidated: capasIda.length > 1,
-            });
-          }
-          if (capasVuelta.length > 0) {
-            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasVuelta,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
-              subtitle: `Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
-              isConsolidated: capasVuelta.length > 1,
-            });
-          }
-        } else {
-          // 📑 Modo juntos: una página por cada trazo/variante
-          capasFiltradas.forEach((capa, idx) => {
-            const sentido = detectSentido(capa);
-            const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
-            pagesToGenerate.push({
-              capas: [capa],
-              title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
-              subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
-              isConsolidated: false,
-            });
+      // Modo JUNTOS: una sola lámina con todo, sin importar layout
+      if (modoIdaVuelta === 'juntos') {
+        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+          subtitle: `Plano Consolidado · ${capasFiltradas.length} variante(s) · Sistema Lanús`,
+          isConsolidated: true,
+        });
+      } else if (pageLayout === 'individual') {
+        // Modo separados + individual: una página por capa
+        capasFiltradas.forEach((capa, idx) => {
+          const sentido = detectSentido(capa);
+          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          pagesToGenerate.push({
+            capas: [capa],
+            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
+            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            isConsolidated: false,
           });
-        }
-      }
-
-      if (pageLayout === 'all-in-one' || pageLayout === 'both') {
-        if (modoIdaVuelta === 'separados' && hayAmbosSentidos) {
-          // 📄 Consolidado separado: lámina de ida + lámina de vuelta
+        });
+      } else if (pageLayout === 'all-in-one') {
+        // Modo separados + all-in-one: una lámina por sentido
+        if (hayAmbosSentidos) {
           if (capasIda.length > 0) {
             const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
             pagesToGenerate.push({
@@ -2481,7 +2645,6 @@ export default function MapPrintAtlasModal({
             });
           }
         } else {
-          // 📚 Consolidado junto: una lámina con todos los trazos
           const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
           const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
           pagesToGenerate.push({
@@ -2491,6 +2654,48 @@ export default function MapPrintAtlasModal({
             isConsolidated: true,
           });
         }
+      } else {
+        // Modo separados + both: consolidado por sentido + individuales
+        if (hayAmbosSentidos) {
+          if (capasIda.length > 0) {
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasIda,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
+              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+          if (capasVuelta.length > 0) {
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasVuelta,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
+              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+        } else {
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          pagesToGenerate.push({
+            capas: capasFiltradas,
+            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
+            isConsolidated: true,
+          });
+        }
+        // Individuales
+        capasFiltradas.forEach((capa, idx) => {
+          const sentido = detectSentido(capa);
+          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          pagesToGenerate.push({
+            capas: [capa],
+            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
+            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            isConsolidated: false,
+          });
+        });
       }
 
       // Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
@@ -2565,10 +2770,17 @@ export default function MapPrintAtlasModal({
 
         if (i > 0) {
           pdf.addPage(paperFormat.toLowerCase() as any, orientacion);
+          // Delay entre páginas para evitar rate limit de Mapbox Static API
+          await new Promise((r) => setTimeout(r, 350));
         }
 
         const imgData = canvas.toDataURL('image/jpeg', 0.98);
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
+      }
+
+      // También agregar delay antes de la hoja de referencias si hay más páginas
+      if (pagesToGenerate.length > 1) {
+        await new Promise((r) => setTimeout(r, 200));
       }
 
       setPrintStatus('Compilando y finalizando archivo PDF oficial...');
@@ -2591,156 +2803,7 @@ export default function MapPrintAtlasModal({
   };
 
   // ══════════════════════════════════════════════════════════════════
-  // 🧩 Componente interno: Sección colapsable con número, icono y tema
-  // ══════════════════════════════════════════════════════════════════
-  const Seccion = ({
-    id,
-    num,
-    icon,
-    titulo,
-    sub,
-    children,
-    accent = '#2563eb',
-    badge,
-  }: {
-    id: string;
-    num: number;
-    icon: React.ReactNode;
-    titulo: string;
-    sub?: string;
-    children: React.ReactNode;
-    accent?: string;
-    badge?: React.ReactNode;
-  }) => {
-    const abierta = seccionesAbiertas[id] !== false;
-    return (
-      <div
-        style={{
-          background: '#ffffff',
-          border: `1.5px solid ${abierta ? accent + '30' : '#e8edf3'}`,
-          borderRadius: '14px',
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-          boxShadow: abierta
-            ? `0 2px 8px ${accent}10, 0 0 0 1px ${accent}08`
-            : '0 1px 2px rgba(0,0,0,0.04)',
-          flexShrink: 0,
-          position: 'relative',
-        }}
-      >
-        {/* Header clickeable */}
-        <button
-          type="button"
-          onClick={() => toggleSeccion(id)}
-          className="seccion-btn"
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '9px',
-            padding: '11px 13px',
-            background: abierta ? `linear-gradient(135deg, ${accent}07, transparent 70%)` : 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            textAlign: 'left',
-            transition: 'background 0.15s ease',
-            borderTopLeftRadius: '13px',
-            borderTopRightRadius: '13px',
-          }}
-        >
-          {/* Número de paso */}
-          <div
-            style={{
-              width: 26,
-              height: 26,
-              borderRadius: 8,
-              background: abierta ? `linear-gradient(135deg, ${accent}, ${accent}cc)` : '#eef2f7',
-              color: abierta ? '#fff' : '#94a3b8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '0.68rem',
-              fontWeight: 900,
-              flexShrink: 0,
-              transition: 'all 0.2s ease',
-              boxShadow: abierta ? `0 2px 6px ${accent}35` : 'none',
-            }}
-          >
-            {num}
-          </div>
-          {/* Icono */}
-          <span style={{ color: abierta ? accent : '#94a3b8', display: 'flex', flexShrink: 0, transition: 'color 0.2s' }}>
-            {icon}
-          </span>
-          {/* Título + sub */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <span
-              style={{
-                fontSize: '0.77rem',
-                fontWeight: 800,
-                color: abierta ? '#0f172a' : '#64748b',
-                display: 'block',
-                lineHeight: 1.3,
-              }}
-            >
-              {titulo}
-            </span>
-            {sub && (
-              <span style={{ fontSize: '0.63rem', color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{sub}</span>
-            )}
-          </div>
-          {/* Badge opcional */}
-          {badge && (
-            <span
-              style={{
-                background: accent + '12',
-                color: accent,
-                fontSize: '0.6rem',
-                fontWeight: 800,
-                padding: '2px 8px',
-                borderRadius: '99px',
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {badge}
-            </span>
-          )}
-          {/* Chevron */}
-          <span
-            style={{
-              color: '#c1c9d4',
-              display: 'flex',
-              flexShrink: 0,
-              transform: abierta ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.25s ease, color 0.15s',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </span>
-        </button>
-
-        {/* Contenido */}
-        {abierta && (
-          <div
-            style={{
-              padding: '0 13px 13px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-            }}
-          >
-            <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${accent}20, transparent)`, marginBottom: '2px' }} />
-            {children}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // ══════════════════════════════════════════════════════════════════
-  // ❓ Tooltip de ayuda contextual (se muestra al pasar el mouse)
+  // ❓ Tooltip de ayuda contextual
   // ══════════════════════════════════════════════════════════════════
   const InfoTooltip = ({ texto, children }: { texto: string; children?: React.ReactNode }) => (
     <span
@@ -3187,6 +3250,8 @@ export default function MapPrintAtlasModal({
 
           {/* ═══ SECCIÓN 1: Contenido del PDF ═══ */}
           <Seccion
+            abierta={seccionesAbiertas.contenido !== false}
+            onToggle={toggleSeccion}
             id="contenido"
             num={1}
             icon={<Layers size={16} />}
@@ -3204,7 +3269,7 @@ export default function MapPrintAtlasModal({
                 marginBottom: '6px',
               }}
             >
-              📚 Estructura de Páginas del PDF:
+              <Layers size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Estructura de Páginas del PDF:
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
               {[
@@ -3277,13 +3342,13 @@ export default function MapPrintAtlasModal({
                 {[
                   {
                     id: 'juntos' as const,
-                    icon: '🔄',
+                    icon: <Repeat size={16} />,
                     label: 'Juntos',
                     sub: 'Ida + Vuelta en la misma lámina',
                   },
                   {
                     id: 'separados' as const,
-                    icon: '📄📄',
+                    icon: <Files size={16} />,
                     label: 'Separados',
                     sub: '2 láminas: una ida, otra vuelta',
                   },
@@ -3327,6 +3392,8 @@ export default function MapPrintAtlasModal({
 
           {/* ═══ SECCIÓN 2: Líneas y Jurisdicción ═══ */}
           <Seccion
+            abierta={seccionesAbiertas.lineas !== false}
+            onToggle={toggleSeccion}
             id="lineas"
             num={2}
             icon={<Globe size={16} />}
@@ -3696,6 +3763,8 @@ export default function MapPrintAtlasModal({
 
           {/* ═══ SECCIÓN 3: Simbología ═══ */}
           <Seccion
+            abierta={seccionesAbiertas.refs !== false}
+            onToggle={toggleSeccion}
             id="refs"
             num={3}
             icon={<BookOpen size={16} />}
@@ -3881,6 +3950,8 @@ export default function MapPrintAtlasModal({
 
           {/* ═══ SECCIÓN 4: Formato y Motor ═══ */}
           <Seccion
+            abierta={seccionesAbiertas.formato !== false}
+            onToggle={toggleSeccion}
             id="formato"
             num={4}
             icon={<Compass size={16} />}
@@ -3899,23 +3970,23 @@ export default function MapPrintAtlasModal({
                 marginBottom: '6px',
               }}
             >
-              🎯 Encuadre y Escala Cartográfica:
+              <Target size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Encuadre y Escala Cartográfica:
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
               {[
                 {
                   id: 'tight' as FramingMode,
-                  label: '🔍 Ajustado / Nítido',
+                  label: 'Ajustado / Nítido',
                   sub: 'Mayor zoom y calles grandes',
                 },
                 {
                   id: 'optimal' as FramingMode,
-                  label: '📐 Óptimo (Recomendado)',
+                  label: 'Óptimo (Recomendado)',
                   sub: 'Equilibrio perfecto de traza',
                 },
                 {
                   id: 'relaxed' as FramingMode,
-                  label: '📏 Amplio',
+                  label: 'Amplio',
                   sub: 'Mayor contexto urbano',
                 },
               ].map((opt) => {
@@ -3963,31 +4034,31 @@ export default function MapPrintAtlasModal({
                 marginBottom: '6px',
               }}
             >
-              🗺️ Motor Cartográfico & Mapa Base:
+              <Globe size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Motor Cartográfico & Mapa Base:
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
               {[
                 {
                   id: 'streets-v12',
-                  label: '🏙️ Callejero Urbano HD',
+                  label: 'Callejero Urbano HD',
                   sub: 'Mapbox Streets (Recomendado)',
                   motor: 'mapbox',
                 },
                 {
                   id: 'light-v11',
-                  label: '📐 Plano Técnico Claro',
+                  label: 'Plano Técnico Claro',
                   sub: 'Minimalista / Alto Contraste',
                   motor: 'mapbox',
                 },
                 {
                   id: 'navigation-day-v1',
-                  label: '🚗 Red Vial Vectorial',
+                  label: 'Red Vial Vectorial',
                   sub: 'Líneas viales y nombres nítidos',
                   motor: 'mapbox',
                 },
                 {
                   id: 'satellite-streets-v12',
-                  label: '🛰️ Satélite HD + Calles',
+                  label: 'Satélite HD + Calles',
                   sub: 'Ortofoto aérea con nombres',
                   motor: 'mapbox',
                 },
@@ -4047,7 +4118,7 @@ export default function MapPrintAtlasModal({
                 marginBottom: '6px',
               }}
             >
-              ✏️ Grosor de Traza:
+              <Pencil size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Grosor de Traza:
             </label>
             <div style={{ display: 'flex', gap: '6px' }}>
               {[
@@ -4202,6 +4273,8 @@ export default function MapPrintAtlasModal({
 
           {/* ═══ SECCIÓN 5: Datos y Opciones ═══ */}
           <Seccion
+            abierta={seccionesAbiertas.datos !== false}
+            onToggle={toggleSeccion}
             id="datos"
             num={5}
             icon={<FileText size={16} />}
@@ -4213,7 +4286,7 @@ export default function MapPrintAtlasModal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1e293b' }}>
-                ✏️ Datos del Plano:
+                <Pencil size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Datos del Plano:
               </label>
               <button
                 type="button"
@@ -4774,7 +4847,7 @@ export default function MapPrintAtlasModal({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
                 <div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>
-                    👁️ Vista previa — {paperFormat} {orientacion === 'landscape' ? 'Apaisado' : 'Vertical'}
+                    <Eye size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} /> Vista previa — {paperFormat} {orientacion === 'landscape' ? 'Apaisado' : 'Vertical'}
                   </div>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
                     Editá los datos del plano o las opciones y volvé a renderizar para ver los cambios
