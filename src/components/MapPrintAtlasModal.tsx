@@ -2617,13 +2617,14 @@ export default function MapPrintAtlasModal({
       <div
         style={{
           background: '#ffffff',
-          border: `1.5px solid ${abierta ? accent + '28' : '#f1f5f9'}`,
+          border: `1.5px solid ${abierta ? accent + '30' : '#e8edf3'}`,
           borderRadius: '14px',
-          overflow: 'hidden',
           transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-          boxShadow: abierta ? `0 1px 3px ${accent}08` : 'none',
+          boxShadow: abierta
+            ? `0 2px 8px ${accent}10, 0 0 0 1px ${accent}08`
+            : '0 1px 2px rgba(0,0,0,0.04)',
+          flexShrink: 0,
           position: 'relative',
-          zIndex: abierta ? 1 : 0,
         }}
       >
         {/* Header clickeable */}
@@ -2636,21 +2637,23 @@ export default function MapPrintAtlasModal({
             display: 'flex',
             alignItems: 'center',
             gap: '9px',
-            padding: '10px 13px',
-            background: abierta ? `linear-gradient(135deg, ${accent}06, transparent)` : 'transparent',
+            padding: '11px 13px',
+            background: abierta ? `linear-gradient(135deg, ${accent}07, transparent 70%)` : 'transparent',
             border: 'none',
             cursor: 'pointer',
             textAlign: 'left',
             transition: 'background 0.15s ease',
+            borderTopLeftRadius: '13px',
+            borderTopRightRadius: '13px',
           }}
         >
           {/* Número de paso */}
           <div
             style={{
-              width: 25,
-              height: 25,
+              width: 26,
+              height: 26,
               borderRadius: 8,
-              background: abierta ? `linear-gradient(135deg, ${accent}, ${accent}dd)` : '#f1f5f9',
+              background: abierta ? `linear-gradient(135deg, ${accent}, ${accent}cc)` : '#eef2f7',
               color: abierta ? '#fff' : '#94a3b8',
               display: 'flex',
               alignItems: 'center',
@@ -2659,7 +2662,7 @@ export default function MapPrintAtlasModal({
               fontWeight: 900,
               flexShrink: 0,
               transition: 'all 0.2s ease',
-              boxShadow: abierta ? `0 2px 6px ${accent}30` : 'none',
+              boxShadow: abierta ? `0 2px 6px ${accent}35` : 'none',
             }}
           >
             {num}
@@ -2676,13 +2679,13 @@ export default function MapPrintAtlasModal({
                 fontWeight: 800,
                 color: abierta ? '#0f172a' : '#64748b',
                 display: 'block',
-                lineHeight: 1.2,
+                lineHeight: 1.3,
               }}
             >
               {titulo}
             </span>
             {sub && (
-              <span style={{ fontSize: '0.63rem', color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1.3 }}>{sub}</span>
+              <span style={{ fontSize: '0.63rem', color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1.3, marginTop: '1px' }}>{sub}</span>
             )}
           </div>
           {/* Badge opcional */}
@@ -2693,7 +2696,7 @@ export default function MapPrintAtlasModal({
                 color: accent,
                 fontSize: '0.6rem',
                 fontWeight: 800,
-                padding: '2px 7px',
+                padding: '2px 8px',
                 borderRadius: '99px',
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
@@ -2705,30 +2708,30 @@ export default function MapPrintAtlasModal({
           {/* Chevron */}
           <span
             style={{
-              color: '#cbd5e1',
+              color: '#c1c9d4',
               display: 'flex',
               flexShrink: 0,
               transform: abierta ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.25s ease',
+              transition: 'transform 0.25s ease, color 0.15s',
             }}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </span>
         </button>
 
-        {/* Contenido (animado) */}
+        {/* Contenido */}
         {abierta && (
           <div
             style={{
-              padding: '2px 13px 13px',
+              padding: '0 13px 13px',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
-              animation: 'fadeInDown 0.2s ease',
             }}
           >
+            <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${accent}20, transparent)`, marginBottom: '2px' }} />
             {children}
           </div>
         )}
@@ -2958,6 +2961,7 @@ export default function MapPrintAtlasModal({
           display: 'flex',
           flexDirection: 'column',
           animation: 'slideUp 0.25s ease',
+          minHeight: 0,
         }}
       >
         {/* Encabezado rediseñado con indicador de flujo */}
@@ -3114,12 +3118,13 @@ export default function MapPrintAtlasModal({
         <div
           className="modal-scroll"
           style={{
-            padding: '14px 16px',
+            padding: '12px 14px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
             overflowY: 'auto',
             flex: 1,
+            minHeight: 0,
           }}
         >
           {/* Varita mágica — banner compacto */}
