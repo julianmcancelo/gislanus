@@ -119,6 +119,21 @@ export default function MapPrintAtlasModal({
   const [limitesLanus, setLimitesLanus] = useState<[number, number][][] | null>(null); // anillos [lat, lng]
   const [busquedaRamales, setBusquedaRamales] = useState<string>('');
 
+  // ✏️ Datos editables de la carátula (el usuario puede personalizarlos antes de exportar)
+  const [datosPlano, setDatosPlano] = useState({
+    proyecto: 'SISTEMA INTEGRADO DE TRANSPORTE URBANO',
+    cobertura: 'LANÚS O. · LANÚS E. · R. DE ESCALADA · V. ALSINA · GERLI · M. CHINGOLO',
+    operador: '',
+    escalaNominal: '',
+    observaciones: '',
+  });
+  const setDatoPlano = (campo: keyof typeof datosPlano, valor: string) =>
+    setDatosPlano((d) => ({ ...d, [campo]: valor }));
+
+  // 👁️ Vista previa de la lámina antes de exportar
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState<boolean>(false);
+
   // 🗺️ Estados para Superposición de Líneas por jurisdicción (Nacional / Provincial / Municipal)
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
   const [jurisdiccionOverlay, setJurisdiccionOverlay] = useState<'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL'>('NACIONAL');
@@ -560,104 +575,225 @@ export default function MapPrintAtlasModal({
   };
 
   /**
-   * 📄 Renderiza la hoja aparte de referencias con catálogo completo de trazas
+   * 📄 Renderiza la hoja aparte de referencias SIEMPRE en A4 apaisado (ISO 216),
+   * independientemente del formato de papel elegido para las láminas del plano.
+   * Diseño prolijo: header institucional, 3 columnas de contenido y footer con paginación.
    */
   const renderReferencePageCanvas = async ({
     allCapas,
     pageNumber,
     totalPages,
-    config,
-    isLandscape,
-    pdfWidthMm,
-    pdfHeightMm,
-    dpmm,
     logoImg,
     lineaNombre,
     cleanLineNumber,
+    datosRef,
   }: {
     allCapas: any[];
     pageNumber: number;
     totalPages: number;
-    config: (typeof SHEET_CONFIGS)['A4'];
-    isLandscape: boolean;
-    pdfWidthMm: number;
-    pdfHeightMm: number;
-    dpmm: number;
     logoImg: HTMLImageElement | null;
     lineaNombre: string;
     cleanLineNumber: string;
+    datosRef: { proyecto: string; cobertura: string; operador: string; escalaNominal: string; observaciones: string };
   }): Promise<HTMLCanvasElement> => {
-    const toPx = (mm: number) => Math.max(1, Math.round(mm * dpmm));
+    // 📐 Fijo A4 apaisado: 297 × 210 mm
+    const A4_W_MM = 297;
+    const A4_H_MM = 210;
+    const A4_Dpmm = 11.0; // ~3234 × 2310 px ≈ 300 DPI reales
+    const toPx = (mm: number) => Math.max(1, Math.round(mm * A4_Dpmm));
+
     const canvas = document.createElement('canvas');
-    canvas.width = toPx(pdfWidthMm);
-    canvas.height = toPx(pdfHeightMm);
+    canvas.width = toPx(A4_W_MM);
+    canvas.height = toPx(A4_H_MM);
     const ctx = canvas.getContext('2d')!;
     const W = canvas.width;
     const H = canvas.height;
+
+    const Mm = toPx; // alias corto
+
+    // Helpers locales
+    const fit = (text: string, maxWidth: number) => {
+      if (ctx.measureText(text).width <= maxWidth) return text;
+      let t = text;
+      while (t.length > 2 && ctx.measureText(t + '…').width > maxWidth) t = t.slice(0, -1);
+      return t + '…';
+    };
+    const roundRect = (x: number, y: number, w: number, h: number, r: number) => {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+      else {
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+    };
 
     // Fondo blanco
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, W, H);
 
-    const marginPx = toPx(config.marginMm);
+    const marginPx = Mm(8);
     const innerX = marginPx;
     const innerY = marginPx;
     const innerW = W - marginPx * 2;
     const innerH = H - marginPx * 2;
 
-    // Marco interior técnico
-    ctx.strokeStyle = '#0F172A';
-    ctx.lineWidth = toPx(config.innerBorderMm);
-    ctx.strokeRect(innerX, innerY, innerW, innerH);
-
-    // ── HEADER ──
-    const headerH = toPx(config.headerHeightMm);
+    // ── HEADER INSTITUCIONAL ──
+    const headerH = Mm(22);
     ctx.fillStyle = '#0F172A';
     ctx.fillRect(innerX, innerY, innerW, headerH);
+    // Franja celeste Lanús superior
+    ctx.fillStyle = '#00AEEF';
+    ctx.fillRect(innerX, innerY, innerW, Mm(1.4));
 
-    // Logo si está disponible
-    if (logoImg) {
-      const logoH = headerH * 0.7;
-      const logoW = (logoImg.width / logoImg.height) * logoH;
-      ctx.drawImage(logoImg, innerX + toPx(4), innerY + (headerH - logoH) / 2, logoW, logoH);
+    let titleStartX = innerX + Mm(6);
+    if (logoImg && logoImg.naturalWidth > 0) {
+      const logoH = Math.round(headerH * 0.62);
+      const logoW = Math.round(logoH * (logoImg.naturalWidth / logoImg.naturalHeight));
+      ctx.drawImage(logoImg, innerX + Mm(5), innerY + (headerH - logoH) / 2, logoW, logoH);
+      titleStartX = innerX + Mm(5) + logoW + Mm(5);
     }
 
-    // Título
+    // Título alineado a la izquierda junto al logo (más prolijo que centrado)
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `900 ${toPx(5)}px Inter, sans-serif`;
-    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('REFERENCIAS Y LEYENDA COMPLETA', innerX + innerW / 2, innerY + headerH * 0.35);
+    ctx.font = `900 ${Mm(6.2)}px Inter, sans-serif`;
+    ctx.fillText('REFERENCIAS Y LEYENDA COMPLETA', titleStartX, innerY + headerH * 0.38);
 
-    ctx.font = `600 ${toPx(3)}px Inter, sans-serif`;
+    ctx.font = `600 ${Mm(3.2)}px Inter, sans-serif`;
     ctx.fillStyle = '#94A3B8';
     ctx.fillText(
-      `Línea ${cleanLineNumber} · ${lineaNombre} · Sistema Lanús`,
-      innerX + innerW / 2,
-      innerY + headerH * 0.7
+      `Línea ${cleanLineNumber} · ${lineaNombre} · ${datosRef.proyecto || 'Sistema GIS Lanús'}`,
+      titleStartX,
+      innerY + headerH * 0.72
     );
+
+    // Badge "A4" a la derecha del header
+    const a4BadgeW = Mm(20);
+    const a4BadgeH = Mm(8);
+    const a4BadgeX = innerX + innerW - a4BadgeW - Mm(5);
+    const a4BadgeY = innerY + (headerH - a4BadgeH) / 2;
+    roundRect(a4BadgeX, a4BadgeY, a4BadgeW, a4BadgeH, Mm(1.6));
+    ctx.fillStyle = '#1E293B';
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = Math.max(1, Mm(0.3));
+    ctx.stroke();
+    ctx.fillStyle = '#38BDF8';
+    ctx.font = `800 ${Mm(3.4)}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('A4 · ISO 216', a4BadgeX + a4BadgeW / 2, a4BadgeY + a4BadgeH / 2);
     ctx.textAlign = 'start';
     ctx.textBaseline = 'alphabetic';
 
-    // ── CUERPO: Catálogo de trazas ──
-    let currentY = innerY + headerH + toPx(6);
-    const contentX = innerX + toPx(6);
-    const contentW = innerW - toPx(12);
+    // ── ÁREA DE CONTENIDO: 3 COLUMNAS ──
+    const bodyY = innerY + headerH + Mm(5);
+    const bodyH = innerY + innerH - bodyY - Mm(11);
+    const colGap = Mm(5);
+    const colW = (innerW - colGap * 2) / 3;
+    const col1X = innerX;
+    const col2X = innerX + colW + colGap;
+    const col3X = innerX + (colW + colGap) * 2;
 
-    // Título de sección
+    const drawColTitle = (x: number, text: string) => {
+      ctx.fillStyle = '#7B1828';
+      ctx.fillRect(x, bodyY, Mm(1.2), Mm(5));
+      ctx.fillStyle = '#0F172A';
+      ctx.font = `800 ${Mm(3.8)}px Inter, sans-serif`;
+      ctx.fillText(text, x + Mm(2.6), bodyY + Mm(3.8));
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = Math.max(1, Mm(0.25));
+      ctx.beginPath();
+      ctx.moveTo(x, bodyY + Mm(6.5));
+      ctx.lineTo(x + colW, bodyY + Mm(6.5));
+      ctx.stroke();
+    };
+
+    // ══ COLUMNA 1: Simbología ══
+    drawColTitle(col1X, 'SIMBOLOGÍA TÉCNICA');
+    const symStartY = bodyY + Mm(12);
+    const symRowH = Mm(7.5);
+    const symItems: { draw: () => void; label: string }[] = [
+      { draw: () => { ctx.strokeStyle = '#2563EB'; ctx.lineWidth = Mm(1.2); ctx.beginPath(); ctx.moveTo(col1X + Mm(1), symStartY); ctx.lineTo(col1X + Mm(14), symStartY); ctx.stroke(); }, label: 'Trazo de Ida (continuo)' },
+      { draw: () => { ctx.strokeStyle = '#DC2626'; ctx.lineWidth = Mm(1.2); ctx.setLineDash([Mm(3), Mm(2)]); ctx.beginPath(); ctx.moveTo(col1X + Mm(1), symStartY + symRowH); ctx.lineTo(col1X + Mm(14), symStartY + symRowH); ctx.stroke(); ctx.setLineDash([]); }, label: 'Trazo de Vuelta (discontinuo)' },
+      { draw: () => { ctx.beginPath(); ctx.arc(col1X + Mm(7.5), symStartY + symRowH * 2, Mm(2.2), 0, Math.PI * 2); ctx.fillStyle = '#16A34A'; ctx.fill(); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = Mm(0.6); ctx.stroke(); }, label: 'Cabecera (inicio de recorrido)' },
+      { draw: () => { ctx.beginPath(); ctx.arc(col1X + Mm(7.5), symStartY + symRowH * 3, Mm(2.2), 0, Math.PI * 2); ctx.fillStyle = '#DC2626'; ctx.fill(); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = Mm(0.6); ctx.stroke(); }, label: 'Terminal (destino de recorrido)' },
+      { draw: () => { ctx.beginPath(); ctx.arc(col1X + Mm(7.5), symStartY + symRowH * 4, Mm(1.4), 0, Math.PI * 2); ctx.fillStyle = '#2563EB'; ctx.fill(); }, label: 'Paradas intermedias' },
+      { draw: () => { ctx.strokeStyle = '#DB2777'; ctx.lineWidth = Mm(1.0); ctx.setLineDash([Mm(3), Mm(1.8)]); ctx.beginPath(); ctx.moveTo(col1X + Mm(1), symStartY + symRowH * 5); ctx.lineTo(col1X + Mm(14), symStartY + symRowH * 5); ctx.stroke(); ctx.setLineDash([]); }, label: 'Límite del Partido de Lanús' },
+    ];
+
+    ctx.font = `600 ${Mm(2.7)}px Inter, sans-serif`;
+    symItems.forEach((it) => it.draw());
+    symItems.forEach((it, i) => {
+      ctx.fillStyle = '#1E293B';
+      ctx.fillText(fit(it.label, colW - Mm(18)), col1X + Mm(18), symStartY + symRowH * i + Mm(1));
+    });
+
+    // ══ COLUMNA 2: Jurisdicciones + ficha de la línea ══
+    drawColTitle(col2X, 'JURISDICCIONES');
+    const jurStartY = bodyY + Mm(12);
+    const jurItems = [
+      { label: 'Nacional', range: 'Líneas 1 a 199', color: '#DC2626' },
+      { label: 'Provincial', range: 'Líneas 200 a 499', color: '#2563EB' },
+      { label: 'Municipal', range: 'Líneas 500 en adelante', color: '#16A34A' },
+    ];
+    ctx.font = `600 ${Mm(2.7)}px Inter, sans-serif`;
+    jurItems.forEach((j, i) => {
+      const y = jurStartY + i * Mm(8);
+      roundRect(col2X, y - Mm(2.4), Mm(13), Mm(4.4), Mm(2.2));
+      ctx.fillStyle = j.color;
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = `800 ${Mm(2.3)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(j.label.toUpperCase(), col2X + Mm(6.5), y - Mm(0.2));
+      ctx.textAlign = 'start';
+      ctx.fillStyle = '#475569';
+      ctx.font = `600 ${Mm(2.5)}px Inter, sans-serif`;
+      ctx.fillText(j.range, col2X + Mm(16), y - Mm(0.2));
+    });
+
+    // Sub-bloque: datos del plano (editables)
+    const detY = jurStartY + jurItems.length * Mm(8) + Mm(3);
     ctx.fillStyle = '#0F172A';
-    ctx.font = `800 ${toPx(4)}px Inter, sans-serif`;
-    ctx.fillText('Catálogo de Trazas', contentX, currentY);
-    currentY += toPx(6);
+    ctx.font = `800 ${Mm(3.2)}px Inter, sans-serif`;
+    ctx.fillText('DATOS DEL PLANO', col2X, detY);
 
-    // Detectar jurisdicción y agregar trazas
-    interface RefItem {
-      num: number;
-      color: string;
-      label: string;
-      jurisdiccion: string;
+    const detailRows: [string, string][] = [
+      ['Cobertura', datosRef.cobertura || 'Partido de Lanús'],
+    ];
+    if (datosRef.operador.trim()) detailRows.push(['Operador', datosRef.operador.trim()]);
+    if (datosRef.escalaNominal.trim()) detailRows.push(['Escala', datosRef.escalaNominal.trim()]);
+    detailRows.push(['Proyección', 'EPSG:3857 Isométrico']);
+    detailRows.push(['Emitido', new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })]);
+
+    ctx.font = `500 ${Mm(2.4)}px Inter, sans-serif`;
+    detailRows.forEach(([k, v], i) => {
+      const y = detY + Mm(4.5) + i * Mm(4.6);
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillText(k + ':', col2X, y);
+      ctx.fillStyle = '#1E293B';
+      ctx.font = `700 ${Mm(2.4)}px Inter, sans-serif`;
+      ctx.fillText(fit(v, colW - Mm(22)), col2X + Mm(20), y);
+      ctx.font = `500 ${Mm(2.4)}px Inter, sans-serif`;
+    });
+
+    if (datosRef.observaciones.trim()) {
+      const obsY = detY + Mm(4.5) + detailRows.length * Mm(4.6) + Mm(1.5);
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = `500 ${Mm(2.3)}px Inter, sans-serif`;
+      ctx.fillText('Observaciones:', col2X, obsY);
+      ctx.fillStyle = '#334155';
+      ctx.font = `600 ${Mm(2.3)}px Inter, sans-serif`;
+      ctx.fillText(fit(datosRef.observaciones.trim(), colW - Mm(2)), col2X, obsY + Mm(4));
     }
 
+    // ══ COLUMNA 3: Catálogo numerado de trazas ══
+    drawColTitle(col3X, 'CATÁLOGO DE TRAZAS');
+    interface RefItem { num: number; color: string; label: string; jurisdiccion: string; }
     const refItems: RefItem[] = [];
     const seenLabels = new Set<string>();
 
@@ -672,105 +808,100 @@ export default function MapPrintAtlasModal({
       if (seenLabels.has(label)) return;
       seenLabels.add(label);
 
-      // Clasificar jurisdicción
       const numVal = parseInt(String(num).replace(/\D/g, ''), 10);
       let jurisdiccion = 'Municipal';
       if (!isNaN(numVal)) {
-        if (numVal >= 1 && numVal <= 199) jurisdiccion = 'Nacional';
-        else if (numVal >= 200 && numVal <= 499) jurisdiccion = 'Provincial';
-        else if (numVal >= 500) jurisdiccion = 'Municipal';
+        if (numVal >= 1 && numVal <= 199) jurisdiccion = 'Nac.';
+        else if (numVal >= 200 && numVal <= 499) jurisdiccion = 'Prov.';
       }
 
       refItems.push({ num: refItems.length + 1, color, label, jurisdiccion });
     });
 
-    // Renderizar items en columnas
-    const colCount = isLandscape ? 3 : 2;
-    const colWidth = contentW / colCount;
-    const itemH = toPx(7);
-    let col = 0;
-    let row = 0;
-    const maxRows = Math.ceil(refItems.length / colCount);
+    // Filas tabulares con zebra striping y columna de jurisdicción
+    const catStartY = bodyY + Mm(12);
+    const catRowH = Mm(4.3);
+    const maxCatRows = Math.max(1, Math.floor((bodyH - Mm(10)) / catRowH));
+    const shown = refItems.slice(0, maxCatRows);
 
-    refItems.forEach((item, idx) => {
-      col = idx % colCount;
-      row = Math.floor(idx / colCount);
-      const x = contentX + col * colWidth;
-      const y = currentY + row * itemH;
+    // Encabezado de columnas
+    ctx.font = `800 ${Mm(2.1)}px Inter, sans-serif`;
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText('Nº', col3X + Mm(1), catStartY - Mm(1.6));
+    ctx.fillText('TRAZA', col3X + Mm(8), catStartY - Mm(1.6));
+    ctx.fillText('JUR.', col3X + colW - Mm(11), catStartY - Mm(1.6));
 
-      if (y > innerY + innerH - toPx(20)) return; // No salir del marco
+    shown.forEach((item, i) => {
+      const y = catStartY + i * catRowH;
+      // Zebra striping de fondo
+      if (i % 2 === 0) {
+        ctx.fillStyle = '#F8FAFC';
+        ctx.fillRect(col3X, y - Mm(1.4), colW, catRowH);
+      }
 
       // Badge numerado
-      const badgeR = toPx(2.5);
+      const bx = col3X + Mm(2.6);
+      const by = y + Mm(0.6);
       ctx.beginPath();
-      ctx.arc(x + badgeR, y, badgeR, 0, Math.PI * 2);
+      ctx.arc(bx, by, Mm(1.5), 0, Math.PI * 2);
       ctx.fillStyle = '#0F172A';
       ctx.fill();
       ctx.fillStyle = '#FFFFFF';
-      ctx.font = `800 ${toPx(2.5)}px Inter, sans-serif`;
+      ctx.font = `800 ${Mm(1.9)}px Inter, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(item.num), x + badgeR, y);
+      ctx.fillText(String(item.num), bx, by);
       ctx.textAlign = 'start';
       ctx.textBaseline = 'alphabetic';
 
-      // Línea de color
+      // Muestra de color de la traza
       ctx.fillStyle = item.color;
-      ctx.fillRect(x + badgeR * 2 + toPx(2), y - toPx(1), toPx(8), toPx(2));
+      roundRect(col3X + Mm(5.2), y - Mm(0.5), Mm(2.2), Mm(2.2), Mm(0.5));
+      ctx.fill();
 
-      // Label
+      // Label de la traza
       ctx.fillStyle = '#1E293B';
-      ctx.font = `600 ${toPx(2.4)}px Inter, sans-serif`;
-      ctx.fillText(item.label, x + badgeR * 2 + toPx(12), y + toPx(1));
+      ctx.font = `600 ${Mm(2.3)}px Inter, sans-serif`;
+      ctx.fillText(fit(item.label, colW - Mm(22)), col3X + Mm(8.4), y + Mm(1.1));
 
-      // Jurisdicción
+      // Jurisdicción (abreviada)
       ctx.fillStyle = '#64748B';
-      ctx.font = `500 ${toPx(1.8)}px Inter, sans-serif`;
-      ctx.fillText(item.jurisdiccion, x + badgeR * 2 + toPx(12), y + toPx(4));
+      ctx.font = `700 ${Mm(2.0)}px Inter, sans-serif`;
+      ctx.fillText(item.jurisdiccion, col3X + colW - Mm(10.5), y + Mm(1.1));
     });
 
-    currentY += (maxRows + 1) * itemH + toPx(6);
-
-    // ── LEYENDA DE JURISDICCIONES ──
-    if (currentY < innerY + innerH - toPx(30)) {
-      ctx.fillStyle = '#0F172A';
-      ctx.font = `800 ${toPx(3.5)}px Inter, sans-serif`;
-      ctx.fillText('Jurisdicciones', contentX, currentY);
-      currentY += toPx(5);
-
-      const jurisdictions = [
-        { label: 'Nacional (1-199)', color: '#DC2626' },
-        { label: 'Provincial (200-499)', color: '#2563EB' },
-        { label: 'Municipal (500+)', color: '#16A34A' },
-      ];
-
-      jurisdictions.forEach((j) => {
-        ctx.fillStyle = j.color;
-        ctx.fillRect(contentX, currentY - toPx(2), toPx(10), toPx(3));
-        ctx.fillStyle = '#1E293B';
-        ctx.font = `600 ${toPx(2.4)}px Inter, sans-serif`;
-        ctx.fillText(j.label, contentX + toPx(14), currentY);
-        currentY += toPx(5);
-      });
+    if (refItems.length > shown.length) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = `600 ${Mm(2.3)}px Inter, sans-serif`;
+      ctx.fillText(`+ ${refItems.length - shown.length} traza(s) más en el plano`, col3X + Mm(1), catStartY + shown.length * catRowH + Mm(2.5));
     }
 
-    // ── FOOTER ──
-    const footerY = innerY + innerH - toPx(8);
+    // ── FOOTER INSTITUCIONAL ──
+    const footerH = Mm(8);
+    const footerY = innerY + innerH - footerH;
     ctx.fillStyle = '#F1F5F9';
-    ctx.fillRect(innerX, footerY, innerW, toPx(8));
+    ctx.fillRect(innerX, footerY, innerW, footerH);
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = Math.max(1, Mm(0.25));
+    ctx.beginPath();
+    ctx.moveTo(innerX, footerY);
+    ctx.lineTo(innerX + innerW, footerY);
+    ctx.stroke();
 
     ctx.fillStyle = '#64748B';
-    ctx.font = `500 ${toPx(2)}px Inter, sans-serif`;
+    ctx.font = `600 ${Mm(2.2)}px Inter, sans-serif`;
     ctx.textAlign = 'center';
     ctx.fillText(
       'Gobierno del Partido de Lanús · Subsecretaría de Transporte · Sistema GIS Lanús',
       innerX + innerW / 2,
-      footerY + toPx(4)
+      footerY + footerH * 0.38
     );
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = `500 ${Mm(2.0)}px Inter, sans-serif`;
     ctx.fillText(
-      `Página ${pageNumber} de ${totalPages}`,
+      `Hoja de Referencias · Página ${pageNumber} de ${totalPages} · Formato A4 (297 × 210 mm)`,
       innerX + innerW / 2,
-      footerY + toPx(6.5)
+      footerY + footerH * 0.75
     );
     ctx.textAlign = 'start';
 
@@ -1929,7 +2060,7 @@ export default function MapPrintAtlasModal({
     ctx.font = `bold ${valFontSize * 0.95}px Inter, sans-serif`;
     ctx.fillStyle = '#7B1828'; // Granate Lanús
     ctx.fillText(
-      fitText('PROYECTO: SISTEMA INTEGRADO DE TRANSPORTE URBANO', col1InnerW),
+      fitText(`PROYECTO: ${datosPlano.proyecto || 'SISTEMA INTEGRADO DE TRANSPORTE URBANO'}`, col1InnerW),
       col1X + caraturePad,
       caratureY + caratureH * 0.14
     );
@@ -1937,7 +2068,7 @@ export default function MapPrintAtlasModal({
     ctx.font = `600 ${valFontSize * 0.78}px Inter, sans-serif`;
     ctx.fillStyle = '#475569';
     ctx.fillText(
-      fitText('COBERTURA: LANÚS O. · LANÚS E. · R. DE ESCALADA · V. ALSINA · GERLI · M. CHINGOLO', col1InnerW),
+      fitText(`COBERTURA: ${datosPlano.cobertura || 'PARTIDO DE LANÚS'}`, col1InnerW),
       col1X + caraturePad,
       caratureY + caratureH * 0.27
     );
@@ -1981,7 +2112,6 @@ export default function MapPrintAtlasModal({
     ctx.fillText(fitText(pageSubtitle, lineTextMaxW), lineTextX, badgeLineY + badgeLineSize * 0.85);
 
     // ── COLUMNA 2: FICHA TÉCNICA Y CÓMPUTO ──
-    const rowStep = caratureH / 5.2;
     const nationalLineNumbers = Array.from(
       new Set(
         nationalCapas
@@ -1990,7 +2120,7 @@ export default function MapPrintAtlasModal({
       )
     ).join(', ');
 
-    const metrics = [
+    const metrics: { label: string; val: string }[] = [
       { label: 'Longitud de Traza:', val: `${totalRouteDistanceKm.toFixed(2)} km` },
       { label: 'Paradas Registradas:', val: `${stopCount > 0 ? stopCount : targetCapas.length * 2}` },
       {
@@ -2009,6 +2139,20 @@ export default function MapPrintAtlasModal({
       },
       { label: 'Datum / Proyección:', val: 'EPSG:3857 Isométrico 1:1' },
     ];
+
+    // Filas opcionales solo si el usuario las completó (máx. 7 filas para no desbordar)
+    if (datosPlano.operador.trim()) {
+      metrics.push({ label: 'Operador:', val: datosPlano.operador.trim() });
+    }
+    if (datosPlano.escalaNominal.trim()) {
+      metrics.push({ label: 'Escala Nominal:', val: datosPlano.escalaNominal.trim() });
+    }
+    if (datosPlano.observaciones.trim()) {
+      metrics.push({ label: 'Observaciones:', val: datosPlano.observaciones.trim() });
+    }
+
+    // Paso adaptativo: acomoda de 5 a 8 filas dentro de la altura de la carátula sin desbordar
+    const rowStep = caratureH / (metrics.length + 0.2);
 
     metrics.forEach((m, idx) => {
       const y = caratureY + (idx + 0.85) * rowStep;
@@ -2142,6 +2286,49 @@ export default function MapPrintAtlasModal({
   };
 
   // Generar Impresión Directa en Lámina Oficial de Arquitectura con Proyección Isométrica EPSG:3857
+  // 👁️ Vista previa rápida de la lámina (baja resolución, sin generar PDF)
+  const handlePreview = async () => {
+    if (capasFiltradas.length === 0) {
+      alert('Seleccioná al menos 1 ramal o trazo para previsualizar.');
+      return;
+    }
+    setIsPreviewing(true);
+    setPrintStatus('Renderizando vista previa...');
+    try {
+      const isLandscapeLocal = orientacion === 'landscape';
+      const cfg = SHEET_CONFIGS[paperFormat] || SHEET_CONFIGS.A4;
+      const pw = isLandscapeLocal ? cfg.w : cfg.h;
+      const ph = isLandscapeLocal ? cfg.h : cfg.w;
+      // Escala reducida (~1/4 del dpmm final) para que la vista previa sea instantánea
+      const previewDpmm = Math.max(1.4, cfg.baseDpmm * 0.28);
+
+      const canvas = await renderSingleSheetCanvas({
+        targetCapas: capasFiltradas,
+        nationalCapas: capasNacionalesActivas,
+        pageTitle: `LÍNEA ${normalizeLineNumber(lineaNombre) || lineaNombre}`,
+        pageSubtitle: `Vista previa · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
+        pageNumber: 1,
+        totalPages: 1,
+        config: cfg,
+        isLandscape: isLandscapeLocal,
+        pdfWidthMm: pw,
+        pdfHeightMm: ph,
+        paddingFraction: framingMode === 'tight' ? 0.045 : framingMode === 'relaxed' ? 0.12 : 0.07,
+        dpmm: previewDpmm,
+        logoImg: null,
+      });
+
+      setPreviewUrl(canvas.toDataURL('image/jpeg', 0.86));
+      setPrintStatus('');
+    } catch (e) {
+      console.error('Error en vista previa:', e);
+      setPrintStatus('');
+      alert('No se pudo generar la vista previa. Revisá la consola.');
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
   const handleGeneratePrint = async () => {
     if (capasFiltradas.length === 0) {
       alert('Seleccioná al menos 1 ramal o trazo para imprimir.');
@@ -2244,26 +2431,23 @@ export default function MapPrintAtlasModal({
           `Generando lámina ${i + 1} de ${pagesToGenerate.length}: ${page.title}...`
         );
 
-        // 📄 Página de referencias: renderizar hoja de catálogo completo
+        // 📄 Página de referencias: SIEMPRE A4 apaisado (297 × 210 mm), independiente del papel del plano
         if (page.isReferencePage) {
           const refCanvas = await renderReferencePageCanvas({
             allCapas: [...capasFiltradas, ...capasNacionalesActivas],
             pageNumber: i + 1,
             totalPages: pagesToGenerate.length,
-            config,
-            isLandscape,
-            pdfWidthMm,
-            pdfHeightMm,
-            dpmm,
             logoImg,
             lineaNombre,
             cleanLineNumber,
+            datosRef: datosPlano,
           });
           if (i > 0) {
-            pdf.addPage(paperFormat.toLowerCase() as any, orientacion);
+            pdf.addPage('a4', 'landscape');
           }
           const refImgData = refCanvas.toDataURL('image/jpeg', 0.98);
-          pdf.addImage(refImgData, 'JPEG', 0, 0, pdfWidthMm, pdfHeightMm, undefined, 'FAST');
+          // Se dibuja en 297 × 210 mm (A4 apaisado) sin importar el formato del resto del PDF
+          pdf.addImage(refImgData, 'JPEG', 0, 0, 297, 210, undefined, 'FAST');
           continue;
         }
 
@@ -3374,6 +3558,69 @@ export default function MapPrintAtlasModal({
             </div>
           </div>
 
+          {/* ✏️ Datos editables del plano (personalización de la carátula) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#1e293b' }}>
+                ✏️ Datos del Plano (editables antes de exportar):
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setDatosPlano({
+                    proyecto: 'SISTEMA INTEGRADO DE TRANSPORTE URBANO',
+                    cobertura: 'LANÚS O. · LANÚS E. · R. DE ESCALADA · V. ALSINA · GERLI · M. CHINGOLO',
+                    operador: '',
+                    escalaNominal: '',
+                    observaciones: '',
+                  })
+                }
+                style={{
+                  padding: '3px 8px',
+                  fontSize: '0.66rem',
+                  fontWeight: 700,
+                  color: '#64748b',
+                  background: '#fff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                ↺ Restaurar
+              </button>
+            </div>
+
+            {(
+              [
+                { key: 'proyecto', label: 'Proyecto', placeholder: 'SISTEMA INTEGRADO DE TRANSPORTE URBANO' },
+                { key: 'cobertura', label: 'Cobertura', placeholder: 'Partidos / localidades que abarca' },
+                { key: 'operador', label: 'Operador (opcional)', placeholder: 'Empresa operadora' },
+                { key: 'escalaNominal', label: 'Escala nominal (opcional)', placeholder: 'Ej: 1:25.000' },
+                { key: 'observaciones', label: 'Observaciones (opcional)', placeholder: 'Notas al pie de la carátula' },
+              ] as { key: keyof typeof datosPlano; label: string; placeholder: string }[]
+            ).map((campo) => (
+              <div key={campo.key} style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>{campo.label}</span>
+                <input
+                  type="text"
+                  value={datosPlano[campo.key]}
+                  onChange={(e) => setDatoPlano(campo.key, e.target.value)}
+                  placeholder={campo.placeholder}
+                  style={{
+                    padding: '6px 9px',
+                    fontSize: '0.74rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '7px',
+                    background: '#fff',
+                    color: '#1e293b',
+                    fontWeight: 600,
+                    width: '100%',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
           {/* Opciones Cartográficas Técnicas */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label
@@ -3728,38 +3975,141 @@ export default function MapPrintAtlasModal({
             Cancelar
           </button>
 
-          <button
-            type="button"
-            onClick={handleGeneratePrint}
-            disabled={isGenerating || capasFiltradas.length === 0}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '8px',
-              background:
-                isGenerating || capasFiltradas.length === 0
-                  ? '#94a3b8'
-                  : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-              border: 'none',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              cursor: isGenerating || capasFiltradas.length === 0 ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '7px',
-              boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
-            }}
-          >
-            {isGenerating ? <Loader2 className="animate-spin" size={15} /> : <Download size={15} />}
-            {isGenerating
-              ? 'Generando Plano(s)...'
-              : pageLayout === 'individual'
-              ? `Imprimir ${capasFiltradas.length} Planos (${paperFormat})`
-              : pageLayout === 'both'
-              ? `Imprimir Álbum (${capasFiltradas.length + 1} Páginas ${paperFormat})`
-              : `Imprimir Plano Isométrico (${paperFormat})`}
-          </button>
+          {/* 👁️ Vista previa de la lámina */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={handlePreview}
+              disabled={isGenerating || isPreviewing || capasFiltradas.length === 0}
+              title="Renderiza una vista previa rápida de la lámina sin generar el PDF"
+              style={{
+                padding: '8px 14px',
+                borderRadius: '8px',
+                background: isGenerating || isPreviewing || capasFiltradas.length === 0 ? '#f1f5f9' : '#fff7ed',
+                border: '1px solid #fed7aa',
+                color: isGenerating || isPreviewing || capasFiltradas.length === 0 ? '#94a3b8' : '#c2410c',
+                fontWeight: 700,
+                fontSize: '0.78rem',
+                cursor: isGenerating || isPreviewing || capasFiltradas.length === 0 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              {isPreviewing ? <Loader2 className="animate-spin" size={14} /> : <Eye size={14} />}
+              {isPreviewing ? 'Renderizando…' : 'Vista Previa'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleGeneratePrint}
+              disabled={isGenerating || capasFiltradas.length === 0}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                background:
+                  isGenerating || capasFiltradas.length === 0
+                    ? '#94a3b8'
+                    : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                border: 'none',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                cursor: isGenerating || capasFiltradas.length === 0 ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '7px',
+                boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
+              }}
+            >
+              {isGenerating ? <Loader2 className="animate-spin" size={15} /> : <Download size={15} />}
+              {isGenerating
+                ? 'Generando Plano(s)...'
+                : pageLayout === 'individual'
+                ? `Imprimir ${capasFiltradas.length} Planos (${paperFormat})`
+                : pageLayout === 'both'
+                ? `Imprimir Álbum (${capasFiltradas.length + 1} Páginas ${paperFormat})`
+                : `Imprimir Plano Isométrico (${paperFormat})`}
+            </button>
+          </div>
         </div>
+
+        {/* 👁️ Overlay de vista previa de la lámina */}
+        {previewUrl && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.72)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 50,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setPreviewUrl(null)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#fff',
+                borderRadius: '14px',
+                padding: '16px',
+                maxWidth: '96%',
+                maxHeight: '94%',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                boxShadow: '0 25px 60px rgba(0,0,0,0.45)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>
+                    👁️ Vista previa — {paperFormat} {orientacion === 'landscape' ? 'Apaisado' : 'Vertical'}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
+                    Editá los datos del plano o las opciones y volvé a renderizar para ver los cambios
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewUrl(null)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    color: '#334155',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <X size={14} /> Cerrar
+                </button>
+              </div>
+
+              <img
+                src={previewUrl}
+                alt="Vista previa del plano"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '70vh',
+                  objectFit: 'contain',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  background: '#fff',
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
