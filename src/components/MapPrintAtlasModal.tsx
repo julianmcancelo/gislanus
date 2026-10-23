@@ -148,6 +148,12 @@ export default function MapPrintAtlasModal({
   const toggleSeccion = (id: string) =>
     setSeccionesAbiertas((s) => ({ ...s, [id]: !s[id] }));
 
+  // 🚌 Modo Ida y Vuelta: juntos en la misma lámina o separados en láminas distintas
+  const [modoIdaVuelta, setModoIdaVuelta] = useState<'juntos' | 'separados'>('juntos');
+
+  // ❓ Modal de ayuda
+  const [ayudaAbierta, setAyudaAbierta] = useState<boolean>(false);
+
   // 🗺️ Estados para Superposición de Líneas por jurisdicción (Nacional / Provincial / Municipal)
   const [incluirNacionales, setIncluirNacionales] = useState<boolean>(false);
   const [jurisdiccionOverlay, setJurisdiccionOverlay] = useState<'NACIONAL' | 'PROVINCIAL' | 'MUNICIPAL'>('NACIONAL');
@@ -2412,28 +2418,79 @@ export default function MapPrintAtlasModal({
 
       const pagesToGenerate: PagePlan[] = [];
 
+      // 🔀 Separar capas por sentido si el modo es "separados"
+      const capasIda = capasFiltradas.filter((c) => detectSentido(c) === 'IDA');
+      const capasVuelta = capasFiltradas.filter((c) => detectSentido(c) === 'VUELTA');
+      const hayAmbosSentidos = capasIda.length > 0 && capasVuelta.length > 0;
+
       if (pageLayout === 'individual' || pageLayout === 'both') {
-        capasFiltradas.forEach((capa, idx) => {
-          const sentido = detectSentido(capa);
-          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
-          pagesToGenerate.push({
-            capas: [capa],
-            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
-            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
-            isConsolidated: false,
+        if (modoIdaVuelta === 'separados' && hayAmbosSentidos) {
+          // 📄 Modo separados: una lámina para IDA, otra para VUELTA
+          if (capasIda.length > 0) {
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasIda,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
+              subtitle: `Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
+              isConsolidated: capasIda.length > 1,
+            });
+          }
+          if (capasVuelta.length > 0) {
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasVuelta,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
+              subtitle: `Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
+              isConsolidated: capasVuelta.length > 1,
+            });
+          }
+        } else {
+          // 📑 Modo juntos: una página por cada trazo/variante
+          capasFiltradas.forEach((capa, idx) => {
+            const sentido = detectSentido(capa);
+            const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+            pagesToGenerate.push({
+              capas: [capa],
+              title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
+              subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+              isConsolidated: false,
+            });
           });
-        });
+        }
       }
 
       if (pageLayout === 'all-in-one' || pageLayout === 'both') {
-        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
-        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
-        pagesToGenerate.push({
-          capas: capasFiltradas,
-          title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
-          subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
-          isConsolidated: true,
-        });
+        if (modoIdaVuelta === 'separados' && hayAmbosSentidos) {
+          // 📄 Consolidado separado: lámina de ida + lámina de vuelta
+          if (capasIda.length > 0) {
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasIda,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
+              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+          if (capasVuelta.length > 0) {
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            pagesToGenerate.push({
+              capas: capasVuelta,
+              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
+              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
+              isConsolidated: true,
+            });
+          }
+        } else {
+          // 📚 Consolidado junto: una lámina con todos los trazos
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          pagesToGenerate.push({
+            capas: capasFiltradas,
+            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
+            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
+            isConsolidated: true,
+          });
+        }
       }
 
       // Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
@@ -2560,23 +2617,27 @@ export default function MapPrintAtlasModal({
       <div
         style={{
           background: '#ffffff',
-          border: `1.5px solid ${abierta ? accent + '33' : '#f1f5f9'}`,
+          border: `1.5px solid ${abierta ? accent + '28' : '#f1f5f9'}`,
           borderRadius: '14px',
           overflow: 'hidden',
-          transition: 'border-color 0.2s ease',
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          boxShadow: abierta ? `0 1px 3px ${accent}08` : 'none',
+          position: 'relative',
+          zIndex: abierta ? 1 : 0,
         }}
       >
         {/* Header clickeable */}
         <button
           type="button"
           onClick={() => toggleSeccion(id)}
+          className="seccion-btn"
           style={{
             width: '100%',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            padding: '11px 14px',
-            background: abierta ? `linear-gradient(135deg, ${accent}08, ${accent}04)` : 'transparent',
+            gap: '9px',
+            padding: '10px 13px',
+            background: abierta ? `linear-gradient(135deg, ${accent}06, transparent)` : 'transparent',
             border: 'none',
             cursor: 'pointer',
             textAlign: 'left',
@@ -2586,18 +2647,19 @@ export default function MapPrintAtlasModal({
           {/* Número de paso */}
           <div
             style={{
-              width: 26,
-              height: 26,
-              borderRadius: 9,
-              background: abierta ? accent : '#f1f5f9',
+              width: 25,
+              height: 25,
+              borderRadius: 8,
+              background: abierta ? `linear-gradient(135deg, ${accent}, ${accent}dd)` : '#f1f5f9',
               color: abierta ? '#fff' : '#94a3b8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.72rem',
+              fontSize: '0.68rem',
               fontWeight: 900,
               flexShrink: 0,
               transition: 'all 0.2s ease',
+              boxShadow: abierta ? `0 2px 6px ${accent}30` : 'none',
             }}
           >
             {num}
@@ -2610,7 +2672,7 @@ export default function MapPrintAtlasModal({
           <div style={{ flex: 1, minWidth: 0 }}>
             <span
               style={{
-                fontSize: '0.79rem',
+                fontSize: '0.77rem',
                 fontWeight: 800,
                 color: abierta ? '#0f172a' : '#64748b',
                 display: 'block',
@@ -2620,20 +2682,21 @@ export default function MapPrintAtlasModal({
               {titulo}
             </span>
             {sub && (
-              <span style={{ fontSize: '0.66rem', color: '#94a3b8', fontWeight: 600 }}>{sub}</span>
+              <span style={{ fontSize: '0.63rem', color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1.3 }}>{sub}</span>
             )}
           </div>
-          {/* Badge opcional (ej: cantidad de trazos) */}
+          {/* Badge opcional */}
           {badge && (
             <span
               style={{
-                background: accent + '15',
+                background: accent + '12',
                 color: accent,
-                fontSize: '0.64rem',
+                fontSize: '0.6rem',
                 fontWeight: 800,
-                padding: '2px 8px',
+                padding: '2px 7px',
                 borderRadius: '99px',
                 flexShrink: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {badge}
@@ -2649,7 +2712,7 @@ export default function MapPrintAtlasModal({
               transition: 'transform 0.25s ease',
             }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </span>
@@ -2659,16 +2722,188 @@ export default function MapPrintAtlasModal({
         {abierta && (
           <div
             style={{
-              padding: '4px 14px 14px',
+              padding: '2px 13px 13px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px',
+              gap: '8px',
               animation: 'fadeInDown 0.2s ease',
             }}
           >
             {children}
           </div>
         )}
+      </div>
+    );
+  };
+
+  // ══════════════════════════════════════════════════════════════════
+  // ❓ Tooltip de ayuda contextual (se muestra al pasar el mouse)
+  // ══════════════════════════════════════════════════════════════════
+  const InfoTooltip = ({ texto, children }: { texto: string; children?: React.ReactNode }) => (
+    <span
+      title={texto}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        cursor: 'help',
+        position: 'relative',
+      }}
+    >
+      {children}
+      <span
+        style={{
+          width: 15,
+          height: 15,
+          borderRadius: '50%',
+          background: '#e2e8f0',
+          color: '#64748b',
+          fontSize: '0.58rem',
+          fontWeight: 900,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'all 0.15s',
+          lineHeight: 1,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#3b82f6'; e.currentTarget.style.color = '#fff'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#64748b'; }}
+      >
+        ?
+      </span>
+    </span>
+  );
+
+  // ══════════════════════════════════════════════════════════════════
+  // 📖 Modal de ayuda completo con todas las funciones explicadas
+  // ══════════════════════════════════════════════════════════════════
+  const ModalAyuda = () => {
+    if (!ayudaAbierta) return null;
+    const bloques: { titulo: string; color: string; items: { icon: string; label: string; desc: string }[] }[] = [
+      {
+        titulo: '1 · Contenido del PDF',
+        color: '#2563eb',
+        items: [
+          { icon: '📄', label: 'Todos Juntos', desc: 'Genera una sola lámina con todos los trazos superpuestos. Ideal para una vista general.' },
+          { icon: '📑', label: '1 por Página', desc: 'Cada trazo/variante en su propia página. Ideal para imprimir por ramal.' },
+          { icon: '📚', label: 'Álbum Completo', desc: 'Combina ambos: una página por trazo + una lámina resumen al final.' },
+          { icon: '🔄', label: 'Ida y Vuelta', desc: '"Juntos" pone ida y vuelta en la misma lámina. "Separados" genera dos láminas: una para ida, otra para vuelta.' },
+        ],
+      },
+      {
+        titulo: '2 · Líneas y Jurisdicción',
+        color: '#0891b2',
+        items: [
+          { icon: '🌐', label: 'Superponer Líneas', desc: 'Agrega al plano las líneas nacionales (1-199), provinciales (200-499) o municipales (500+) como referencia de contexto.' },
+          { icon: '🎨', label: 'Color Vivo / Sutil', desc: '"Color Vivo" las muestra en su color oficial. "Sutil" las muestra en gris para que no compitan con tu línea.' },
+          { icon: '🔍', label: 'Buscador', desc: 'Filtra la lista de trazos por número de línea, nombre de ramal o jurisdicción.' },
+        ],
+      },
+      {
+        titulo: '3 · Simbología',
+        color: '#7c3aed',
+        items: [
+          { icon: '—', label: 'Trazo Ida', desc: 'Línea continua que representa el recorrido de ida.' },
+          { icon: '╌', label: 'Trazo Vuelta', desc: 'Línea discontinua que representa el recorrido de vuelta/regreso.' },
+          { icon: '●', label: 'Cabecera / Terminal', desc: 'Puntos verdes (cabecera/inicio) y granates (terminal/destino).' },
+        ],
+      },
+      {
+        titulo: '4 · Formato y Motor',
+        color: '#059669',
+        items: [
+          { icon: '🔍', label: 'Encuadre', desc: 'Ajustado = más zoom. Óptimo = equilibrio. Amplio = más contexto urbano.' },
+          { icon: '🗺️', label: 'Motor Cartográfico', desc: 'Define el mapa base: Mapbox (satélital/streets) o modo pantalla (sin dependencias).' },
+          { icon: '📏', label: 'Grosor de Traza', desc: 'Delgada para muchos trazos. Gruesa para pocos trazos o impresión tamaño grande.' },
+          { icon: '📐', label: 'Formato', desc: 'A4 (297×210) para oficina. A3/A2/A1/A0 para planos grandes. La hoja de referencias siempre es A4.' },
+        ],
+      },
+      {
+        titulo: '5 · Datos y Opciones',
+        color: '#d97706',
+        items: [
+          { icon: '✏️', label: 'Título y Subtítulo', desc: 'Personalizá el texto grande de la carátula. Si lo dejás vacío, se genera automáticamente.' },
+          { icon: '📋', label: 'Proyecto / Cobertura', desc: 'Datos institucionales que aparecen en la carátula del plano.' },
+          { icon: '👁️', label: 'Vista Previa', desc: 'Renderiza la lámina en baja resolución sin generar el PDF. Ideal para verificar antes de imprimir.' },
+          { icon: '📄', label: 'Referencias A4', desc: 'Agrega una hoja final A4 con simbología completa, jurisdicciones y catálogo numerado de trazas.' },
+        ],
+      },
+      {
+        titulo: 'Varita Mágica',
+        color: '#16a34a',
+        items: [
+          { icon: '✨', label: 'Selección por Clic', desc: 'Activála y hacé clic directamente sobre los trazos del mapa para agregarlos o quitarlos de la selección.' },
+        ],
+      },
+    ];
+
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(15,23,42,0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 60,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+        }}
+        onClick={() => setAyudaAbierta(false)}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            background: '#fff',
+            borderRadius: '16px',
+            width: '100%',
+            maxWidth: '680px',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+          }}
+        >
+          <div style={{ padding: '16px 20px', background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '1.3rem' }}>📖</span>
+              <div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>Guía de Impresión Cartográfica</div>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Cómo usar cada opción del generador de planos</div>
+              </div>
+            </div>
+            <button onClick={() => setAyudaAbierta(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#94a3b8', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700 }}>✕</button>
+          </div>
+          <div style={{ padding: '14px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {bloques.map((bloque) => (
+              <div key={bloque.titulo}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <div style={{ width: 3, height: 16, borderRadius: 2, background: bloque.color }} />
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: bloque.color }}>{bloque.titulo}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  {bloque.items.map((item) => (
+                    <div key={item.label} style={{ display: 'flex', gap: '8px', padding: '6px 10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                      <span style={{ fontSize: '0.9rem', flexShrink: 0, width: 20, textAlign: 'center' }}>{item.icon}</span>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1e293b' }}>{item.label}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'block', lineHeight: 1.4 }}>{item.desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+            <button onClick={() => setAyudaAbierta(false)} style={{ padding: '8px 18px', borderRadius: '8px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', border: 'none', color: '#fff', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+              Entendido ✓
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
@@ -2693,93 +2928,127 @@ export default function MapPrintAtlasModal({
     >
       <style>{`
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .seccion-btn:hover { background: rgba(0,0,0,0.02) !important; }
+        .seccion-btn:hover { background: rgba(0,0,0,0.025) !important; }
+        .modal-scroll::-webkit-scrollbar { width: 5px; }
+        .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+        .modal-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hidden-mobile { display: inline; }
+        @media (max-width: 640px) {
+          .modal-header-steps { display: none !important; }
+          .hidden-mobile { display: none !important; }
+          .modal-footer-btns { flex-direction: column !important; width: 100% !important; }
+          .modal-footer-btns button { width: 100% !important; justify-content: center !important; }
+        }
       `}</style>
       <div
         style={{
           background: '#ffffff',
           borderRadius: '20px',
           width: '100%',
-          maxWidth: '600px',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)',
+          maxWidth: '680px',
+          boxShadow: '0 25px 60px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.03)',
           overflow: 'hidden',
           border: '1px solid #e2e8f0',
           pointerEvents: 'auto',
           maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
+          animation: 'slideUp 0.25s ease',
         }}
       >
         {/* Encabezado rediseñado con indicador de flujo */}
         <div
           style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0c4a6e 100%)',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0c4a6e 100%)',
             color: '#f8fafc',
-            padding: '14px 20px 12px',
+            padding: '14px 18px 10px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
             flexShrink: 0,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
               <div
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 13,
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
                   background: 'linear-gradient(135deg, rgba(56,189,248,0.2), rgba(37,99,235,0.15))',
                   border: '1px solid rgba(56,189,248,0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 20px rgba(56,189,248,0.1)',
+                  flexShrink: 0,
                 }}
               >
-                <Printer size={20} color="#38bdf8" />
+                <Printer size={19} color="#38bdf8" />
               </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.01em' }}>
-                  Estudio Cartográfico de Impresión
+              <div style={{ minWidth: 0 }}>
+                <h3 className="modal-title" style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  Estudio Cartográfico
                 </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
-                  Motor Isométrico EPSG:3857 ·{' '}
+                <p style={{ margin: '1px 0 0', fontSize: '0.66rem', color: '#94a3b8', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  EPSG:3857 ·{' '}
                   <span style={{ color: '#38bdf8', fontWeight: 700 }}>{capasFiltradas.length} trazos</span>
                   {incluirNacionales && (
-                    <>
-                      {' '} +{' '}
-                      <span style={{ color: '#86efac', fontWeight: 700 }}>
-                        {capasNacionalesActivas.length} {metaOverlay.plural}
-                      </span>
-                    </>
+                    <> + <span style={{ color: '#86efac', fontWeight: 700 }}>+{capasNacionalesActivas.length}</span></>
                   )}
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              disabled={isGenerating}
-              style={{
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                color: '#94a3b8',
-                cursor: isGenerating ? 'not-allowed' : 'pointer',
-                padding: '7px',
-                borderRadius: '10px',
-                display: 'flex',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => { if (!isGenerating) { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#f8fafc'; } }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94a3b8'; }}
-            >
-              <X size={18} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+              <button
+                onClick={() => setAyudaAbierta(true)}
+                title="Guía de uso"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  color: '#94a3b8',
+                  padding: '7px 10px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#f8fafc'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                ❓ <span className="hidden-mobile">Ayuda</span>
+              </button>
+              <button
+                onClick={onClose}
+                disabled={isGenerating}
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#94a3b8',
+                  cursor: isGenerating ? 'not-allowed' : 'pointer',
+                  padding: '7px',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => { if (!isGenerating) { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#f8fafc'; } }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                <X size={17} />
+              </button>
+            </div>
           </div>
 
           {/* Indicador de flujo: 5 pasos */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0px', paddingLeft: '2px' }}>
+          <div className="modal-header-steps" style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
             {[
               { id: 'contenido', label: 'Contenido' },
               { id: 'lineas', label: 'Líneas' },
@@ -2796,24 +3065,24 @@ export default function MapPrintAtlasModal({
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px',
+                      gap: '4px',
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
-                      padding: '2px 0',
+                      padding: '1px 0',
                     }}
                   >
                     <div
                       style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 6,
+                        width: 17,
+                        height: 17,
+                        borderRadius: 5,
                         background: activa ? 'rgba(56,189,248,0.2)' : 'rgba(255,255,255,0.06)',
                         border: `1px solid ${activa ? 'rgba(56,189,248,0.4)' : 'rgba(255,255,255,0.08)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '0.58rem',
+                        fontSize: '0.55rem',
                         fontWeight: 800,
                         color: activa ? '#38bdf8' : '#475569',
                         transition: 'all 0.2s',
@@ -2823,7 +3092,7 @@ export default function MapPrintAtlasModal({
                     </div>
                     <span
                       style={{
-                        fontSize: '0.62rem',
+                        fontSize: '0.58rem',
                         fontWeight: 700,
                         color: activa ? '#cbd5e1' : '#475569',
                         transition: 'color 0.2s',
@@ -2833,7 +3102,7 @@ export default function MapPrintAtlasModal({
                     </span>
                   </button>
                   {i < arr.length - 1 && (
-                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 6px', minWidth: '8px' }} />
+                    <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 4px', minWidth: '6px' }} />
                   )}
                 </React.Fragment>
               );
@@ -2843,12 +3112,14 @@ export default function MapPrintAtlasModal({
 
         {/* Cuerpo Principal con Scroll */}
         <div
+          className="modal-scroll"
           style={{
-            padding: '18px 22px',
+            padding: '14px 16px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
+            gap: '10px',
             overflowY: 'auto',
+            flex: 1,
           }}
         >
           {/* Varita mágica — banner compacto */}
@@ -2987,6 +3258,65 @@ export default function MapPrintAtlasModal({
                   </button>
                 );
               })}
+            </div>
+
+            {/* 🔄 Toggle: Ida y Vuelta Juntos o Separados */}
+            <div style={{ marginTop: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '6px' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569' }}>Ida y Vuelta:</span>
+                <InfoTooltip texto='"Juntos" pone ida y vuelta en la misma lámina (trazo continuo + discontinuo). "Separados" genera dos láminas independientes: una solo ida, otra solo vuelta.'>
+                  <></>
+                </InfoTooltip>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {[
+                  {
+                    id: 'juntos' as const,
+                    icon: '🔄',
+                    label: 'Juntos',
+                    sub: 'Ida + Vuelta en la misma lámina',
+                  },
+                  {
+                    id: 'separados' as const,
+                    icon: '📄📄',
+                    label: 'Separados',
+                    sub: '2 láminas: una ida, otra vuelta',
+                  },
+                ].map((opt) => {
+                  const isSelected = modoIdaVuelta === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setModoIdaVuelta(opt.id)}
+                      style={{
+                        padding: '7px 8px',
+                        borderRadius: '10px',
+                        border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                        background: isSelected ? '#eff6ff' : '#ffffff',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '2px',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          color: isSelected ? '#1d4ed8' : '#334155',
+                        }}
+                      >
+                        {opt.icon} {opt.label}
+                      </div>
+                      <div style={{ fontSize: '0.62rem', color: '#64748b' }}>{opt.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </Seccion>
 
@@ -4086,6 +4416,9 @@ export default function MapPrintAtlasModal({
               <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                 📄 Referencias en hoja aparte (catálogo completo al final del PDF)
               </span>
+              <InfoTooltip texto="Agrega una página A4 al final del PDF con: simbología completa, jurisdicciones, datos del plano y catálogo numerado de todas las trazas. Siempre en formato A4 aunque el plano sea A3 o mayor.">
+                <></>
+              </InfoTooltip>
             </label>
 
             <label
@@ -4109,6 +4442,9 @@ export default function MapPrintAtlasModal({
               <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                 🎯 Encuadre fijo en Partido de Lanús
               </span>
+              <InfoTooltip texto="Fuerza el encuadre del plano dentro de los límites del Partido de Lanús, inyectando sus vértices geográficos en la proyección. Útil para que el plano nunca se salga del municipio.">
+                <></>
+              </InfoTooltip>
             </label>
 
             <label
@@ -4132,6 +4468,9 @@ export default function MapPrintAtlasModal({
               <span style={{ fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                 🏛️ Dibujar límites del Partido de Lanús
               </span>
+              <InfoTooltip texto="Dibuja el polígono del Partido de Lanús sobre el plano con trazo magenta discontinuo y etiqueta. Recortado al viewport de la lámina.">
+                <></>
+              </InfoTooltip>
             </label>
           </div>
 
@@ -4299,13 +4638,14 @@ export default function MapPrintAtlasModal({
         {/* Footer */}
         <div
           style={{
-            padding: '12px 22px',
-            background: '#fafbfd',
-            borderTop: '1px solid #f1f5f9',
+            padding: '10px 16px',
+            background: 'linear-gradient(180deg, #fafbfd, #f1f5f9)',
+            borderTop: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexShrink: 0,
+            gap: '8px',
           }}
         >
           <button
@@ -4314,41 +4654,49 @@ export default function MapPrintAtlasModal({
             disabled={isGenerating}
             style={{
               padding: '8px 14px',
-              borderRadius: '8px',
+              borderRadius: '10px',
               background: '#fff',
               border: '1px solid #cbd5e1',
               color: '#475569',
               fontWeight: 700,
-              fontSize: '0.78rem',
+              fontSize: '0.75rem',
               cursor: isGenerating ? 'not-allowed' : 'pointer',
+              transition: 'all 0.15s',
+              whiteSpace: 'nowrap',
             }}
+            onMouseEnter={(e) => { if (!isGenerating) { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
           >
             Cancelar
           </button>
 
-          {/* 👁️ Vista previa de la lámina */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* 👁️ Vista previa + Imprimir */}
+          <div className="modal-footer-btns" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
               onClick={handlePreview}
               disabled={isGenerating || isPreviewing || capasFiltradas.length === 0}
-              title="Renderiza una vista previa rápida de la lámina sin generar el PDF"
+              title="Renderiza la lámina en baja resolución sin generar el PDF"
               style={{
-                padding: '8px 14px',
-                borderRadius: '8px',
+                padding: '8px 12px',
+                borderRadius: '10px',
                 background: isGenerating || isPreviewing || capasFiltradas.length === 0 ? '#f1f5f9' : '#fff7ed',
-                border: '1px solid #fed7aa',
+                border: `1px solid ${isGenerating || isPreviewing || capasFiltradas.length === 0 ? '#e2e8f0' : '#fed7aa'}`,
                 color: isGenerating || isPreviewing || capasFiltradas.length === 0 ? '#94a3b8' : '#c2410c',
                 fontWeight: 700,
-                fontSize: '0.78rem',
+                fontSize: '0.75rem',
                 cursor: isGenerating || isPreviewing || capasFiltradas.length === 0 ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '5px',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
               }}
+              onMouseEnter={(e) => { if (!isGenerating && !isPreviewing && capasFiltradas.length > 0) { e.currentTarget.style.background = '#ffedd5'; e.currentTarget.style.borderColor = '#fdba74'; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#fff7ed'; e.currentTarget.style.borderColor = '#fed7aa'; }}
             >
-              {isPreviewing ? <Loader2 className="animate-spin" size={14} /> : <Eye size={14} />}
-              {isPreviewing ? 'Renderizando…' : 'Vista Previa'}
+              {isPreviewing ? <Loader2 className="animate-spin" size={13} /> : <Eye size={13} />}
+              {isPreviewing ? '...' : 'Vista Previa'}
             </button>
 
             <button
@@ -4356,8 +4704,8 @@ export default function MapPrintAtlasModal({
               onClick={handleGeneratePrint}
               disabled={isGenerating || capasFiltradas.length === 0}
               style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
+                padding: '8px 16px',
+                borderRadius: '10px',
                 background:
                   isGenerating || capasFiltradas.length === 0
                     ? '#94a3b8'
@@ -4365,22 +4713,24 @@ export default function MapPrintAtlasModal({
                 border: 'none',
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: '0.8rem',
+                fontSize: '0.76rem',
                 cursor: isGenerating || capasFiltradas.length === 0 ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '7px',
-                boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(37,99,235,0.3)',
+                gap: '6px',
+                boxShadow: isGenerating ? 'none' : '0 3px 12px rgba(37,99,235,0.3)',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
               }}
             >
-              {isGenerating ? <Loader2 className="animate-spin" size={15} /> : <Download size={15} />}
+              {isGenerating ? <Loader2 className="animate-spin" size={14} /> : <Download size={14} />}
               {isGenerating
-                ? 'Generando Plano(s)...'
+                ? 'Generando...'
                 : pageLayout === 'individual'
                 ? `Imprimir ${capasFiltradas.length} Planos (${paperFormat})`
                 : pageLayout === 'both'
-                ? `Imprimir Álbum (${capasFiltradas.length + 1} Páginas ${paperFormat})`
-                : `Imprimir Plano Isométrico (${paperFormat})`}
+                ? `Álbum (${capasFiltradas.length + 1} Pág. ${paperFormat})`
+                : `Imprimir (${paperFormat})`}
             </button>
           </div>
         </div>
@@ -4461,6 +4811,9 @@ export default function MapPrintAtlasModal({
             </div>
           </div>
         )}
+
+        {/* 📖 Modal de ayuda */}
+        <ModalAyuda />
       </div>
     </div>
   );
