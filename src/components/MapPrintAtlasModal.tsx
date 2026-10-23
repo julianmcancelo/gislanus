@@ -2602,120 +2602,78 @@ export default function MapPrintAtlasModal({
       // Modo JUNTOS: una sola lámina con todo, sin importar layout
       if (modoIdaVuelta === 'juntos') {
         // Una lámina por cada ramal, con ida + vuelta juntos
-        const grupos = new Map<string, any[]>();
+        const grupos = new Map();
         capasFiltradas.forEach((capa) => {
-          const key = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || 'Ramal').trim() || `Ramal`;
+          const key = (capa.subGrupo && capa.subGrupo.nombre) || (capa.subgrupo && capa.subgrupo.nombre) || capa.nombre || 'Ramal';
           if (!grupos.has(key)) grupos.set(key, []);
-          grupos.get(key)!.push(capa);
+          grupos.get(key).push(capa);
         });
         grupos.forEach((capasGrupo, nombreRamal) => {
-          const sentido = capasGrupo.map((c) => detectSentido(c)).join('/');
+          const sentido = capasGrupo.map((cc: any) => detectSentido(cc)).join('/');
           pagesToGenerate.push({
             capas: capasGrupo,
-            title: `LÍNEA ${cleanLineNumber} · ${nombreRamal.toUpperCase()}`,
-            subtitle: `Variante · Sentido ${sentido} · Sistema Lanús`,
+            title: 'LINEA ' + cleanLineNumber + ' - ' + String(nombreRamal).toUpperCase(),
+            subtitle: 'Variante - Sentido ' + sentido + ' - Sistema Lanus',
             isConsolidated: capasGrupo.length > 1,
           });
         });
-        // Si no hay grupos (fallback), una sola lámina
         if (grupos.size === 0) {
-          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
-          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
+          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((cc: any) => ((cc.subGrupo && cc.subGrupo.nombre) || (cc.subgrupo && cc.subgrupo.nombre) || cc.nombre || 'Ramal').trim()).filter(Boolean)));
+          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' - ') : 'Recorrido General';
           pagesToGenerate.push({
             capas: capasFiltradas,
-            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
-            subtitle: `Plano Consolidado · ${capasFiltradas.length} variante(s) · Sistema Lanús`,
+            title: 'LINEA ' + cleanLineNumber + ' - ' + ramalesStr.toUpperCase(),
+            subtitle: 'Plano Consolidado - ' + capasFiltradas.length + ' variante(s) - Sistema Lanus',
             isConsolidated: true,
           });
         }
       } else if (pageLayout === 'individual') {
-        // Modo separados + individual: una página por capa
+        // Separados: una página por capa (1 x 1)
         capasFiltradas.forEach((capa, idx) => {
           const sentido = detectSentido(capa);
-          const ramalName = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || `Ramal ${idx + 1}`).trim();
+          const ramalName = ((capa.subGrupo && capa.subGrupo.nombre) || (capa.subgrupo && capa.subgrupo.nombre) || capa.nombre || 'Ramal ' + (idx + 1)).trim();
           pagesToGenerate.push({
             capas: [capa],
-            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
-            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            title: 'LINEA ' + cleanLineNumber + ' - ' + ramalName.toUpperCase(),
+            subtitle: 'Variante ' + (idx + 1) + ' de ' + capasFiltradas.length + ' - Sentido ' + sentido + ' - Sistema Lanus',
             isConsolidated: false,
           });
         });
       } else if (pageLayout === 'all-in-one') {
-        // Modo separados + all-in-one: una lámina por sentido
-        if (hayAmbosSentidos) {
-          if (capasIda.length > 0) {
-            const ramalesIda = Array.from(new Set(capasIda.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasIda,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
-              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
-              isConsolidated: true,
-            });
-          }
-          if (capasVuelta.length > 0) {
-            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasVuelta,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
-              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
-              isConsolidated: true,
-            });
-          }
-        } else {
-          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
-          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
-          pagesToGenerate.push({
-            capas: capasFiltradas,
-            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
-            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
-            isConsolidated: true,
-          });
-        }
-      } else {
-        // Modo separados + both: consolidado por sentido + individuales
-        if (hayAmbosSentidos) {
-          if (capasIda.length > 0) {
-            const ramalesIda = Array.from(new Set(capasIda.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasIda,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
-              subtitle: `Plano Consolidado · Sentido IDA · ${capasIda.length} variante(s) · Sistema Lanús`,
-              isConsolidated: true,
-            });
-          }
-          if (capasVuelta.length > 0) {
-            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
-            pagesToGenerate.push({
-              capas: capasVuelta,
-              title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
-              subtitle: `Plano Consolidado · Sentido VUELTA · ${capasVuelta.length} variante(s) · Sistema Lanús`,
-              isConsolidated: true,
-            });
-          }
-        } else {
-          const ramalesUnicos = Array.from(new Set(capasFiltradas.map((c) => c.nombre.trim()).filter(Boolean)));
-          const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' · ') : 'Recorrido General';
-          pagesToGenerate.push({
-            capas: capasFiltradas,
-            title: `LÍNEA ${cleanLineNumber} · ${ramalesStr.toUpperCase()}`,
-            subtitle: `Plano General Consolidado · ${capasFiltradas.length} variante(s) activa(s) · Sistema Lanús`,
-            isConsolidated: true,
-          });
-        }
-        // Individuales
+        // Separados: una página por capa (1 x 1)
         capasFiltradas.forEach((capa, idx) => {
           const sentido = detectSentido(capa);
-          const ramalName = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || `Ramal ${idx + 1}`).trim();
+          const ramalName = ((capa.subGrupo && capa.subGrupo.nombre) || (capa.subgrupo && capa.subgrupo.nombre) || capa.nombre || 'Ramal ' + (idx + 1)).trim();
           pagesToGenerate.push({
             capas: [capa],
-            title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
-            subtitle: `Variante ${idx + 1} de ${capasFiltradas.length} · Sentido ${sentido} · Sistema Lanús`,
+            title: 'LINEA ' + cleanLineNumber + ' - ' + ramalName.toUpperCase(),
+            subtitle: 'Variante ' + (idx + 1) + ' de ' + capasFiltradas.length + ' - Sentido ' + sentido + ' - Sistema Lanus',
+            isConsolidated: false,
+          });
+        });
+      } else {
+        // Separados + both: consolidado general + individuales 1 x 1
+        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((cc) => ((cc.subGrupo && cc.subGrupo.nombre) || (cc.subgrupo && cc.subgrupo.nombre) || cc.nombre || 'Ramal').trim()).filter(Boolean)));
+        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' - ') : 'Recorrido General';
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: 'LINEA ' + cleanLineNumber + ' - ' + ramalesStr.toUpperCase(),
+          subtitle: 'Plano General Consolidado - ' + capasFiltradas.length + ' variante(s) activa(s) - Sistema Lanus',
+          isConsolidated: true,
+        });
+        capasFiltradas.forEach((capa, idx) => {
+          const sentido = detectSentido(capa);
+          const ramalName = ((capa.subGrupo && capa.subGrupo.nombre) || (capa.subgrupo && capa.subgrupo.nombre) || capa.nombre || 'Ramal ' + (idx + 1)).trim();
+          pagesToGenerate.push({
+            capas: [capa],
+            title: 'LINEA ' + cleanLineNumber + ' - ' + ramalName.toUpperCase(),
+            subtitle: 'Variante ' + (idx + 1) + ' de ' + capasFiltradas.length + ' - Sentido ' + sentido + ' - Sistema Lanus',
             isConsolidated: false,
           });
         });
       }
 
-      // Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
+// Si por filtros no quedó ninguna página planificada, generamos al menos la lámina general del municipio
       if (pagesToGenerate.length === 0) {
         pagesToGenerate.push({
           capas: capasLinea && capasLinea.length > 0 ? capasLinea : [],
