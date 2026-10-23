@@ -2632,7 +2632,7 @@ export default function MapPrintAtlasModal({
         // Modo separados + individual: una página por capa
         capasFiltradas.forEach((capa, idx) => {
           const sentido = detectSentido(capa);
-          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          const ramalName = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || `Ramal ${idx + 1}`).trim();
           pagesToGenerate.push({
             capas: [capa],
             title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
@@ -2644,7 +2644,7 @@ export default function MapPrintAtlasModal({
         // Modo separados + all-in-one: una lámina por sentido
         if (hayAmbosSentidos) {
           if (capasIda.length > 0) {
-            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
             pagesToGenerate.push({
               capas: capasIda,
               title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
@@ -2653,7 +2653,7 @@ export default function MapPrintAtlasModal({
             });
           }
           if (capasVuelta.length > 0) {
-            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
             pagesToGenerate.push({
               capas: capasVuelta,
               title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
@@ -2675,7 +2675,7 @@ export default function MapPrintAtlasModal({
         // Modo separados + both: consolidado por sentido + individuales
         if (hayAmbosSentidos) {
           if (capasIda.length > 0) {
-            const ramalesIda = Array.from(new Set(capasIda.map((c) => c.nombre.trim()).filter(Boolean)));
+            const ramalesIda = Array.from(new Set(capasIda.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
             pagesToGenerate.push({
               capas: capasIda,
               title: `LÍNEA ${cleanLineNumber} · ${ramalesIda.join(' · ').toUpperCase() || 'IDA'}`,
@@ -2684,7 +2684,7 @@ export default function MapPrintAtlasModal({
             });
           }
           if (capasVuelta.length > 0) {
-            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => c.nombre.trim()).filter(Boolean)));
+            const ramalesVuelta = Array.from(new Set(capasVuelta.map((c) => (c.subGrupo?.nombre || c.subgrupo?.nombre || c.nombre || 'Ramal').trim()).filter(Boolean)));
             pagesToGenerate.push({
               capas: capasVuelta,
               title: `LÍNEA ${cleanLineNumber} · ${ramalesVuelta.join(' · ').toUpperCase() || 'VUELTA'}`,
@@ -2705,7 +2705,7 @@ export default function MapPrintAtlasModal({
         // Individuales
         capasFiltradas.forEach((capa, idx) => {
           const sentido = detectSentido(capa);
-          const ramalName = capa.nombre.trim() || `Ramal ${idx + 1}`;
+          const ramalName = (capa.subGrupo?.nombre || capa.subgrupo?.nombre || capa.nombre || `Ramal ${idx + 1}`).trim();
           pagesToGenerate.push({
             capas: [capa],
             title: `LÍNEA ${cleanLineNumber} · ${ramalName.toUpperCase()}`,
