@@ -428,18 +428,26 @@ export default function MapPrintAtlasModal({
     }
   }, [isOpen]);
 
-  // Al abrir: configurar los valores por defecto según el modo (general "Completo" o línea puntual)
+  // Al abrir: configurar los valores por defecto segun el modo (general Completo, obras o linea puntual)
   React.useEffect(() => {
     if (!isOpen) return;
-    setEncuadreLanus(modoGeneral);
-    setDibujarLimites(modoGeneral);
+    const isObraPlan = lineaNombre.toLowerCase().includes('semana') || lineaNombre.toLowerCase().includes('paviment') || lineaNombre.toLowerCase().includes('bacheo');
+    setEncuadreLanus(modoGeneral || isObraPlan);
+    setDibujarLimites(modoGeneral || isObraPlan);
     setReferenciasHojaAparte(modoGeneral);
     setBusquedaRamales('');
-    if (modoGeneral) {
-      setIncluirNacionales(false);
+    if (modoGeneral || isObraPlan) {
       setPageLayout('all-in-one');
     }
-  }, [isOpen, modoGeneral]);
+    if (isObraPlan && todasCapas && todasCapas.length > 0) {
+      setIncluirNacionales(true);
+      setModoEstiloNacionales('color');
+      const lineasTransporteIds = todasCapas.filter((cc) => cc.categoria === 'NACIONAL' || cc.categoria === 'PROVINCIAL' || cc.categoria === 'MUNICIPAL' || cc.subGrupo || cc.id?.startsWith('linea-')).map((cc) => cc.id);
+      setNacionalesSeleccionadas(lineasTransporteIds);
+    } else if (modoGeneral) {
+      setIncluirNacionales(false);
+    }
+  }, [isOpen, modoGeneral, lineaNombre, todasCapas]);
 
   // Cargar los límites del Partido de Lanús (una sola vez) para encuadrar y dibujar el contorno
   React.useEffect(() => {
@@ -588,6 +596,16 @@ export default function MapPrintAtlasModal({
     layers.forEach((c) => {
       const segs = getLayerFeatureSegments(c);
       segs.forEach((s) => allCoords.push(...s.coords));
+      let geo = cacheDatosGeo[c.id] || c.datosGeo;
+      if (typeof geo === 'string') { try { geo = JSON.parse(geo); } catch (e) {} }
+      if (geo) {
+        const feats = geo.type === 'FeatureCollection' ? geo.features : [geo];
+        feats.forEach((f: any) => {
+          if (f?.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates)) {
+            allCoords.push([f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+          }
+        });
+      }
     });
     return allCoords;
   };
@@ -1466,6 +1484,7 @@ export default function MapPrintAtlasModal({
 
     const allSegments: { coords: Point2D[]; color: string; isVuelta: boolean; capaId: string }[] = [];
     const allStops: Point2D[] = [];
+    const allObraPoints: { pt: Point2D; nombre: string; color: string; empresa: string; observaciones: string }[] = [];
 
     targetCapas.forEach((capa) => {
       const segs = getLayerFeatureSegments(capa);
@@ -1512,13 +1531,24 @@ export default function MapPrintAtlasModal({
         features.forEach((f: any) => {
           const geom = f?.geometry;
           if (geom?.type === 'Point' && Array.isArray(geom.coordinates)) {
-            stopCount++;
             const [lng, lat] = geom.coordinates;
             const pt = proj.project(lat, lng);
-            allStops.push({
-              x: mapViewportX + pt.x,
-              y: mapViewportY + pt.y,
-            });
+            const isObra = capa.categoria === 'OBRAS' || capa.nombre?.toLowerCase().includes('semana') || capa.nombre?.toLowerCase().includes('paviment') || f.properties?.empresa;
+            if (isObra) {
+              allObraPoints.push({
+                pt: { x: mapViewportX + pt.x, y: mapViewportY + pt.y },
+                nombre: f.properties?.nombre || capa.nombre,
+                color: f.properties?.color || capa.color || '#ea580c',
+                empresa: f.properties?.empresa || '',
+                observaciones: f.properties?.observaciones || '',
+              });
+            } else {
+              stopCount++;
+              allStops.push({
+                x: mapViewportX + pt.x,
+                y: mapViewportY + pt.y,
+              });
+            }
           }
         });
       }
@@ -1577,16 +1607,59 @@ export default function MapPrintAtlasModal({
       ctx.arc(pt.x, pt.y, r + toPx(0.5), 0, Math.PI * 2);
       ctx.fillStyle = '#0F172A';
       ctx.fill();
-
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
       ctx.fillStyle = '#10B981';
       ctx.fill();
-
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, Math.max(1, r - toPx(0.5)), 0, Math.PI * 2);
       ctx.fillStyle = '#FFFFFF';
       ctx.fill();
+    });
+
+    // ── CAPA 3.1: Puntos de Obras de Pavimentacion y Bacheo ──
+    const rObra = toPx(config.stopRadiusMm * 1.6);
+    allObraPoints.forEach((ob, idx) => {
+      ctx.beginPath();
+      ctx.arc(ob.pt.x, ob.pt.y, rObra + toPx(0.8), 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.4)';
+      ctx.lineWidth = Math.max(1, toPx(0.4));
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(ob.pt.x, ob.pt.y, rObra, 0, Math.PI * 2);
+      ctx.fillStyle = ob.color || '#ea580c';
+      ctx.fill();
+
+      ctx.font = 'bold ' + Math.round(rObra * 0.95) + 'px Inter, sans-serif';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(idx + 1), ob.pt.x, ob.pt.y + toPx(0.2));
+      ctx.textAlign = 'start';
+      ctx.textBaseline = 'alphabetic';
+
+      const labelText = (idx + 1) + '. ' + ob.nombre;
+      const fontPx = toPx(config.caratureValMm * 0.65);
+      ctx.font = 'bold ' + fontPx + 'px Inter, sans-serif';
+      const textW = ctx.measureText(labelText).width;
+      const badgeW = textW + toPx(4);
+      const badgeH = fontPx + toPx(2.4);
+      const badgeX = ob.pt.x - badgeW / 2;
+      const badgeY = ob.pt.y - rObra - badgeH - toPx(1.2);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      ctx.strokeStyle = ob.color || '#ea580c';
+      ctx.lineWidth = Math.max(1, toPx(0.35));
+      ctx.beginPath();
+      drawRoundRect(badgeX, badgeY, badgeW, badgeH, toPx(0.8));
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(labelText, badgeX + toPx(2), badgeY + fontPx + toPx(0.2));
     });
 
     // ── CAPA 4: Cabecera Inicial (Verde) y Terminal de Destino (Granate) con Carteles de Hito ──
@@ -2640,16 +2713,14 @@ export default function MapPrintAtlasModal({
           });
         });
       } else if (pageLayout === 'all-in-one') {
-        // Separados: una página por capa (1 x 1)
-        capasFiltradas.forEach((capa, idx) => {
-          const sentido = detectSentido(capa);
-          const ramalName = ((capa.subGrupo && capa.subGrupo.nombre) || (capa.subgrupo && capa.subgrupo.nombre) || capa.nombre || 'Ramal ' + (idx + 1)).trim();
-          pagesToGenerate.push({
-            capas: [capa],
-            title: 'LINEA ' + cleanLineNumber + ' - ' + ramalName.toUpperCase(),
-            subtitle: 'Variante ' + (idx + 1) + ' de ' + capasFiltradas.length + ' - Sentido ' + sentido + ' - Sistema Lanus',
-            isConsolidated: false,
-          });
+        // Todos Juntos: exactamente 1 sola lamina general consolidada con todas las trazas y puntos activos
+        const ramalesUnicos = Array.from(new Set(capasFiltradas.map((cc) => ((cc.subGrupo && cc.subGrupo.nombre) || (cc.subgrupo && cc.subgrupo.nombre) || cc.nombre || 'Ramal').trim()).filter(Boolean)));
+        const ramalesStr = ramalesUnicos.length > 0 ? ramalesUnicos.join(' - ') : (lineaNombre || 'Plano General');
+        pagesToGenerate.push({
+          capas: capasFiltradas,
+          title: (lineaNombre.toLowerCase().includes('semana') || lineaNombre.toLowerCase().includes('paviment') ? lineaNombre : ('LINEA ' + cleanLineNumber + ' - ' + ramalesStr)).toUpperCase(),
+          subtitle: 'Plano General Consolidado - ' + capasFiltradas.length + ' capa(s) activa(s) - Lanus Gobierno',
+          isConsolidated: true,
         });
       } else {
         // Separados + both: consolidado general + individuales 1 x 1

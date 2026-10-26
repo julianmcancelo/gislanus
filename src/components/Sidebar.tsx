@@ -926,7 +926,7 @@ export default function Sidebar({
                   </div>
                   {expandedNodes['__general'] !== false && (
                     <div className={styles.groupItems}>
-                      {general.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} />)}
+                      {general.map(c => <CapaRow key={c.id} capa={c} onToggle={() => alternarCapa(c.id)} abrirImpresionAtlas={abrirImpresionAtlas} />)}
                     </div>
                   )}
                 </div>
