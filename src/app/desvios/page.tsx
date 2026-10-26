@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 import FichaDesvioModal from '@/components/FichaDesvioModal';
+import ImportadorPlanObrasModal from '@/components/ImportadorPlanObrasModal';
 import { sugerirPuntosDesvio } from '@/utils/autoDetour';
 
 // Carga dinámica del mapa de desvíos para evitar errores SSR con Leaflet
@@ -34,6 +35,8 @@ export default function DesviosPage() {
 
   // Modal de impresión de ficha técnica
   const [selectedIntervencion, setSelectedIntervencion] = useState<any | null>(null);
+  const [showImportadorObras, setShowImportadorObras] = useState(false);
+  const [isGeocodificandoIA, setIsGeocodificandoIA] = useState(false);
 
   // Estados del Wizard de creación
   const [step, setStep] = useState<number>(1);
@@ -86,6 +89,59 @@ export default function DesviosPage() {
   useEffect(() => {
     fetchIntervenciones();
   }, [filtroEstado]);
+  // Cargar parámetros de URL si viene desde un punto de bacheo/obra del mapa
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const lat = params.get('lat');
+      const lng = params.get('lng');
+      const nombre = params.get('nombre') || params.get('calle');
+      if (lat && lng) {
+        const parsedLat = parseFloat(lat);
+        const parsedLng = parseFloat(lng);
+        if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+          setCorteCoords([parsedLat, parsedLng]);
+          if (nombre) {
+            setTitulo('Obra Pavimentación: ' + decodeURIComponent(nombre));
+            setCallesAfectadas(decodeURIComponent(nombre));
+          }
+          setActiveTab('nuevo');
+          setStep(1);
+          toast.success('Punto de obra cargado en el planificador de desvíos');
+        }
+      }
+    }
+  }, []);
+
+
+  // Geocodificación inteligente con IA y delimitación estricta de Lanús
+  const handleGeocodificarConIA = async () => {
+    const textoABuscar = callesAfectadas || titulo;
+    if (!textoABuscar || textoABuscar.trim().length < 3) {
+      toast.error('Ingrese una intersección o calle en Lanús para ubicar');
+      return;
+    }
+    setIsGeocodificandoIA(true);
+    try {
+      const res = await fetch('/api/obras/analizar-proximidad', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ubicacionTexto: textoABuscar }),
+      });
+      const data = await res.json();
+      if (res.ok && data.coords) {
+        setCorteCoords([data.coords.lat, data.coords.lng]);
+        toast.success(`Ubicación detectada con IA: ${data.nombre || textoABuscar}`);
+      } else {
+        toast.error(data.error || 'No se pudo geolocalizar la intersección dentro de Lanús');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al consultar geocodificación IA');
+    } finally {
+      setIsGeocodificandoIA(false);
+    }
+  };
 
   // Al cambiar las coordenadas del corte, disparamos el análisis espacial automático (con debounce para evitar llamadas redundantes)
   useEffect(() => {
@@ -388,8 +444,8 @@ export default function DesviosPage() {
           </div>
         </div>
 
-        {/* Selector de Solapas */}
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '3px' }}>
+        {/* Selector de Solapas y Acciones IA */}
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '3px', gap: '4px' }}>
           <button
             onClick={() => setActiveTab('gestionar')}
             style={{
@@ -430,6 +486,26 @@ export default function DesviosPage() {
           >
             <Plus size={15} />
             Nuevo Corte & Planificar Desvíos
+          </button>
+          <button
+            onClick={() => setShowImportadorObras(true)}
+            style={{
+              background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+              color: '#fff',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.4)',
+            }}
+          >
+            <Sparkles size={15} />
+            Cargar Plan de Pavimentación (IA)
           </button>
         </div>
       </header>
@@ -732,7 +808,30 @@ export default function DesviosPage() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Calles Afectadas (Referencia)</label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Calles Afectadas (Referencia)</label>
+                      <button
+                        type="button"
+                        onClick={handleGeocodificarConIA}
+                        disabled={isGeocodificandoIA}
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#2563eb',
+                          cursor: isGeocodificandoIA ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {isGeocodificandoIA ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                        Ubicar con IA
+                      </button>
+                    </div>
                     <input
                       type="text"
                       placeholder="Ej: Av. 25 de Mayo e/ San Martín y Melo"
@@ -1073,6 +1172,16 @@ export default function DesviosPage() {
           onClose={() => setSelectedIntervencion(null)}
         />
       )}
+
+      {/* Modal de Carga de Plan de Pavimentación con IA de OpenAI */}
+      <ImportadorPlanObrasModal
+        isOpen={showImportadorObras}
+        onClose={() => setShowImportadorObras(false)}
+        onImportadoExitoso={() => {
+          fetchIntervenciones();
+          toast.success('Puntos del Plan de Pavimentación importados y procesados con IA');
+        }}
+      />
 
     </div>
   );
