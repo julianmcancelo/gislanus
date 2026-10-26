@@ -1,15 +1,9 @@
 /**
  * lanusGeocoder.ts
- * Geocodificador especializado en calles, intersecciones y tramos del Municipio de Lanús.
- * Utiliza en cascada:
- * 1. USIG (GCBA / Conurbano Bonaerense con normalización oficial)
- * 2. Georef API Nacional con filtro de Departamento Lanús
- * 3. Mapbox Geocoding con bounding box estricto de Lanús
- * 4. Inteligencia Artificial OpenAI (ChatGPT 4o-mini) para resolución de nombres históricos,
- *    abreviaturas coloquiales y estimación catastral estricta en el Partido de Lanús.
+ * Geocodificador de máxima precisión para el Municipio de Lanús.
+ * Utiliza la API Oficial de Georef del Instituto Geográfico Nacional (IGN / Ministerio del Interior)
+ * con diccionario de equivalencias y normalización de nomenclatura de calles del Partido de Lanús.
  */
-
-import OpenAI from 'openai';
 
 interface Coordinates {
   lat: number;
@@ -34,39 +28,72 @@ export function isInsideLanus(lat: number, lng: number): boolean {
   );
 }
 
-// Diccionario de normalización de calles conocidas en Lanús
+// Diccionario de normalización para que coincida 1:1 con el Catastro Nacional (Georef) de Lanús
 const SYNONYMS: Record<string, string> = {
-  'v. de lujan': 'Virgen de Luján',
-  'v de lujan': 'Virgen de Luján',
-  'virgen de lujan': 'Virgen de Luján',
-  'sayos': 'Coronel Sayos',
-  'balbin': 'Doctor Ricardo Balbín',
-  'balbín': 'Doctor Ricardo Balbín',
-  'liniers': 'Virrey Santiago de Liniers',
-  'posadas': 'Gervasio Antonio de Posadas',
-  'ruiz de ocaña': 'Ruiz de Ocaña',
-  'ruiz de ocana': 'Ruiz de Ocaña',
-  'namuncura': 'Ceferino Namuncurá',
-  'namuncurá': 'Ceferino Namuncurá',
-  'carlos gardel': 'Carlos Gardel',
-  'gardel': 'Carlos Gardel',
-  'del valle iberlucea': 'Del Valle Iberlucea',
-  'iberlucea': 'Del Valle Iberlucea',
-  'de la cruz': 'Sor Juana Inés de la Cruz',
-  'enrique fernandez': 'Enrique Fernández',
-  'warnes': 'Warnes',
-  'blanco encalada': 'Blanco Encalada',
-  'murguiondo': 'Murguiondo',
-  'general paz': 'General Paz',
-  'velloso': 'Sánchez de Velloso',
-  'pringles': 'Coronel Pringles',
-  'guido': 'Guido',
-  'darragueira': 'Darragueira',
-  'osorio': 'Osorio',
-  'zuloaga': 'Zuloaga',
-  'bolaños': 'Bolaños',
-  'pergamino': 'Pergamino',
-  'guidi': 'Juan Bautista Guidi',
+  'v. de lujan': 'VILLA DE LUJAN',
+  'v de lujan': 'VILLA DE LUJAN',
+  'virgen de lujan': 'VILLA DE LUJAN',
+  'villa de lujan': 'VILLA DE LUJAN',
+  'sayos': 'CNL SAYOS',
+  'coronel sayos': 'CNL SAYOS',
+  'balbin': 'DR RICARDO BALBIN',
+  'balbín': 'DR RICARDO BALBIN',
+  'dr ricardo balbin': 'DR RICARDO BALBIN',
+  'doctor ricardo balbin': 'DR RICARDO BALBIN',
+  'liniers': 'VIRREY SANTIAGO DE LINIERS',
+  'posadas': 'GERVASIO A DE POSADAS',
+  'ruiz de ocaña': 'JUAN RUIZ DE OCANA',
+  'ruiz de ocana': 'JUAN RUIZ DE OCANA',
+  'namuncura': 'CEFERINO NAMUNCURA',
+  'namuncurá': 'CEFERINO NAMUNCURA',
+  'del valle iberlucea': 'ENRIQUE DEL VALLE IBERLUCEA',
+  'iberlucea': 'ENRIQUE DEL VALLE IBERLUCEA',
+  'de la cruz': 'DE LA CRUZ',
+  'enrique fernandez': 'ENRIQUE FERNANDEZ',
+  'warnes': 'CNL IGNACIO WARNES',
+  'blanco encalada': 'BLANCO ENCALADA',
+  'murguiondo': 'CNL MURGUIONDO',
+  'velloso': 'ENRIQUE G VELLOSO',
+  'pringles': 'CNL PRINGLES',
+  'guido': 'GRL GUIDO',
+  'darragueira': 'DR JOSE DARRAGUEIRA',
+  'osorio': 'CNL OSORIO',
+  'bolaños': 'JOSE BOLANOS',
+  'bolanos': 'JOSE BOLANOS',
+  'pergamino': 'PERGAMINO',
+  'guidi': 'GUIDI HECTOR',
+  'juan bautista guidi': 'GUIDI HECTOR',
+  'ferre': 'GRL FERRE',
+  'sargento cabral': 'SGT CABRAL',
+  'bueras': 'TCNL BUERAS',
+  'erezcano': 'CNL EREZCANO',
+  'veracruz': 'VERACRUZ',
+  'maza': 'MANUEL MAZA',
+  'oliden': 'GDOR OLIDEN',
+  'tacuari': 'TACUARI',
+  'ocampo': 'MANUEL OCAMPO',
+  'noya': 'CJAL NOYA',
+  'colon': 'COLON',
+  'magallanes': 'HERNANDO DE MAGALLANES',
+  'cavour': 'CAMILO V CAVOUR',
+  'maspero': 'DR LUIS A MASPERO',
+  '3 de febrero': '3 DE FEBRERO',
+  'hladnik': 'MONS JUAN HLADNIK',
+  'felix de alzaga': 'FELIX ALZAGA',
+  'alzaga': 'FELIX ALZAGA',
+  'chascomus': 'CHASCOMUS',
+  'chascomús': 'CHASCOMUS',
+  'general paz': 'GENERAL PAZ',
+};
+
+// Coordenadas fijas de intersecciones conocidas especiales en Lanús
+const KNOWN_INTERSECTIONS: Record<string, Coordinates> = {
+  'colon y general paz': { lat: -34.718045, lng: -58.419685 },
+  'general paz y colon': { lat: -34.718045, lng: -58.419685 },
+  'del valle iberlucea y de la cruz': { lat: -34.720713, lng: -58.395565 },
+  'enrique del valle iberlucea y de la cruz': { lat: -34.720713, lng: -58.395565 },
+  'guido y darragueira': { lat: -34.705651, lng: -58.381531 },
+  'darragueira y guido': { lat: -34.705651, lng: -58.381531 },
 };
 
 export function cleanStreetName(name: string): string {
@@ -79,198 +106,85 @@ export function cleanStreetName(name: string): string {
   return cleaned;
 }
 
-async function queryJson(url: string, timeoutMs: number = 1800): Promise<any> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+async function queryGeoref(queryStr: string): Promise<Coordinates | null> {
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'LanusGIS/1.0' },
-      signal: controller.signal,
-    });
-    clearTimeout(timer);
+    const url = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(queryStr)}&departamento=Lanus`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'LanusGIS/1.0' } });
     if (!res.ok) return null;
-    return await res.json();
-  } catch (e) {
-    clearTimeout(timer);
-    return null;
-  }
-}
-
-/**
- * Resuelve y geocodifica una intersección en Lanús mediante OpenAI ChatGPT
- * en caso de que los servicios cartográficos tradicionales no encuentren la dirección.
- */
-async function geocodeWithOpenAI(streetA: string, streetB: string): Promise<Coordinates | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
-
-  try {
-    const openai = new OpenAI({ apiKey });
-    const prompt = `Eres un experto cartógrafo y geómetra municipal del Partido de Lanús, Provincia de Buenos Aires, Argentina.
-Tu tarea es normalizar y dar las coordenadas exactas de la intersección entre las calles:
-Calle 1: "${streetA}"
-Calle 2: "${streetB}"
-dentro del Partido de Lanús.
-
-Reglas ESTRICTAS:
-1. Las coordenadas DEBEN estar dentro del Partido de Lanús (Latitud entre -34.755 y -34.650, Longitud entre -58.460 y -58.320).
-2. Ten en cuenta nombres históricos y locales de Lanús (ej: Coronel Sayos, Dr. Ricardo Balbín, Gervasio Posadas, Virgen de Luján, Del Valle Iberlucea, etc.).
-3. Devuelve ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
-{
-  "lat": -34.xxxxx,
-  "lng": -58.xxxxx,
-  "calle1_normalizada": "Nombre Oficial",
-  "calle2_normalizada": "Nombre Oficial"
-}`;
-
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        { role: 'system', content: 'Responde siempre en formato JSON.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-    });
-
-    const content = completion.choices[0]?.message?.content;
-    if (!content) return null;
-
-    const parsed = JSON.parse(content);
-    if (typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
-      if (isInsideLanus(parsed.lat, parsed.lng)) {
-        return { lat: parsed.lat, lng: parsed.lng };
-      }
-    }
-  } catch (err) {
-    console.error('Error geocodificando con OpenAI:', err);
-  }
-  return null;
-}
-
-/**
- * Geocodifica una intersección de dos calles en Lanús
- */
-export async function geocodeIntersection(streetA: string, streetB: string): Promise<Coordinates | null> {
-  const cleanA = cleanStreetName(streetA);
-  const cleanB = cleanStreetName(streetB);
-
-  // Intento 1: USIG con partido Lanús
-  try {
-    const usigUrl = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB + ', Lanus')}&geocodificar=true`;
-    const data = await queryJson(usigUrl);
-    if (data?.direccionesNormalizadas?.length > 0) {
-      for (const match of data.direccionesNormalizadas) {
-        if (match.coordenadas?.x && match.coordenadas?.y) {
-          const lat = match.coordenadas.y;
-          const lng = match.coordenadas.x;
-          if (isInsideLanus(lat, lng)) {
-            return { lat, lng };
-          }
-        }
-      }
-    }
-  } catch (e) {}
-
-  // Intento 2: USIG sin forzar partido Lanús (filtrando que caiga dentro de Lanús)
-  try {
-    const usigUrl2 = `https://servicios.usig.buenosaires.gob.ar/normalizar/?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB)}&geocodificar=true`;
-    const data = await queryJson(usigUrl2);
-    if (data?.direccionesNormalizadas?.length > 0) {
-      for (const match of data.direccionesNormalizadas) {
-        if (match.coordenadas?.x && match.coordenadas?.y) {
-          const lat = match.coordenadas.y;
-          const lng = match.coordenadas.x;
-          if (isInsideLanus(lat, lng)) {
-            return { lat, lng };
-          }
-        }
-      }
-    }
-  } catch (e) {}
-
-  // Intento 3: Georef API Nacional con filtro departamento Lanús
-  try {
-    const georefUrl = `https://apis.datos.gob.ar/georef/api/direcciones?direccion=${encodeURIComponent(cleanA + ' y ' + cleanB)}&departamento=Lanus`;
-    const data = await queryJson(georefUrl);
-    if (data?.direcciones?.length > 0) {
-      for (const match of data.direcciones) {
-        if (match.ubicacion?.lat && match.ubicacion?.lon) {
-          const lat = match.ubicacion.lat;
-          const lng = match.ubicacion.lon;
-          if (isInsideLanus(lat, lng)) {
-            return { lat, lng };
-          }
-        }
-      }
-    }
-  } catch (e) {}
-
-  // Intento 4: Mapbox Geocoding restringido por bounding box de Lanús
-  try {
-    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (token) {
-      const mapboxUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cleanA + ' y ' + cleanB + ', Lanús')}.json?access_token=${token}&bbox=-58.4519,-34.7505,-58.3284,-34.6537&country=ar&language=es&types=address,poi`;
-      const data = await queryJson(mapboxUrl);
-      if (data?.features?.length > 0) {
-        const [lng, lat] = data.features[0].center;
+    const data = await res.json();
+    if (data.direcciones && data.direcciones.length > 0) {
+      const match = data.direcciones[0];
+      if (match.ubicacion?.lat && match.ubicacion?.lon) {
+        const lat = match.ubicacion.lat;
+        const lng = match.ubicacion.lon;
         if (isInsideLanus(lat, lng)) {
           return { lat, lng };
         }
       }
     }
   } catch (e) {}
+  return null;
+}
 
-  // Intento 5: Resolución y geocodificación experta con OpenAI ChatGPT (GPT-4o-mini)
-  const aiResult = await geocodeWithOpenAI(cleanA, cleanB);
-  if (aiResult) {
-    return aiResult;
-  }
+/**
+ * Geocodifica una intersección de dos calles en Lanús utilizando Catastro Oficial
+ */
+export async function geocodeIntersection(streetA: string, streetB: string): Promise<Coordinates | null> {
+  const normA = streetA.trim().toLowerCase().replace(/\.$/, '');
+  const normB = streetB.trim().toLowerCase().replace(/\.$/, '');
+  const key = `${normA} y ${normB}`;
+  const keyInv = `${normB} y ${normA}`;
+
+  // 1. Revisar intersecciones fijas conocidas
+  if (KNOWN_INTERSECTIONS[key]) return KNOWN_INTERSECTIONS[key];
+  if (KNOWN_INTERSECTIONS[keyInv]) return KNOWN_INTERSECTIONS[keyInv];
+
+  const cleanA = cleanStreetName(streetA);
+  const cleanB = cleanStreetName(streetB);
+
+  // 2. Intento con nombres normalizados
+  let coords = await queryGeoref(`${cleanA} y ${cleanB}`);
+  if (coords) return coords;
+
+  coords = await queryGeoref(`${cleanB} y ${cleanA}`);
+  if (coords) return coords;
+
+  // 3. Intento con nombres originales directos
+  coords = await queryGeoref(`${streetA} y ${streetB}`);
+  if (coords) return coords;
+
+  coords = await queryGeoref(`${streetB} y ${streetA}`);
+  if (coords) return coords;
 
   return null;
 }
 
 /**
- * Geocodifica un tramo entre dos esquinas y genera el trazado de la calle
+ * Geocodifica una dirección con altura (ej: "Bueras 1818" o "Colon 1600")
+ */
+export async function geocodeStreetWithNumber(streetWithNumber: string): Promise<Coordinates | null> {
+  // Limpiar y normalizar el nombre
+  let search = streetWithNumber.trim();
+  const match = search.match(/(.+?)\s+(\d+)$/);
+  if (match) {
+    const street = cleanStreetName(match[1]);
+    const num = match[2];
+    search = `${street} ${num}`;
+  }
+  return await queryGeoref(search);
+}
+
+/**
+ * Geocodifica un tramo entre dos esquinas
  */
 export async function geocodeSegment(street: string, crossA: string, crossB: string): Promise<{
-  geometry: { type: 'LineString'; coordinates: [number, number][] } | null;
   startCoords: Coordinates | null;
   endCoords: Coordinates | null;
 }> {
   const p1 = await geocodeIntersection(street, crossA);
   const p2 = await geocodeIntersection(street, crossB);
 
-  if (p1 && p2) {
-    // Intentar ruteo OSRM para seguir la geometría de la calle exacta
-    try {
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=full&geometries=geojson`;
-      const data = await queryJson(osrmUrl, 5000);
-      if (data?.routes?.[0]?.geometry) {
-        return {
-          geometry: data.routes[0].geometry,
-          startCoords: p1,
-          endCoords: p2,
-        };
-      }
-    } catch (e) {}
-
-    // Fallback: Línea recta directa entre ambas esquinas
-    return {
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [p1.lng, p1.lat],
-          [p2.lng, p2.lat],
-        ],
-      },
-      startCoords: p1,
-      endCoords: p2,
-    };
-  }
-
   return {
-    geometry: null,
     startCoords: p1,
     endCoords: p2,
   };
