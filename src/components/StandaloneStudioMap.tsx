@@ -18,6 +18,7 @@ interface StandaloneStudioMapProps {
   elementosDibujados: any[];
   selectedElementoIdx: number | null;
   onSelectElemento: (idx: number) => void;
+  onInspectElemento?: (el: any) => void;
 }
 
 // Subcomponente que renderiza en el mapa todos los elementos dibujados o importados
@@ -25,10 +26,12 @@ function DrawnElementsRenderer({
   elementosDibujados,
   selectedElementoIdx,
   onSelectElemento,
+  onInspectElemento,
 }: {
   elementosDibujados: any[];
   selectedElementoIdx: number | null;
   onSelectElemento: (idx: number) => void;
+  onInspectElemento?: (el: any) => void;
 }) {
   const map = useMap();
   const layerGroupRef = useRef<L.FeatureGroup | null>(null);
@@ -89,18 +92,26 @@ function DrawnElementsRenderer({
 
         geoLayer.on('click', () => {
           onSelectElemento(idx);
+          if (onInspectElemento) {
+            onInspectElemento(el);
+          }
         });
 
         // Popup con datos de la obra
         const p = el.geo.properties || {};
         const popupContent = `
-          <div style="font-family: Inter, sans-serif; min-width: 180px;">
+          <div style="font-family: Inter, sans-serif; min-width: 200px;">
             <div style="font-weight: 800; font-size: 13px; color: #0f172a; margin-bottom: 4px;">
               ${el.nombre || 'Obra / Intervención'}
             </div>
             ${p.empresa ? `<div style="font-size: 11px; font-weight: 700; color: ${color};">Empresa: ${p.empresa}</div>` : ''}
             ${p.zona ? `<div style="font-size: 11px; color: #475569;">${p.zona} · ${p.tipoMaterial || ''}</div>` : ''}
             ${el.descripcion ? `<div style="font-size: 11px; color: #64748b; margin-top: 4px; font-style: italic;">${el.descripcion}</div>` : ''}
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #cbd5e1; display: flex; justify-content: flex-end;">
+              <span style="font-size: 10px; font-weight: 800; color: #2563eb; cursor: pointer;">
+                🔍 Ver líneas afectadas &rarr;
+              </span>
+            </div>
           </div>
         `;
         geoLayer.bindPopup(popupContent);
@@ -120,7 +131,7 @@ function DrawnElementsRenderer({
         }
       } catch {}
     }
-  }, [elementosDibujados, selectedElementoIdx, map, onSelectElemento]);
+  }, [elementosDibujados, selectedElementoIdx, map, onSelectElemento, onInspectElemento]);
 
   return null;
 }
@@ -201,6 +212,7 @@ export default function StandaloneStudioMap({
   elementosDibujados,
   selectedElementoIdx,
   onSelectElemento,
+  onInspectElemento,
 }: StandaloneStudioMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const [baseLayer, setBaseLayer] = useState<any>(null);
@@ -289,6 +301,7 @@ export default function StandaloneStudioMap({
           elementosDibujados={elementosDibujados}
           selectedElementoIdx={selectedElementoIdx}
           onSelectElemento={onSelectElemento}
+          onInspectElemento={onInspectElemento}
         />
 
         <GeomanController

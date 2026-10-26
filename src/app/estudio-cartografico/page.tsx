@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { emitirCambioMapa } from '@/lib/rtdb';
 
 import ImportadorPlanObrasModal from '@/components/ImportadorPlanObrasModal';
+import ModalDetallePuntoObra from '@/components/ModalDetallePuntoObra';
 
 const StandaloneStudioMap = dynamic(() => import('@/components/StandaloneStudioMap'), {
   ssr: false,
@@ -38,6 +39,8 @@ export default function EstudioCartograficoPage() {
 
   // Modal de Importador de Obras Inteligente
   const [showImportadorObras, setShowImportadorObras] = useState(false);
+  // Modal de inspección de impacto en líneas de colectivo al hacer click
+  const [inspeccionandoElemento, setInspeccionandoElemento] = useState<any | null>(null);
 
   // Estados de dibujo
   const [activeDrawMode, setActiveDrawMode] = useState<'marker' | 'line' | 'polygon' | null>(null);
@@ -651,6 +654,30 @@ export default function EstudioCartograficoPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                           <button
                             type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setInspeccionandoElemento(el);
+                            }}
+                            style={{
+                              background: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1d4ed8',
+                              cursor: 'pointer',
+                              padding: '3px 6px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              fontWeight: 800,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                            }}
+                            title="Ver qué líneas de colectivo pasan sobre este punto o chocan cerca"
+                          >
+                            <Bus size={12} />
+                            Líneas
+                          </button>
+                          <button
+                            type="button"
                             onClick={(e) => handleToggleVisibilidadElemento(idx, e)}
                             style={{ background: 'none', border: 'none', color: isVisible ? '#2563eb' : '#94a3b8', cursor: 'pointer', padding: '3px' }}
                             title={isVisible ? 'Ocultar del mapa' : 'Mostrar en el mapa'}
@@ -738,11 +765,27 @@ export default function EstudioCartograficoPage() {
             mostrarRedTransporte={mostrarRedTransporte}
             elementosDibujados={elementosDibujados}
             selectedElementoIdx={selectedElementoIdx}
-            onSelectElemento={setSelectedElementoIdx}
+            onSelectElemento={(idx) => {
+              setSelectedElementoIdx(idx);
+            }}
+            onInspectElemento={(el) => {
+              setInspeccionandoElemento(el);
+            }}
           />
         </div>
 
       </main>
+
+      {/* Modal de Detalle e Impacto en Líneas de Transporte al cliquear el punto */}
+      <ModalDetallePuntoObra
+        isOpen={!!inspeccionandoElemento}
+        onClose={() => setInspeccionandoElemento(null)}
+        elemento={inspeccionandoElemento}
+        onTrazarDesvio={(coords, nombre) => {
+          // Si el usuario decide planificar el desvío desde el botón, lo redirigimos a /desvios con las coordenadas
+          router.push(`/desvios?lat=${coords[0]}&lng=${coords[1]}&nombre=${encodeURIComponent(nombre)}`);
+        }}
+      />
 
       <ImportadorPlanObrasModal
         isOpen={showImportadorObras}

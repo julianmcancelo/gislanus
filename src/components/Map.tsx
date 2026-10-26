@@ -20,6 +20,7 @@ import MapSearch from './MapSearch';
 import MapPrintAtlasModal from './MapPrintAtlasModal';
 import CompartirModal from './CompartirModal';
 import MapDrawingStudio from './MapDrawingStudio';
+import ModalDetallePuntoObra from './ModalDetallePuntoObra';
 import { normalizeLineNumber } from '@/utils/transportUtils';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -413,6 +414,7 @@ export default function MapComponent() {
   const [compartirModalOpen, setCompartirModalOpen] = useState(false);
   const [leyendaOpen, setLeyendaOpen] = useState(true);
   const [studioOpen, setStudioOpen] = useState(false);
+  const [inspeccionandoElemento, setInspeccionandoElemento] = useState<any | null>(null);
 
   // Líneas de transporte activas en el mapa con sus datos y sentidos
   const activeLineas = useMemo(() => {
@@ -799,6 +801,17 @@ export default function MapComponent() {
   useEffect(() => {
     const unsub = escucharTracking((entries) => setTrackingMarkers(entries));
     return unsub;
+  }, []);
+
+  // Escuchar evento para abrir modal de inspección de obra desde popup HTML
+  useEffect(() => {
+    const handleInspect = (e: any) => {
+      if (e?.detail) {
+        setInspeccionandoElemento(e.detail);
+      }
+    };
+    window.addEventListener('lanus-inspect-obra', handleInspect);
+    return () => window.removeEventListener('lanus-inspect-obra', handleInspect);
   }, []);
 
   const fetchingRef = useRef<Record<string, boolean>>({});
@@ -1256,6 +1269,15 @@ export default function MapComponent() {
                       <div style="padding:6px 14px 10px;">
                         ${rowsHtml || '<p style="margin:8px 0 0;font-size:11px;color:#94a3b8;">Sin detalles adicionales.</p>'}
                       </div>
+                      <div style="padding: 6px 14px 10px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: flex-end;">
+                        <button
+                          type="button"
+                          onclick="window.dispatchEvent(new CustomEvent('lanus-inspect-obra', { detail: ${escapeHtml(JSON.stringify({ geo: feature, nombre: rawName, color: capa.color }))} }))"
+                          style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px;"
+                        >
+                          🚌 Ver líneas que pasan por aquí &rarr;
+                        </button>
+                      </div>
                     </div>`;
                 }
 
@@ -1528,6 +1550,16 @@ export default function MapComponent() {
         isOpen={compartirModalOpen}
         onClose={() => setCompartirModalOpen(false)}
         capasConfig={capasConfig}
+      />
+
+      {/* Modal de Detalle e Impacto en Líneas de Transporte para puntos de Obra */}
+      <ModalDetallePuntoObra
+        isOpen={!!inspeccionandoElemento}
+        onClose={() => setInspeccionandoElemento(null)}
+        elemento={inspeccionandoElemento}
+        onTrazarDesvio={(coords, nombre) => {
+          window.location.href = `/desvios?lat=${coords[0]}&lng=${coords[1]}&nombre=${encodeURIComponent(nombre)}`;
+        }}
       />
     </div>
   );
