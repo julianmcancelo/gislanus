@@ -1,19 +1,44 @@
 /**
  * lanusGeocoder.ts
  * Geocodificador especializado en calles, intersecciones y tramos del Municipio de Lanús.
- * Utiliza en cascada USIG (GCBA / Conurbano Bonaerense) y Georef Nacional con filtro de Lanús.
+ * Utiliza en cascada:
+ * 1. USIG (GCBA / Conurbano Bonaerense con normalización oficial)
+ * 2. Georef API Nacional con filtro de Departamento Lanús
+ * 3. Mapbox Geocoding con bounding box estricto de Lanús
+ * 4. Inteligencia Artificial OpenAI (ChatGPT 4o-mini) para resolución de nombres históricos,
+ *    abreviaturas coloquiales y estimación catastral estricta en el Partido de Lanús.
  */
+
+import OpenAI from 'openai';
 
 interface Coordinates {
   lat: number;
   lng: number;
 }
 
+// Bounding box estricto del Partido de Lanús:
+// Lng Oeste: -58.4600, Lng Este: -58.3200, Lat Sur: -34.7550, Lat Norte: -34.6500
+export const LANUS_BBOX = {
+  minLng: -58.4600,
+  maxLng: -58.3200,
+  minLat: -34.7550,
+  maxLat: -34.6500,
+};
+
+export function isInsideLanus(lat: number, lng: number): boolean {
+  return (
+    lat >= LANUS_BBOX.minLat &&
+    lat <= LANUS_BBOX.maxLat &&
+    lng >= LANUS_BBOX.minLng &&
+    lng <= LANUS_BBOX.maxLng
+  );
+}
+
 // Diccionario de normalización de calles conocidas en Lanús
 const SYNONYMS: Record<string, string> = {
-  'v. de lujan': 'Luján',
-  'v de lujan': 'Luján',
-  'virgen de lujan': 'Luján',
+  'v. de lujan': 'Virgen de Luján',
+  'v de lujan': 'Virgen de Luján',
+  'virgen de lujan': 'Virgen de Luján',
   'sayos': 'Coronel Sayos',
   'balbin': 'Doctor Ricardo Balbín',
   'balbín': 'Doctor Ricardo Balbín',
@@ -29,7 +54,19 @@ const SYNONYMS: Record<string, string> = {
   'iberlucea': 'Del Valle Iberlucea',
   'de la cruz': 'Sor Juana Inés de la Cruz',
   'enrique fernandez': 'Enrique Fernández',
-  'warnes': 'Ministro Brin', // en Lanús a menudo se cruzan o se normaliza por USIG
+  'warnes': 'Warnes',
+  'blanco encalada': 'Blanco Encalada',
+  'murguiondo': 'Murguiondo',
+  'general paz': 'General Paz',
+  'velloso': 'Sánchez de Velloso',
+  'pringles': 'Coronel Pringles',
+  'guido': 'Guido',
+  'darragueira': 'Darragueira',
+  'osorio': 'Osorio',
+  'zuloaga': 'Zuloaga',
+  'bolaños': 'Bolaños',
+  'pergamino': 'Pergamino',
+  'guidi': 'Juan Bautista Guidi',
 };
 
 export function cleanStreetName(name: string): string {
@@ -60,26 +97,60 @@ async function queryJson(url: string, timeoutMs: number = 7000): Promise<any> {
 }
 
 /**
- * Geocodifica una intersección de dos calles en Lanús
+ * Resuelve y geocodifica una intersección en Lanús mediante OpenAI ChatGPT
+ * en caso de que los servicios cartográficos tradicionales no encuentren la dirección.
  */
-// Bounding box estricto del Partido de Lanús:
-// Lng Oeste: -58.4600, Lng Este: -58.3200, Lat Sur: -34.7550, Lat Norte: -34.6500
-export const LANUS_BBOX = {
-  minLng: -58.4600,
-  maxLng: -58.3200,
-  minLat: -34.7550,
-  maxLat: -34.6500,
-};
+async function geocodeWithOpenAI(streetA: string, streetB: string): Promise<Coordinates | null> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
 
-export function isInsideLanus(lat: number, lng: number): boolean {
-  return (
-    lat >= LANUS_BBOX.minLat &&
-    lat <= LANUS_BBOX.maxLat &&
-    lng >= LANUS_BBOX.minLng &&
-    lng <= LANUS_BBOX.maxLng
-  );
+  try {
+    const openai = new OpenAI({ apiKey });
+    const prompt = `Eres un experto cartógrafo y geómetra municipal del Partido de Lanús, Provincia de Buenos Aires, Argentina.
+Tu tarea es normalizar y dar las coordenadas exactas de la intersección entre las calles:
+Calle 1: "${streetA}"
+Calle 2: "${streetB}"
+dentro del Partido de Lanús.
+
+Reglas ESTRICTAS:
+1. Las coordenadas DEBEN estar dentro del Partido de Lanús (Latitud entre -34.755 y -34.650, Longitud entre -58.460 y -58.320).
+2. Ten en cuenta nombres históricos y locales de Lanús (ej: Coronel Sayos, Dr. Ricardo Balbín, Gervasio Posadas, Virgen de Luján, Del Valle Iberlucea, etc.).
+3. Devuelve ÚNICAMENTE un objeto JSON válido con la siguiente estructura:
+{
+  "lat": -34.xxxxx,
+  "lng": -58.xxxxx,
+  "calle1_normalizada": "Nombre Oficial",
+  "calle2_normalizada": "Nombre Oficial"
+}`;
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: 'Responde siempre en formato JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.1,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    if (!content) return null;
+
+    const parsed = JSON.parse(content);
+    if (typeof parsed.lat === 'number' && typeof parsed.lng === 'number') {
+      if (isInsideLanus(parsed.lat, parsed.lng)) {
+        return { lat: parsed.lat, lng: parsed.lng };
+      }
+    }
+  } catch (err) {
+    console.error('Error geocodificando con OpenAI:', err);
+  }
+  return null;
 }
 
+/**
+ * Geocodifica una intersección de dos calles en Lanús
+ */
 export async function geocodeIntersection(streetA: string, streetB: string): Promise<Coordinates | null> {
   const cleanA = cleanStreetName(streetA);
   const cleanB = cleanStreetName(streetB);
@@ -149,6 +220,12 @@ export async function geocodeIntersection(streetA: string, streetB: string): Pro
       }
     }
   } catch (e) {}
+
+  // Intento 5: Resolución y geocodificación experta con OpenAI ChatGPT (GPT-4o-mini)
+  const aiResult = await geocodeWithOpenAI(cleanA, cleanB);
+  if (aiResult) {
+    return aiResult;
+  }
 
   return null;
 }
