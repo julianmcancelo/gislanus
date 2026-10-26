@@ -79,7 +79,7 @@ export function cleanStreetName(name: string): string {
   return cleaned;
 }
 
-async function queryJson(url: string, timeoutMs: number = 7000): Promise<any> {
+async function queryJson(url: string, timeoutMs: number = 1800): Promise<any> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {

@@ -95,8 +95,19 @@ export default function ImportadorPlanObrasModal({
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Error procesando el plan');
+        let errorMsg = 'Error procesando el plan';
+        try {
+          const err = await res.json();
+          errorMsg = err.error || errorMsg;
+        } catch {
+          const textErr = await res.text();
+          if (res.status === 504) {
+            errorMsg = 'El servidor tardó demasiado en responder (Timeout 504). Intente enviar el texto con menos renglones o reintente.';
+          } else {
+            errorMsg = textErr || `Error del servidor (${res.status})`;
+          }
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await res.json();
