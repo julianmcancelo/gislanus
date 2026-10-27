@@ -53,6 +53,14 @@ interface DesviosOverviewMapProps {
   selectedId: string | null;
   onSelectIntervencion: (item: any) => void;
   onOpenFicha: (item: any) => void;
+  selectedLineaRecorrido?: {
+    id: string;
+    numero: string;
+    nombre?: string;
+    color?: string;
+    coordinates: [number, number][][]; // Array de segmentos polilínea [lat, lng]
+  } | null;
+  onClearLineaRecorrido?: () => void;
 }
 
 export default function DesviosOverviewMap({
@@ -60,6 +68,8 @@ export default function DesviosOverviewMap({
   selectedId,
   onSelectIntervencion,
   onOpenFicha,
+  selectedLineaRecorrido,
+  onClearLineaRecorrido,
 }: DesviosOverviewMapProps) {
   // Extraer coordenadas seguras para cada intervención
   const markers = useMemo(() => {
@@ -184,6 +194,20 @@ export default function DesviosOverviewMap({
 
         <MapViewController center={targetCenter} zoom={16} />
 
+        {/* Recorrido oficial de la línea de colectivo seleccionada */}
+        {selectedLineaRecorrido &&
+          selectedLineaRecorrido.coordinates.map((segment, idx) => (
+            <Polyline
+              key={`linea-recorrido-${selectedLineaRecorrido.id}-${idx}`}
+              positions={segment}
+              pathOptions={{
+                color: selectedLineaRecorrido.color || '#2563eb',
+                weight: 6,
+                opacity: 0.85,
+              }}
+            />
+          ))}
+
         {/* Marcadores de cortes */}
         {markers.map((m) => {
           const icon = createCustomPin(m.color, m.emoji, m.isSelected);
@@ -297,6 +321,62 @@ export default function DesviosOverviewMap({
           );
         })}
       </MapContainer>
+
+      {/* Notificación flotante de Línea visualizada */}
+      {selectedLineaRecorrido && (
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '16px',
+          zIndex: 500,
+          background: 'rgba(15, 23, 42, 0.94)',
+          backdropFilter: 'blur(8px)',
+          color: '#fff',
+          padding: '8px 14px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          fontSize: '12px',
+          border: '1px solid rgba(255,255,255,0.15)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              background: selectedLineaRecorrido.color || '#2563eb',
+              color: '#fff',
+              fontWeight: 800,
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+            }}>
+              Línea {selectedLineaRecorrido.numero}
+            </span>
+            <span style={{ fontWeight: 600, color: '#e2e8f0' }}>
+              {selectedLineaRecorrido.nombre || 'Recorrido trazado en mapa'}
+            </span>
+          </div>
+
+          {onClearLineaRecorrido && (
+            <button
+              onClick={onClearLineaRecorrido}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                color: '#fff',
+                borderRadius: '6px',
+                padding: '3px 8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+              title="Ocultar recorrido de la línea"
+            >
+              ✕ Ocultar
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Leyenda flotante de mapa */}
       <div style={{

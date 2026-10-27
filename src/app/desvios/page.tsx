@@ -41,6 +41,13 @@ export default function DesviosPage() {
   const [activeTab, setActiveTab] = useState<'gestionar' | 'nuevo'>('gestionar');
   const [vistaModo, setVistaModo] = useState<'split' | 'grid'>('split');
   const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
+  const [selectedLineaRecorrido, setSelectedLineaRecorrido] = useState<{
+    id: string;
+    numero: string;
+    nombre?: string;
+    color?: string;
+    coordinates: [number, number][][];
+  } | null>(null);
   const [intervenciones, setIntervenciones] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
@@ -447,6 +454,91 @@ export default function DesviosPage() {
       fetchIntervenciones();
     } catch (err: any) {
       toast.error(err.message || 'Error al cambiar estado');
+    }
+  };
+
+  // Función para ver el recorrido de una línea al hacer clic en el chip L.xx
+  const handleVerRecorridoLinea = async (lineaId?: string, lineaNumero?: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+
+    // Si ya está seleccionada la misma línea, deseleccionarla
+    if (selectedLineaRecorrido && (selectedLineaRecorrido.id === lineaId || selectedLineaRecorrido.numero === String(lineaNumero))) {
+      setSelectedLineaRecorrido(null);
+      toast('Recorrido de línea ocultado', { icon: 'ℹ️' });
+      return;
+    }
+
+    const toastId = toast.loading(`Cargando recorrido de Línea ${lineaNumero || ''}...`);
+    try {
+      let lineaData: any = null;
+      if (lineaId) {
+        const res = await fetch(`/api/lineas-transporte/${lineaId}`);
+        if (res.ok) lineaData = await res.json();
+      }
+
+      if (!lineaData && lineaNumero) {
+        const res = await fetch('/api/lineas-transporte');
+        if (res.ok) {
+          const todas = await res.json();
+          lineaData = todas.find((l: any) => String(l.numero) === String(lineaNumero) && l.activo);
+        }
+      }
+
+      if (!lineaData || !lineaData.datosGeo) {
+        toast.error(`No se encontró el trazado GPS para la Línea ${lineaNumero}`, { id: toastId });
+        return;
+      }
+
+      const parsed = typeof lineaData.datosGeo === 'string' ? JSON.parse(lineaData.datosGeo) : lineaData.datosGeo;
+      const segments: [number, number][][] = [];
+
+      const extractCoords = (geom: any) => {
+        if (!geom) return;
+        if (geom.type === 'LineString' && Array.isArray(geom.coordinates)) {
+          const seg: [number, number][] = geom.coordinates
+            .filter((c: any) => Array.isArray(c) && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1]))
+            .map((c: any) => [Number(c[1]), Number(c[0])]);
+          if (seg.length >= 2) segments.push(seg);
+        } else if (geom.type === 'MultiLineString' && Array.isArray(geom.coordinates)) {
+          geom.coordinates.forEach((line: any) => {
+            const seg: [number, number][] = line
+              .filter((c: any) => Array.isArray(c) && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1]))
+              .map((c: any) => [Number(c[1]), Number(c[0])]);
+            if (seg.length >= 2) segments.push(seg);
+          });
+        }
+      };
+
+      if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+        parsed.features.forEach((f: any) => extractCoords(f.geometry));
+      } else if (parsed.type === 'Feature') {
+        extractCoords(parsed.geometry);
+      } else {
+        extractCoords(parsed);
+      }
+
+      if (segments.length === 0) {
+        toast.error(`La traza de la Línea ${lineaNumero} no contiene coordenadas válidas`, { id: toastId });
+        return;
+      }
+
+      setSelectedLineaRecorrido({
+        id: lineaData.id,
+        numero: String(lineaData.numero),
+        nombre: lineaData.nombre,
+        color: lineaData.color || '#2563eb',
+        coordinates: segments,
+      });
+
+      // Si no estamos en vista split, pasar automáticamente a split para ver el mapa
+      if (vistaModo !== 'split') {
+        setVistaModo('split');
+      }
+
+      toast.success(`Mostrando recorrido de Línea ${lineaData.numero} en el mapa`, { id: toastId });
+    } catch (err: any) {
+      console.error('Error cargando recorrido:', err);
+      toast.error('Error al cargar la traza de la línea', { id: toastId });
     }
   };
 
@@ -980,21 +1072,35 @@ export default function DesviosPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
                             <Bus size={12} color="#2563eb" />
                             <span style={{ fontSize: '10px', fontWeight: 700, color: '#334155' }}>Líneas:</span>
-                            {item.desvios.map((d: any, idx: number) => (
-                              <span
-                                key={idx}
-                                style={{
-                                  background: '#1e293b',
-                                  color: '#fff',
-                                  fontSize: '9px',
-                                  fontWeight: 800,
-                                  padding: '1px 5px',
-                                  borderRadius: '3px',
-                                }}
-                              >
-                                L.{d.lineaNumero}
-                              </span>
-                            ))}
+                            {item.desvios.map((d: any, idx: number) => {
+                              const estaActiva = selectedLineaRecorrido?.id === d.lineaId || selectedLineaRecorrido?.numero === String(d.lineaNumero);
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e)}
+                                  style={{
+                                    background: estaActiva ? '#2563eb' : '#1e293b',
+                                    color: '#fff',
+                                    fontSize: '9px',
+                                    fontWeight: 800,
+                                    padding: '1px 6px',
+                                    borderRadius: '4px',
+                                    border: estaActiva ? '1px solid #93c5fd' : '1px solid transparent',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '2px',
+                                    boxShadow: estaActiva ? '0 0 0 2px rgba(37,99,235,0.3)' : 'none',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  title={`Ver recorrido de Línea ${d.lineaNumero} en el mapa`}
+                                >
+                                  L.{d.lineaNumero}
+                                  {estaActiva ? ' ✓' : ''}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
 
@@ -1076,6 +1182,8 @@ export default function DesviosPage() {
                     selectedId={selectedMapId}
                     onSelectIntervencion={(item) => setSelectedMapId(item.id)}
                     onOpenFicha={(item) => setSelectedIntervencion(item)}
+                    selectedLineaRecorrido={selectedLineaRecorrido}
+                    onClearLineaRecorrido={() => setSelectedLineaRecorrido(null)}
                   />
                 </div>
               </div>
@@ -1144,18 +1252,35 @@ export default function DesviosPage() {
                           <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>Sin desvíos registrados</span>
                         ) : (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                            {item.desvios.map((d: any, idx: number) => (
-                              <span key={idx} style={{
-                                background: '#1e293b',
-                                color: '#fff',
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                              }}>
-                                L.{d.lineaNumero} {d.ramal ? `(${d.ramal})` : ''}
-                              </span>
-                            ))}
+                            {item.desvios.map((d: any, idx: number) => {
+                              const estaActiva = selectedLineaRecorrido?.id === d.lineaId || selectedLineaRecorrido?.numero === String(d.lineaNumero);
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e)}
+                                  style={{
+                                    background: estaActiva ? '#2563eb' : '#1e293b',
+                                    color: '#fff',
+                                    fontSize: '11px',
+                                    fontWeight: 800,
+                                    padding: '3px 8px',
+                                    borderRadius: '5px',
+                                    border: estaActiva ? '1px solid #93c5fd' : '1px solid transparent',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    boxShadow: estaActiva ? '0 0 0 2px rgba(37,99,235,0.3)' : 'none',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                  title={`Ver recorrido de Línea ${d.lineaNumero} en el mapa`}
+                                >
+                                  L.{d.lineaNumero} {d.ramal ? `(${d.ramal})` : ''}
+                                  {estaActiva ? ' ✓' : ''}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
