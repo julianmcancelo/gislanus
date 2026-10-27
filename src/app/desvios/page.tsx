@@ -458,8 +458,13 @@ export default function DesviosPage() {
   };
 
   // Función para ver el recorrido de una línea al hacer clic en el chip L.xx
-  const handleVerRecorridoLinea = async (lineaId?: string, lineaNumero?: string, e?: React.MouseEvent) => {
+  const handleVerRecorridoLinea = async (lineaId?: string, lineaNumero?: string, e?: React.MouseEvent, corteItem?: any) => {
     if (e) e.stopPropagation();
+
+    // Si se pasa el corte al que pertenece, seleccionarlo para mantener el foco en la obra
+    if (corteItem && corteItem.id) {
+      setSelectedMapId(corteItem.id);
+    }
 
     // Si ya está seleccionada la misma línea, deseleccionarla
     if (selectedLineaRecorrido && (selectedLineaRecorrido.id === lineaId || selectedLineaRecorrido.numero === String(lineaNumero))) {
@@ -553,7 +558,7 @@ export default function DesviosPage() {
         setVistaModo('split');
       }
 
-      toast.success(`Mostrando recorrido de Línea ${lineaNumero} (${segments.length} tramos)`, { id: toastId });
+      toast.success(`Recorrido de Línea ${lineaNumero} superpuesto en mapa`, { id: toastId });
     } catch (err: any) {
       console.error('Error cargando recorrido:', err);
       toast.error('Error al cargar la traza de la línea', { id: toastId });
@@ -1096,7 +1101,7 @@ export default function DesviosPage() {
                                 <button
                                   key={idx}
                                   type="button"
-                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e)}
+                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e, item)}
                                   style={{
                                     background: estaActiva ? '#2563eb' : '#1e293b',
                                     color: '#fff',
@@ -1276,7 +1281,7 @@ export default function DesviosPage() {
                                 <button
                                   key={idx}
                                   type="button"
-                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e)}
+                                  onClick={(e) => handleVerRecorridoLinea(d.lineaId, d.lineaNumero, e, item)}
                                   style={{
                                     background: estaActiva ? '#2563eb' : '#1e293b',
                                     color: '#fff',

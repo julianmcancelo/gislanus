@@ -41,31 +41,18 @@ function createCustomPin(color: string, emoji: string, isSelected: boolean = fal
 function MapViewController({ 
   center, 
   zoom, 
-  fitBoundsCoords 
 }: { 
   center: [number, number] | null; 
   zoom?: number; 
-  fitBoundsCoords?: [number, number][] | null;
 }) {
   const map = useMap();
 
   useEffect(() => {
-    if (fitBoundsCoords && fitBoundsCoords.length > 0) {
-      try {
-        const bounds = L.latLngBounds(fitBoundsCoords);
-        if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-          return;
-        }
-      } catch (e) {
-        console.error('Error fitting bounds:', e);
-      }
-    }
-
+    // Mantener la cámara centrada y enfocada en el corte seleccionado sin descolocar la vista
     if (center && !isNaN(center[0]) && !isNaN(center[1])) {
-      map.flyTo(center, zoom || 16, { duration: 0.8 });
+      map.flyTo(center, zoom || 16, { duration: 0.6 });
     }
-  }, [center, zoom, fitBoundsCoords, map]);
+  }, [center, zoom, map]);
 
   return null;
 }
@@ -201,21 +188,11 @@ export default function DesviosOverviewMap({
     return found ? found.coords : null;
   }, [selectedId, markers]);
 
-  // Si hay una línea de colectivo activa, calcular sus puntos planos para encuadrar la cámara
-  const lineaBoundsCoords = useMemo<[number, number][] | null>(() => {
-    if (!selectedLineaRecorrido || !selectedLineaRecorrido.coordinates) return null;
-    const allPts: [number, number][] = [];
-    selectedLineaRecorrido.coordinates.forEach((seg) => {
-      seg.forEach((pt) => allPts.push(pt));
-    });
-    return allPts.length > 0 ? allPts : null;
-  }, [selectedLineaRecorrido]);
-
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: '12px', overflow: 'hidden' }}>
       <MapContainer
         center={targetCenter || lanusCenter}
-        zoom={13}
+        zoom={14}
         style={{ width: '100%', height: '100%' }}
         scrollWheelZoom={true}
       >
@@ -227,7 +204,6 @@ export default function DesviosOverviewMap({
         <MapViewController
           center={targetCenter}
           zoom={16}
-          fitBoundsCoords={lineaBoundsCoords}
         />
 
         {/* Recorrido oficial de la línea de colectivo seleccionada */}
