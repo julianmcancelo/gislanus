@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { 
   AlertTriangle, Plus, MapPin, Bus, Navigation, Calendar, Clock, 
   Trash2, Printer, Search, Filter, CheckCircle2, ChevronRight, ArrowLeft,
-  Loader2, RefreshCw, Layers, Shield, FileText, Info, Sparkles, Wand2
+  Loader2, RefreshCw, Layers, Shield, FileText, Info, Sparkles, Wand2,
+  LayoutGrid, Map as MapIcon, Check, Eye
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
@@ -23,11 +24,23 @@ const DesvioMapEditor = dynamic(() => import('@/components/DesvioMapEditor'), {
   ),
 });
 
+// Carga dinámica del mapa interactivo de resumen
+const DesviosOverviewMap = dynamic(() => import('@/components/DesviosOverviewMap'), {
+  ssr: false,
+  loading: () => (
+    <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '12px' }}>
+      <Loader2 className="animate-spin" size={36} color="#2563eb" />
+    </div>
+  ),
+});
+
 export default function DesviosPage() {
   const router = useRouter();
   const { user, dbUser, getIdToken } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'gestionar' | 'nuevo'>('gestionar');
+  const [vistaModo, setVistaModo] = useState<'split' | 'grid'>('split');
+  const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
   const [intervenciones, setIntervenciones] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
@@ -448,6 +461,35 @@ export default function DesviosPage() {
     return Array.from(setLotes);
   }, [intervenciones]);
 
+  // Métricas y KPIs calculados en tiempo real
+  const stats = React.useMemo(() => {
+    let enCurso = 0;
+    let planificados = 0;
+    let finalizados = 0;
+    const lineasSet = new Set<string>();
+
+    intervenciones.forEach((item) => {
+      const st = item.estado || 'PLANIFICADO';
+      if (st === 'EN_CURSO') enCurso++;
+      else if (st === 'FINALIZADO') finalizados++;
+      else planificados++;
+
+      if (Array.isArray(item.desvios)) {
+        item.desvios.forEach((d: any) => {
+          if (d.lineaNumero) lineasSet.add(String(d.lineaNumero));
+        });
+      }
+    });
+
+    return {
+      total: intervenciones.length,
+      enCurso,
+      planificados,
+      finalizados,
+      totalLineasAfectadas: lineasSet.size,
+    };
+  }, [intervenciones]);
+
   const intervencionesFiltradas = intervenciones.filter(item => {
     if (filtroLote !== 'TODOS' && item.areaResponsable !== filtroLote) {
       return false;
@@ -575,21 +617,111 @@ export default function DesviosPage() {
         
         {/* SOLAPA 1: GESTIONAR CORTES EXISTENTES */}
         {activeTab === 'gestionar' && (
-          <div style={{ padding: '24px', overflowY: 'auto', flex: 1, maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
-            {/* Barra de Filtros */}
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', padding: '16px 20px', maxWidth: '1700px', margin: '0 auto', width: '100%' }}>
+            
+            {/* KPI STATS BAR MODERNA */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
+              marginBottom: '14px',
+            }}>
+              {/* Card 1: Total */}
+              <div style={{
+                background: '#fff',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+                <div style={{ background: '#eff6ff', color: '#2563eb', padding: '10px', borderRadius: '8px' }}>
+                  <Layers size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Intervenciones</div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{stats.total}</div>
+                </div>
+              </div>
+
+              {/* Card 2: En Curso */}
+              <div style={{
+                background: '#fff',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: '1px solid #bbf7d0',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '10px', borderRadius: '8px' }}>
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>Obras en Ejecución</div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#14532d' }}>{stats.enCurso}</div>
+                </div>
+              </div>
+
+              {/* Card 3: Planificados */}
+              <div style={{
+                background: '#fff',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: '1px solid #fed7aa',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+                <div style={{ background: '#ffedd5', color: '#ea580c', padding: '10px', borderRadius: '8px' }}>
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#c2410c', textTransform: 'uppercase' }}>Planificadas / Pendientes</div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#7c2d12' }}>{stats.planificados}</div>
+                </div>
+              </div>
+
+              {/* Card 4: Líneas Colectivos Afectadas */}
+              <div style={{
+                background: '#fff',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+              }}>
+                <div style={{ background: '#f1f5f9', color: '#0284c7', padding: '10px', borderRadius: '8px' }}>
+                  <Bus size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>Líneas Afectadas</div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0c4a6e' }}>{stats.totalLineasAfectadas}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Barra de Filtros y Selector de Modo de Vista */}
             <div style={{
               background: '#fff',
-              padding: '16px 20px',
+              padding: '12px 18px',
               borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '20px',
+              marginBottom: '14px',
               flexWrap: 'wrap',
               gap: '12px',
+              border: '1px solid #e2e8f0',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '280px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
                 <Search size={18} color="#94a3b8" />
                 <input
                   type="text"
@@ -599,7 +731,7 @@ export default function DesviosPage() {
                   style={{
                     border: '1px solid #e2e8f0',
                     borderRadius: '8px',
-                    padding: '8px 14px',
+                    padding: '7px 12px',
                     width: '100%',
                     fontSize: '13px',
                     outline: 'none',
@@ -613,7 +745,7 @@ export default function DesviosPage() {
                 {/* Selector de Grupo / Tanda de Carga */}
                 {lotesDisponibles.length > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Lote / Carga:</span>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Lote:</span>
                     <select
                       value={filtroLote}
                       onChange={(e) => setFiltroLote(e.target.value)}
@@ -665,7 +797,7 @@ export default function DesviosPage() {
                   </div>
                 )}
 
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Estado:</span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Estado:</span>
                 {['TODOS', 'PLANIFICADO', 'EN_CURSO', 'FINALIZADO'].map((st) => (
                   <button
                     key={st}
@@ -675,15 +807,61 @@ export default function DesviosPage() {
                       color: filtroEstado === st ? '#fff' : '#475569',
                       border: 'none',
                       borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: 600,
+                      padding: '5px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
                       cursor: 'pointer',
                     }}
                   >
                     {st}
                   </button>
                 ))}
+
+                {/* Switcher Modo de Vista: Split Map vs Grid */}
+                <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', gap: '2px', marginLeft: '8px' }}>
+                  <button
+                    onClick={() => setVistaModo('split')}
+                    style={{
+                      background: vistaModo === 'split' ? '#fff' : 'transparent',
+                      color: vistaModo === 'split' ? '#2563eb' : '#64748b',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '5px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: vistaModo === 'split' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                    title="Vista combinada: Mapa y Lista"
+                  >
+                    <MapIcon size={13} />
+                    Mapa Interactivo
+                  </button>
+                  <button
+                    onClick={() => setVistaModo('grid')}
+                    style={{
+                      background: vistaModo === 'grid' ? '#fff' : 'transparent',
+                      color: vistaModo === 'grid' ? '#2563eb' : '#64748b',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '5px 10px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: vistaModo === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                    title="Vista en tarjetas cuadrícula"
+                  >
+                    <LayoutGrid size={13} />
+                    Tarjetas
+                  </button>
+                </div>
 
                 {intervenciones.length > 0 && (
                   <button
@@ -694,39 +872,216 @@ export default function DesviosPage() {
                       color: '#ef4444',
                       border: '1px solid #fca5a5',
                       borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: '12px',
+                      padding: '5px 10px',
+                      fontSize: '11px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '5px',
+                      gap: '4px',
                       marginLeft: '6px',
                     }}
                     title="Vaciar todos los cortes cargados"
                   >
-                    <Trash2 size={13} /> Limpiar Todo
+                    <Trash2 size={12} /> Limpiar Todo
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Listado de Intervenciones */}
+            {/* Listado / Vista interactiva */}
             {loadingList ? (
               <div style={{ textAlign: 'center', padding: '60px 0' }}>
                 <Loader2 className="animate-spin" size={36} color="#2563eb" style={{ margin: '0 auto 12px' }} />
                 <p style={{ color: '#64748b', fontSize: '14px' }}>Cargando intervenciones y desvíos viales...</p>
               </div>
             ) : intervencionesFiltradas.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '12px' }}>
+              <div style={{ textAlign: 'center', padding: '80px 20px', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <AlertTriangle size={48} color="#94a3b8" style={{ margin: '0 auto 12px' }} />
                 <h3 style={{ margin: '0 0 6px', fontSize: '16px', fontWeight: 700 }}>No hay cortes registrados</h3>
                 <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-                  Comenzá creando un nuevo corte programado para planificar los desvíos del transporte público.
+                  Comenzá creando un nuevo corte programado o importá el Plan de Pavimentación con IA.
                 </p>
               </div>
+            ) : vistaModo === 'split' ? (
+              /* VISTA SPLIT: LISTA LATERAL + MAPA INTERACTIVO SINCRONIZADO */
+              <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                {/* Columna Izquierda: Lista scrolleable de tarjetas */}
+                <div style={{
+                  width: '450px',
+                  maxWidth: '45%',
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  paddingRight: '6px',
+                }}>
+                  {intervencionesFiltradas.map((item) => {
+                    const isSelected = item.id === selectedMapId;
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedMapId(item.id)}
+                        style={{
+                          background: '#fff',
+                          borderRadius: '12px',
+                          border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                          padding: '14px',
+                          boxShadow: isSelected ? '0 4px 14px rgba(37,99,235,0.15)' : '0 1px 4px rgba(0,0,0,0.03)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span style={{ 
+                            fontSize: '11px', 
+                            fontWeight: 800, 
+                            color: '#2563eb', 
+                            background: '#eff6ff', 
+                            border: '1px solid #bfdbfe', 
+                            padding: '2px 8px', 
+                            borderRadius: '4px' 
+                          }}>
+                            {item.codigo}
+                          </span>
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            color: item.estado === 'EN_CURSO' ? '#16a34a' : (item.estado === 'PLANIFICADO' ? '#ca8a04' : '#64748b'),
+                            background: item.estado === 'EN_CURSO' ? '#dcfce7' : (item.estado === 'PLANIFICADO' ? '#fef9c3' : '#f1f5f9'),
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                          }}>
+                            {item.estado}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                            {item.titulo}
+                          </h4>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <MapPin size={13} color="#ef4444" />
+                            {item.callesAfectadas || 'Lanús'}
+                          </p>
+                        </div>
+
+                        {item.areaResponsable && (
+                          <div style={{ fontSize: '11px', color: '#475569', background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
+                            <strong>Lote / Empresa:</strong> {item.areaResponsable}
+                          </div>
+                        )}
+
+                        {/* Colectivos Afectados */}
+                        {item.desvios && item.desvios.length > 0 && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <Bus size={13} color="#2563eb" />
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Líneas:</span>
+                            {item.desvios.map((d: any, idx: number) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  background: '#1e293b',
+                                  color: '#fff',
+                                  fontSize: '10px',
+                                  fontWeight: 800,
+                                  padding: '2px 6px',
+                                  borderRadius: '4px',
+                                }}
+                              >
+                                L.{d.lineaNumero}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Acciones */}
+                        <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #f1f5f9', paddingTop: '8px', alignItems: 'center' }}>
+                          <select
+                            value={item.estado}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => handleCambiarEstado(item.id, e.target.value, e as any)}
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '5px 6px',
+                              borderRadius: '6px',
+                              border: '1px solid #cbd5e1',
+                              background: '#f8fafc',
+                              color: '#334155',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <option value="PLANIFICADO">PLANIFICADO</option>
+                            <option value="EN_CURSO">EN CURSO</option>
+                            <option value="FINALIZADO">FINALIZADO</option>
+                            <option value="CANCELADO">CANCELADO</option>
+                          </select>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedIntervencion(item);
+                            }}
+                            style={{
+                              flex: 1,
+                              background: '#2563eb',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '5px 8px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <Printer size={13} />
+                            Ficha Técnica
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteIntervencion(item.id, e);
+                            }}
+                            style={{
+                              background: '#fee2e2',
+                              color: '#dc2626',
+                              border: '1px solid #fecaca',
+                              borderRadius: '6px',
+                              padding: '5px 8px',
+                              cursor: 'pointer',
+                            }}
+                            title="Eliminar corte"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Columna Derecha: Mapa Interactivo Global de Cortes */}
+                <div style={{ flex: 1, height: '100%', borderRadius: '14px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+                  <DesviosOverviewMap
+                    intervenciones={intervencionesFiltradas}
+                    selectedId={selectedMapId}
+                    onSelectIntervencion={(item) => setSelectedMapId(item.id)}
+                    onOpenFicha={(item) => setSelectedIntervencion(item)}
+                  />
+                </div>
+              </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '16px' }}>
+              /* VISTA GRID: TARJETAS EN CUADRÍCULA COMPLETA */
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '16px', overflowY: 'auto' }}>
                 {intervencionesFiltradas.map((item) => (
                   <div
                     key={item.id}
@@ -772,6 +1127,12 @@ export default function DesviosPage() {
                       <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#64748b' }}>
                         📍 {item.callesAfectadas || 'Zona delimitada en GIS'}
                       </p>
+
+                      {item.areaResponsable && (
+                        <div style={{ fontSize: '11px', color: '#475569', marginBottom: '10px', background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <strong>Grupo / Empresa:</strong> {item.areaResponsable}
+                        </div>
+                      )}
 
                       {/* Resumen de colectivos afectados */}
                       <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '14px' }}>
