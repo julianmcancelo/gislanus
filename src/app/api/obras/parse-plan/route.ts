@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { geocodeIntersection, geocodeSegment, geocodeStreetWithNumber, isInsideLanus } from '@/utils/lanusGeocoder';
@@ -181,6 +182,55 @@ async function parsePlanWithOpenAIFallback(texto: string): Promise<{ tituloPlan:
   return null;
 }
 
+
+// Función de análisis de proximidad y cruce de colectivos para un punto de obra
+function detectarLineasQueCruzan(
+  coords: { lat: number; lng: number },
+  lineasCache: any[],
+  radioMetros = 45
+) {
+  const pt = turf.point([coords.lng, coords.lat]);
+  const encontradasMap = new Map<string, any>();
+
+  for (const linea of lineasCache) {
+    if (!linea.parsedGeo) continue;
+    let minDist = Infinity;
+
+    for (const feat of linea.parsedGeo) {
+      if (!feat.geometry) continue;
+      if (feat.geometry.type === 'LineString') {
+        const nearest = turf.nearestPointOnLine(feat, pt, { units: 'meters' });
+        const d = nearest?.properties?.dist ?? Infinity;
+        if (d < minDist) minDist = d;
+      } else if (feat.geometry.type === 'MultiLineString') {
+        for (const c of feat.geometry.coordinates) {
+          const ls = turf.lineString(c);
+          const nearest = turf.nearestPointOnLine(ls, pt, { units: 'meters' });
+          const d = nearest?.properties?.dist ?? Infinity;
+          if (d < minDist) minDist = d;
+        }
+      }
+    }
+
+    if (minDist <= radioMetros) {
+      const num = (linea.numero || linea.nombre.replace(/\D/g, '') || linea.nombre).trim();
+      const ramal = linea.subcategoria || (linea.nombre.includes('Ramal') ? linea.nombre : null);
+      const key = `${num}_${ramal || ''}`;
+      if (!encontradasMap.has(key)) {
+        encontradasMap.set(key, {
+          lineaId: linea.id,
+          lineaNumero: num,
+          ramal,
+          sentido: linea.sentido || 'IDA',
+          distancia: Math.round(minDist),
+        });
+      }
+    }
+  }
+
+  return Array.from(encontradasMap.values());
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -294,11 +344,43 @@ export async function POST(req: Request) {
       const year = new Date().getFullYear();
       const currentCount = await prisma.intervencionVial.count();
 
+      // Cargar previamente todas las líneas activas de transporte para hacer el análisis espacial rápido
+      let lineasCache: any[] = [];
+      try {
+        const rawLineas = await prisma.lineaTransporte.findMany({
+          where: { activo: true },
+          select: {
+            id: true,
+            nombre: true,
+            numero: true,
+            subcategoria: true,
+            sentido: true,
+            datosGeo: true,
+          },
+        });
+        lineasCache = rawLineas.map((l) => {
+          let parsedGeo: any[] = [];
+          if (l.datosGeo) {
+            try {
+              const g = JSON.parse(l.datosGeo);
+              parsedGeo = g.type === 'FeatureCollection' ? g.features : [g];
+            } catch {}
+          }
+          return { ...l, parsedGeo };
+        });
+      } catch (errLineas) {
+        console.error('Error cargando lineas para analisis espacial:', errLineas);
+      }
+
       for (let i = 0; i < features.length; i++) {
         const feat = features[i];
         const props = feat.properties;
+        const coords = { lat: feat.geometry.coordinates[1], lng: feat.geometry.coordinates[0] };
         const codigo = `CORTE-${year}-${String(currentCount + i + 1).padStart(4, '0')}`;
-        
+
+        // Detectar automáticamente líneas de colectivo que cruzan o pasan directo por el corte (< 45 metros)
+        const lineasCruzadas = detectarLineasQueCruzan(coords, lineasCache, 55);
+
         try {
           await prisma.intervencionVial.create({
             data: {
@@ -312,11 +394,22 @@ export async function POST(req: Request) {
               fechaInicio: new Date(),
               estado: 'PLANIFICADO',
               datosGeo: JSON.stringify(feat.geometry),
+              desvios: {
+                create: lineasCruzadas.map((d) => ({
+                  lineaId: d.lineaId,
+                  lineaNumero: d.lineaNumero,
+                  ramal: d.ramal,
+                  sentido: d.sentido,
+                  datosGeoDesvio: JSON.stringify(feat.geometry),
+                  callesDesvio: `Afectada por obra (${d.distancia}m)`,
+                  activo: true,
+                })),
+              },
             },
           });
           registradosCount++;
         } catch (dbErr) {
-          console.error('Error insertando intervencion en DB:', dbErr);
+          console.error('Error insertando intervencion con lineas afectadas en DB:', dbErr);
         }
       }
     }
