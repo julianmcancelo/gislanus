@@ -45,23 +45,24 @@ Analiza este reporte oficial de pavimentación y bacheo en Lanús:
 
 Estructura cada intervención en formato JSON.
 Reglas:
-1. "empresa": Contratista asignada (ej: "LÁZARO", "KAVOS", "USIMIX", o "MUNICIPAL").
-2. "zona": Localidad o sector de Lanús (ej: "Zona Este", "Zona Oeste", "Villa Esperanza", "Gerli Este", etc.).
-3. "tipoMaterial": Ej: "Hormigón", "Carpeta asfáltica", "Cordón cuneta", "Bacheo".
-4. "tipoForma":
+1. "tituloPlan": Extrae el título oficial con la semana o fecha (ej: "Semana del 26/10 al 30/10").
+2. "empresa": Contratista asignada (ej: "LÁZARO", "KAVOS", "USIMIX", o "MUNICIPAL").
+3. "zona": Localidad o sector de Lanús (ej: "Zona Este", "Zona Oeste", "Villa Esperanza", "Gerli Este", etc.).
+4. "tipoMaterial": Ej: "Hormigón", "Carpeta asfáltica", "Cordón cuneta", "Bacheo".
+5. "tipoForma":
    - "tramo" si dice "entre [calle1] y [calle2]" o "e/ [calle1] y [calle2]".
    - "altura" si es una calle con número exacto (ej: "Bueras 1818").
    - "cruce" si es intersección "calle1 y calle2".
-5. "callePrincipal": Nombre de la calle principal.
-6. "calleSecundaria": Si es cruce, la calle con la que corta.
-7. "entreCalle1" y "entreCalle2": Si es tramo, las dos calles límite.
-8. "altura": Si es altura, el número de puerta (ej: "1818").
-9. "observaciones": Tareas pendientes o estado (ej: "En ejecución - Falta H30", "Media calzada", etc.).
-10. "descripcionOriginal": Texto de la línea.
+6. "callePrincipal": Nombre de la calle principal.
+7. "calleSecundaria": Si es cruce, la calle con la que corta.
+8. "entreCalle1" y "entreCalle2": Si es tramo, las dos calles límite.
+9. "altura": Si es altura, el número de puerta (ej: "1818").
+10. "observaciones": Tareas pendientes o estado (ej: "En ejecución - Falta H30", "Media calzada", etc.).
+11. "descripcionOriginal": Texto de la línea.
 
 Devuelve ÚNICAMENTE un JSON con:
 {
-  "tituloPlan": "Plan de Pavimentación...",
+  "tituloPlan": "Semana del 26/10 al 30/10 - Plan de Pavimentación",
   "items": [...]
 }`;
 
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const texto = body.texto || '';
-    const registrarComoCortes = body.registrarComoCortes !== false; // Por defecto crear también en intervenciones viales
+    const registrarComoCortes = body.registrarComoCortes !== false;
 
     if (!texto.trim()) {
       return NextResponse.json({ error: 'No se proveyó ningún texto para analizar' }, { status: 400 });
@@ -133,7 +134,6 @@ export async function POST(req: Request) {
         nombrePunto = `${item.callePrincipal} y ${item.calleSecundaria}`;
         coords = await geocodeIntersection(item.callePrincipal, item.calleSecundaria);
       } else if (item.descripcionOriginal) {
-        // Fallback: si tiene número en la descripción
         const matchNum = item.descripcionOriginal.match(/([a-zA-Z\s]+)\s+(\d{3,5})/);
         if (matchNum) {
           nombrePunto = matchNum[0].trim();
@@ -189,6 +189,7 @@ export async function POST(req: Request) {
       features,
     };
 
+    let registradosCount = 0;
     // Si se solicitó registrar como cortes y desvíos activos en el Planificador:
     if (registrarComoCortes && features.length > 0) {
       const year = new Date().getFullYear();
@@ -207,13 +208,14 @@ export async function POST(req: Request) {
               tipo: 'BACHEO',
               tipoCorte: 'TOTAL',
               motivo: props.observaciones || props.tipoMaterial,
-              areaResponsable: `Obras Públicas - ${props.empresa}`,
+              areaResponsable: tituloPlan, // Guarda el grupo/tanda del plan (ej: "Semana del 26/10 al 30/10")
               callesAfectadas: props.nombre,
               fechaInicio: new Date(),
               estado: 'PLANIFICADO',
               datosGeo: JSON.stringify(feat.geometry),
             },
           });
+          registradosCount++;
         } catch (dbErr) {
           console.error('Error insertando intervencion en DB:', dbErr);
         }
@@ -227,7 +229,7 @@ export async function POST(req: Request) {
       itemsTotal: items.length,
       itemsGeocodificados: features.length,
       fallidos,
-      registradosEnDesvios: registrarComoCortes ? features.length : 0,
+      registradosEnDesvios: registradosCount,
     });
   } catch (error: any) {
     console.error('Error parseando plan de obras:', error);

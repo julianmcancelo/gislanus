@@ -31,6 +31,7 @@ export default function DesviosPage() {
   const [intervenciones, setIntervenciones] = useState<any[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
+  const [filtroLote, setFiltroLote] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
 
   // Modal de impresión de ficha técnica
@@ -73,7 +74,8 @@ export default function DesviosPage() {
   const fetchIntervenciones = async () => {
     setLoadingList(true);
     try {
-      const res = await fetch(`/api/desvios?estado=${filtroEstado}`);
+      const loteParam = filtroLote !== 'TODOS' ? `&lote=${encodeURIComponent(filtroLote)}` : '';
+      const res = await fetch(`/api/desvios?estado=${filtroEstado}${loteParam}`);
       if (res.ok) {
         const data = await res.json();
         setIntervenciones(Array.isArray(data) ? data : []);
@@ -88,7 +90,7 @@ export default function DesviosPage() {
 
   useEffect(() => {
     fetchIntervenciones();
-  }, [filtroEstado]);
+  }, [filtroEstado, filtroLote]);
   // Cargar parámetros de URL si viene desde un punto de bacheo/obra del mapa
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -369,6 +371,50 @@ export default function DesviosPage() {
     }
   };
 
+  const handleLimpiarTodo = async () => {
+    if (!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR TODOS los cortes y desvíos registrados? Esta acción no se puede deshacer.')) return;
+    const toastId = toast.loading('Limpiando todos los cortes...');
+    try {
+      const token = await getIdToken();
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/desvios?limpiarTodo=true', {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) throw new Error('Error al limpiar cortes');
+      const data = await res.json();
+      toast.success(`Se eliminaron ${data.count || 0} cortes correctamente`, { id: toastId });
+      fetchIntervenciones();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar', { id: toastId });
+    }
+  };
+
+  const handleEliminarLote = async (loteNombre: string) => {
+    if (!confirm(`¿Eliminar todas las obras del grupo/lote "${loteNombre}"?`)) return;
+    const toastId = toast.loading(`Eliminando lote ${loteNombre}...`);
+    try {
+      const token = await getIdToken();
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/desvios?lote=${encodeURIComponent(loteNombre)}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) throw new Error('Error al eliminar lote');
+      toast.success(`Lote "${loteNombre}" eliminado con éxito`, { id: toastId });
+      if (filtroLote === loteNombre) setFiltroLote('TODOS');
+      fetchIntervenciones();
+    } catch (err: any) {
+      toast.error(err.message || 'Error al eliminar lote', { id: toastId });
+    }
+  };
+
   const handleCambiarEstado = async (id: string, nuevoEstado: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -391,7 +437,21 @@ export default function DesviosPage() {
     }
   };
 
+  // Extraer lista de lotes/grupos de carga únicos
+  const lotesDisponibles = React.useMemo(() => {
+    const setLotes = new Set<string>();
+    intervenciones.forEach(item => {
+      if (item.areaResponsable && item.areaResponsable.trim()) {
+        setLotes.add(item.areaResponsable.trim());
+      }
+    });
+    return Array.from(setLotes);
+  }, [intervenciones]);
+
   const intervencionesFiltradas = intervenciones.filter(item => {
+    if (filtroLote !== 'TODOS' && item.areaResponsable !== filtroLote) {
+      return false;
+    }
     if (!busqueda) return true;
     const term = busqueda.toLowerCase();
     return (
@@ -547,8 +607,64 @@ export default function DesviosPage() {
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <Filter size={16} color="#64748b" />
+                
+                {/* Selector de Grupo / Tanda de Carga */}
+                {lotesDisponibles.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Lote / Carga:</span>
+                    <select
+                      value={filtroLote}
+                      onChange={(e) => setFiltroLote(e.target.value)}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        background: '#fff',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        cursor: 'pointer',
+                        outline: 'none',
+                        maxWidth: '220px',
+                      }}
+                    >
+                      <option value="TODOS">Todos los grupos ({intervenciones.length})</option>
+                      {lotesDisponibles.map((lote) => {
+                        const count = intervenciones.filter(i => i.areaResponsable === lote).length;
+                        return (
+                          <option key={lote} value={lote}>
+                            {lote} ({count})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {filtroLote !== 'TODOS' && (
+                      <button
+                        type="button"
+                        onClick={() => handleEliminarLote(filtroLote)}
+                        style={{
+                          background: '#fee2e2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: '6px',
+                          padding: '5px 8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                        title="Eliminar este grupo de obras completo"
+                      >
+                        <Trash2 size={12} /> Borrar grupo
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Estado:</span>
                 {['TODOS', 'PLANIFICADO', 'EN_CURSO', 'FINALIZADO'].map((st) => (
                   <button
@@ -568,6 +684,30 @@ export default function DesviosPage() {
                     {st}
                   </button>
                 ))}
+
+                {intervenciones.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleLimpiarTodo}
+                    style={{
+                      background: '#fff',
+                      color: '#ef4444',
+                      border: '1px solid #fca5a5',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      marginLeft: '6px',
+                    }}
+                    title="Vaciar todos los cortes cargados"
+                  >
+                    <Trash2 size={13} /> Limpiar Todo
+                  </button>
+                )}
               </div>
             </div>
 
