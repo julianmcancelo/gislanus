@@ -470,26 +470,36 @@ export default function DesviosPage() {
 
     const toastId = toast.loading(`Cargando recorrido de Línea ${lineaNumero || ''}...`);
     try {
-      let lineaData: any = null;
+      let lineasTarget: any[] = [];
+
+      // 1. Si tenemos lineaId, buscarla por ID
       if (lineaId) {
         const res = await fetch(`/api/lineas-transporte/${lineaId}`);
-        if (res.ok) lineaData = await res.json();
-      }
-
-      if (!lineaData && lineaNumero) {
-        const res = await fetch('/api/lineas-transporte');
         if (res.ok) {
-          const todas = await res.json();
-          lineaData = todas.find((l: any) => String(l.numero) === String(lineaNumero) && l.activo);
+          const l = await res.json();
+          if (l && l.datosGeo) lineasTarget.push(l);
         }
       }
 
-      if (!lineaData || !lineaData.datosGeo) {
+      // 2. Si no la encontramos o queremos todos los ramales de ese número (ej. Línea 74), buscamos por número
+      if (lineasTarget.length === 0 && lineaNumero) {
+        const res = await fetch('/api/lineas-transporte');
+        if (res.ok) {
+          const todas = await res.json();
+          const cleanTargetNum = String(lineaNumero).trim().toLowerCase();
+          lineasTarget = todas.filter((l: any) => {
+            const numStr = String(l.numero || '').trim().toLowerCase();
+            const nomStr = String(l.nombre || '').trim().toLowerCase();
+            return (numStr === cleanTargetNum || nomStr.includes(`línea ${cleanTargetNum}`) || nomStr.includes(`linea ${cleanTargetNum}`)) && l.datosGeo;
+          });
+        }
+      }
+
+      if (lineasTarget.length === 0) {
         toast.error(`No se encontró el trazado GPS para la Línea ${lineaNumero}`, { id: toastId });
         return;
       }
 
-      const parsed = typeof lineaData.datosGeo === 'string' ? JSON.parse(lineaData.datosGeo) : lineaData.datosGeo;
       const segments: [number, number][][] = [];
 
       const extractCoords = (geom: any) => {
@@ -509,12 +519,19 @@ export default function DesviosPage() {
         }
       };
 
-      if (parsed.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
-        parsed.features.forEach((f: any) => extractCoords(f.geometry));
-      } else if (parsed.type === 'Feature') {
-        extractCoords(parsed.geometry);
-      } else {
-        extractCoords(parsed);
+      for (const lt of lineasTarget) {
+        try {
+          const parsed = typeof lt.datosGeo === 'string' ? JSON.parse(lt.datosGeo) : lt.datosGeo;
+          if (parsed?.type === 'FeatureCollection' && Array.isArray(parsed.features)) {
+            parsed.features.forEach((f: any) => extractCoords(f.geometry));
+          } else if (parsed?.type === 'Feature') {
+            extractCoords(parsed.geometry);
+          } else {
+            extractCoords(parsed);
+          }
+        } catch (e) {
+          console.error('Error parseando geo de linea:', e);
+        }
       }
 
       if (segments.length === 0) {
@@ -522,11 +539,12 @@ export default function DesviosPage() {
         return;
       }
 
+      const mainLinea = lineasTarget[0];
       setSelectedLineaRecorrido({
-        id: lineaData.id,
-        numero: String(lineaData.numero),
-        nombre: lineaData.nombre,
-        color: lineaData.color || '#2563eb',
+        id: mainLinea.id || String(lineaNumero),
+        numero: String(lineaNumero || mainLinea.numero),
+        nombre: mainLinea.nombre || `Línea ${lineaNumero}`,
+        color: mainLinea.color || '#2563eb',
         coordinates: segments,
       });
 
@@ -535,7 +553,7 @@ export default function DesviosPage() {
         setVistaModo('split');
       }
 
-      toast.success(`Mostrando recorrido de Línea ${lineaData.numero} en el mapa`, { id: toastId });
+      toast.success(`Mostrando recorrido de Línea ${lineaNumero} (${segments.length} tramos)`, { id: toastId });
     } catch (err: any) {
       console.error('Error cargando recorrido:', err);
       toast.error('Error al cargar la traza de la línea', { id: toastId });
