@@ -613,96 +613,96 @@ export default function DesviosPage() {
       </header>
 
       {/* Contenido Principal Full-Screen */}
-      <main style={{ height: 'calc(100vh - 61px)', width: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ height: 'calc(100vh - 58px)', width: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         
         {/* SOLAPA 1: GESTIONAR CORTES EXISTENTES */}
         {activeTab === 'gestionar' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', padding: '16px 20px', maxWidth: '1700px', margin: '0 auto', width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', padding: '10px 14px', maxWidth: '1750px', margin: '0 auto', width: '100%' }}>
             
-            {/* KPI STATS BAR MODERNA */}
+            {/* KPI STATS BAR MODERNA (COMPACTA) */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '12px',
-              marginBottom: '14px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '8px',
+              marginBottom: '8px',
             }}>
               {/* Card 1: Total */}
               <div style={{
                 background: '#fff',
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '8px 12px',
+                borderRadius: '8px',
                 border: '1px solid #e2e8f0',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
               }}>
-                <div style={{ background: '#eff6ff', color: '#2563eb', padding: '10px', borderRadius: '8px' }}>
-                  <Layers size={20} />
+                <div style={{ background: '#eff6ff', color: '#2563eb', padding: '6px', borderRadius: '6px' }}>
+                  <Layers size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Intervenciones</div>
-                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a' }}>{stats.total}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Intervenciones</div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a' }}>{stats.total}</div>
                 </div>
               </div>
 
               {/* Card 2: En Curso */}
               <div style={{
                 background: '#fff',
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '8px 12px',
+                borderRadius: '8px',
                 border: '1px solid #bbf7d0',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
               }}>
-                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '10px', borderRadius: '8px' }}>
-                  <AlertTriangle size={20} />
+                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '6px', borderRadius: '6px' }}>
+                  <AlertTriangle size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>Obras en Ejecución</div>
-                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#14532d' }}>{stats.enCurso}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>Obras en Ejecución</div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#14532d' }}>{stats.enCurso}</div>
                 </div>
               </div>
 
               {/* Card 3: Planificados */}
               <div style={{
                 background: '#fff',
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '8px 12px',
+                borderRadius: '8px',
                 border: '1px solid #fed7aa',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
               }}>
-                <div style={{ background: '#ffedd5', color: '#ea580c', padding: '10px', borderRadius: '8px' }}>
-                  <Clock size={20} />
+                <div style={{ background: '#ffedd5', color: '#ea580c', padding: '6px', borderRadius: '6px' }}>
+                  <Clock size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#c2410c', textTransform: 'uppercase' }}>Planificadas / Pendientes</div>
-                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#7c2d12' }}>{stats.planificados}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#c2410c', textTransform: 'uppercase' }}>Planificadas / Pendientes</div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#7c2d12' }}>{stats.planificados}</div>
                 </div>
               </div>
 
               {/* Card 4: Líneas Colectivos Afectadas */}
               <div style={{
                 background: '#fff',
-                padding: '12px 16px',
-                borderRadius: '10px',
+                padding: '8px 12px',
+                borderRadius: '8px',
                 border: '1px solid #e2e8f0',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '10px',
               }}>
-                <div style={{ background: '#f1f5f9', color: '#0284c7', padding: '10px', borderRadius: '8px' }}>
-                  <Bus size={20} />
+                <div style={{ background: '#f1f5f9', color: '#0284c7', padding: '6px', borderRadius: '6px' }}>
+                  <Bus size={16} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>Líneas Afectadas</div>
-                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#0c4a6e' }}>{stats.totalLineasAfectadas}</div>
+                  <div style={{ fontSize: '10px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase' }}>Líneas Afectadas</div>
+                  <div style={{ fontSize: '16px', fontWeight: 900, color: '#0c4a6e' }}>{stats.totalLineasAfectadas}</div>
                 </div>
               </div>
             </div>
@@ -710,56 +710,56 @@ export default function DesviosPage() {
             {/* Barra de Filtros y Selector de Modo de Vista */}
             <div style={{
               background: '#fff',
-              padding: '12px 18px',
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              padding: '8px 14px',
+              borderRadius: '10px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '14px',
+              marginBottom: '10px',
               flexWrap: 'wrap',
-              gap: '12px',
+              gap: '8px',
               border: '1px solid #e2e8f0',
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '260px' }}>
-                <Search size={18} color="#94a3b8" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
+                <Search size={16} color="#94a3b8" />
                 <input
                   type="text"
-                  placeholder="Buscar por código, calle o motivo de obra..."
+                  placeholder="Buscar por código, calle o motivo..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                   style={{
                     border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    padding: '7px 12px',
+                    borderRadius: '6px',
+                    padding: '5px 10px',
                     width: '100%',
-                    fontSize: '13px',
+                    fontSize: '12px',
                     outline: 'none',
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <Filter size={16} color="#64748b" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <Filter size={15} color="#64748b" />
                 
                 {/* Selector de Grupo / Tanda de Carga */}
                 {lotesDisponibles.length > 0 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>Lote:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginRight: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Lote:</span>
                     <select
                       value={filtroLote}
                       onChange={(e) => setFiltroLote(e.target.value)}
                       style={{
-                        padding: '6px 10px',
+                        padding: '4px 8px',
                         borderRadius: '6px',
                         border: '1px solid #cbd5e1',
                         background: '#fff',
-                        fontSize: '12px',
+                        fontSize: '11px',
                         fontWeight: 700,
                         color: '#0f172a',
                         cursor: 'pointer',
                         outline: 'none',
-                        maxWidth: '220px',
+                        maxWidth: '200px',
                       }}
                     >
                       <option value="TODOS">Todos los grupos ({intervenciones.length})</option>
@@ -781,23 +781,23 @@ export default function DesviosPage() {
                           color: '#dc2626',
                           border: '1px solid #fecaca',
                           borderRadius: '6px',
-                          padding: '5px 8px',
-                          fontSize: '11px',
+                          padding: '4px 6px',
+                          fontSize: '10px',
                           fontWeight: 700,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '4px',
+                          gap: '3px',
                         }}
                         title="Eliminar este grupo de obras completo"
                       >
-                        <Trash2 size={12} /> Borrar grupo
+                        <Trash2 size={11} /> Borrar
                       </button>
                     )}
                   </div>
                 )}
 
-                <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b' }}>Estado:</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>Estado:</span>
                 {['TODOS', 'PLANIFICADO', 'EN_CURSO', 'FINALIZADO'].map((st) => (
                   <button
                     key={st}
@@ -806,9 +806,9 @@ export default function DesviosPage() {
                       background: filtroEstado === st ? '#1e293b' : '#f1f5f9',
                       color: filtroEstado === st ? '#fff' : '#475569',
                       border: 'none',
-                      borderRadius: '6px',
-                      padding: '5px 10px',
-                      fontSize: '11px',
+                      borderRadius: '5px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       fontWeight: 700,
                       cursor: 'pointer',
                     }}
@@ -818,16 +818,16 @@ export default function DesviosPage() {
                 ))}
 
                 {/* Switcher Modo de Vista: Split Map vs Grid */}
-                <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', gap: '2px', marginLeft: '8px' }}>
+                <div style={{ display: 'flex', background: '#f1f5f9', padding: '2px', borderRadius: '6px', gap: '2px', marginLeft: '4px' }}>
                   <button
                     onClick={() => setVistaModo('split')}
                     style={{
                       background: vistaModo === 'split' ? '#fff' : 'transparent',
                       color: vistaModo === 'split' ? '#2563eb' : '#64748b',
                       border: 'none',
-                      borderRadius: '6px',
-                      padding: '5px 10px',
-                      fontSize: '11px',
+                      borderRadius: '5px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
@@ -837,8 +837,8 @@ export default function DesviosPage() {
                     }}
                     title="Vista combinada: Mapa y Lista"
                   >
-                    <MapIcon size={13} />
-                    Mapa Interactivo
+                    <MapIcon size={12} />
+                    Mapa
                   </button>
                   <button
                     onClick={() => setVistaModo('grid')}
@@ -846,9 +846,9 @@ export default function DesviosPage() {
                       background: vistaModo === 'grid' ? '#fff' : 'transparent',
                       color: vistaModo === 'grid' ? '#2563eb' : '#64748b',
                       border: 'none',
-                      borderRadius: '6px',
-                      padding: '5px 10px',
-                      fontSize: '11px',
+                      borderRadius: '5px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
@@ -858,7 +858,7 @@ export default function DesviosPage() {
                     }}
                     title="Vista en tarjetas cuadrícula"
                   >
-                    <LayoutGrid size={13} />
+                    <LayoutGrid size={12} />
                     Tarjetas
                   </button>
                 </div>
@@ -871,19 +871,19 @@ export default function DesviosPage() {
                       background: '#fff',
                       color: '#ef4444',
                       border: '1px solid #fca5a5',
-                      borderRadius: '6px',
-                      padding: '5px 10px',
-                      fontSize: '11px',
+                      borderRadius: '5px',
+                      padding: '4px 8px',
+                      fontSize: '10px',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '4px',
-                      marginLeft: '6px',
+                      gap: '3px',
+                      marginLeft: '4px',
                     }}
                     title="Vaciar todos los cortes cargados"
                   >
-                    <Trash2 size={12} /> Limpiar Todo
+                    <Trash2 size={11} /> Limpiar Todo
                   </button>
                 )}
               </div>
@@ -908,13 +908,13 @@ export default function DesviosPage() {
               <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 {/* Columna Izquierda: Lista scrolleable de tarjetas */}
                 <div style={{
-                  width: '450px',
-                  maxWidth: '45%',
+                  width: '420px',
+                  maxWidth: '42%',
                   overflowY: 'auto',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
-                  paddingRight: '6px',
+                  gap: '8px',
+                  paddingRight: '4px',
                 }}>
                   {intervencionesFiltradas.map((item) => {
                     const isSelected = item.id === selectedMapId;
@@ -924,25 +924,25 @@ export default function DesviosPage() {
                         onClick={() => setSelectedMapId(item.id)}
                         style={{
                           background: '#fff',
-                          borderRadius: '12px',
+                          borderRadius: '10px',
                           border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                          padding: '14px',
-                          boxShadow: isSelected ? '0 4px 14px rgba(37,99,235,0.15)' : '0 1px 4px rgba(0,0,0,0.03)',
+                          padding: '10px 12px',
+                          boxShadow: isSelected ? '0 3px 12px rgba(37,99,235,0.12)' : '0 1px 3px rgba(0,0,0,0.02)',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '8px',
+                          gap: '6px',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <span style={{ 
-                            fontSize: '11px', 
+                            fontSize: '10px', 
                             fontWeight: 800, 
                             color: '#2563eb', 
                             background: '#eff6ff', 
                             border: '1px solid #bfdbfe', 
-                            padding: '2px 8px', 
+                            padding: '1px 6px', 
                             borderRadius: '4px' 
                           }}>
                             {item.codigo}
@@ -952,7 +952,7 @@ export default function DesviosPage() {
                             fontWeight: 800,
                             color: item.estado === 'EN_CURSO' ? '#16a34a' : (item.estado === 'PLANIFICADO' ? '#ca8a04' : '#64748b'),
                             background: item.estado === 'EN_CURSO' ? '#dcfce7' : (item.estado === 'PLANIFICADO' ? '#fef9c3' : '#f1f5f9'),
-                            padding: '2px 8px',
+                            padding: '1px 6px',
                             borderRadius: '4px',
                           }}>
                             {item.estado}
@@ -960,36 +960,36 @@ export default function DesviosPage() {
                         </div>
 
                         <div>
-                          <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>
+                          <h4 style={{ margin: '0 0 2px', fontSize: '13px', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
                             {item.titulo}
                           </h4>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <MapPin size={13} color="#ef4444" />
+                          <p style={{ margin: 0, fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <MapPin size={12} color="#ef4444" />
                             {item.callesAfectadas || 'Lanús'}
                           </p>
                         </div>
 
                         {item.areaResponsable && (
-                          <div style={{ fontSize: '11px', color: '#475569', background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', border: '1px solid #f1f5f9' }}>
-                            <strong>Lote / Empresa:</strong> {item.areaResponsable}
+                          <div style={{ fontSize: '10px', color: '#475569', background: '#f8fafc', padding: '2px 6px', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
+                            <strong>Lote:</strong> {item.areaResponsable}
                           </div>
                         )}
 
                         {/* Colectivos Afectados */}
                         {item.desvios && item.desvios.length > 0 && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                            <Bus size={13} color="#2563eb" />
-                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>Líneas:</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                            <Bus size={12} color="#2563eb" />
+                            <span style={{ fontSize: '10px', fontWeight: 700, color: '#334155' }}>Líneas:</span>
                             {item.desvios.map((d: any, idx: number) => (
                               <span
                                 key={idx}
                                 style={{
                                   background: '#1e293b',
                                   color: '#fff',
-                                  fontSize: '10px',
+                                  fontSize: '9px',
                                   fontWeight: 800,
-                                  padding: '2px 6px',
-                                  borderRadius: '4px',
+                                  padding: '1px 5px',
+                                  borderRadius: '3px',
                                 }}
                               >
                                 L.{d.lineaNumero}
@@ -999,16 +999,16 @@ export default function DesviosPage() {
                         )}
 
                         {/* Acciones */}
-                        <div style={{ display: 'flex', gap: '6px', borderTop: '1px solid #f1f5f9', paddingTop: '8px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #f1f5f9', paddingTop: '6px', alignItems: 'center' }}>
                           <select
                             value={item.estado}
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => handleCambiarEstado(item.id, e.target.value, e as any)}
                             style={{
-                              fontSize: '11px',
+                              fontSize: '10px',
                               fontWeight: 700,
-                              padding: '5px 6px',
-                              borderRadius: '6px',
+                              padding: '4px 6px',
+                              borderRadius: '4px',
                               border: '1px solid #cbd5e1',
                               background: '#f8fafc',
                               color: '#334155',
@@ -1031,9 +1031,9 @@ export default function DesviosPage() {
                               background: '#2563eb',
                               color: '#fff',
                               border: 'none',
-                              borderRadius: '6px',
-                              padding: '5px 8px',
-                              fontSize: '11px',
+                              borderRadius: '5px',
+                              padding: '4px 6px',
+                              fontSize: '10px',
                               fontWeight: 700,
                               cursor: 'pointer',
                               display: 'flex',
@@ -1042,7 +1042,7 @@ export default function DesviosPage() {
                               gap: '4px',
                             }}
                           >
-                            <Printer size={13} />
+                            <Printer size={12} />
                             Ficha Técnica
                           </button>
 
@@ -1055,13 +1055,13 @@ export default function DesviosPage() {
                               background: '#fee2e2',
                               color: '#dc2626',
                               border: '1px solid #fecaca',
-                              borderRadius: '6px',
-                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              padding: '4px 6px',
                               cursor: 'pointer',
                             }}
                             title="Eliminar corte"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={12} />
                           </button>
                         </div>
                       </div>

@@ -111,22 +111,31 @@ export default function DesviosOverviewMap({
 
         const isSelected = item.id === selectedId;
 
-        // Desvíos con líneas de colectivos
+        // Desvíos con líneas de colectivos (validar estrictamente que sea LineString válido)
         const desviosLines: any[] = [];
         if (Array.isArray(item.desvios)) {
           item.desvios.forEach((d: any) => {
             if (d.datosGeoDesvio) {
-              const dGeo = typeof d.datosGeoDesvio === 'string' ? JSON.parse(d.datosGeoDesvio) : d.datosGeoDesvio;
-              if (dGeo?.coordinates && Array.isArray(dGeo.coordinates)) {
-                // Invertir [lng, lat] a [lat, lng]
-                const poly = dGeo.coordinates.map((c: any) => [c[1], c[0]]);
-                if (poly.length > 1) {
-                  desviosLines.push({
-                    lineaNumero: d.lineaNumero,
-                    ramal: d.ramal,
-                    poly,
-                  });
+              try {
+                const dGeo = typeof d.datosGeoDesvio === 'string' ? JSON.parse(d.datosGeoDesvio) : d.datosGeoDesvio;
+                // Si es un Point (como en la importación de corte), no intentar trazar Polyline
+                if (dGeo?.type === 'LineString' && Array.isArray(dGeo.coordinates) && dGeo.coordinates.length >= 2) {
+                  const validPoly: [number, number][] = [];
+                  for (const c of dGeo.coordinates) {
+                    if (Array.isArray(c) && c.length >= 2 && !isNaN(c[0]) && !isNaN(c[1])) {
+                      validPoly.push([Number(c[1]), Number(c[0])]);
+                    }
+                  }
+                  if (validPoly.length >= 2) {
+                    desviosLines.push({
+                      lineaNumero: d.lineaNumero,
+                      ramal: d.ramal,
+                      poly: validPoly,
+                    });
+                  }
                 }
+              } catch (e) {
+                console.error('Error parseando desvio geometry:', e);
               }
             }
           });
@@ -197,17 +206,20 @@ export default function DesviosOverviewMap({
 
               {/* Traza de desvío proyectada en mapa si está seleccionado */}
               {m.isSelected &&
-                m.desviosLines.map((dl, idx) => (
-                  <Polyline
-                    key={`desvio-poly-${idx}`}
-                    positions={dl.poly}
-                    pathOptions={{
-                      color: '#10b981',
-                      weight: 5,
-                      dashArray: '8 6',
-                    }}
-                  />
-                ))}
+                m.desviosLines.map((dl, idx) => {
+                  if (!dl.poly || !Array.isArray(dl.poly) || dl.poly.length < 2) return null;
+                  return (
+                    <Polyline
+                      key={`desvio-poly-${m.id}-${idx}`}
+                      positions={dl.poly}
+                      pathOptions={{
+                        color: '#10b981',
+                        weight: 5,
+                        dashArray: '8 6',
+                      }}
+                    />
+                  );
+                })}
 
               <Marker
                 position={m.coords}
