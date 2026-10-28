@@ -498,18 +498,21 @@ export default function MapComponent() {
           console.error("Error loading base layer:", e);
         }
 
-        const [resCapas, resRutas, resLineas, resBitacora] = await Promise.all([
+        const [resCapas, resRutas, resLineas, resBitacora, resDesvios] = await Promise.all([
           fetch('/api/capas').catch(() => ({ ok: false, json: async () => [] })),
           fetch('/api/rutas-transporte').catch(() => ({ ok: false, json: async () => [] })),
           fetch('/api/lineas-transporte').catch(() => ({ ok: false, json: async () => [] })),
           fetch('/api/bitacora-gps?limit=100').catch(() => ({ ok: false, json: async () => ({ items: [] }) })),
+          fetch('/api/desvios').catch(() => ({ ok: false, json: async () => [] })),
         ]);
 
         const dataCapas = resCapas && resCapas.ok ? await resCapas.json().catch(() => []) : [];
         const dataRutas = resRutas && resRutas.ok ? await resRutas.json().catch(() => []) : [];
         const dataLineas = resLineas && resLineas.ok ? await resLineas.json().catch(() => []) : [];
         const dataBitacora = resBitacora && resBitacora.ok ? await resBitacora.json().catch(() => ({ items: [] })) : { items: [] };
+        const dataDesvios = resDesvios && resDesvios.ok ? await resDesvios.json().catch(() => []) : [];
         const validBitacora = Array.isArray(dataBitacora?.items) ? dataBitacora.items : [];
+        const validDesvios = Array.isArray(dataDesvios) ? dataDesvios : [];
 
         const validCapas = Array.isArray(dataCapas) ? dataCapas : [];
         const validRutas = Array.isArray(dataRutas) ? dataRutas.filter((r: any) => r && r.activo !== false) : [];
@@ -712,7 +715,61 @@ export default function MapComponent() {
           };
         }).filter(Boolean);
 
-        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedBitacora];
+        const formatedDesvios = validDesvios.map((d: any) => {
+          let geo = null;
+          try {
+            geo = typeof d.datosGeo === 'string' ? JSON.parse(d.datosGeo) : d.datosGeo;
+          } catch (e) {}
+          if (!geo) return null;
+
+          const st = (d.estado || 'PLANIFICADO').toUpperCase();
+          const color = st === 'EN_CURSO' ? '#16a34a' : (st === 'FINALIZADO' ? '#64748b' : '#ea580c');
+          const lote = d.areaResponsable ? d.areaResponsable.trim() : 'General';
+          const lineasDesviadas = Array.isArray(d.desvios) && d.desvios.length > 0 
+            ? ` (${d.desvios.map((x: any) => 'L.' + x.lineaNumero).join(', ')})`
+            : '';
+
+          const desvioProps = {
+            _tipo: 'corte_desvio',
+            _codigo: d.codigo,
+            _titulo: d.titulo,
+            _estado: d.estado,
+            _motivo: d.motivo,
+            _callesAfectadas: d.callesAfectadas,
+            _areaResponsable: d.areaResponsable,
+            _lineasDesviadas: d.desvios,
+          };
+
+          if (geo.type === 'Feature') {
+            geo.properties = { ...geo.properties, ...desvioProps };
+          } else if (geo.features) {
+            geo.features = geo.features.map((f: any) => ({
+              ...f,
+              properties: { ...f.properties, ...desvioProps },
+            }));
+          } else {
+            geo = {
+              type: 'Feature',
+              geometry: geo,
+              properties: desvioProps,
+            };
+          }
+
+          return {
+            id: `desvio-${d.id}`,
+            nombre: `${d.codigo || 'CORTE'}: ${d.titulo || d.callesAfectadas || 'Corte Vial'}${lineasDesviadas}`,
+            datosGeo: geo,
+            color,
+            icono: 'AlertTriangle',
+            visibilidad: 'PUBLIC',
+            rolesPermitidos: [],
+            grupo: { nombre: 'Cortes y Desvíos Viales' },
+            subGrupo: { nombre: lote },
+            subSubGrupo: null,
+          };
+        }).filter(Boolean);
+
+        const allData = [...validCapas, ...formatedRutas.filter(Boolean), ...formatedLineas.filter(Boolean), ...formatedBitacora, ...formatedDesvios];
 
         // Filter based on visibility and login status
         const visibleData = allData.filter((l: any) => {
@@ -1186,6 +1243,60 @@ export default function MapComponent() {
                         ${props._ramal ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Ramal</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(props._ramal)}</span></div>` : ''}
                         ${sentidoLabel ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Sentido</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(sentidoLabel)}</span></div>` : ''}
                         ${props._operador ? `<div style="display:flex;gap:8px;"><span style="font-size:11px;color:#94a3b8;min-width:60px;">Operador</span><span style="font-size:11px;font-weight:600;color:#1e293b;">${escapeHtml(props._operador)}</span></div>` : ''}
+                      </div>
+                    </div>`;
+                } else if (props._tipo === 'corte_desvio') {
+                  // ── Popup interactivo y descriptivo para Cortes y Desvíos Viales ──
+                  const estadoColors: Record<string, string> = {
+                    PLANIFICADO: '#ea580c', EN_CURSO: '#16a34a', FINALIZADO: '#64748b', CANCELADO: '#dc2626'
+                  };
+                  const estadoBgs: Record<string, string> = {
+                    PLANIFICADO: '#ffedd5', EN_CURSO: '#dcfce7', FINALIZADO: '#f1f5f9', CANCELADO: '#fee2e2'
+                  };
+                  const estado = (props._estado || 'PLANIFICADO').toUpperCase();
+                  const dotColor = estadoColors[estado] || '#ea580c';
+                  const bgColor = estadoBgs[estado] || '#ffedd5';
+
+                  const lineasArr = Array.isArray(props._lineasDesviadas) ? props._lineasDesviadas : [];
+                  const lineasChips = lineasArr.length > 0
+                    ? lineasArr.map((lx: any) => `<span style="background:#1e293b;color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">L.${escapeHtml(String(lx.lineaNumero || ''))}</span>`).join(' ')
+                    : '<span style="font-size:11px;color:#94a3b8;font-style:italic;">Sin colectivos circulando por el corte</span>';
+
+                  popupContent = `
+                    <div style="font-family:'Inter',system-ui,sans-serif;min-width:280px;max-width:340px;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:2px solid ${dotColor};">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                          <span style="font-size:16px;">🚧</span>
+                          <span style="font-size:12px;font-weight:800;color:#2563eb;background:#eff6ff;padding:1px 6px;border-radius:4px;border:1px solid #bfdbfe;">
+                            ${escapeHtml(props._codigo || 'CORTE')}
+                          </span>
+                        </div>
+                        <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:12px;background:${bgColor};color:${dotColor};">
+                          ${escapeHtml(props._estado || 'PLANIFICADO')}
+                        </span>
+                      </div>
+                      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+                        <div style="font-size:13px;font-weight:800;color:#0f172a;line-height:1.2;">
+                          ${escapeHtml(props._titulo || 'Obra / Corte Vial')}
+                        </div>
+                        <div style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:4px;">
+                          📍 ${escapeHtml(props._callesAfectadas || 'Lanús')}
+                        </div>
+                        ${props._areaResponsable ? `<div style="font-size:10px;color:#475569;background:#f8fafc;padding:3px 6px;border-radius:4px;border:1px solid #e2e8f0;"><strong>Lote/Empresa:</strong> ${escapeHtml(props._areaResponsable)}</div>` : ''}
+                        
+                        <div style="margin-top:4px;padding-top:6px;border-top:1px dashed #e2e8f0;">
+                          <div style="font-size:11px;font-weight:700;color:#334155;margin-bottom:4px;display:flex;align-items:center;gap:4px;">
+                            🚌 Colectivos que desvían (${lineasArr.length}):
+                          </div>
+                          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                            ${lineasChips}
+                          </div>
+                        </div>
+                      </div>
+                      <div style="padding:6px 14px 10px;border-top:1px solid #f1f5f9;display:flex;gap:6px;justify-content:flex-end;">
+                        <a href="/desvios" style="background:#2563eb;color:#fff;text-decoration:none;font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;">
+                          Planificador de Desvíos &rarr;
+                        </a>
                       </div>
                     </div>`;
                 } else if (isTransporte) {

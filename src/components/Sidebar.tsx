@@ -151,24 +151,28 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
     <div className={styles.solicitudRow} onClick={onToggle}
       title={`#${capa.numeroSolicitud} · ${owner} · Dominio: ${capa.patente || 'S/D'} · ${cfg.label}${route ? ' · ' + route : ''}`}
       style={{ 
-        opacity: capa.active ? 1 : 0.55,
+        opacity: capa.active ? 1 : 0.65,
         display: 'flex',
         alignItems: 'center',
-        gap: '6px',
-        padding: '6px 8px',
+        gap: '8px',
+        padding: '7px 10px',
         borderBottom: '1px solid #f1f5f9',
         width: '100%',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        borderRadius: '8px',
+        background: capa.active ? '#f8fafc' : 'transparent',
+        transition: 'all 0.15s ease',
+        cursor: 'pointer',
       }}>
       
-      <div className={styles.estadoDot} style={{ background: cfg.dot, width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0 }} />
+      <div className={styles.estadoDot} style={{ background: cfg.dot, width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0, boxShadow: `0 0 0 2px ${cfg.bg}` }} />
       
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
           <span style={{ 
             fontSize: '11px', 
-            fontWeight: 700, 
-            color: '#1e293b', 
+            fontWeight: 800, 
+            color: '#0f172a', 
             overflow: 'hidden', 
             textOverflow: 'ellipsis', 
             whiteSpace: 'nowrap',
@@ -178,23 +182,24 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
           </span>
           {capa.patente && (
             <span style={{ 
-              fontSize: '8px', 
-              fontWeight: 700, 
-              color: '#1d4ed8', 
+              fontSize: '9px', 
+              fontWeight: 800, 
+              color: '#1e40af', 
               background: '#eff6ff', 
               border: '1px solid #bfdbfe',
-              padding: '0.5px 4px',
-              borderRadius: '3px',
+              padding: '1px 5px',
+              borderRadius: '4px',
               fontFamily: 'monospace',
-              flexShrink: 0
+              flexShrink: 0,
+              letterSpacing: '0.3px',
             }}>
               {capa.patente}
             </span>
           )}
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: '#64748b' }}>
-          <span style={{ fontWeight: 600, color: '#475569', fontSize: '9px', fontFamily: 'monospace' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: '#64748b' }}>
+          <span style={{ fontWeight: 700, color: '#334155', fontSize: '9px', fontFamily: 'monospace', background: '#f1f5f9', padding: '0 4px', borderRadius: '3px' }}>
             #{capa.numeroSolicitud}
           </span>
           {route && (
@@ -204,7 +209,9 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
                 overflow: 'hidden', 
                 textOverflow: 'ellipsis', 
                 whiteSpace: 'nowrap', 
-                flex: 1 
+                flex: 1,
+                fontSize: '9.5px',
+                color: '#64748b',
               }}>
                 {route}
               </span>
@@ -213,8 +220,8 @@ function SolicitudRow({ capa, onToggle }: { capa: Capa; onToggle: () => void }) 
         </div>
       </div>
 
-      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot, fontSize: '8px', padding: '1px 4px' }}>
+      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span className={styles.estadoBadge} style={{ background: cfg.bg, color: cfg.dot, fontSize: '8.5px', fontWeight: 800, padding: '2px 6px', borderRadius: '5px' }}>
           {cfg.short}
         </span>
         <Toggle active={capa.active} color={cfg.dot} onChange={onToggle} />
