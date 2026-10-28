@@ -95,6 +95,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser?.email) {
+        const emailLower = currentUser.email.toLowerCase().trim();
+        if (emailLower.endsWith('@lanus.gob.ar') || emailLower.endsWith('.lanus.gob.ar')) {
+          console.warn("Acceso denegado: dominio @lanus.gob.ar bloqueado");
+          await signOut(auth);
+          setUser(null);
+          setDbUser(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       setUser(currentUser);
       if (currentUser) {
         try {
@@ -110,6 +122,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (res.ok) {
             const data = await res.json();
             setDbUser(data);
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            if (res.status === 403) {
+              await signOut(auth);
+              setUser(null);
+              setDbUser(null);
+            }
           }
         } catch (error) {
           console.error("Error al sincronizar con la base de datos", error);
@@ -150,7 +169,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user?.email) {
+        const emailLower = result.user.email.toLowerCase().trim();
+        if (emailLower.endsWith('@lanus.gob.ar') || emailLower.endsWith('.lanus.gob.ar')) {
+          await signOut(auth);
+          setUser(null);
+          setDbUser(null);
+          throw new Error('El dominio @lanus.gob.ar no está autorizado para acceder a este sistema.');
+        }
+      }
     } catch (error) {
       console.error("Error logging in with Google:", error);
       throw error;
@@ -158,6 +186,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const loginWithEmail = async (email: string, pass: string) => {
+    const emailLower = email.toLowerCase().trim();
+    if (emailLower.endsWith('@lanus.gob.ar') || emailLower.endsWith('.lanus.gob.ar')) {
+      throw new Error('El dominio @lanus.gob.ar no está autorizado para acceder a este sistema.');
+    }
     if (isBypass) {
       const mockUser = {
         uid: `dev-email-uid-${email.replace(/[^a-zA-Z0-9]/g, '')}`,

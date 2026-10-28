@@ -3734,7 +3734,7 @@ export default function AdminPage() {
                       type="email"
                       value={tramitesEmail}
                       onChange={e => setTramitesEmail(e.target.value)}
-                      placeholder="tu.email@lanus.gob.ar"
+                      placeholder="usuario@dominio.com"
                       style={{ padding: '10px 12px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
                       required
                       autoComplete="off"

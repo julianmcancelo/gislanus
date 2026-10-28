@@ -49,6 +49,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     const fingerprint = body.deviceFingerprint || null;
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+    const reqEmail = body.email ? String(body.email).trim().toLowerCase() : null;
+
+    if (reqEmail && (reqEmail.endsWith('@lanus.gob.ar') || reqEmail.endsWith('.lanus.gob.ar'))) {
+      return NextResponse.json(
+        { error: 'El dominio @lanus.gob.ar no está autorizado para acceder a este sistema.' },
+        { status: 403 }
+      );
+    }
 
     // Verificar si el dispositivo está bloqueado
     if (fingerprint) {
@@ -123,6 +131,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (accion === 'aprobar') {
     if (!sesion.email) return NextResponse.json({ error: 'La sesión no tiene email.' }, { status: 400 });
+
+    const sesionEmail = sesion.email.trim().toLowerCase();
+    if (sesionEmail.endsWith('@lanus.gob.ar') || sesionEmail.endsWith('.lanus.gob.ar')) {
+      return NextResponse.json(
+        { error: 'El dominio @lanus.gob.ar se encuentra bloqueado.' },
+        { status: 403 }
+      );
+    }
 
     let usuario = await prisma.usuario.findUnique({ where: { email: sesion.email } });
     if (!usuario) {

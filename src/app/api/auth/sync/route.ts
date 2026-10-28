@@ -9,6 +9,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan datos de usuario' }, { status: 400 });
     }
 
+    const emailNormalizado = email.trim().toLowerCase();
+
+    // Bloqueo explícito de dominio municipal lanus.gob.ar
+    if (emailNormalizado.endsWith('@lanus.gob.ar') || emailNormalizado.endsWith('.lanus.gob.ar')) {
+      return NextResponse.json(
+        { error: 'El dominio @lanus.gob.ar no está autorizado para acceder a este sistema.' },
+        { status: 403 }
+      );
+    }
+
     const SUPER_ADMIN_EMAILS = [
       (process.env.SUPER_ADMIN_EMAIL || 'julianmcancelo@gmail.com').toLowerCase(),
       'jcancelo.dev@gmail.com'

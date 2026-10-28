@@ -109,9 +109,14 @@ export default function LoginPage() {
               <button
                 onClick={async () => {
                   setLoadingGoogle(true); setError('');
-                  try { await loginWithGoogle(); router.push('/bienvenida'); }
-                  catch { setError('Error al iniciar sesión con Google.'); }
-                  finally { setLoadingGoogle(false); }
+                  try { 
+                    await loginWithGoogle(); 
+                    router.push('/bienvenida'); 
+                  } catch (err: any) { 
+                    setError(err?.message || 'Error al iniciar sesión con Google.'); 
+                  } finally { 
+                    setLoadingGoogle(false); 
+                  }
                 }}
                 disabled={loadingGoogle}
                 className="w-full flex items-center justify-center gap-3 py-3.5 px-5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-extrabold rounded-2xl text-sm transition-all active:scale-[0.98] disabled:opacity-60 shadow-lg shadow-sky-500/10 hover:shadow-sky-500/20"

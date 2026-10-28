@@ -10,6 +10,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Nombre y email son requeridos.' }, { status: 400 });
     }
 
+    const emailNormalizado = email.trim().toLowerCase();
+    if (emailNormalizado.endsWith('@lanus.gob.ar') || emailNormalizado.endsWith('.lanus.gob.ar')) {
+      return NextResponse.json(
+        { error: 'El dominio @lanus.gob.ar no está autorizado para acceder a este sistema.' },
+        { status: 403 }
+      );
+    }
+
     // Check if device is blocked
     if (deviceFingerprint) {
       const bloqueado = await prisma.dispositivoBloqueado.findUnique({
